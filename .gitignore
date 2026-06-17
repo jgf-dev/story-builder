@@ -6,6 +6,8 @@ chroma_db/
 sentiment_analysis.db
 sentiment_analysis.db-journal
 .venv
+.venv-314
+.venv-315
 **/__pycache__/
 *.pyc
 tests/__pycache__/

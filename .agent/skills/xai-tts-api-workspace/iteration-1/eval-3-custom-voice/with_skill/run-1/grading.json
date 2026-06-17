@@ -1,0 +1,33 @@
+{
+  "expectations": [
+    {
+      "text": "Uses POST https://api.x.ai/v1/custom-voices with multipart file upload",
+      "passed": true,
+      "evidence": "The example posts to /v1/custom-voices with files={\"file\": (...)}."
+    },
+    {
+      "text": "Extracts voice_id from the custom voice creation response",
+      "passed": true,
+      "evidence": "The code sets voice_id = create.json()[\"voice_id\"]."
+    },
+    {
+      "text": "Uses the custom voice_id in a subsequent POST https://api.x.ai/v1/tts request",
+      "passed": true,
+      "evidence": "The speech request posts to /v1/tts with json containing \"voice_id\": voice_id."
+    },
+    {
+      "text": "Writes custom.mp3 in binary mode",
+      "passed": true,
+      "evidence": "The output writes speech.content with open(\"custom.mp3\", \"wb\")."
+    },
+    {
+      "text": "Clearly warns that custom voice creation is opt-in and not part of automated smoke tests",
+      "passed": true,
+      "evidence": "The answer opens with an opt-in warning and says custom voice creation is not part of automated smoke tests."
+    }
+  ],
+  "summary": {"passed": 5, "failed": 0, "total": 5, "pass_rate": 1.0},
+  "execution_metrics": {"total_tool_calls": 0, "errors_encountered": 0, "output_chars": 1108},
+  "timing": {"total_duration_seconds": 0.0},
+  "user_notes_summary": {"uncertainties": [], "needs_review": [], "workarounds": ["Manual artifact because no independent subagent runner is exposed in this environment."]}
+}

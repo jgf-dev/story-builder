@@ -1,0 +1,48 @@
+[project]
+name = "storybuilder"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [{name = "jgeofil", email = "jeremy.geo@gmail.com"}]
+requires-python = ">=3.12"
+dependencies = [
+    "beautifulsoup4>=4.14.3",
+    "boto3>=1.43.18",
+    "botocore[crt]>=1.43.18",
+    "cartesia>=3.2.0",
+    "chromadb>=1.5.9",
+    "google-cloud-storage>=3.12.0",
+    "google-genai>=2.8.0",
+    "ibm-watson>=11.2.0",
+    "lsprotocol==2023.0.1",
+    "matplotlib>=3.10.9",
+    "openai>=2.41.0",
+    "pandas>=2.3.3",
+    "plotly>=6.8.0",
+    "pygls==1.0.0",
+    "pysocks>=1.7.1",
+    "python-dotenv>=1.2.2",
+    "requests>=2.34.2",
+    "scikit-learn>=1.9.0",
+    "sentence-transformers>=5.5.1",
+    "spacy[cuda12x]>=3.8.14",
+    "strands-agents>=1.42.0",
+    "tqdm>=4.68.1",
+    "transformers>=5.10.2",
+    "xai-sdk>=1.15.0",
+]
+
+[project.scripts]
+storybuilder = "storybuilder.downloader.cli:main"
+
+[build-system]
+requires      = ["uv_build>=0.11.15,<0.12.0"]
+build-backend = "uv_build"
+
+[tool.uv.extra-build-dependencies]
+cupy = ["pkg_resources"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+]

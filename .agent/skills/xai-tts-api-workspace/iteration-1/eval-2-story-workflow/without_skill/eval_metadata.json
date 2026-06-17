@@ -1,0 +1,12 @@
+{
+  "eval_id": 2,
+  "eval_name": "story-workflow",
+  "prompt": "In this StoryBuilder repo, outline the workflow to annotate a story for xAI TTS and then synthesize chunked audio files. Mention the existing .agent/skills/xai-tts-api resources/scripts and any gotchas before running them.",
+  "assertions": [
+    "References .agent/skills/xai-tts-api/resources/annotate.md for annotation guidance",
+    "Mentions the helper scripts under .agent/skills/xai-tts-api/scripts/",
+    "Preserves source story wording when adding tags",
+    "Chunks requests below the documented 15,000 character TTS limit",
+    "Warns about verifying or fixing the current annotate.py import path before execution"
+  ]
+}

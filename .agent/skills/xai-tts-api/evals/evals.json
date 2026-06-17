@@ -1,0 +1,82 @@
+{
+  "skill_name": "xai-tts-api",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I need a small Python example for xAI TTS that lists available voices and then generates a short hello.mp3 with the built-in eve voice. Please keep the API key in the environment and don't actually run the request.",
+      "expected_output": "A safe Python REST example using XAI_API_KEY from the environment, GET /v1/tts/voices, POST /v1/tts, voice_id eve, binary MP3 saving, and no hardcoded secret.",
+      "files": [],
+      "expectations": [
+        "Uses XAI_API_KEY from the environment and does not print or hardcode the key",
+        "Uses GET https://api.x.ai/v1/tts/voices to list voices",
+        "Uses POST https://api.x.ai/v1/tts to generate audio",
+        "Writes the audio response in binary mode to an .mp3 file",
+        "States that the request is not run by default"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "In this StoryBuilder repo, outline the workflow to annotate a story for xAI TTS and then synthesize chunked audio files. Mention the existing .agent/skills/xai-tts-api resources/scripts and any gotchas before running them.",
+      "expected_output": "A repo-aware workflow that references resources/annotate.md, scripts/annotate.py, scripts/client.py, the 15,000 character limit, chunking, manifest/output naming, and the known helper-script import mismatch.",
+      "files": [],
+      "expectations": [
+        "References .agent/skills/xai-tts-api/resources/annotate.md for annotation guidance",
+        "Mentions the helper scripts under .agent/skills/xai-tts-api/scripts/",
+        "Preserves source story wording when adding tags",
+        "Chunks requests below the documented 15,000 character TTS limit",
+        "Warns about verifying or fixing the current annotate.py import path before execution"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Show me how to create a custom xAI TTS voice from reference.wav and then use that voice to generate custom.mp3. Make it clear this should only be run when I opt in.",
+      "expected_output": "A Python REST example using POST /v1/custom-voices with a reference WAV file, extracting voice_id, then POST /v1/tts to create custom.mp3, with opt-in/cost warnings.",
+      "files": [],
+      "expectations": [
+        "Uses POST https://api.x.ai/v1/custom-voices with multipart file upload",
+        "Extracts voice_id from the custom voice creation response",
+        "Uses the custom voice_id in a subsequent POST https://api.x.ai/v1/tts request",
+        "Writes custom.mp3 in binary mode",
+        "Clearly warns that custom voice creation is opt-in and not part of automated smoke tests"
+      ]
+    },
+    {
+      "id": 101,
+      "prompt": "[OPTIONAL LIVE API] If XAI_API_KEY is set and I explicitly approve live calls, call GET /v1/tts/voices and verify the response is JSON with available voice data.",
+      "expected_output": "An opt-in live integration test that skips when XAI_API_KEY is missing and avoids printing secrets.",
+      "files": [],
+      "expectations": [
+        "Skips automatically when XAI_API_KEY is missing",
+        "Calls GET https://api.x.ai/v1/tts/voices only after explicit live-call approval",
+        "Verifies that the response parses as JSON",
+        "Does not print or persist the API key"
+      ]
+    },
+    {
+      "id": 102,
+      "prompt": "[OPTIONAL LIVE API] If XAI_API_KEY is set and I explicitly approve live calls, synthesize the text 'Hello from the xAI TTS smoke test.' to a temporary MP3 file and verify the file is nonempty.",
+      "expected_output": "A minimal opt-in live MP3 smoke test with short text, voice_id eve, nonzero-byte verification, and secret-safe handling.",
+      "files": [],
+      "expectations": [
+        "Uses text shorter than 100 characters",
+        "Skips automatically when XAI_API_KEY is missing",
+        "Calls POST https://api.x.ai/v1/tts only after explicit live-call approval",
+        "Saves to a temp/test output directory and verifies nonzero bytes",
+        "Does not use story content"
+      ]
+    },
+    {
+      "id": 103,
+      "prompt": "[OPTIONAL LIVE API] If current docs confirm the exact format field and I explicitly approve live calls, synthesize a short WAV xAI TTS smoke-test file and verify it is nonempty.",
+      "expected_output": "A guarded opt-in WAV smoke test that first verifies current docs for the format parameter, then performs a short non-story TTS call.",
+      "files": [],
+      "expectations": [
+        "Requires current documentation confirmation of the exact WAV format field",
+        "Uses text shorter than 100 characters",
+        "Skips automatically when XAI_API_KEY is missing",
+        "Saves a .wav file and verifies nonzero bytes",
+        "Does not create a custom voice"
+      ]
+    }
+  ]
+}

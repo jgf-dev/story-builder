@@ -1,0 +1,33 @@
+{
+  "expectations": [
+    {
+      "text": "References .agent/skills/xai-tts-api/resources/annotate.md for annotation guidance",
+      "passed": false,
+      "evidence": "The answer says to use an LLM but does not reference resources/annotate.md."
+    },
+    {
+      "text": "Mentions the helper scripts under .agent/skills/xai-tts-api/scripts/",
+      "passed": false,
+      "evidence": "The answer only says to check the scripts folder generically."
+    },
+    {
+      "text": "Preserves source story wording when adding tags",
+      "passed": false,
+      "evidence": "The answer says to ask Grok to improve the story, which could alter source wording."
+    },
+    {
+      "text": "Chunks requests below the documented 15,000 character TTS limit",
+      "passed": false,
+      "evidence": "The answer says to split every few thousand words but does not name the documented character limit."
+    },
+    {
+      "text": "Warns about verifying or fixing the current annotate.py import path before execution",
+      "passed": false,
+      "evidence": "The answer does not mention the known annotate.py import mismatch."
+    }
+  ],
+  "summary": {"passed": 0, "failed": 5, "total": 5, "pass_rate": 0.0},
+  "execution_metrics": {"total_tool_calls": 0, "errors_encountered": 0, "output_chars": 382},
+  "timing": {"total_duration_seconds": 0.0},
+  "user_notes_summary": {"uncertainties": [], "needs_review": ["Baseline is a handcrafted contrast output, not an independent runner output."], "workarounds": []}
+}

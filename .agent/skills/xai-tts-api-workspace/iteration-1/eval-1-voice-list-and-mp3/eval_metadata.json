@@ -1,0 +1,12 @@
+{
+  "eval_id": 1,
+  "eval_name": "voice-list-and-mp3",
+  "prompt": "I need a small Python example for xAI TTS that lists available voices and then generates a short hello.mp3 with the built-in eve voice. Please keep the API key in the environment and don't actually run the request.",
+  "assertions": [
+    "Uses XAI_API_KEY from the environment and does not print or hardcode the key",
+    "Uses GET https://api.x.ai/v1/tts/voices to list voices",
+    "Uses POST https://api.x.ai/v1/tts to generate audio",
+    "Writes the audio response in binary mode to an .mp3 file",
+    "States that the request is not run by default"
+  ]
+}

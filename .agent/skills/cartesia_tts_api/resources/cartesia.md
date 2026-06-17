@@ -1,0 +1,212 @@
+# Cartesia Docs
+
+## Docs
+
+- [Delete Agent](https://docs.cartesia.ai/api-reference/agents/agents/delete.md)
+- [Get Agent](https://docs.cartesia.ai/api-reference/agents/agents/get.md): Returns the details of a specific agent
+- [List Agents](https://docs.cartesia.ai/api-reference/agents/agents/list.md): Lists all agents associated with your account
+- [Agent Phone Numbers](https://docs.cartesia.ai/api-reference/agents/agents/phone-numbers.md)
+- [List Templates](https://docs.cartesia.ai/api-reference/agents/agents/templates.md): List of public, Cartesia-provided agent templates to help you get started
+- [Update Agent](https://docs.cartesia.ai/api-reference/agents/agents/update.md)
+- [Cancel Call](https://docs.cartesia.ai/api-reference/agents/calls/cancel-call.md): Terminates an active call. Only calls in the `started` status can be cancelled; the call ends with end reason `api_cancelled`.
+- [Create Outbound Call](https://docs.cartesia.ai/api-reference/agents/calls/create-outbound-call.md)
+- [Delete Call](https://docs.cartesia.ai/api-reference/agents/calls/delete-call.md): Deletes the sensitive data for a call, including the transcript, audio recordings, and logs. The call record is retained with non-sensitive operational metadata; deleted fields are omitted from subsequent API responses, and `redacted_at` marks when deletion occurred. Deletion cannot be undone.
+- [Download Call Audio](https://docs.cartesia.ai/api-reference/agents/calls/download-call-audio.md)
+- [Get Call](https://docs.cartesia.ai/api-reference/agents/calls/get-call.md)
+- [Get Call Runtime Logs](https://docs.cartesia.ai/api-reference/agents/calls/get-call-logs.md)
+- [List Calls](https://docs.cartesia.ai/api-reference/agents/calls/list-calls.md)
+- [Get Deployment](https://docs.cartesia.ai/api-reference/agents/deployments/get-deployment.md): Get a deployment by its ID.
+- [List Deployments](https://docs.cartesia.ai/api-reference/agents/deployments/list-deployments.md): List of all deployments associated with an agent.
+- [Create Document](https://docs.cartesia.ai/api-reference/agents/documents/create.md): Upload a document into a [knowledge base](/line/knowledge-base) folder
+- [Bulk Create Documents](https://docs.cartesia.ai/api-reference/agents/documents/create-bulk.md): Upload up to 100 [knowledge base](/line/knowledge-base) documents in a single request
+- [Delete Document](https://docs.cartesia.ai/api-reference/agents/documents/delete.md): Delete a [knowledge base](/line/knowledge-base) document.
+- [Get Document](https://docs.cartesia.ai/api-reference/agents/documents/get.md): Returns the details of a single [knowledge base](/line/knowledge-base) document, including its full content.
+- [List Documents](https://docs.cartesia.ai/api-reference/agents/documents/list.md): List all [knowledge base](/line/knowledge-base) documents in your organization
+- [Update Document](https://docs.cartesia.ai/api-reference/agents/documents/update.md): Update a [knowledge base](/line/knowledge-base) document's name, content, metadata, or folder
+- [Create Folder](https://docs.cartesia.ai/api-reference/agents/folders/create.md): Create a [knowledge base](/line/knowledge-base) folder
+- [Delete Folder](https://docs.cartesia.ai/api-reference/agents/folders/delete.md): Delete a [knowledge base](/line/knowledge-base) folder
+- [Get Folder](https://docs.cartesia.ai/api-reference/agents/folders/get.md): Returns the details of a single [knowledge base](/line/knowledge-base) folder, including its documents and agents that have access to it
+- [List Folders](https://docs.cartesia.ai/api-reference/agents/folders/list.md): List [knowledge base](/line/knowledge-base) folders
+- [Update Folder](https://docs.cartesia.ai/api-reference/agents/folders/update.md): Update a [knowledge base](/line/knowledge-base) folder's name, parent, documents, or agents
+- [Add Metric to Agent](https://docs.cartesia.ai/api-reference/agents/metrics/add-metric-to-agent.md)
+- [Create Metric](https://docs.cartesia.ai/api-reference/agents/metrics/create-metric.md): Create a new metric.
+- [Export Metric Results as CSV](https://docs.cartesia.ai/api-reference/agents/metrics/export-metric-results.md): Exports metric results as a CSV file.
+- [Get Metric](https://docs.cartesia.ai/api-reference/agents/metrics/get-metric.md): Get a metric by its ID.
+- [List Metric Results](https://docs.cartesia.ai/api-reference/agents/metrics/list-metric-results.md)
+- [List Metrics](https://docs.cartesia.ai/api-reference/agents/metrics/list-metrics.md): List of all LLM-as-a-Judge metrics owned by your account.
+- [Remove Metric from Agent](https://docs.cartesia.ai/api-reference/agents/metrics/remove-metric-from-agent.md)
+- [Delete Phone Number](https://docs.cartesia.ai/api-reference/agents/phone-numbers/delete.md)
+- [Get Phone Number](https://docs.cartesia.ai/api-reference/agents/phone-numbers/get.md): Returns the details of a specific phone number
+- [Import Phone Number](https://docs.cartesia.ai/api-reference/agents/phone-numbers/import.md)
+- [List Phone Numbers](https://docs.cartesia.ai/api-reference/agents/phone-numbers/list.md)
+- [Provision Cartesia Number](https://docs.cartesia.ai/api-reference/agents/phone-numbers/provision.md): Provision a new Cartesia-managed US phone number
+- [Update Phone Number](https://docs.cartesia.ai/api-reference/agents/phone-numbers/update.md): Update a phone number's label, agent assignment, or provider
+- [Create Provider](https://docs.cartesia.ai/api-reference/agents/providers/create.md): Link a telephony provider account
+- [Delete Provider](https://docs.cartesia.ai/api-reference/agents/providers/delete.md): Delete a provider account
+- [Get Provider](https://docs.cartesia.ai/api-reference/agents/providers/get.md): Returns the details of a specific provider account.
+- [List Providers](https://docs.cartesia.ai/api-reference/agents/providers/list.md): List telephony provider accounts linked to your account
+- [Update Provider](https://docs.cartesia.ai/api-reference/agents/providers/update.md): Update a provider's credentials
+- [Get API Key](https://docs.cartesia.ai/api-reference/api-keys/get.md): Returns metadata for a single API key.
+- [List API Keys](https://docs.cartesia.ai/api-reference/api-keys/list.md): Returns a paginated list of standard API keys owned by the authenticating organization. Only metadata is returned, not the keys themselves. Admin API keys are not included.
+- [API Status and Version](https://docs.cartesia.ai/api-reference/api-status/get.md)
+- [Generate a New Access Token](https://docs.cartesia.ai/api-reference/auth/access-token.md): Generates a short-lived access token to make API requests from authenticated clients.
+- [Create](https://docs.cartesia.ai/api-reference/datasets/create.md): Create a new dataset
+- [Delete](https://docs.cartesia.ai/api-reference/datasets/delete.md): Delete a dataset
+- [Delete file](https://docs.cartesia.ai/api-reference/datasets/delete-file.md): Remove a file from a dataset
+- [Get](https://docs.cartesia.ai/api-reference/datasets/get.md): Retrieve a specific dataset by ID
+- [List](https://docs.cartesia.ai/api-reference/datasets/list.md): Paginated list of datasets
+- [List files](https://docs.cartesia.ai/api-reference/datasets/list-files.md): Paginated list of files in a dataset
+- [Update](https://docs.cartesia.ai/api-reference/datasets/update.md): Update an existing dataset
+- [Upload file](https://docs.cartesia.ai/api-reference/datasets/upload-file.md): Upload a new file to a dataset
+- [Create](https://docs.cartesia.ai/api-reference/fine-tunes/create.md): Create a new fine-tune
+- [Delete](https://docs.cartesia.ai/api-reference/fine-tunes/delete.md): Delete a fine-tune
+- [Get](https://docs.cartesia.ai/api-reference/fine-tunes/get.md): Retrieve a specific fine-tune by ID
+- [List](https://docs.cartesia.ai/api-reference/fine-tunes/list.md): Paginated list of all fine-tunes for the authenticated user
+- [List Voices](https://docs.cartesia.ai/api-reference/fine-tunes/list-voices.md): List all voices created from a fine-tune
+- [Infill (Bytes)](https://docs.cartesia.ai/api-reference/infill/bytes.md): Generate audio that smoothly connects two existing audio segments
+- [Create](https://docs.cartesia.ai/api-reference/pronunciation-dicts/create.md): Create a new pronunciation dictionary
+- [Delete](https://docs.cartesia.ai/api-reference/pronunciation-dicts/delete.md): Delete a pronunciation dictionary
+- [Get](https://docs.cartesia.ai/api-reference/pronunciation-dicts/get.md): Retrieve a specific pronunciation dictionary by ID
+- [List](https://docs.cartesia.ai/api-reference/pronunciation-dicts/list.md): List all pronunciation dictionaries for the authenticated user
+- [Update](https://docs.cartesia.ai/api-reference/pronunciation-dicts/update.md): Update a pronunciation dictionary
+- [Batch Speech-to-Text](https://docs.cartesia.ai/api-reference/stt/transcribe.md): Transcribes an audio file of any length
+- [Realtime Speech-to-Text (Auto)](https://docs.cartesia.ai/api-reference/stt/turns/websocket.md): Realtime speech transcription with built-in turn detection
+- [Realtime Speech-to-Text (Manual)](https://docs.cartesia.ai/api-reference/stt/websocket.md): Realtime speech transcription without turn detection
+- [Text-to-Speech (Bytes)](https://docs.cartesia.ai/api-reference/tts/bytes.md): Stream audio from a complete transcript
+- [Text-to-Speech (SSE)](https://docs.cartesia.ai/api-reference/tts/sse.md): Stream audio with extra metadata from a complete transcript
+- [Text-to-Speech (WebSocket)](https://docs.cartesia.ai/api-reference/tts/websocket.md): Generate audio in realtime with contexts
+- [Get Agent Usage](https://docs.cartesia.ai/api-reference/usage/agents.md): Returns your agent usage over time, bucketed by the requested interval.
+- [Get Credit Usage](https://docs.cartesia.ai/api-reference/usage/credits.md): Returns your credit usage over time, bucketed by the requested interval.
+- [Voice Changer (Bytes)](https://docs.cartesia.ai/api-reference/voice-changer/bytes.md): Takes an audio file of speech, and returns an audio file of speech spoken with the same intonation, but with a different voice.
+- [Voice Changer (SSE)](https://docs.cartesia.ai/api-reference/voice-changer/sse.md): Takes an audio file of speech, and returns an audio file of speech spoken with the same intonation, but with a different voice.
+- [Clone Voice](https://docs.cartesia.ai/api-reference/voices/clone.md)
+- [Delete Voice](https://docs.cartesia.ai/api-reference/voices/delete.md)
+- [Get Voice](https://docs.cartesia.ai/api-reference/voices/get.md)
+- [List Voices](https://docs.cartesia.ai/api-reference/voices/list.md)
+- [Localize Voice](https://docs.cartesia.ai/api-reference/voices/localize.md): Create a new voice from an existing voice localized to a new language and dialect.
+- [Update Voice](https://docs.cartesia.ai/api-reference/voices/update.md): Update the name, description, and gender of a voice. To set the gender back to the default, set the gender to `null`. If gender is not specified, the gender will not be updated.
+- [Choosing a Voice](https://docs.cartesia.ai/build-with-cartesia/capability-guides/choosing-a-voice.md): How to pick the best voice for your Voice Agents
+- [Instant Voice Clone](https://docs.cartesia.ai/build-with-cartesia/capability-guides/clone-voices.md): Learn how to get the best voice clones from your audio clips.
+- [Pro Voice Clone](https://docs.cartesia.ai/build-with-cartesia/capability-guides/clone-voices-pro.md)
+- [Custom Pronunciations](https://docs.cartesia.ai/build-with-cartesia/capability-guides/custom-pronunciations.md): Specify custom pronunciations for words that are hard to get right, like proper nouns or domain-specific terms.
+- [Localize voices](https://docs.cartesia.ai/build-with-cartesia/capability-guides/localize-voices.md): Learn how to localize voices for your brand or product.
+- [Prompting tips](https://docs.cartesia.ai/build-with-cartesia/capability-guides/prompting-tips.md): Get natural-sounding output from Sonic with minimal prompt engineering.
+- [SSML Tags](https://docs.cartesia.ai/build-with-cartesia/capability-guides/ssml-tags.md)
+- [Stream Inputs using Continuations](https://docs.cartesia.ai/build-with-cartesia/capability-guides/stream-inputs-using-continuations.md): Learn how to stream input text to Sonic TTS.
+- [Encoding and Sample Rate](https://docs.cartesia.ai/build-with-cartesia/capability-guides/stt-input-encodings.md): How to find the right parameters for realtime input audio
+- [Output Format](https://docs.cartesia.ai/build-with-cartesia/capability-guides/tts-output-audio-format.md)
+- [Volume, Speed, and Emotion](https://docs.cartesia.ai/build-with-cartesia/capability-guides/volume-speed-emotion.md): Control the speed, volume, and emotion of generated speech.
+- [Ink 2](https://docs.cartesia.ai/build-with-cartesia/stt-models/latest.md)
+- [Older Models](https://docs.cartesia.ai/build-with-cartesia/stt-models/older-models.md)
+- [Deprecated Models](https://docs.cartesia.ai/build-with-cartesia/tts-models/api-changes.md)
+- [Sonic 3.5](https://docs.cartesia.ai/build-with-cartesia/tts-models/latest.md)
+- [Older Models](https://docs.cartesia.ai/build-with-cartesia/tts-models/older-models.md)
+- [Migrating from Sonic 3 to Sonic 3.5](https://docs.cartesia.ai/build-with-cartesia/tts-models/sonic-3-to-sonic-3-5.md): What's new in Sonic 3.5 and what to know before you switch.
+- [Changelog 2024](https://docs.cartesia.ai/changelog/2024.md): Product, API, and platform changes for 2024
+- [Changelog 2025](https://docs.cartesia.ai/changelog/2025.md): Product, API, and platform changes for 2025
+- [Changelog 2026](https://docs.cartesia.ai/changelog/2026.md): Product, API, and platform changes for 2026
+- [Set up an organization](https://docs.cartesia.ai/enterprise/set-up-an-organization.md)
+- [Set up SSO](https://docs.cartesia.ai/enterprise/set-up-sso.md)
+- [Zero Data Retention](https://docs.cartesia.ai/enterprise/zero-data-retention.md): Zero Data Retention (ZDR) is available to Cartesia Enterprise customers for our Text-to-Speech (TTS) and Speech-to-Text (STT) APIs.
+- [Error Handling](https://docs.cartesia.ai/examples/error-handling.md): Example of error handling with SDK exceptions.
+- [Create Infill Audio](https://docs.cartesia.ai/examples/infill-create.md): Create infill audio between two clips.
+- [Next.js Full Example](https://docs.cartesia.ai/examples/nextjs.md): A complete Next.js application with batch TTS, HTTP streaming, and STT transcription.
+- [Realtime STT (Auto)](https://docs.cartesia.ai/examples/stt-auto-finalize-websocket.md): Realtime transcription with native turn detection — recommended for voice agents.
+- [Realtime STT (Manual)](https://docs.cartesia.ai/examples/stt-manual-finalize-websocket.md): Realtime transcription where you control the user turn. Recommended for push-to-talk apps.
+- [Batch STT](https://docs.cartesia.ai/examples/stt-transcribe.md): Transcribe pre-recorded audio files.
+- [Download Audio File](https://docs.cartesia.ai/examples/tts-download-file.md): Generate audio and trigger a file download in the browser.
+- [Generate to File](https://docs.cartesia.ai/examples/tts-generate-to-file.md): Use generate() and write_to_file() to write a wav file.
+- [Play Audio in Browser](https://docs.cartesia.ai/examples/tts-play-audio.md): Generate a wav and play it using an <audio> element.
+- [SSE Streaming](https://docs.cartesia.ai/examples/tts-sse-basic.md): Basic SSE streaming.
+- [SSE with Phoneme Timestamps](https://docs.cartesia.ai/examples/tts-sse-with-phoneme-timestamps.md): SSE streaming with phoneme timestamps.
+- [SSE with Word Timestamps](https://docs.cartesia.ai/examples/tts-sse-with-timestamps.md): SSE streaming with word timestamps.
+- [WebSocket Basic](https://docs.cartesia.ai/examples/tts-websocket-basic.md): Basic WebSocket usage with websocket_connect() context manager.
+- [WebSocket Concurrent Contexts](https://docs.cartesia.ai/examples/tts-websocket-concurrent-contexts.md): Two contexts on one connection, each using ctx.receive() to get their own audio.
+- [WebSocket with Input Continuations](https://docs.cartesia.ai/examples/tts-websocket-continuations.md): Streaming a transcript split into multiple parts, using continuations.
+- [WebSocket Emotion Control](https://docs.cartesia.ai/examples/tts-websocket-emotion.md): Demonstrates changing emotion mid-stream using generation_config.
+- [WebSocket Flushing](https://docs.cartesia.ai/examples/tts-websocket-flushing.md): Demonstrates manual flushing to separate audio from different transcripts.
+- [WebSocket Low-Latency Playback](https://docs.cartesia.ai/examples/tts-websocket-low-latency.md): Play audio chunks as they arrive for lowest latency.
+- [WebSocket Response Handling](https://docs.cartesia.ai/examples/tts-websocket-response-handling.md): WebSocket response type handling.
+- [WebSocket Speed Control](https://docs.cartesia.ai/examples/tts-websocket-speed.md): Demonstrates changing speed mid-stream using generation_config.
+- [WebSocket Stream to Web Audio](https://docs.cartesia.ai/examples/tts-websocket-stream-audio.md): Stream audio from a WebSocket and play it in real-time with Web Audio API.
+- [Clone a Voice](https://docs.cartesia.ai/examples/voices-clone.md): Clone a voice from an audio clip.
+- [Delete a Voice](https://docs.cartesia.ai/examples/voices-delete.md): Delete a voice.
+- [Get a Voice](https://docs.cartesia.ai/examples/voices-get.md): Get a specific voice.
+- [List Voices](https://docs.cartesia.ai/examples/voices-list.md): List voices with pagination.
+- [Update a Voice](https://docs.cartesia.ai/examples/voices-update.md): Update a voice.
+- [Authenticate your applications](https://docs.cartesia.ai/get-started/authenticate-your-client-applications.md): Use access tokens in browsers and API keys on servers
+- [Welcome to Cartesia](https://docs.cartesia.ai/get-started/overview.md): Our API enables developers to build real-time, multimodal AI experiences that feel natural and responsive.
+- [Realtime Text-to-Speech Quickstart](https://docs.cartesia.ai/get-started/realtime-text-to-speech-quickstart.md): Stream text to Cartesia over a WebSocket and receive audio in real time.
+- [Avaturn + Cartesia Line](https://docs.cartesia.ai/integrations/community/avaturn-cartesia-line.md): Connect an Avaturn avatar session to a deployed Cartesia Line agent for voice conversations.
+- [LiveKit](https://docs.cartesia.ai/integrations/live-kit.md)
+- [Overview](https://docs.cartesia.ai/integrations/overview.md): Partner integrations for Cartesia TTS and STT in your own app—not Cartesia-hosted agents.
+- [Pipecat](https://docs.cartesia.ai/integrations/pipecat.md)
+- [Rasa](https://docs.cartesia.ai/integrations/rasa.md)
+- [Tencent RTC](https://docs.cartesia.ai/integrations/tencent-rtc.md)
+- [Thoughtly](https://docs.cartesia.ai/integrations/thoughtly.md)
+- [Integrate with Twilio](https://docs.cartesia.ai/integrations/twilio.md): How to integrate Twilio with Cartesia to generate audio from text and send it as a voice call.
+- [Vision Agents by Stream](https://docs.cartesia.ai/integrations/vision-agents-by-stream.md)
+- [CLI documentation](https://docs.cartesia.ai/line/cli.md)
+- [Release Notes](https://docs.cartesia.ai/line/developer-tools/release-notes.md): Updates to the Line SDK and platform.
+- [Metrics](https://docs.cartesia.ai/line/evaluations/metrics.md)
+- [Metrics Results](https://docs.cartesia.ai/line/evaluations/results.md): View the results from metrics run against all calls handled by your agent.
+- [Deployments](https://docs.cartesia.ai/line/infrastructure/deployments.md)
+- [Observability](https://docs.cartesia.ai/line/infrastructure/observability.md): Get full visibility into how your Agent is performing.
+- [Scaling](https://docs.cartesia.ai/line/infrastructure/scaling.md)
+- [Overview](https://docs.cartesia.ai/line/integrations/overview.md)
+- [Cartesia Numbers](https://docs.cartesia.ai/line/integrations/telephony/cartesia-numbers.md): Provision and manage Cartesia phone numbers for your voice agents.
+- [Outbound Calling](https://docs.cartesia.ai/line/integrations/telephony/outbound-dialing.md)
+- [Phone Numbers](https://docs.cartesia.ai/line/integrations/telephony/phone-numbers.md): Connect phone numbers to your voice agents for inbound and outbound calling.
+- [Twilio Integration](https://docs.cartesia.ai/line/integrations/telephony/twilio/integration.md): Connect your existing Twilio account and import your existing phone numbers.
+- [Regional Routing](https://docs.cartesia.ai/line/integrations/telephony/twilio/regional-routing.md): How Twilio regions affect call routing and credential scoping.
+- [WebSocket API](https://docs.cartesia.ai/line/integrations/websocket-api.md)
+- [Introduction](https://docs.cartesia.ai/line/introduction.md): Build intelligent, low-latency voice agents with Line.
+- [Knowledge Base](https://docs.cartesia.ai/line/knowledge-base.md)
+- [Agents](https://docs.cartesia.ai/line/sdk/agents.md)
+- [Events](https://docs.cartesia.ai/line/sdk/events.md)
+- [SDK Overview](https://docs.cartesia.ai/line/sdk/overview.md)
+- [Advanced Patterns](https://docs.cartesia.ai/line/sdk/patterns.md)
+- [Tools](https://docs.cartesia.ai/line/sdk/tools.md)
+- [Agent Builder](https://docs.cartesia.ai/line/start-building/agent-builder.md)
+- [Quickstart](https://docs.cartesia.ai/line/start-building/quickstart.md)
+- [Pricing](https://docs.cartesia.ai/pricing.md): How Cartesia charges for usage
+- [Air-Gapped Deployments](https://docs.cartesia.ai/self-hosted/air-gapped.md): Deploy Cartesia without internet connectivity to licensing servers
+- [Architecture](https://docs.cartesia.ai/self-hosted/architecture.md): Overview of the core components in a Cartesia self-hosted deployment.
+- [Autoscaling](https://docs.cartesia.ai/self-hosted/auto-scaling.md)
+- [Changelog](https://docs.cartesia.ai/self-hosted/changelog.md): Release history for Cartesia self-hosted deployments
+- [Cloud Service Provisioning](https://docs.cartesia.ai/self-hosted/cloud-service-provisioning.md): Deploy Cartesia using Amazon SageMaker Jumpstart
+- [Docker](https://docs.cartesia.ai/self-hosted/docker-compose.md): Deploy Cartesia on bare-metal or VM nodes using Docker Compose or Docker Swarm
+- [Getting Started](https://docs.cartesia.ai/self-hosted/getting-started.md): Prerequisites and initial setup for Cartesia self-hosted deployments
+- [Hardware Selection](https://docs.cartesia.ai/self-hosted/hardware-selection.md)
+- [Introduction](https://docs.cartesia.ai/self-hosted/introduction.md)
+- [Managed Kubernetes](https://docs.cartesia.ai/self-hosted/managed-kubernetes.md): Deploy Cartesia on AWS EKS and GCP GKE
+- [Managing Artifacts](https://docs.cartesia.ai/self-hosted/managing-artifacts.md): Add voices and pronunciation dictionaries from the Cartesia cloud to your self-hosted deployment
+- [Metrics and Monitoring](https://docs.cartesia.ai/self-hosted/metrics.md)
+- [Provisioned Resources](https://docs.cartesia.ai/self-hosted/provisioned-resources.md): Reference for all resources provisioned as part of your self-hosted deployment
+- [Smoke Tests and Benchmarking](https://docs.cartesia.ai/self-hosted/smoke-tests-and-benchmarking.md): Validate and benchmark your Cartesia self-hosted deployment
+- [Upgrades and Rollback](https://docs.cartesia.ai/self-hosted/upgrades-and-rollback.md): Move your self-hosted deployment to a new release tag, and revert if something goes wrong.
+- [AI agent guide](https://docs.cartesia.ai/tools/ai/agent-guide.md): A direct guide for helping developers integrate Cartesia using AI tooling.
+- [Agent skills](https://docs.cartesia.ai/tools/ai/agent-skills.md): Install Cartesia Agent Skills in your editor—curated guides so coding agents apply the right Cartesia authentication, versioning, and product boundaries out of the box.
+- [LLMs documentation files](https://docs.cartesia.ai/tools/ai/llms-txt.md): Machine-readable index files for assistants and tooling that ingest Cartesia documentation.
+- [MCP](https://docs.cartesia.ai/tools/ai/mcp.md): Run cartesia-mcp with uvx to use Cartesia TTS, STT, voices, and pronunciation dictionaries from MCP clients like Cursor and Claude Code.
+- [Client Libraries](https://docs.cartesia.ai/tools/client-libraries.md): Use the official JavaScript/TypeScript and Python SDKs to call the Cartesia API.
+- [API Conventions](https://docs.cartesia.ai/use-the-api/api-conventions.md)
+- [API Errors](https://docs.cartesia.ai/use-the-api/api-errors.md)
+- [Compare Endpoints](https://docs.cartesia.ai/use-the-api/compare-stt-endpoints.md): There are 3 ways to integrate with Cartesia's speech-to-text API
+- [Compare TTS Endpoints](https://docs.cartesia.ai/use-the-api/compare-tts-endpoints.md): How bytes, SSE, and WebSocket differ for text-to-speech, and when to use each.
+- [Concurrency and WebSocket Limits](https://docs.cartesia.ai/use-the-api/concurrency-limits-and-timeouts.md): Learn about concurrency limits and timeouts with the Cartesia API.
+- [Troubleshooting](https://docs.cartesia.ai/use-the-api/stt/troubleshooting.md): Transcription errors, high latency, server errors
+- [Migrating From Deepgram Flux to Cartesia Ink](https://docs.cartesia.ai/use-the-api/stt/turns/migrate-from-deepgram-flux.md): Swap Deepgram's /v2/listen WebSocket for Cartesia's /stt/turns/websocket.
+- [Turn Detection with Ink](https://docs.cartesia.ai/use-the-api/stt/turns/turns.md)
+- [Buffering](https://docs.cartesia.ai/use-the-api/tts-websocket/buffering.md): Control how text is buffered before speech generation to balance prosody and latency.
+- [Context Flushing and Flush IDs](https://docs.cartesia.ai/use-the-api/tts-websocket/context-flushing-and-flush-i-ds.md): Learn about managing multiple transcript generations with context flushing.
+- [Contexts](https://docs.cartesia.ai/use-the-api/tts-websocket/contexts.md)
+
+## OpenAPI Specs
+
+- [latest](https://docs.cartesia.ai/latest.yml)
+- [api](https://docs.cartesia.ai/2024-11-13/api.yml)
+
+## AsyncAPI Specs
+
+- [asyncapi](https://docs.cartesia.ai/asyncapi.yml)

@@ -1,0 +1,335 @@
+{
+  "metadata": {
+    "skill_name": "xai-tts-api",
+    "skill_path": ".agent/skills/xai-tts-api",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-06-13T21:07:20Z",
+    "evals_run": [
+      1,
+      2,
+      3
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 0.0,
+        "tokens": 1164,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Uses XAI_API_KEY from the environment and does not print or hardcode the key",
+          "passed": true,
+          "evidence": "The example reads os.environ[\"XAI_API_KEY\"] and never includes a literal key."
+        },
+        {
+          "text": "Uses GET https://api.x.ai/v1/tts/voices to list voices",
+          "passed": true,
+          "evidence": "The voices request uses requests.get(\"https://api.x.ai/v1/tts/voices\", ...)."
+        },
+        {
+          "text": "Uses POST https://api.x.ai/v1/tts to generate audio",
+          "passed": true,
+          "evidence": "The speech request uses requests.post(\"https://api.x.ai/v1/tts\", ...)."
+        },
+        {
+          "text": "Writes the audio response in binary mode to an .mp3 file",
+          "passed": true,
+          "evidence": "The output writes speech.content with open(\"hello.mp3\", \"wb\")."
+        },
+        {
+          "text": "States that the request is not run by default",
+          "passed": true,
+          "evidence": "The answer says this is a dry-run example and does not run unless executed."
+        }
+      ],
+      "notes": [
+        "Manual artifact because no independent subagent runner is exposed in this environment."
+      ]
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 0.0,
+        "tokens": 1166,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "References .agent/skills/xai-tts-api/resources/annotate.md for annotation guidance",
+          "passed": true,
+          "evidence": "Step 2 explicitly references .agent/skills/xai-tts-api/resources/annotate.md."
+        },
+        {
+          "text": "Mentions the helper scripts under .agent/skills/xai-tts-api/scripts/",
+          "passed": true,
+          "evidence": "Step 3 names scripts/client.py and scripts/annotate.py under the skill directory."
+        },
+        {
+          "text": "Preserves source story wording when adding tags",
+          "passed": true,
+          "evidence": "Step 2 says to preserve the story's original words."
+        },
+        {
+          "text": "Chunks requests below the documented 15,000 character TTS limit",
+          "passed": true,
+          "evidence": "Step 4 says to chunk under the xAI TTS 15,000 character request limit."
+        },
+        {
+          "text": "Warns about verifying or fixing the current annotate.py import path before execution",
+          "passed": true,
+          "evidence": "Step 3 calls out the current import mismatch and says to verify or fix it first."
+        }
+      ],
+      "notes": [
+        "Manual artifact because no independent subagent runner is exposed in this environment."
+      ]
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 0.0,
+        "tokens": 1108,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Uses POST https://api.x.ai/v1/custom-voices with multipart file upload",
+          "passed": true,
+          "evidence": "The example posts to /v1/custom-voices with files={\"file\": (...)}."
+        },
+        {
+          "text": "Extracts voice_id from the custom voice creation response",
+          "passed": true,
+          "evidence": "The code sets voice_id = create.json()[\"voice_id\"]."
+        },
+        {
+          "text": "Uses the custom voice_id in a subsequent POST https://api.x.ai/v1/tts request",
+          "passed": true,
+          "evidence": "The speech request posts to /v1/tts with json containing \"voice_id\": voice_id."
+        },
+        {
+          "text": "Writes custom.mp3 in binary mode",
+          "passed": true,
+          "evidence": "The output writes speech.content with open(\"custom.mp3\", \"wb\")."
+        },
+        {
+          "text": "Clearly warns that custom voice creation is opt-in and not part of automated smoke tests",
+          "passed": true,
+          "evidence": "The answer opens with an opt-in warning and says custom voice creation is not part of automated smoke tests."
+        }
+      ],
+      "notes": [
+        "Manual artifact because no independent subagent runner is exposed in this environment."
+      ]
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.2,
+        "passed": 1,
+        "failed": 4,
+        "total": 5,
+        "time_seconds": 0.0,
+        "tokens": 415,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Uses XAI_API_KEY from the environment and does not print or hardcode the key",
+          "passed": false,
+          "evidence": "The example hardcodes API_KEY = \"put-your-key-here\"."
+        },
+        {
+          "text": "Uses GET https://api.x.ai/v1/tts/voices to list voices",
+          "passed": false,
+          "evidence": "No GET /v1/tts/voices request is included."
+        },
+        {
+          "text": "Uses POST https://api.x.ai/v1/tts to generate audio",
+          "passed": false,
+          "evidence": "The example uses https://api.x.ai/v1/audio/speech, not the documented /v1/tts endpoint."
+        },
+        {
+          "text": "Writes the audio response in binary mode to an .mp3 file",
+          "passed": true,
+          "evidence": "The output writes response.content to hello.mp3 in binary mode via open(..., \"wb\")."
+        },
+        {
+          "text": "States that the request is not run by default",
+          "passed": false,
+          "evidence": "The answer does not clearly mark the code as dry-run-only."
+        }
+      ],
+      "notes": [
+        "Baseline is a handcrafted contrast output, not an independent runner output."
+      ]
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 5,
+        "total": 5,
+        "time_seconds": 0.0,
+        "tokens": 382,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "References .agent/skills/xai-tts-api/resources/annotate.md for annotation guidance",
+          "passed": false,
+          "evidence": "The answer says to use an LLM but does not reference resources/annotate.md."
+        },
+        {
+          "text": "Mentions the helper scripts under .agent/skills/xai-tts-api/scripts/",
+          "passed": false,
+          "evidence": "The answer only says to check the scripts folder generically."
+        },
+        {
+          "text": "Preserves source story wording when adding tags",
+          "passed": false,
+          "evidence": "The answer says to ask Grok to improve the story, which could alter source wording."
+        },
+        {
+          "text": "Chunks requests below the documented 15,000 character TTS limit",
+          "passed": false,
+          "evidence": "The answer says to split every few thousand words but does not name the documented character limit."
+        },
+        {
+          "text": "Warns about verifying or fixing the current annotate.py import path before execution",
+          "passed": false,
+          "evidence": "The answer does not mention the known annotate.py import mismatch."
+        }
+      ],
+      "notes": [
+        "Baseline is a handcrafted contrast output, not an independent runner output."
+      ]
+    },
+    {
+      "eval_id": 3,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.2,
+        "passed": 1,
+        "failed": 4,
+        "total": 5,
+        "time_seconds": 0.0,
+        "tokens": 489,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Uses POST https://api.x.ai/v1/custom-voices with multipart file upload",
+          "passed": false,
+          "evidence": "The example posts to /v1/voices, not /v1/custom-voices."
+        },
+        {
+          "text": "Extracts voice_id from the custom voice creation response",
+          "passed": false,
+          "evidence": "The example extracts .json()[\"id\"], not the documented voice_id field."
+        },
+        {
+          "text": "Uses the custom voice_id in a subsequent POST https://api.x.ai/v1/tts request",
+          "passed": false,
+          "evidence": "The example uses a JSON field named voice rather than voice_id."
+        },
+        {
+          "text": "Writes custom.mp3 in binary mode",
+          "passed": true,
+          "evidence": "The answer writes audio bytes with open(\"custom.mp3\", \"wb\")."
+        },
+        {
+          "text": "Clearly warns that custom voice creation is opt-in and not part of automated smoke tests",
+          "passed": false,
+          "evidence": "No opt-in or automated-test warning is included."
+        }
+      ],
+      "notes": [
+        "Baseline is a handcrafted contrast output, not an independent runner output."
+      ]
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 1146.0,
+        "stddev": 32.9242,
+        "min": 1108,
+        "max": 1166
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.1333,
+        "stddev": 0.1155,
+        "min": 0.0,
+        "max": 0.2
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 428.6667,
+        "stddev": 54.7936,
+        "min": 382,
+        "max": 489
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.87",
+      "time_seconds": "+0.0",
+      "tokens": "+717"
+    }
+  },
+  "notes": []
+}

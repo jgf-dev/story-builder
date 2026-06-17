@@ -1,0 +1,39 @@
+{
+	"spacy-extension.pythonInterpreter": "/home/jgf2/git/voice/storybuilder/.venv/bin/python",
+	"piny.project_settings": {
+		"open-pages": [
+			"pinyfakepage.html"
+		]
+	},
+	"files.exclude": {
+		"**/.git": true,
+		"**/.svn": true,
+		"**/.hg": true,
+		"**/CVS": true,
+		"**/.DS_Store": true,
+		"**/Thumbs.db": true,
+		"**/__pycache__": true,
+		"**/.mypy_cache": true,
+		"**/.pytest_cache": true,
+		"chroma_db": true,
+	},
+	"search.exclude": {
+		"**/node_modules": true,
+		"**/bower_components": true,
+		"**/.git": true,
+		"stories/db": true,
+		"chroma_db": true,
+		"sentiment_analysis.db": true,
+		"nlp_analysis.db": true,
+		"**/db/*.db": true
+	},
+	"files.watcherExclude": {
+		"**/.git/objects/**": true,
+		"**/.git/subtree-cache/**": true,
+		"**/node_modules/*/**": true,
+		"**/.venv/**": true,
+		"stories/db/**": true,
+		"chroma_db/**": true,
+		"**/db/*.db": true
+	}
+}

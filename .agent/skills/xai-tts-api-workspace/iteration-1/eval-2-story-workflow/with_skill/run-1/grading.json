@@ -1,0 +1,33 @@
+{
+  "expectations": [
+    {
+      "text": "References .agent/skills/xai-tts-api/resources/annotate.md for annotation guidance",
+      "passed": true,
+      "evidence": "Step 2 explicitly references .agent/skills/xai-tts-api/resources/annotate.md."
+    },
+    {
+      "text": "Mentions the helper scripts under .agent/skills/xai-tts-api/scripts/",
+      "passed": true,
+      "evidence": "Step 3 names scripts/client.py and scripts/annotate.py under the skill directory."
+    },
+    {
+      "text": "Preserves source story wording when adding tags",
+      "passed": true,
+      "evidence": "Step 2 says to preserve the story's original words."
+    },
+    {
+      "text": "Chunks requests below the documented 15,000 character TTS limit",
+      "passed": true,
+      "evidence": "Step 4 says to chunk under the xAI TTS 15,000 character request limit."
+    },
+    {
+      "text": "Warns about verifying or fixing the current annotate.py import path before execution",
+      "passed": true,
+      "evidence": "Step 3 calls out the current import mismatch and says to verify or fix it first."
+    }
+  ],
+  "summary": {"passed": 5, "failed": 0, "total": 5, "pass_rate": 1.0},
+  "execution_metrics": {"total_tool_calls": 0, "errors_encountered": 0, "output_chars": 1166},
+  "timing": {"total_duration_seconds": 0.0},
+  "user_notes_summary": {"uncertainties": [], "needs_review": [], "workarounds": ["Manual artifact because no independent subagent runner is exposed in this environment."]}
+}

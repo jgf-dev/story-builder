@@ -1,0 +1,12 @@
+{
+  "eval_id": 3,
+  "eval_name": "custom-voice",
+  "prompt": "Show me how to create a custom xAI TTS voice from reference.wav and then use that voice to generate custom.mp3. Make it clear this should only be run when I opt in.",
+  "assertions": [
+    "Uses POST https://api.x.ai/v1/custom-voices with multipart file upload",
+    "Extracts voice_id from the custom voice creation response",
+    "Uses the custom voice_id in a subsequent POST https://api.x.ai/v1/tts request",
+    "Writes custom.mp3 in binary mode",
+    "Clearly warns that custom voice creation is opt-in and not part of automated smoke tests"
+  ]
+}

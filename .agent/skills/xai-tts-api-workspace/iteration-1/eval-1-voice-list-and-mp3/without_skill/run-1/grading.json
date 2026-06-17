@@ -1,0 +1,33 @@
+{
+  "expectations": [
+    {
+      "text": "Uses XAI_API_KEY from the environment and does not print or hardcode the key",
+      "passed": false,
+      "evidence": "The example hardcodes API_KEY = \"put-your-key-here\"."
+    },
+    {
+      "text": "Uses GET https://api.x.ai/v1/tts/voices to list voices",
+      "passed": false,
+      "evidence": "No GET /v1/tts/voices request is included."
+    },
+    {
+      "text": "Uses POST https://api.x.ai/v1/tts to generate audio",
+      "passed": false,
+      "evidence": "The example uses https://api.x.ai/v1/audio/speech, not the documented /v1/tts endpoint."
+    },
+    {
+      "text": "Writes the audio response in binary mode to an .mp3 file",
+      "passed": true,
+      "evidence": "The output writes response.content to hello.mp3 in binary mode via open(..., \"wb\")."
+    },
+    {
+      "text": "States that the request is not run by default",
+      "passed": false,
+      "evidence": "The answer does not clearly mark the code as dry-run-only."
+    }
+  ],
+  "summary": {"passed": 1, "failed": 4, "total": 5, "pass_rate": 0.2},
+  "execution_metrics": {"total_tool_calls": 0, "errors_encountered": 0, "output_chars": 415},
+  "timing": {"total_duration_seconds": 0.0},
+  "user_notes_summary": {"uncertainties": [], "needs_review": ["Baseline is a handcrafted contrast output, not an independent runner output."], "workarounds": []}
+}

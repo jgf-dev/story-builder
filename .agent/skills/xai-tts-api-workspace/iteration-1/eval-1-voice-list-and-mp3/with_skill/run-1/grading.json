@@ -1,0 +1,33 @@
+{
+  "expectations": [
+    {
+      "text": "Uses XAI_API_KEY from the environment and does not print or hardcode the key",
+      "passed": true,
+      "evidence": "The example reads os.environ[\"XAI_API_KEY\"] and never includes a literal key."
+    },
+    {
+      "text": "Uses GET https://api.x.ai/v1/tts/voices to list voices",
+      "passed": true,
+      "evidence": "The voices request uses requests.get(\"https://api.x.ai/v1/tts/voices\", ...)."
+    },
+    {
+      "text": "Uses POST https://api.x.ai/v1/tts to generate audio",
+      "passed": true,
+      "evidence": "The speech request uses requests.post(\"https://api.x.ai/v1/tts\", ...)."
+    },
+    {
+      "text": "Writes the audio response in binary mode to an .mp3 file",
+      "passed": true,
+      "evidence": "The output writes speech.content with open(\"hello.mp3\", \"wb\")."
+    },
+    {
+      "text": "States that the request is not run by default",
+      "passed": true,
+      "evidence": "The answer says this is a dry-run example and does not run unless executed."
+    }
+  ],
+  "summary": {"passed": 5, "failed": 0, "total": 5, "pass_rate": 1.0},
+  "execution_metrics": {"total_tool_calls": 0, "errors_encountered": 0, "output_chars": 1164},
+  "timing": {"total_duration_seconds": 0.0},
+  "user_notes_summary": {"uncertainties": [], "needs_review": [], "workarounds": ["Manual artifact because no independent subagent runner is exposed in this environment."]}
+}

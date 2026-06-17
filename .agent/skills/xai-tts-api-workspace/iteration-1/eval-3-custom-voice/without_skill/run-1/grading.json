@@ -1,0 +1,33 @@
+{
+  "expectations": [
+    {
+      "text": "Uses POST https://api.x.ai/v1/custom-voices with multipart file upload",
+      "passed": false,
+      "evidence": "The example posts to /v1/voices, not /v1/custom-voices."
+    },
+    {
+      "text": "Extracts voice_id from the custom voice creation response",
+      "passed": false,
+      "evidence": "The example extracts .json()[\"id\"], not the documented voice_id field."
+    },
+    {
+      "text": "Uses the custom voice_id in a subsequent POST https://api.x.ai/v1/tts request",
+      "passed": false,
+      "evidence": "The example uses a JSON field named voice rather than voice_id."
+    },
+    {
+      "text": "Writes custom.mp3 in binary mode",
+      "passed": true,
+      "evidence": "The answer writes audio bytes with open(\"custom.mp3\", \"wb\")."
+    },
+    {
+      "text": "Clearly warns that custom voice creation is opt-in and not part of automated smoke tests",
+      "passed": false,
+      "evidence": "No opt-in or automated-test warning is included."
+    }
+  ],
+  "summary": {"passed": 1, "failed": 4, "total": 5, "pass_rate": 0.2},
+  "execution_metrics": {"total_tool_calls": 0, "errors_encountered": 0, "output_chars": 489},
+  "timing": {"total_duration_seconds": 0.0},
+  "user_notes_summary": {"uncertainties": [], "needs_review": ["Baseline is a handcrafted contrast output, not an independent runner output."], "workarounds": []}
+}

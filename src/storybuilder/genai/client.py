@@ -12,34 +12,66 @@ from google import genai
 load_dotenv()
 
 def wave_file(filename, pcm, channels=1, rate=24000, sample_width=2):
-    with wave.open(filename, "wb") as wf:
+    with wave.open(filename, 'wb') as wf:
         wf.setnchannels(channels)
         wf.setsampwidth(sample_width)
         wf.setframerate(rate)
         wf.writeframes(pcm)
 
 def parse_speech_config(markdown_content):
-    """Parses the markdown content to extract speakers and voices."""
-    speech_config = []
+    """Parses the markdown content to extract speakers and voices, dynamically matching active speakers in the transcript."""
+    # 1. Parse all voice mappings defined in the preamble
+    speaker_to_voice = {}
+    preamble = ""
+    transcript = ""
     
-    for line in markdown_content.split('\n'):
+    parts = markdown_content.split('#### TRANSCRIPT')
+    if len(parts) == 2:
+        preamble, transcript = parts[0], parts[1]
+    else:
+        preamble = markdown_content
+        transcript = ""
+        
+    for line in preamble.split('\n'):
         line = line.strip()
-        # Look for bullet points with the voice definition
         if line.startswith('*') or line.startswith('-'):
             match = re.search(r'[\*\-]\s*([A-Za-z0-9_-]+)\s*\(Voice:\s*([A-Za-z0-9_-]+)\)', line)
             if match:
                 speaker = match.group(1)
                 voice = match.group(2)
-                # The API allows a maximum of 2 voices
-                if len(speech_config) < 2:
-                    speech_config.append({"speaker": speaker, "voice": voice})
-                    
+                speaker_to_voice[speaker] = voice
+
+    # 2. Extract active speakers actually speaking in the transcript (in order of appearance)
+    active_speakers = []
+    for line in transcript.split('\n'):
+        line = line.strip()
+        match = re.match(r'^([A-Za-z0-9_-]+):', line)
+        if match:
+            sp = match.group(1)
+            if sp not in active_speakers:
+                active_speakers.append(sp)
+
+    # 3. Build speech_config using the active speakers
+    speech_config = []
+    for sp in active_speakers:
+        if sp in speaker_to_voice:
+            speech_config.append({"speaker": sp, "voice": speaker_to_voice[sp]})
+        else:
+            # Fallback if an active speaker has no voice defined
+            speech_config.append({"speaker": sp, "voice": "Kore"})
+        if len(speech_config) == 2:
+            break
+
+    # If the transcript doesn't have active speakers, fallback to the preamble's first defined speakers
     if not speech_config:
-        # Fallback if no voice config is found
+        for sp, vc in list(speaker_to_voice.items())[:2]:
+            speech_config.append({"speaker": sp, "voice": vc})
+
+    # Final validation/padding
+    if not speech_config:
         speech_config.append({"voice": "Kore"})
     elif len(speech_config) == 1:
-        # Force multi-speaker mode by padding with a dummy speaker
-        # This prevents 400 Invalid Input errors when a chunk happens to only have one speaker
+        # Force multi-speaker mode by padding with a dummy speaker to prevent 400 Invalid Input errors
         speech_config.append({"speaker": "Dummy", "voice": "Puck"})
         
     return speech_config
@@ -70,7 +102,7 @@ def process_directory(directory):
             continue
             
         print(f"Processing {os.path.basename(md_file)}...")
-        with open(md_file, "r") as f:
+        with open(md_file, 'r') as f:
             content = f.read()
             
         speech_config = parse_speech_config(content)
@@ -89,7 +121,16 @@ def process_directory(directory):
                 
                 if interaction.output_audio and interaction.output_audio.data:
                     audio_bytes = base64.b64decode(interaction.output_audio.data)
-                    wave_file(wav_file, audio_bytes)
+                    
+                    # Dynamically extract sample rate from mime_type if available
+                    sample_rate = 24000
+                    if hasattr(interaction.output_audio, "mime_type") and interaction.output_audio.mime_type:
+                        rate_match = re.search(r"rate=(\d+)", interaction.output_audio.mime_type)
+                        if rate_match:
+                            sample_rate = int(rate_match.group(1))
+                            print(f"  Extracted sample rate from mime_type: {sample_rate}Hz")
+                            
+                    wave_file(wav_file, audio_bytes, rate=sample_rate)
                     print(f"  Saved audio to {os.path.basename(wav_file)}")
                 else:
                     print(f"  Warning: No audio output for {os.path.basename(md_file)}")

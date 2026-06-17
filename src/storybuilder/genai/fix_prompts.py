@@ -1,5 +1,6 @@
 import os
 import glob
+import re
 from google import genai
 from dotenv import load_dotenv
 
@@ -20,6 +21,26 @@ You are an expert audio director. Rewrite the provided TTS prompt text to fix th
 5) Output the exact same markdown structure, only fixing the text. Do not add any conversational text or markdown code block markers around the output (like ```markdown), just output the raw markdown text.
 """
 
+def extract_markdown_block(content: str) -> str:
+    content = content.strip()
+    # Match ```markdown ... ``` or ``` ... ```
+    match = re.match(r"^```(?:markdown)?\s*\n(.*?)\n```$", content, re.DOTALL | re.IGNORECASE)
+    if match:
+        return match.group(1).strip()
+    # Match any generic block at start and end
+    match_any = re.match(r"^```[a-zA-Z0-9_-]*\s*\n(.*?)\n```$", content, re.DOTALL)
+    if match_any:
+        return match_any.group(1).strip()
+    # Fallback to older cleanup if not matching the full block structure perfectly
+    if content.startswith("```"):
+        lines = content.split("\n")
+        if lines[0].startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        return "\n".join(lines).strip()
+    return content
+
 def fix_prompts(directory):
     files = sorted(glob.glob(os.path.join(directory, "*-part.md")))
     if not files:
@@ -37,14 +58,7 @@ def fix_prompts(directory):
                 model="gemini-3.5-flash",
                 input=f"{PROMPT_INSTRUCTION}\n\nHere is the prompt file content:\n\n{content}"
             )
-            fixed_content = interaction.output_text.strip()
-            
-            # Clean up markdown markers if the model ignored the instruction
-            if fixed_content.startswith("```markdown"):
-                fixed_content = fixed_content[11:]
-            if fixed_content.endswith("```"):
-                fixed_content = fixed_content[:-3]
-            fixed_content = fixed_content.strip()
+            fixed_content = extract_markdown_block(interaction.output_text)
 
             with open(md_file, "w") as f:
                 f.write(fixed_content)

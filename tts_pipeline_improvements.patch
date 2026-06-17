@@ -1,29 +1,553 @@
-<!doctype html><html lang="en" dir="ltr"><head><base href="https://aistudio.google.com/u/0/"><link rel="preconnect" href="//www.gstatic.com"><meta name="referrer" content="origin"><link rel="canonical" href="https://aistudio.google.com/"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="The fastest path from prompt to production with Gemini"><meta property="og:url" content="https://aistudio.google.com/"><meta property="og:type" content="website"><meta property="og:title" content="Google AI Studio"><meta property="og:description" content="The fastest path from prompt to production with Gemini"><meta property="og:image" content="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="application-name" content="AI Studio"><meta name="apple-mobile-web-app-title" content="AI Studio"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="theme-color" content="#000"><meta name="msapplication-tap-highlight" content="no"><link rel="preconnect" href="//fonts.googleapis.com"><link rel="preconnect" href="//fonts.gstatic.com"><link rel="preconnect" href="//www.gstatic.com"><link rel="preconnect" href="//alkalimakersuite-pa.clients6.google.com"><link rel="prefetch" href="//apis.google.com/js/api.js"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,1..1000&amp;display=swap" nonce="qCX7KPxbrsg4ROiazSy-dQ"><link rel="stylesheet" href="//fonts.googleapis.com/css2?family=Inter:wght@400;500&amp;family=Inter+Tight:wght@300;500;600&amp;display=swap" nonce="qCX7KPxbrsg4ROiazSy-dQ"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Text:ital,wght@0,400;0,500;0,600;1,400;1,500&amp;display=block" nonce="qCX7KPxbrsg4ROiazSy-dQ"><link rel="manifest" crossorigin="use-credentials" href="_/MakerSuite/manifest.json"><link rel="home" href="/prompts/new_chat?utm_source=pwa&amp;utm_medium=homescreen&amp;lfhs=2"><link rel="msapplication-starturl" href="/prompts/new_chat?utm_source=pwa&amp;utm_medium=homescreen&amp;lfhs=2"><link rel="icon" href="https://www.gstatic.com/images/branding/productlogos/ai_studio/v1/web-32dp/logo_ai_studio_color_1x_web_32dp.png" sizes="32x32"><link rel="apple-touch-icon-precomposed" href="https://www.gstatic.com/images/branding/productlogos/ai_studio/v1/web-32dp/logo_ai_studio_color_1x_web_32dp.png" sizes="32x32"><link rel="msapplication-square32x32logo" href="https://www.gstatic.com/images/branding/productlogos/ai_studio/v1/web-32dp/logo_ai_studio_color_1x_web_32dp.png" sizes="32x32"><link rel="icon" href="https://www.gstatic.com/images/branding/productlogos/ai_studio/v1/web-64dp/logo_ai_studio_color_1x_web_64dp.png" sizes="64x64"><link rel="apple-touch-icon-precomposed" href="https://www.gstatic.com/images/branding/productlogos/ai_studio/v1/web-64dp/logo_ai_studio_color_1x_web_64dp.png" sizes="64x64"><link rel="msapplication-square64x64logo" href="https://www.gstatic.com/images/branding/productlogos/ai_studio/v1/web-64dp/logo_ai_studio_color_1x_web_64dp.png" sizes="64x64"><link rel="icon" href="https://www.gstatic.com/images/branding/productlogos/ai_studio/v1/web-96dp/logo_ai_studio_color_1x_web_96dp.png" sizes="96x96"><link rel="apple-touch-icon-precomposed" href="https://www.gstatic.com/images/branding/productlogos/ai_studio/v1/web-96dp/logo_ai_studio_color_1x_web_96dp.png" sizes="96x96"><link rel="msapplication-square96x96logo" href="https://www.gstatic.com/images/branding/productlogos/ai_studio/v1/web-96dp/logo_ai_studio_color_1x_web_96dp.png" sizes="96x96"><link rel="icon" href="https://www.gstatic.com/images/branding/productlogos/ai_studio/v1/web-512dp/logo_ai_studio_color_1x_web_512dp.png" sizes="512x512"><link rel="apple-touch-icon-precomposed" href="https://www.gstatic.com/images/branding/productlogos/ai_studio/v1/web-512dp/logo_ai_studio_color_1x_web_512dp.png" sizes="512x512"><link rel="msapplication-square512x512logo" href="https://www.gstatic.com/images/branding/productlogos/ai_studio/v1/web-512dp/logo_ai_studio_color_1x_web_512dp.png" sizes="512x512"><link rel="preload" href="https://www.gstatic.com/_/mss/boq-makersuite/_/js/k=boq-makersuite.MakerSuite.en.WmBvA2X9rAc.2018.O/am=4wIC/d=1/excm=_b/ed=1/dg=0/br=1/wt=2/ujg=1/rs=AMOXD2-IWFqQKyf3NF79bc2eSwBuqvxYCw/dti=1/m=_b" as="script" nonce="NB-Lxqjrw4CDwL-fJJmleQ"><link rel="preload" href="https://www.gstatic.com/_/mss/boq-makersuite/_/js/k=boq-makersuite.MakerSuite.en.WmBvA2X9rAc.2018.O/ck=boq-makersuite.MakerSuite.tp0dbZLzTYE.L.B1.O/am=4wIC/d=1/exm=_b/excm=_b/ed=1/br=1/wt=2/ujg=1/rs=AMOXD28_HNCkol5qUIAuya2lGg8RNhEWiQ/dti=1/m=smxHue" as="script" nonce="NB-Lxqjrw4CDwL-fJJmleQ"><script type="application/json" id="ebe6fa29-c4e4-494c-89ca-a41a362b606c" nonce="NB-Lxqjrw4CDwL-fJJmleQ">{"AfY8Hf":false,"CmfRSc":"0","CoJqbf":"https://alkalimakersuite-pa.clients6.google.com","DpimGf":false,"Dvqjfd":"","EBvNTe":"823511539352-ojaretejk1s95sdvkic0te923pt7knpu.apps.googleusercontent.com","EP1ykd":["/.well-known/*","/_/*","/accounts/*","/app","/app/*","/assets/*","/audio/*","/images/*","/music/*","/public/*","/templates/*"],"FdrFJe":"-3262007505646725588","HiPsbb":1,"Im6cmf":"/u/0/_/MakerSuite","KU8tnd":"https://alkalimakersuiteapplets.pa.clients6.google.com","LoQv7e":true,"MUE6Ne":"alkali-makersuite","MsAAre":false,"NHyHAe":60000,"O7uJJ":"https://cloudconsole-pa.clients6.google.com","OC2PJe":"https://people-pa.clients6.google.com","Onibif":"https://webchannel-alkalimakersuite-pa.clients6.google.com","PeqOqb":"AIzaSyDHAQL7kdN6lNBcBok1eNB8dG7wwo6E6io","PgS1Kc":"https://content.googleapis.com","PqyQ6d":"","QrtxK":"0","S06Grb":"114985088207840819570","S6lZl":96797242,"SNlM0e":"ACsZ58VZLD_kpyh3FWz3rvFJyjH_:1781733215791","TSDtV":"%.@.[[null,[[45750734,null,false,null,null,null,\"zNidwd\"],[45786059,null,true,null,null,null,\"ZRXcme\"],[45800001,null,false,null,null,null,\"fEA85b\"],[45766584,null,false,null,null,null,\"uzk17e\"],[45784561,null,false,null,null,null,\"LXfb5c\"],[45780874,null,true,null,null,null,\"Q1jbEd\"],[45772164,null,false,null,null,null,\"zeKiRd\"],[45764549,null,true,null,null,null,\"ZSgiif\"],[45756631,null,null,null,\"\",null,\"MDjK1d\"],[45737435,null,true,null,null,null,\"QLHTQ\"],[45789211,null,true,null,null,null,\"piJH9\"],[45786683,null,false,null,null,null,\"SEwGId\"],[45714250,null,false,null,null,null,\"t52vxe\"],[45771578,null,true,null,null,null,\"FWnIxc\"],[45773098,null,true,null,null,null,\"tHUpTc\"],[45746196,null,true,null,null,null,\"Mkmxtb\"],[45772817,null,true,null,null,null,\"fMTTic\"],[45773200,null,false,null,null,null,\"SNmu3c\"],[45796413,null,false,null,null,null,\"tO7rUe\"],[45776026,null,false,null,null,null,\"CEBNKb\"],[45777831,null,false,null,null,null,\"GPgspe\"],[45800013,null,false,null,null,null,\"kBcLgd\"],[45784662,null,false,null,null,null,\"QdT1Z\"],[45789038,null,true,null,null,null,\"SBvgmb\"],[45793680,null,false,null,null,null,\"vNmane\"],[45740704,null,true,null,null,null,\"SYRUsf\"],[45764720,null,true,null,null,null,\"B2Bu0b\"],[45789212,null,true,null,null,null,\"ulXCPe\"],[45797289,null,false,null,null,null,\"kMOgw\"],[45773240,null,false,null,null,null,\"n7JOEb\"],[45772231,null,false,null,null,null,\"HsfSqc\"],[45632067,null,false,null,null,null,\"CyDiEf\"],[45670190,null,false,null,null,null,\"ArIgzf\"],[45734881,null,false,null,null,null,\"RLIQje\"],[45675258,null,false,null,null,null,\"z2PIFf\"],[45787299,null,false,null,null,null,\"h85Kkd\"],[45799321,null,false,null,null,null,\"Qsarhc\"],[45762431,null,null,null,null,null,\"tpYIV\",[\"[]\"]],[45784559,null,true,null,null,null,\"quitKc\"],[45762876,null,false,null,null,null,\"JRm6id\"],[45737434,null,true,null,null,null,\"LYXRQd\"],[45782106,null,false,null,null,null,\"QPS7wc\"],[45761092,null,true,null,null,null,\"TOSnFd\"],[45768537,null,true,null,null,null,\"HzvgYb\"],[45788298,null,false,null,null,null,\"ET3a6d\"],[45763863,null,false,null,null,null,\"srRqFc\"],[45783821,null,true,null,null,null,\"rj2tyd\"],[45788359,null,true,null,null,null,\"yk9lae\"],[45777963,null,false,null,null,null,\"JE0rH\"],[45778760,null,true,null,null,null,\"lDqOJc\"],[45742893,null,true,null,null,null,\"Irsrgf\"],[45713337,null,true,null,null,null,\"yauate\"],[45775967,null,false,null,null,null,\"h9YtGf\"],[45777111,null,false,null,null,null,\"IMIKmb\"],[45781210,null,true,null,null,null,\"ZAVYX\"],[45784560,null,true,null,null,null,\"aUo2dd\"],[45798311,null,false,null,null,null,\"d3uK8c\"],[45776055,null,true,null,null,null,\"K9PPGd\"],[45786621,null,false,null,null,null,\"u5h94\"],[45721377,null,null,null,\"\",null,\"bXSQ7e\"],[45772596,null,true,null,null,null,\"AYGfy\"],[45733504,null,false,null,null,null,\"JZ5hpd\"],[45786417,null,false,null,null,null,\"jL0KB\"],[45781629,null,false,null,null,null,\"T92pzc\"],[45751126,null,true,null,null,null,\"wKxlR\"],[45746822,null,true,null,null,null,\"Evf1d\"],[45757011,null,true,null,null,null,\"cT1KOe\"],[45789329,null,false,null,null,null,\"Rh2PCb\"],[45774471,null,true,null,null,null,\"fBXe4\"],[45797765,null,false,null,null,null,\"LMH9V\"],[45784562,null,true,null,null,null,\"B7YKqc\"],[45786771,null,true,null,null,null,\"yyIihe\"],[45767301,null,true,null,null,null,\"XNnQfb\"],[45790102,null,false,null,null,null,\"gWraHd\"],[45775806,null,false,null,null,null,\"f1cyrc\"],[45767846,null,true,null,null,null,\"mJfu4c\"],[45776819,null,true,null,null,null,\"CWdxXd\"],[45794130,null,false,null,null,null,\"B1i3nf\"],[45801163,null,false,null,null,null,\"VDs51c\"],[45770475,null,true,null,null,null,\"W8IGob\"],[45796593,null,false,null,null,null,\"piQlge\"],[45751428,null,false,null,null,null,\"w8d1bc\"],[45764242,null,false,null,null,null,\"SUyhd\"],[45739638,null,true,null,null,null,\"hPR2wd\"],[45784349,null,true,null,null,null,\"xNyUwf\"],[45725952,null,false,null,null,null,\"LGSclc\"],[45716130,null,null,null,\"\",null,\"Qy4uld\"],[45773243,null,false,null,null,null,\"MLsv8b\"],[45793959,null,false,null,null,null,\"hOMnHf\"],[45646711,null,false,null,null,null,\"aKSrdd\"],[45773517,null,true,null,null,null,\"C4cpEd\"],[45761572,null,true,null,null,null,\"qXj2Uc\"],[45745504,null,false,null,null,null,\"II2tFb\"],[45786476,null,false,null,null,null,\"NtxR6e\"],[45765786,null,false,null,null,null,\"B1GdRb\"],[45780375,null,false,null,null,null,\"GAbK3d\"],[45785393,null,false,null,null,null,\"JVB6z\"],[45797100,null,false,null,null,null,\"iB2O1e\"],[45791714,null,false,null,null,null,\"g8IuBb\"],[45791779,null,false,null,null,null,\"DQg7Hb\"],[45798181,null,false,null,null,null,\"RiRykd\"],[45767507,null,true,null,null,null,\"Zn5Ej\"],[45775384,null,false,null,null,null,\"DqVejd\"],[45802372,null,false,null,null,null,\"XXFwZe\"],[45751038,null,false,null,null,null,\"Ym7zTe\"],[45716158,null,false,null,null,null,\"j1MtL\"],[45784330,null,true,null,null,null,\"WWo53e\"],[106136619,null,true,null,null,null,\"iGreoe\"],[45794982,null,false,null,null,null,\"EW5nff\"],[45746195,null,true,null,null,null,\"eXVehb\"],[45752299,null,false,null,null,null,\"TAKztd\"],[45797198,null,true,null,null,null,\"XwUEbb\"],[45694412,null,false,null,null,null,\"SbCVZ\"],[45732213,null,false,null,null,null,\"w7xKfd\"],[45785017,null,false,null,null,null,\"ri7Eac\"],[45762227,null,false,null,null,null,\"Z4Lh5e\"],[45738431,null,true,null,null,null,\"kps1Sb\"],[45773733,null,true,null,null,null,\"EGfkj\"],[45764122,null,true,null,null,null,\"tOmy2c\"],[45772448,null,true,null,null,null,\"i07PMb\"],[45795428,null,true,null,null,null,\"EcsXbb\"],[45799477,null,true,null,null,null,\"iTgAB\"],[45772059,null,false,null,null,null,\"R59tgd\"],[45776175,null,true,null,null,null,\"TVtUfd\"],[45798215,null,false,null,null,null,\"HCx3Oc\"],[45747021,null,true,null,null,null,\"pKd73e\"],[45741743,null,false,null,null,null,\"FpM8Qe\"],[45800793,null,true,null,null,null,\"ou8vKf\"],[45777919,null,true,null,null,null,\"lBbnaf\"],[45772137,null,false,null,null,null,\"ishS2b\"],[45724978,null,false,null,null,null,\"OWw3ld\"],[45773922,null,true,null,null,null,\"RSYlDb\"],[45776579,null,false,null,null,null,\"clXDpe\"],[45785203,null,true,null,null,null,\"DZbx2e\"],[45780339,null,false,null,null,null,\"RajHhe\"],[45786812,null,true,null,null,null,\"rG2Adf\"],[45770216,null,false,null,null,null,\"yGufu\"],[45789728,null,false,null,null,null,\"Q8cvAc\"],[45792553,null,true,null,null,null,\"hyP5He\"],[45780973,null,false,null,null,null,\"Meakl\"],[45795051,null,false,null,null,null,\"CWLjS\"],[45797782,null,false,null,null,null,\"KGod8d\"],[45784348,null,true,null,null,null,\"hVbMQ\"],[45750201,null,false,null,null,null,\"eOwTyc\"],[45725932,null,false,null,null,null,\"Gb1Jaf\"],[45764913,null,true,null,null,null,\"OxBBVd\"],[45756630,null,null,null,\"\",null,\"fns4O\"],[45791794,null,false,null,null,null,\"kc5JKd\"],[45782887,null,true,null,null,null,\"YXc6Qb\"],[45741421,null,null,null,\"models/gemini-3.5-flash\",null,\"PH4l9d\"],[45773490,null,false,null,null,null,\"WcaBr\"],[45740367,null,true,null,null,null,\"jCr8Db\"],[45765657,null,false,null,null,null,\"TQncq\"],[45801394,null,false,null,null,null,\"jRNfnb\"],[45788850,null,false,null,null,null,\"Bh3THc\"],[45736286,null,true,null,null,null,\"DoFtYd\"],[45794311,null,false,null,null,null,\"s5sys\"],[45798403,null,false,null,null,null,\"x2wuHf\"],[45689743,null,false,null,null,null,\"BoFdPd\"],[45722603,null,true,null,null,null,\"iWkpJ\"],[45708381,null,false,null,null,null,\"JkACyc\"],[45795774,null,true,null,null,null,\"umrbYe\"],[45754287,null,false,null,null,null,\"NLg3db\"],[45755068,null,false,null,null,null,\"EB2qEd\"],[45772802,null,true,null,null,null,\"gENGMb\"],[45787653,null,true,null,null,null,\"N0vGQ\"],[45767338,null,true,null,null,null,\"JqIT5d\"],[45781687,null,true,null,null,null,\"NKi4Oe\"],[45723374,null,false,null,null,null,\"FK7eJd\"],[45753184,null,false,null,null,null,\"yUHVge\"],[45781083,null,false,null,null,null,\"NNIf1e\"],[45783557,null,false,null,null,null,\"GG6bhd\"],[45737499,null,true,null,null,null,\"dIQ2Ic\"],[45796324,null,false,null,null,null,\"sFBYxc\"],[45712153,null,false,null,null,null,\"aynkwb\"],[45748488,null,false,null,null,null,\"utFgZ\"],[45726760,null,null,null,\"\",null,\"OZtjO\"],[45747224,null,true,null,null,null,\"hLDizc\"],[45778977,null,true,null,null,null,\"BQF0Ib\"],[45795347,null,true,null,null,null,\"OCsDje\"],[45788754,null,null,null,null,null,\"CAlZbf\",[\"[[[\\\"supercloud\\\",\\\"https://www.gstatic.com/images/branding/productlogos/google_cloud_2026/v1/192px.svg\\\",\\\"https://www.gstatic.com/images/branding/productlogos/google_cloud_2026/v1/192px.svg\\\"],[\\\"gemini\\\",\\\"https://www.gstatic.com/images/branding/productlogos/gemini_2026/v1/192px.svg\\\",\\\"https://www.gstatic.com/images/branding/productlogos/gemini_2026/v1/192px.svg\\\"]]]\"]],[45773239,null,false,null,null,null,\"FR4WA\"],[45757828,null,true,null,null,null,\"Q8uuOb\"],[45799359,null,false,null,null,null,\"B1kymf\"],[45721546,null,true,null,null,null,\"kNlqGe\"],[45785548,null,true,null,null,null,\"OPuucb\"],[45759847,null,true,null,null,null,\"yRDM\"],[45781546,null,true,null,null,null,\"dTVAgd\"],[45778471,null,false,null,null,null,\"GxQ9o\"],[45737255,null,true,null,null,null,\"ra4Rcf\"],[45740401,null,true,null,null,null,\"kAmEsf\"],[45782135,null,true,null,null,null,\"aWuK4b\"],[45760649,null,true,null,null,null,\"rLCwub\"],[45789764,null,true,null,null,null,\"q7jIFe\"],[45799173,null,null,null,null,null,\"AyrXXd\",[\"[]\"]],[45747468,null,true,null,null,null,\"gjSq0\"],[45775030,null,true,null,null,null,\"yT9XMb\"],[45785071,null,true,null,null,null,\"jCAPEe\"],[45792594,null,false,null,null,null,\"pl1NXc\"],[497238176,null,false,null,null,null,\"WSAzh\"]],\"CAMSmwEdnwaO1bQ1D+SSBRaevgEP2pAND/UTD4aZBg+qSA+iHw+mtgYP/QIPl5UGD60GD94LD9g7D895D8EgD5AyD68UD2YP7ygV/wUPpysAkCcPpNwGD/IfD6S/Bg+bLg+XGg+DCw+XNQ/jMw/ncg+gBg8CD5oLD5ZWD+g3D98cD8krD/EYD8sjD+IhD9KABQ+cVw/5Nw/qqAYP064GDw\\u003d\\u003d\"]]]","UUFaWc":"%.@.null,1000,2]","UsvuEb":true,"Vvafkd":false,"W3Yyqf":"114985088207840819570","WIu0Nc":"AIzaSyDdP816MREB3SkjZO04QXbjsigfcI0GWOs","WZsZ1e":"h05MMPdKiM_MfT0A/AkDmiB_wHWVzPN1V2","Z8v1ze":[],"ZLEzG":"","ax6qJc":false,"b5W2zf":"default_MakerSuite","b6BhHd":"%.@.null,null,null,\"https://ai.google.dev\"]","cfb2h":"boq_alkali-makersuite_20260615.12_p0","fPDxwd":[105739272],"gGcLoe":false,"hOXil":[],"hsFLT":"%.@.null,10,3]","iCzhFc":false,"iRz4i":3,"k76Vlc":[],"kFsUdb":"https://docs.google.com/picker","kPYdqb":true,"mXaIFf":false,"nPAWmd":"https://cloudconsole-pa.clients6.google.com","nQyAE":{},"nfd52d":"google-ai-studio","oPEP7c":"jeremy.geo@gmail.com","p9hQne":"https://www.gstatic.com/_/boq-makersuite/_/r/","pm20lb":"cloudconsole-pa.clients6.google.com","qDCSke":"114985088207840819570","qc58fc":"","qwAQke":"MakerSuite","rtQCxc":240,"syGxEd":true,"teM9xe":"79901bd7-a104-4e70-975f-16a25588f534","tkHyOe":"MUST_PROVIDE_AN_API_KEY","u4g7r":"%.@.null,1,3]","wpAUPe":false,"xnI9P":false,"xwAfE":true,"y2FhP":"prod","yFnxrf":1957,"yueqgf":false,"zBpHOc":"https://accounts.google.com/o/oauth2/auth","zChJod":"%.@.]","zQKvjb":25,"zSAhZc":"https://accounts.google.com/o/oauth2/iframe"}</script><script nonce="NB-Lxqjrw4CDwL-fJJmleQ">window["_F_toggles_default_MakerSuite"] = [0x1202e3, 0x6801, ];</script><script nonce="NB-Lxqjrw4CDwL-fJJmleQ"></script><script nonce="NB-Lxqjrw4CDwL-fJJmleQ">var _F_cssRowKey = 'boq-makersuite.MakerSuite.tp0dbZLzTYE.L.B1.O';var _F_combinedSignature = 'AMOXD28_HNCkol5qUIAuya2lGg8RNhEWiQ';function _DumpException(e) {throw e;}</script><link rel="stylesheet" href="https://www.gstatic.com/_/mss/boq-makersuite/_/ss/k=boq-makersuite.MakerSuite.tp0dbZLzTYE.L.B1.O/am=4wISQAAa/d=1/ed=1/rs=AMOXD297pJtr_4UfeN7JIPndeWt9lGFIhA/m=_b" data-id="_cl" nonce="qCX7KPxbrsg4ROiazSy-dQ"><style data-font-stylesheet nonce="qCX7KPxbrsg4ROiazSy-dQ">@font-face{font-family:'Product Sans';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/productsans/v9/pxiDypQkot1TnFhsFMOfGShVGdeOcEg.woff2)format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;}@font-face{font-family:'Product Sans';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/productsans/v9/pxiDypQkot1TnFhsFMOfGShVF9eO.woff2)format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPiIUvaYr.woff2)format('woff2');unicode-range:U+0308,U+0530-058F,U+2010,U+2024,U+25CC,U+FB13-FB17;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPiAUvaYr.woff2)format('woff2');unicode-range:U+0951-0952,U+0964-0965,U+0980-09FE,U+1CD0,U+1CD2,U+1CD5-1CD6,U+1CD8,U+1CE1,U+1CEA,U+1CED,U+1CF2,U+1CF5-1CF7,U+200C-200D,U+20B9,U+25CC,U+A8F1;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPh0UvaYr.woff2)format('woff2');unicode-range:U+02C7,U+02D8-02D9,U+02DB,U+0307,U+1400-167F,U+18B0-18F5,U+25CC,U+11AB0-11ABF;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPj8UvaYr.woff2)format('woff2');unicode-range:U+0460-052F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPjYUvaYr.woff2)format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPjMUvaYr.woff2)format('woff2');unicode-range:U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPiMUvaYr.woff2)format('woff2');unicode-range:U+030E,U+1200-1399,U+2D80-2DDE,U+AB01-AB2E,U+1E7E0-1E7E6,U+1E7E8-1E7EB,U+1E7ED-1E7EE,U+1E7F0-1E7FE;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPi0UvaYr.woff2)format('woff2');unicode-range:U+0589,U+10A0-10FF,U+1C90-1CBA,U+1CBD-1CBF,U+205A,U+2D00-2D2F,U+2E31;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPj4UvaYr.woff2)format('woff2');unicode-range:U+1F00-1FFF;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPjEUvaYr.woff2)format('woff2');unicode-range:U+0370-0377,U+037A-037F,U+0384-038A,U+038C,U+038E-03A1,U+03A3-03FF;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPikUvaYr.woff2)format('woff2');unicode-range:U+0951-0952,U+0964-0965,U+0A80-0AFF,U+200C-200D,U+20B9,U+25CC,U+A830-A839;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPhEUvaYr.woff2)format('woff2');unicode-range:U+0951-0952,U+0964-0965,U+0A01-0A76,U+200C-200D,U+20B9,U+25CC,U+262C,U+A830-A839;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPjAUvaYr.woff2)format('woff2');unicode-range:U+0307-0308,U+0590-05FF,U+200C-2010,U+20AA,U+25CC,U+FB1D-FB4F;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPjkUvaYr.woff2)format('woff2');unicode-range:U+1780-17FF,U+19E0-19FF,U+200C-200D,U+25CC;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPjsUvaYr.woff2)format('woff2');unicode-range:U+0E81-0EDF,U+200C-200D,U+25CC;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPioUvaYr.woff2)format('woff2');unicode-range:U+0307,U+0323,U+0951-0952,U+0964-0965,U+0D00-0D7F,U+1CDA,U+1CF2,U+200C-200D,U+20B9,U+25CC,U+A830-A832;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPisUvaYr.woff2)format('woff2');unicode-range:U+0951-0952,U+0964-0965,U+0B01-0B77,U+1CDA,U+1CF2,U+200C-200D,U+20B9,U+25CC;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPi8UvaYr.woff2)format('woff2');unicode-range:U+0964-0965,U+0D81-0DF4,U+1CF2,U+200C-200D,U+25CC,U+111E1-111F4;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPlwUvaYr.woff2)format('woff2');unicode-range:U+0001-000C,U+000E-001F,U+007F-009F,U+20DD-20E0,U+20E2-20E4,U+2150-218F,U+2190,U+2192,U+2194-2199,U+21AF,U+21E6-21F0,U+21F3,U+2218-2219,U+2299,U+22C4-22C6,U+2300-243F,U+2440-244A,U+2460-24FF,U+25A0-27BF,U+2800-28FF,U+2921-2922,U+2981,U+29BF,U+29EB,U+2B00-2BFF,U+4DC0-4DFF,U+FFF9-FFFB,U+10140-1018E,U+10190-1019C,U+101A0,U+101D0-101FD,U+102E0-102FB,U+10E60-10E7E,U+1D2C0-1D2D3,U+1D2E0-1D37F,U+1F000-1F0FF,U+1F100-1F1AD,U+1F1E6-1F1FF,U+1F30D-1F30F,U+1F315,U+1F31C,U+1F31E,U+1F320-1F32C,U+1F336,U+1F378,U+1F37D,U+1F382,U+1F393-1F39F,U+1F3A7-1F3A8,U+1F3AC-1F3AF,U+1F3C2,U+1F3C4-1F3C6,U+1F3CA-1F3CE,U+1F3D4-1F3E0,U+1F3ED,U+1F3F1-1F3F3,U+1F3F5-1F3F7,U+1F408,U+1F415,U+1F41F,U+1F426,U+1F43F,U+1F441-1F442,U+1F444,U+1F446-1F449,U+1F44C-1F44E,U+1F453,U+1F46A,U+1F47D,U+1F4A3,U+1F4B0,U+1F4B3,U+1F4B9,U+1F4BB,U+1F4BF,U+1F4C8-1F4CB,U+1F4D6,U+1F4DA,U+1F4DF,U+1F4E3-1F4E6,U+1F4EA-1F4ED,U+1F4F7,U+1F4F9-1F4FB,U+1F4FD-1F4FE,U+1F503,U+1F507-1F50B,U+1F50D,U+1F512-1F513,U+1F53E-1F54A,U+1F54F-1F5FA,U+1F610,U+1F650-1F67F,U+1F687,U+1F68D,U+1F691,U+1F694,U+1F698,U+1F6AD,U+1F6B2,U+1F6B9-1F6BA,U+1F6BC,U+1F6C6-1F6CF,U+1F6D3-1F6D7,U+1F6E0-1F6EA,U+1F6F0-1F6F3,U+1F6F7-1F6FC,U+1F700-1F7FF,U+1F800-1F80B,U+1F810-1F847,U+1F850-1F859,U+1F860-1F887,U+1F890-1F8AD,U+1F8B0-1F8BB,U+1F8C0-1F8C1,U+1F900-1F90B,U+1F93B,U+1F946,U+1F984,U+1F996,U+1F9E9,U+1FA00-1FA6F,U+1FA70-1FA7C,U+1FA80-1FA89,U+1FA8F-1FAC6,U+1FACE-1FADC,U+1FADF-1FAE9,U+1FAF0-1FAF8,U+1FB00-1FBFF;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPiQUvaYr.woff2)format('woff2');unicode-range:U+0964-0965,U+0B82-0BFA,U+200C-200D,U+20B9,U+25CC;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPi4UvaYr.woff2)format('woff2');unicode-range:U+0951-0952,U+0964-0965,U+0C00-0C7F,U+1CDA,U+1CF2,U+200C-200D,U+25CC;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPiYUvaYr.woff2)format('woff2');unicode-range:U+02D7,U+0303,U+0331,U+0E01-0E5B,U+200C-200D,U+25CC;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPj0UvaYr.woff2)format('woff2');unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPjwUvaYr.woff2)format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPjIUvQ.woff2)format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:500;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPiIUvaYr.woff2)format('woff2');unicode-range:U+0308,U+0530-058F,U+2010,U+2024,U+25CC,U+FB13-FB17;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:500;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPiAUvaYr.woff2)format('woff2');unicode-range:U+0951-0952,U+0964-0965,U+0980-09FE,U+1CD0,U+1CD2,U+1CD5-1CD6,U+1CD8,U+1CE1,U+1CEA,U+1CED,U+1CF2,U+1CF5-1CF7,U+200C-200D,U+20B9,U+25CC,U+A8F1;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:500;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPh0UvaYr.woff2)format('woff2');unicode-range:U+02C7,U+02D8-02D9,U+02DB,U+0307,U+1400-167F,U+18B0-18F5,U+25CC,U+11AB0-11ABF;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:500;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPj8UvaYr.woff2)format('woff2');unicode-range:U+0460-052F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:500;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPjYUvaYr.woff2)format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:500;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPjMUvaYr.woff2)format('woff2');unicode-range:U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:500;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPiMUvaYr.woff2)format('woff2');unicode-range:U+030E,U+1200-1399,U+2D80-2DDE,U+AB01-AB2E,U+1E7E0-1E7E6,U+1E7E8-1E7EB,U+1E7ED-1E7EE,U+1E7F0-1E7FE;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:500;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPi0UvaYr.woff2)format('woff2');unicode-range:U+0589,U+10A0-10FF,U+1C90-1CBA,U+1CBD-1CBF,U+205A,U+2D00-2D2F,U+2E31;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:500;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPj4UvaYr.woff2)format('woff2');unicode-range:U+1F00-1FFF;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:500;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPjEUvaYr.woff2)format('woff2');unicode-range:U+0370-0377,U+037A-037F,U+0384-038A,U+038C,U+038E-03A1,U+03A3-03FF;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:500;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPikUvaYr.woff2)format('woff2');unicode-range:U+0951-0952,U+0964-0965,U+0A80-0AFF,U+200C-200D,U+20B9,U+25CC,U+A830-A839;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:500;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPhEUvaYr.woff2)format('woff2');unicode-range:U+0951-0952,U+0964-0965,U+0A01-0A76,U+200C-200D,U+20B9,U+25CC,U+262C,U+A830-A839;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:500;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPjAUvaYr.woff2)format('woff2');unicode-range:U+0307-0308,U+0590-05FF,U+200C-2010,U+20AA,U+25CC,U+FB1D-FB4F;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:500;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPjkUvaYr.woff2)format('woff2');unicode-range:U+1780-17FF,U+19E0-19FF,U+200C-200D,U+25CC;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:500;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPjsUvaYr.woff2)format('woff2');unicode-range:U+0E81-0EDF,U+200C-200D,U+25CC;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:500;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPioUvaYr.woff2)format('woff2');unicode-range:U+0307,U+0323,U+0951-0952,U+0964-0965,U+0D00-0D7F,U+1CDA,U+1CF2,U+200C-200D,U+20B9,U+25CC,U+A830-A832;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:500;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPisUvaYr.woff2)format('woff2');unicode-range:U+0951-0952,U+0964-0965,U+0B01-0B77,U+1CDA,U+1CF2,U+200C-200D,U+20B9,U+25CC;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:500;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPi8UvaYr.woff2)format('woff2');unicode-range:U+0964-0965,U+0D81-0DF4,U+1CF2,U+200C-200D,U+25CC,U+111E1-111F4;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:500;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPlwUvaYr.woff2)format('woff2');unicode-range:U+0001-000C,U+000E-001F,U+007F-009F,U+20DD-20E0,U+20E2-20E4,U+2150-218F,U+2190,U+2192,U+2194-2199,U+21AF,U+21E6-21F0,U+21F3,U+2218-2219,U+2299,U+22C4-22C6,U+2300-243F,U+2440-244A,U+2460-24FF,U+25A0-27BF,U+2800-28FF,U+2921-2922,U+2981,U+29BF,U+29EB,U+2B00-2BFF,U+4DC0-4DFF,U+FFF9-FFFB,U+10140-1018E,U+10190-1019C,U+101A0,U+101D0-101FD,U+102E0-102FB,U+10E60-10E7E,U+1D2C0-1D2D3,U+1D2E0-1D37F,U+1F000-1F0FF,U+1F100-1F1AD,U+1F1E6-1F1FF,U+1F30D-1F30F,U+1F315,U+1F31C,U+1F31E,U+1F320-1F32C,U+1F336,U+1F378,U+1F37D,U+1F382,U+1F393-1F39F,U+1F3A7-1F3A8,U+1F3AC-1F3AF,U+1F3C2,U+1F3C4-1F3C6,U+1F3CA-1F3CE,U+1F3D4-1F3E0,U+1F3ED,U+1F3F1-1F3F3,U+1F3F5-1F3F7,U+1F408,U+1F415,U+1F41F,U+1F426,U+1F43F,U+1F441-1F442,U+1F444,U+1F446-1F449,U+1F44C-1F44E,U+1F453,U+1F46A,U+1F47D,U+1F4A3,U+1F4B0,U+1F4B3,U+1F4B9,U+1F4BB,U+1F4BF,U+1F4C8-1F4CB,U+1F4D6,U+1F4DA,U+1F4DF,U+1F4E3-1F4E6,U+1F4EA-1F4ED,U+1F4F7,U+1F4F9-1F4FB,U+1F4FD-1F4FE,U+1F503,U+1F507-1F50B,U+1F50D,U+1F512-1F513,U+1F53E-1F54A,U+1F54F-1F5FA,U+1F610,U+1F650-1F67F,U+1F687,U+1F68D,U+1F691,U+1F694,U+1F698,U+1F6AD,U+1F6B2,U+1F6B9-1F6BA,U+1F6BC,U+1F6C6-1F6CF,U+1F6D3-1F6D7,U+1F6E0-1F6EA,U+1F6F0-1F6F3,U+1F6F7-1F6FC,U+1F700-1F7FF,U+1F800-1F80B,U+1F810-1F847,U+1F850-1F859,U+1F860-1F887,U+1F890-1F8AD,U+1F8B0-1F8BB,U+1F8C0-1F8C1,U+1F900-1F90B,U+1F93B,U+1F946,U+1F984,U+1F996,U+1F9E9,U+1FA00-1FA6F,U+1FA70-1FA7C,U+1FA80-1FA89,U+1FA8F-1FAC6,U+1FACE-1FADC,U+1FADF-1FAE9,U+1FAF0-1FAF8,U+1FB00-1FBFF;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:500;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPiQUvaYr.woff2)format('woff2');unicode-range:U+0964-0965,U+0B82-0BFA,U+200C-200D,U+20B9,U+25CC;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:500;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPi4UvaYr.woff2)format('woff2');unicode-range:U+0951-0952,U+0964-0965,U+0C00-0C7F,U+1CDA,U+1CF2,U+200C-200D,U+25CC;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:500;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPiYUvaYr.woff2)format('woff2');unicode-range:U+02D7,U+0303,U+0331,U+0E01-0E5B,U+200C-200D,U+25CC;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:500;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPj0UvaYr.woff2)format('woff2');unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:500;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPjwUvaYr.woff2)format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:500;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPjIUvQ.woff2)format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:700;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPiIUvaYr.woff2)format('woff2');unicode-range:U+0308,U+0530-058F,U+2010,U+2024,U+25CC,U+FB13-FB17;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:700;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPiAUvaYr.woff2)format('woff2');unicode-range:U+0951-0952,U+0964-0965,U+0980-09FE,U+1CD0,U+1CD2,U+1CD5-1CD6,U+1CD8,U+1CE1,U+1CEA,U+1CED,U+1CF2,U+1CF5-1CF7,U+200C-200D,U+20B9,U+25CC,U+A8F1;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:700;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPh0UvaYr.woff2)format('woff2');unicode-range:U+02C7,U+02D8-02D9,U+02DB,U+0307,U+1400-167F,U+18B0-18F5,U+25CC,U+11AB0-11ABF;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:700;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPj8UvaYr.woff2)format('woff2');unicode-range:U+0460-052F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:700;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPjYUvaYr.woff2)format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:700;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPjMUvaYr.woff2)format('woff2');unicode-range:U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF,U+11B00-11B09;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:700;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPiMUvaYr.woff2)format('woff2');unicode-range:U+030E,U+1200-1399,U+2D80-2DDE,U+AB01-AB2E,U+1E7E0-1E7E6,U+1E7E8-1E7EB,U+1E7ED-1E7EE,U+1E7F0-1E7FE;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:700;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPi0UvaYr.woff2)format('woff2');unicode-range:U+0589,U+10A0-10FF,U+1C90-1CBA,U+1CBD-1CBF,U+205A,U+2D00-2D2F,U+2E31;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:700;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPj4UvaYr.woff2)format('woff2');unicode-range:U+1F00-1FFF;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:700;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPjEUvaYr.woff2)format('woff2');unicode-range:U+0370-0377,U+037A-037F,U+0384-038A,U+038C,U+038E-03A1,U+03A3-03FF;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:700;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPikUvaYr.woff2)format('woff2');unicode-range:U+0951-0952,U+0964-0965,U+0A80-0AFF,U+200C-200D,U+20B9,U+25CC,U+A830-A839;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:700;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPhEUvaYr.woff2)format('woff2');unicode-range:U+0951-0952,U+0964-0965,U+0A01-0A76,U+200C-200D,U+20B9,U+25CC,U+262C,U+A830-A839;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:700;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPjAUvaYr.woff2)format('woff2');unicode-range:U+0307-0308,U+0590-05FF,U+200C-2010,U+20AA,U+25CC,U+FB1D-FB4F;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:700;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPjkUvaYr.woff2)format('woff2');unicode-range:U+1780-17FF,U+19E0-19FF,U+200C-200D,U+25CC;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:700;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPjsUvaYr.woff2)format('woff2');unicode-range:U+0E81-0EDF,U+200C-200D,U+25CC;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:700;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPioUvaYr.woff2)format('woff2');unicode-range:U+0307,U+0323,U+0951-0952,U+0964-0965,U+0D00-0D7F,U+1CDA,U+1CF2,U+200C-200D,U+20B9,U+25CC,U+A830-A832;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:700;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPisUvaYr.woff2)format('woff2');unicode-range:U+0951-0952,U+0964-0965,U+0B01-0B77,U+1CDA,U+1CF2,U+200C-200D,U+20B9,U+25CC;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:700;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPi8UvaYr.woff2)format('woff2');unicode-range:U+0964-0965,U+0D81-0DF4,U+1CF2,U+200C-200D,U+25CC,U+111E1-111F4;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:700;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPlwUvaYr.woff2)format('woff2');unicode-range:U+0001-000C,U+000E-001F,U+007F-009F,U+20DD-20E0,U+20E2-20E4,U+2150-218F,U+2190,U+2192,U+2194-2199,U+21AF,U+21E6-21F0,U+21F3,U+2218-2219,U+2299,U+22C4-22C6,U+2300-243F,U+2440-244A,U+2460-24FF,U+25A0-27BF,U+2800-28FF,U+2921-2922,U+2981,U+29BF,U+29EB,U+2B00-2BFF,U+4DC0-4DFF,U+FFF9-FFFB,U+10140-1018E,U+10190-1019C,U+101A0,U+101D0-101FD,U+102E0-102FB,U+10E60-10E7E,U+1D2C0-1D2D3,U+1D2E0-1D37F,U+1F000-1F0FF,U+1F100-1F1AD,U+1F1E6-1F1FF,U+1F30D-1F30F,U+1F315,U+1F31C,U+1F31E,U+1F320-1F32C,U+1F336,U+1F378,U+1F37D,U+1F382,U+1F393-1F39F,U+1F3A7-1F3A8,U+1F3AC-1F3AF,U+1F3C2,U+1F3C4-1F3C6,U+1F3CA-1F3CE,U+1F3D4-1F3E0,U+1F3ED,U+1F3F1-1F3F3,U+1F3F5-1F3F7,U+1F408,U+1F415,U+1F41F,U+1F426,U+1F43F,U+1F441-1F442,U+1F444,U+1F446-1F449,U+1F44C-1F44E,U+1F453,U+1F46A,U+1F47D,U+1F4A3,U+1F4B0,U+1F4B3,U+1F4B9,U+1F4BB,U+1F4BF,U+1F4C8-1F4CB,U+1F4D6,U+1F4DA,U+1F4DF,U+1F4E3-1F4E6,U+1F4EA-1F4ED,U+1F4F7,U+1F4F9-1F4FB,U+1F4FD-1F4FE,U+1F503,U+1F507-1F50B,U+1F50D,U+1F512-1F513,U+1F53E-1F54A,U+1F54F-1F5FA,U+1F610,U+1F650-1F67F,U+1F687,U+1F68D,U+1F691,U+1F694,U+1F698,U+1F6AD,U+1F6B2,U+1F6B9-1F6BA,U+1F6BC,U+1F6C6-1F6CF,U+1F6D3-1F6D7,U+1F6E0-1F6EA,U+1F6F0-1F6F3,U+1F6F7-1F6FC,U+1F700-1F7FF,U+1F800-1F80B,U+1F810-1F847,U+1F850-1F859,U+1F860-1F887,U+1F890-1F8AD,U+1F8B0-1F8BB,U+1F8C0-1F8C1,U+1F900-1F90B,U+1F93B,U+1F946,U+1F984,U+1F996,U+1F9E9,U+1FA00-1FA6F,U+1FA70-1FA7C,U+1FA80-1FA89,U+1FA8F-1FAC6,U+1FACE-1FADC,U+1FADF-1FAE9,U+1FAF0-1FAF8,U+1FB00-1FBFF;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:700;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPiQUvaYr.woff2)format('woff2');unicode-range:U+0964-0965,U+0B82-0BFA,U+200C-200D,U+20B9,U+25CC;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:700;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPi4UvaYr.woff2)format('woff2');unicode-range:U+0951-0952,U+0964-0965,U+0C00-0C7F,U+1CDA,U+1CF2,U+200C-200D,U+25CC;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:700;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPiYUvaYr.woff2)format('woff2');unicode-range:U+02D7,U+0303,U+0331,U+0E01-0E5B,U+200C-200D,U+25CC;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:700;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPj0UvaYr.woff2)format('woff2');unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:700;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPjwUvaYr.woff2)format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;}@font-face{font-family:'Google Sans';font-style:normal;font-weight:700;font-display:block;src:url(https://fonts.gstatic.com/s/googlesans/v62/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPjIUvQ.woff2)format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}@font-face{font-family:'Google Sans Mono';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/googlesansmono/v15/P5sZzYWFYtnZ_Cg-t0Uq_rfivrdYNYhsAg.woff2)format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}@font-face{font-family:'Google Sans Mono';font-style:normal;font-weight:500;font-display:block;src:url(https://fonts.gstatic.com/s/googlesansmono/v15/P5sZzYWFYtnZ_Cg-t0Uq_rfivrdYNYhsAg.woff2)format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}@font-face{font-family:'Google Sans Display';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/googlesansdisplay/v13/ea8FacM9Wef3EJPWRrHjgE4B6CnlZxHVDvr9oS_a.woff2)format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;}@font-face{font-family:'Google Sans Display';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/googlesansdisplay/v13/ea8FacM9Wef3EJPWRrHjgE4B6CnlZxHVDv39oS_a.woff2)format('woff2');unicode-range:U+0370-0377,U+037A-037F,U+0384-038A,U+038C,U+038E-03A1,U+03A3-03FF;}@font-face{font-family:'Google Sans Display';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/googlesansdisplay/v13/ea8FacM9Wef3EJPWRrHjgE4B6CnlZxHVDvH9oS_a.woff2)format('woff2');unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB;}@font-face{font-family:'Google Sans Display';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/googlesansdisplay/v13/ea8FacM9Wef3EJPWRrHjgE4B6CnlZxHVDvD9oS_a.woff2)format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;}@font-face{font-family:'Google Sans Display';font-style:normal;font-weight:400;font-display:block;src:url(https://fonts.gstatic.com/s/googlesansdisplay/v13/ea8FacM9Wef3EJPWRrHjgE4B6CnlZxHVDv79oQ.woff2)format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}@font-face{font-family:'Google Sans Display';font-style:normal;font-weight:500;font-display:block;src:url(https://fonts.gstatic.com/s/googlesansdisplay/v13/ea8IacM9Wef3EJPWRrHjgE4B6CnlZxHVBg3etBT7TKx9.woff2)format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;}@font-face{font-family:'Google Sans Display';font-style:normal;font-weight:500;font-display:block;src:url(https://fonts.gstatic.com/s/googlesansdisplay/v13/ea8IacM9Wef3EJPWRrHjgE4B6CnlZxHVBg3etBP7TKx9.woff2)format('woff2');unicode-range:U+0370-0377,U+037A-037F,U+0384-038A,U+038C,U+038E-03A1,U+03A3-03FF;}@font-face{font-family:'Google Sans Display';font-style:normal;font-weight:500;font-display:block;src:url(https://fonts.gstatic.com/s/googlesansdisplay/v13/ea8IacM9Wef3EJPWRrHjgE4B6CnlZxHVBg3etB_7TKx9.woff2)format('woff2');unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB;}@font-face{font-family:'Google Sans Display';font-style:normal;font-weight:500;font-display:block;src:url(https://fonts.gstatic.com/s/googlesansdisplay/v13/ea8IacM9Wef3EJPWRrHjgE4B6CnlZxHVBg3etB77TKx9.woff2)format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;}@font-face{font-family:'Google Sans Display';font-style:normal;font-weight:500;font-display:block;src:url(https://fonts.gstatic.com/s/googlesansdisplay/v13/ea8IacM9Wef3EJPWRrHjgE4B6CnlZxHVBg3etBD7TA.woff2)format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}@font-face{font-family:'Google Symbols';font-style:normal;font-weight:300;font-display:block;src:url(https://fonts.gstatic.com/l/font?kit=HhyqU5Ak9u-oMExPeInvcuEmPosC9zS3FYkFU68cPrjdKM1XMoDZlWmzc3IiWvF1R4oJxQmdBnupCeyl7nWBfUqZJp-lXvDR-lgsmndD2lXZATP7231ZGWDnzqi1pQfyijaegMhDXfSwr0dNquZIs5NzdnZ5EUIP9FVVWR69vo8z4vwsnjZueEIO98hTWLqiX_MAA4mLnR795Gdth7P2akCY1XJQUqTFzZEMRZm6W1H5G8uPcbndnz2wiTEaa3EQeY1euMzZvn7M0k-Pc3stwI1itFxi-Bx4Fe1fWM8tYPxzHqUOCfM1HC4ccETrOhao10FHbetZTtDzYn7uM2kHtNswzkIiWfW16uF-6zhG0_Q2CWxO8g0UumEze5uxQqasX6BDfuSBsqPFevvPoVqX7aiPkxPyNLfoDS5Eh-ubYeyA60wHDLL-tHJt5B0LCpI0aG3MaSvNF0eIObcfvJEJUN8jodg6shewb-bqlZ5nZ82PzrHFzbLNgw0r9SanpNe7yTwKU1xaEZQ0GMdALStfmgr4qTtrl7aBlqgMjycm7_AhRpV5&skey=f8ec4d50247dc1c1&v=v435)format('woff2');}.google-symbols{font-family:'Google Symbols';font-weight:normal;font-style:normal;font-size:24px;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;white-space:nowrap;word-wrap:normal;direction:ltr;-webkit-font-feature-settings:'liga';-webkit-font-smoothing:antialiased;}</style><title>Google AI Studio</title><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content"><script nonce="NB-Lxqjrw4CDwL-fJJmleQ">
-      function glueCookieNotificationBarLoaded() {
-        const {instance} = window.glue.CookieNotificationBar;
-        instance.listen('visibilitychange', (event) => {
-          const cookieBanner = document.getElementsByClassName('glue-cookie-notification-bar')[0];
-          if (event.detail.visible) {
-            cookieBanner.classList.add('visible');
-          } else {
-            cookieBanner.classList.remove('visible');
-          }
-        });
-
-        (function (w, d, s, l) {
-          w[l] = w[l] || [];
-          w[l].push({'gtm.start': new Date().getTime(), event: 'gtm.js'});
-          var f = d.getElementsByTagName(s)[0],
-            j = d.createElement(s),
-            dl = l != 'dataLayer' ? '&l=' + l : '',
-            e=d.querySelector('script[nonce]'),n=e&&(e['nonce']||e.getAttribute('nonce'));
-          j.async = true;
-          j.setAttribute('nonce', n);
-          if (self.trustedTypes && self.trustedTypes.createPolicy) {var policy = self.trustedTypes.createPolicy('aistudio', {createScriptURL: function(unused) { return 'https:\/\/www.googletagmanager.com\/gtm.js?id\x3dGTM-TT9C75WP'; }}); j.src = policy.createScriptURL('');} else {j.src = 'https:\/\/www.googletagmanager.com\/gtm.js?id\x3dGTM-TT9C75WP';}
-
-          f.parentNode.insertBefore(j, f);
-
-          window[l].push({'event': 'dataLayer_initialized', 'page_name': 'Google AI Studio'});
-        })(window, document, 'script', 'dataLayer');
-      }
-    </script><!-- Cookie Consent --><script src="https://www.gstatic.com/glue/cookienotificationbar/cookienotificationbar.min.js" data-glue-cookie-notification-bar-category="2A" data-glue-cookie-notification-bar-site-id="Google AI Studio" nonce="NB-Lxqjrw4CDwL-fJJmleQ"></script><!-- End Cookie Consent  --><script nonce="NB-Lxqjrw4CDwL-fJJmleQ">var AF_initDataKeys = window.AF_initDataKeys || {}; var AF_dataServiceRequests = window.AF_dataServiceRequests || {}; var AF_initDataChunkQueue = window.AF_initDataChunkQueue || {}; var AF_initDataCallback = window.AF_initDataCallback || {}; var AF_initDataInitializeCallback = window.AF_initDataInitializeCallback || {}; AF_initDataKeys['ebe6fa29-c4e4-494c-89ca-a41a362b606c'] = []; AF_dataServiceRequests['ebe6fa29-c4e4-494c-89ca-a41a362b606c'] = {}; AF_initDataChunkQueue['ebe6fa29-c4e4-494c-89ca-a41a362b606c'] = AF_initDataChunkQueue['ebe6fa29-c4e4-494c-89ca-a41a362b606c'] || []; if (AF_initDataInitializeCallback['ebe6fa29-c4e4-494c-89ca-a41a362b606c']) {AF_initDataInitializeCallback['ebe6fa29-c4e4-494c-89ca-a41a362b606c'](AF_initDataKeys['ebe6fa29-c4e4-494c-89ca-a41a362b606c'], AF_initDataChunkQueue['ebe6fa29-c4e4-494c-89ca-a41a362b606c'], AF_dataServiceRequests['ebe6fa29-c4e4-494c-89ca-a41a362b606c']);}if (!AF_initDataCallback['ebe6fa29-c4e4-494c-89ca-a41a362b606c']) {AF_initDataCallback['ebe6fa29-c4e4-494c-89ca-a41a362b606c'] = function(chunk) {AF_initDataChunkQueue['ebe6fa29-c4e4-494c-89ca-a41a362b606c'].push(chunk);};}</script></head><app-root></app-root><noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TT9C75WP" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript><script src="https://www.gstatic.com/_/mss/boq-makersuite/_/js/k=boq-makersuite.MakerSuite.en.WmBvA2X9rAc.2018.O/am=4wIC/d=1/excm=_b/ed=1/dg=0/br=1/wt=2/ujg=1/rs=AMOXD2-IWFqQKyf3NF79bc2eSwBuqvxYCw/dti=1/m=_b" id="base-js" data-scope-id="ebe6fa29-c4e4-494c-89ca-a41a362b606c" nonce="NB-Lxqjrw4CDwL-fJJmleQ"></script></body></html>
+diff --git a/src/storybuilder/genai/cartesia_client.py b/src/storybuilder/genai/cartesia_client.py
+new file mode 100644
+index 0000000..82d0f46
+--- /dev/null
++++ b/src/storybuilder/genai/cartesia_client.py
+@@ -0,0 +1,255 @@
++import argparse
++import glob
++import os
++import re
++import time
++import wave
++import requests
++
++from dotenv import load_dotenv
++
++load_dotenv()
++
++# Map common Gemini/custom voice names to official Cartesia Emotive voice IDs
++VOICE_MAP = {
++    "algenib": "6776173b-fd72-460d-89b3-d85812ee518d",       # Jace (Masculine, deep)
++    "leo": "0834f3df-e650-4766-a20c-5a93a43aa6e3",           # Leo (Masculine)
++    "gavin": "f4a3a8e4-694c-4c45-9ca0-27caf97901b5",         # Gavin (Masculine)
++    "kyle": "c961b81c-a935-4c17-bfb3-ba2239de8c2f",          # Kyle (Masculine)
++    "puck": "f4a3a8e4-694c-4c45-9ca0-27caf97901b5",          # Gavin as Puck
++    "enceladus": "c961b81c-a935-4c17-bfb3-ba2239de8c2f",      # Kyle as Enceladus
++    "kore": "cbaf8084-f009-4838-a096-07ee2e6612b1",          # Maya as Kore (Feminine)
++    "tessa": "6ccbfb76-1fc6-48f7-b71d-91ac6298247b",         # Tessa (Feminine)
++    "dana": "cc00e582-ed66-4004-8336-0175b85c85f6",          # Dana (Feminine)
++    "marian": "26403c37-80c1-4a1a-8692-540551ca2ae5",        # Marian (Feminine)
++    "zubenelgenubi": "c961b81c-a935-4c17-bfb3-ba2239de8c2f",  # Kyle as Zubenelgenubi
++    "narrator": "cbaf8084-f009-4838-a096-07ee2e6612b1"       # Maya as Narrator
++}
++
++# Fallback voice ID mapping based on lowercase speaker name
++NAME_FALLBACK_MAP = {
++    "jace": "6776173b-fd72-460d-89b3-d85812ee518d",           # Jace (Masculine, deep)
++    "levi": "c961b81c-a935-4c17-bfb3-ba2239de8c2f",           # Kyle as Levi
++    "ewan": "f4a3a8e4-694c-4c45-9ca0-27caf97901b5",           # Gavin as Ewan
++    "kerry": "6ccbfb76-1fc6-48f7-b71d-91ac6298247b",          # Tessa as Kerry
++    "narrator": "cbaf8084-f009-4838-a096-07ee2e6612b1",       # Maya as Narrator
++    "default": "6ccbfb76-1fc6-48f7-b71d-91ac6298247b"         # Tessa as Default
++}
++
++def wave_file(filename, pcm, channels=1, rate=24000, sample_width=2):
++    """Writes raw PCM s16le bytes to a standard WAV container."""
++    with wave.open(filename, 'wb') as wf:
++        wf.setnchannels(channels)
++        wf.setsampwidth(sample_width)
++        wf.setframerate(rate)
++        wf.writeframes(pcm)
++
++def parse_speech_config_cartesia(markdown_content):
++    """
++    Parses the markdown content preamble to map speakers to Cartesia voice UUIDs.
++    If a character is mapped to a GenAI voice name, resolves it via VOICE_MAP.
++    """
++    speaker_to_voice_id = {}
++    
++    parts = markdown_content.split('#### TRANSCRIPT')
++    preamble = parts[0] if len(parts) == 2 else markdown_content
++    
++    for line in preamble.split('\n'):
++        line = line.strip()
++        if line.startswith('*') or line.startswith('-'):
++            match = re.search(r'[\*\-]\s*([A-Za-z0-9_-]+)\s*\(Voice:\s*([A-Za-z0-9_-]+)\)', line)
++            if match:
++                speaker = match.group(1)
++                voice_ref = match.group(2)
++                
++                # Check if voice_ref is already a UUID format
++                if re.match(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', voice_ref.lower()):
++                    speaker_to_voice_id[speaker] = voice_ref.lower()
++                else:
++                    # Resolve common voice names
++                    resolved_voice_id = VOICE_MAP.get(voice_ref.lower(), NAME_FALLBACK_MAP["default"])
++                    speaker_to_voice_id[speaker] = resolved_voice_id
++                    
++    return speaker_to_voice_id
++
++def parse_transcript_segments(markdown_content, speaker_to_voice_id, default_voice_id):
++    """
++    Parses the transcript section into contiguous segments spoken by the same voice ID.
++    This minimizes API requests by grouping adjacent lines spoken by the same character.
++    """
++    parts = markdown_content.split('#### TRANSCRIPT')
++    if len(parts) != 2:
++        # Fallback if no TRANSCRIPT section is marked
++        transcript = markdown_content
++    else:
++        transcript = parts[1]
++        
++    segments = []
++    current_voice_id = None
++    current_lines = []
++    
++    for line in transcript.split('\n'):
++        line = line.strip()
++        if not line:
++            continue
++            
++        # Match speaker prefix: e.g. "Jace: \"Line text...\""
++        match = re.match(r'^([A-Za-z0-9_-]+):', line)
++        if match:
++            speaker = match.group(1)
++            text = line[match.end():].strip()
++        else:
++            # Assume narration spoken by Narrator or fallback
++            speaker = "Narrator"
++            text = line
++            
++        # Strip any surrounding quotes from the dialogue text
++        text = text.strip('"\'')
++        if not text:
++            continue
++            
++        # Resolve speaker to voice ID
++        voice_id = speaker_to_voice_id.get(speaker)
++        if not voice_id:
++            # Try name-based fallback matching
++            voice_id = NAME_FALLBACK_MAP.get(speaker.lower())
++            if not voice_id:
++                # Fallback to the default narrator/first speaker
++                voice_id = default_voice_id
++                
++        if voice_id == current_voice_id:
++            current_lines.append(text)
++        else:
++            if current_lines:
++                segments.append((current_voice_id, " ".join(current_lines)))
++            current_voice_id = voice_id
++            current_lines = [text]
++            
++    if current_lines:
++        segments.append((current_voice_id, " ".join(current_lines)))
++        
++    return segments
++
++def generate_segment_audio(api_key, text, voice_id, rate=24000):
++    """
++    Calls Cartesia's REST API endpoint /tts/bytes to synthesize a single speech segment.
++    Returns the raw PCM s16le bytes.
++    """
++    url = "https://api.cartesia.ai/tts/bytes"
++    headers = {
++        "Cartesia-Version": "2026-03-01",
++        "Authorization": f"Bearer {api_key}",
++        "Content-Type": "application/json"
++    }
++    
++    payload = {
++        "model_id": "sonic-latest",
++        "transcript": text,
++        "voice": {
++            "mode": "id",
++            "id": voice_id
++        },
++        "output_format": {
++            "container": "raw",
++            "encoding": "pcm_s16le",
++            "sample_rate": rate
++        },
++        "language": "en"
++    }
++    
++    max_retries = 5
++    for attempt in range(max_retries):
++        try:
++            response = requests.post(url, json=payload, headers=headers, timeout=60)
++            if response.status_code == 200:
++                return response.content
++            elif response.status_code == 429:
++                wait_time = 10 * (attempt + 1)
++                print(f"  Cartesia Rate Limit (429). Retrying in {wait_time}s... ({attempt+1}/{max_retries})")
++                time.sleep(wait_time)
++            else:
++                print(f"  Cartesia error {response.status_code}: {response.text}")
++                response.raise_for_status()
++        except Exception as e:
++            if attempt == max_retries - 1:
++                raise e
++            wait_time = 5 * (attempt + 1)
++            print(f"  Request error: {e}. Retrying in {wait_time}s...")
++            time.sleep(wait_time)
++            
++    raise RuntimeError(f"Failed to generate segment after {max_retries} attempts.")
++
++def process_directory_cartesia(directory, rate=24000):
++    """Processes a directory of scene part markdown files and generates matched WAVs using Cartesia."""
++    api_key = os.getenv("CARTESIA_API_KEY")
++    if not api_key:
++        print("Error: CARTESIA_API_KEY not found in environment.")
++        return
++        
++    # Find all *-part.md files in the directory
++    files = sorted(glob.glob(os.path.join(directory, "*-part.md")))
++    if not files:
++        print(f"No prompt files found in {directory}")
++        return
++        
++    print(f"Found {len(files)} prompt files to process using Cartesia API.")
++    
++    for md_file in files:
++        base_name = os.path.splitext(os.path.basename(md_file))[0]
++        wav_file = os.path.join(directory, f"{base_name}.wav")
++        
++        # Check if already generated
++        if os.path.exists(wav_file):
++            print(f"Skipping {os.path.basename(md_file)}, {os.path.basename(wav_file)} already exists.")
++            continue
++            
++        print(f"Processing {os.path.basename(md_file)} with Cartesia...")
++        with open(md_file, 'r') as f:
++            content = f.read()
++            
++        # Parse voice mappings
++        speaker_to_voice_id = parse_speech_config_cartesia(content)
++        
++        # Determine default narrator voice (first defined, or Maya fallback)
++        default_voice_id = list(speaker_to_voice_id.values())[0] if speaker_to_voice_id else NAME_FALLBACK_MAP["narrator"]
++        
++        # Parse dialogue segments
++        segments = parse_transcript_segments(content, speaker_to_voice_id, default_voice_id)
++        print(f"  Parsed {len(segments)} narrative segments.")
++        
++        # Sequentially synthesize each segment and accumulate raw PCM data
++        accumulated_pcm = b""
++        success = True
++        
++        for idx, (voice_id, text) in enumerate(segments):
++            print(f"  Synthesizing segment {idx+1}/{len(segments)} (Voice ID: {voice_id[:8]}...): {text[:40]}...")
++            try:
++                segment_pcm = generate_segment_audio(api_key, text, voice_id, rate=rate)
++                accumulated_pcm += segment_pcm
++                # Short rest between segment API calls to respect rate limits
++                time.sleep(0.5)
++            except Exception as e:
++                print(f"  Failed to synthesize segment {idx+1}: {e}")
++                success = False
++                break
++                
++        if success and accumulated_pcm:
++            # Save accumulated PCM bytes as a unified WAV file
++            wave_file(wav_file, accumulated_pcm, rate=rate)
++            print(f"  Saved unified audio to {os.path.basename(wav_file)}")
++        else:
++            print(f"  Skipped saving WAV due to synthesis failure.")
++            
++        # Brief sleep between files
++        time.sleep(1)
++
++if __name__ == "__main__":
++    parser = argparse.ArgumentParser(description="Process TTS prompt files using Cartesia API.")
++    parser.add_argument("--dir", default="stories/the_secret_vacation", help="Directory containing the *-part.md files")
++    parser.add_argument("--rate", type=int, default=24000, help="Audio output sample rate (default 24000)")
++    args = parser.parse_args()
++    
++    if os.path.isdir(args.dir):
++        process_directory_cartesia(args.dir, rate=args.rate)
++    else:
++        print(f"Error: Directory '{args.dir}' does not exist.")
+diff --git a/src/storybuilder/genai/client.py b/src/storybuilder/genai/client.py
+index ccb52dc..68c71f3 100644
+--- a/src/storybuilder/genai/client.py
++++ b/src/storybuilder/genai/client.py
+@@ -12,34 +12,66 @@ from google import genai
+ load_dotenv()
+ 
+ def wave_file(filename, pcm, channels=1, rate=24000, sample_width=2):
+-    with wave.open(filename, "wb") as wf:
++    with wave.open(filename, 'wb') as wf:
+         wf.setnchannels(channels)
+         wf.setsampwidth(sample_width)
+         wf.setframerate(rate)
+         wf.writeframes(pcm)
+ 
+ def parse_speech_config(markdown_content):
+-    """Parses the markdown content to extract speakers and voices."""
+-    speech_config = []
++    """Parses the markdown content to extract speakers and voices, dynamically matching active speakers in the transcript."""
++    # 1. Parse all voice mappings defined in the preamble
++    speaker_to_voice = {}
++    preamble = ""
++    transcript = ""
+     
+-    for line in markdown_content.split('\n'):
++    parts = markdown_content.split('#### TRANSCRIPT')
++    if len(parts) == 2:
++        preamble, transcript = parts[0], parts[1]
++    else:
++        preamble = markdown_content
++        transcript = ""
++        
++    for line in preamble.split('\n'):
+         line = line.strip()
+-        # Look for bullet points with the voice definition
+         if line.startswith('*') or line.startswith('-'):
+             match = re.search(r'[\*\-]\s*([A-Za-z0-9_-]+)\s*\(Voice:\s*([A-Za-z0-9_-]+)\)', line)
+             if match:
+                 speaker = match.group(1)
+                 voice = match.group(2)
+-                # The API allows a maximum of 2 voices
+-                if len(speech_config) < 2:
+-                    speech_config.append({"speaker": speaker, "voice": voice})
+-                    
++                speaker_to_voice[speaker] = voice
++
++    # 2. Extract active speakers actually speaking in the transcript (in order of appearance)
++    active_speakers = []
++    for line in transcript.split('\n'):
++        line = line.strip()
++        match = re.match(r'^([A-Za-z0-9_-]+):', line)
++        if match:
++            sp = match.group(1)
++            if sp not in active_speakers:
++                active_speakers.append(sp)
++
++    # 3. Build speech_config using the active speakers
++    speech_config = []
++    for sp in active_speakers:
++        if sp in speaker_to_voice:
++            speech_config.append({"speaker": sp, "voice": speaker_to_voice[sp]})
++        else:
++            # Fallback if an active speaker has no voice defined
++            speech_config.append({"speaker": sp, "voice": "Kore"})
++        if len(speech_config) == 2:
++            break
++
++    # If the transcript doesn't have active speakers, fallback to the preamble's first defined speakers
++    if not speech_config:
++        for sp, vc in list(speaker_to_voice.items())[:2]:
++            speech_config.append({"speaker": sp, "voice": vc})
++
++    # Final validation/padding
+     if not speech_config:
+-        # Fallback if no voice config is found
+         speech_config.append({"voice": "Kore"})
+     elif len(speech_config) == 1:
+-        # Force multi-speaker mode by padding with a dummy speaker
+-        # This prevents 400 Invalid Input errors when a chunk happens to only have one speaker
++        # Force multi-speaker mode by padding with a dummy speaker to prevent 400 Invalid Input errors
+         speech_config.append({"speaker": "Dummy", "voice": "Puck"})
+         
+     return speech_config
+@@ -70,7 +102,7 @@ def process_directory(directory):
+             continue
+             
+         print(f"Processing {os.path.basename(md_file)}...")
+-        with open(md_file, "r") as f:
++        with open(md_file, 'r') as f:
+             content = f.read()
+             
+         speech_config = parse_speech_config(content)
+@@ -89,7 +121,16 @@ def process_directory(directory):
+                 
+                 if interaction.output_audio and interaction.output_audio.data:
+                     audio_bytes = base64.b64decode(interaction.output_audio.data)
+-                    wave_file(wav_file, audio_bytes)
++                    
++                    # Dynamically extract sample rate from mime_type if available
++                    sample_rate = 24000
++                    if hasattr(interaction.output_audio, "mime_type") and interaction.output_audio.mime_type:
++                        rate_match = re.search(r"rate=(\d+)", interaction.output_audio.mime_type)
++                        if rate_match:
++                            sample_rate = int(rate_match.group(1))
++                            print(f"  Extracted sample rate from mime_type: {sample_rate}Hz")
++                            
++                    wave_file(wav_file, audio_bytes, rate=sample_rate)
+                     print(f"  Saved audio to {os.path.basename(wav_file)}")
+                 else:
+                     print(f"  Warning: No audio output for {os.path.basename(md_file)}")
+diff --git a/src/storybuilder/genai/fix_prompts.py b/src/storybuilder/genai/fix_prompts.py
+index 82b6a72..2c432c9 100644
+--- a/src/storybuilder/genai/fix_prompts.py
++++ b/src/storybuilder/genai/fix_prompts.py
+@@ -1,5 +1,6 @@
+ import os
+ import glob
++import re
+ from google import genai
+ from dotenv import load_dotenv
+ 
+@@ -20,6 +21,26 @@ You are an expert audio director. Rewrite the provided TTS prompt text to fix th
+ 5) Output the exact same markdown structure, only fixing the text. Do not add any conversational text or markdown code block markers around the output (like ```markdown), just output the raw markdown text.
+ """
+ 
++def extract_markdown_block(content: str) -> str:
++    content = content.strip()
++    # Match ```markdown ... ``` or ``` ... ```
++    match = re.match(r"^```(?:markdown)?\s*\n(.*?)\n```$", content, re.DOTALL | re.IGNORECASE)
++    if match:
++        return match.group(1).strip()
++    # Match any generic block at start and end
++    match_any = re.match(r"^```[a-zA-Z0-9_-]*\s*\n(.*?)\n```$", content, re.DOTALL)
++    if match_any:
++        return match_any.group(1).strip()
++    # Fallback to older cleanup if not matching the full block structure perfectly
++    if content.startswith("```"):
++        lines = content.split("\n")
++        if lines[0].startswith("```"):
++            lines = lines[1:]
++        if lines and lines[-1].strip() == "```":
++            lines = lines[:-1]
++        return "\n".join(lines).strip()
++    return content
++
+ def fix_prompts(directory):
+     files = sorted(glob.glob(os.path.join(directory, "*-part.md")))
+     if not files:
+@@ -37,14 +58,7 @@ def fix_prompts(directory):
+                 model="gemini-3.5-flash",
+                 input=f"{PROMPT_INSTRUCTION}\n\nHere is the prompt file content:\n\n{content}"
+             )
+-            fixed_content = interaction.output_text.strip()
+-            
+-            # Clean up markdown markers if the model ignored the instruction
+-            if fixed_content.startswith("```markdown"):
+-                fixed_content = fixed_content[11:]
+-            if fixed_content.endswith("```"):
+-                fixed_content = fixed_content[:-3]
+-            fixed_content = fixed_content.strip()
++            fixed_content = extract_markdown_block(interaction.output_text)
+ 
+             with open(md_file, "w") as f:
+                 f.write(fixed_content)
+diff --git a/src/storybuilder/genai/fix_prompts2.py b/src/storybuilder/genai/fix_prompts2.py
+index b0b0d00..3e83a51 100644
+--- a/src/storybuilder/genai/fix_prompts2.py
++++ b/src/storybuilder/genai/fix_prompts2.py
+@@ -1,5 +1,6 @@
+ import os
+ import glob
++import re
+ from google import genai
+ from google.genai import types
+ from dotenv import load_dotenv
+@@ -21,6 +22,26 @@ You are an expert audio director. Rewrite the provided TTS prompt text to fix th
+ 5) Output the exact same markdown structure, only fixing the text. Do not add any conversational text or markdown code block markers around the output (like ```markdown), just output the raw markdown text.
+ """
+ 
++def extract_markdown_block(content: str) -> str:
++    content = content.strip()
++    # Match ```markdown ... ``` or ``` ... ```
++    match = re.match(r"^```(?:markdown)?\s*\n(.*?)\n```$", content, re.DOTALL | re.IGNORECASE)
++    if match:
++        return match.group(1).strip()
++    # Match any generic block at start and end
++    match_any = re.match(r"^```[a-zA-Z0-9_-]*\s*\n(.*?)\n```$", content, re.DOTALL)
++    if match_any:
++        return match_any.group(1).strip()
++    # Fallback to older cleanup if not matching the full block structure perfectly
++    if content.startswith("```"):
++        lines = content.split("\n")
++        if lines[0].startswith("```"):
++            lines = lines[1:]
++        if lines and lines[-1].strip() == "```":
++            lines = lines[:-1]
++        return "\n".join(lines).strip()
++    return content
++
+ def fix_prompts(directory):
+     files = sorted(glob.glob(os.path.join(directory, "*-part.md")))
+     if not files:
+@@ -63,14 +84,7 @@ def fix_prompts(directory):
+                     ]
+                 )
+             )
+-            fixed_content = response.text.strip()
+-            
+-            # Clean up markdown markers if the model ignored the instruction
+-            if fixed_content.startswith("```markdown"):
+-                fixed_content = fixed_content[11:]
+-            if fixed_content.endswith("```"):
+-                fixed_content = fixed_content[:-3]
+-            fixed_content = fixed_content.strip()
++            fixed_content = extract_markdown_block(response.text)
+ 
+             with open(md_file, "w") as f:
+                 f.write(fixed_content)
+diff --git a/tests/test_cartesia.py b/tests/test_cartesia.py
+new file mode 100644
+index 0000000..7b8ad87
+--- /dev/null
++++ b/tests/test_cartesia.py
+@@ -0,0 +1,68 @@
++import unittest
++from storybuilder.genai.cartesia_client import (
++    parse_speech_config_cartesia,
++    parse_transcript_segments,
++    VOICE_MAP,
++    NAME_FALLBACK_MAP
++)
++
++class TestCartesiaClient(unittest.TestCase):
++    def test_parse_speech_config_cartesia(self):
++        markdown_content = """
++        ### DIRECTOR'S NOTES
++        Style:
++        - Jace (Voice: Algenib): 27-year-old.
++        - Levi (Voice: Kyle): 20-year-old.
++        - Kerry (Voice: 6ccbfb76-1fc6-48f7-b71d-91ac6298247b): Custom UUID.
++        """
++        config = parse_speech_config_cartesia(markdown_content)
++        
++        self.assertEqual(config["Jace"], VOICE_MAP["algenib"])
++        self.assertEqual(config["Levi"], VOICE_MAP["kyle"])
++        self.assertEqual(config["Kerry"], "6ccbfb76-1fc6-48f7-b71d-91ac6298247b")
++
++    def test_parse_transcript_segments(self):
++        markdown_content = """# AUDIO PROFILE
++        ### DIRECTOR'S NOTES
++        - Jace (Voice: Algenib)
++        
++        #### TRANSCRIPT
++        Jace: Hello, my name is Jace.
++        Jace: And this is my second line.
++        Narrator: This is the narrator speaking here.
++        Levi: Hey, Levi here!
++        Jace: Back to Jace.
++        """
++        speaker_to_voice_id = {
++            "Jace": "jace-voice-uuid",
++            "Narrator": "narrator-voice-uuid"
++        }
++        
++        # Levi has no explicit definition in speaker_to_voice_id, should fallback to NAME_FALLBACK_MAP or default_voice_id
++        segments = parse_transcript_segments(
++            markdown_content, 
++            speaker_to_voice_id, 
++            default_voice_id="default-voice-uuid"
++        )
++        
++        # Check segment grouping (the two Jace lines are adjacent and should be grouped together!)
++        self.assertEqual(len(segments), 4)
++        
++        # Segment 1: Jace lines grouped
++        self.assertEqual(segments[0][0], "jace-voice-uuid")
++        self.assertEqual(segments[0][1], "Hello, my name is Jace. And this is my second line.")
++        
++        # Segment 2: Narrator
++        self.assertEqual(segments[1][0], "narrator-voice-uuid")
++        self.assertEqual(segments[1][1], "This is the narrator speaking here.")
++        
++        # Segment 3: Levi fallback
++        self.assertEqual(segments[2][0], NAME_FALLBACK_MAP["levi"])
++        self.assertEqual(segments[2][1], "Hey, Levi here!")
++        
++        # Segment 4: Jace
++        self.assertEqual(segments[3][0], "jace-voice-uuid")
++        self.assertEqual(segments[3][1], "Back to Jace.")
++
++if __name__ == "__main__":
++    unittest.main()

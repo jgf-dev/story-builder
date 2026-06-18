@@ -1,56 +1,138 @@
-from google.adk.agents.llm_agent import Agent
+"""TTS Prompt Crafter — ADK Multi-Agent System.
 
-root_agent = Agent(
-    model="gemini-3.5-flash",
-    name="tts_prompt_crafter",
-    description="Creates detailed TTS prompts from story text.",
-    instruction="""
-    You are a TTS (Text-to-Speech) prompt engineer specializing in creating detailed,
-    emotionally rich narration scripts for AI voice actors. Your goal is to transform
-    a given story text into a comprehensive set of prompts that will guide the AI
-    voice actor to deliver a captivating and immersive reading.
+Converts raw story files into production-ready TTS prompt files
+using a three-agent pipeline:
 
-    You will receive story text that may be a complete short story, a chapter, or a
-    section of a longer work. Your output must be a structured format containing:
+  1. Story Analyzer  — character profiling + scene breakdown
+  2. Scene Writer    — canonical TTS prompt generation
+  3. Root Orchestrator — coordinates the pipeline, manages file I/O
+"""
 
-    1. Scene Segmentation: Break the text into logical scenes or segments based on
-       changes in location, time, characters involved, or shifts in narrative focus.
-       Aim for segments that are roughly 2-4 paragraphs long, ensuring each
-       segment has a distinct emotional arc or purpose.
+import logging
+import warnings
+from functools import cached_property
 
-    2. Character Analysis: For each segment, identify all characters who speak or
-       are the focus of the narration. For each character, provide:
-       - Name and brief description (if not already provided)
-       - Emotional state during this segment (e.g., excited, nervous, thoughtful,
-         angry, joyful, sad, etc.)
-       - Tone of voice required (e.g., warm, stern, playful, sarcastic, etc.)
-       - Any specific vocalizations needed (e.g., gasps, sighs, laughter,
-         whispers, etc.)
-       - Any accent or dialect requirements (if specified)
+from google.adk.agents import LlmAgent
+from google.adk.models import Gemini
+from google.adk.runners import Runner
+from google.adk.sessions import InMemorySessionService
+from google.adk.tools import agent_tool
+from google.genai import Client, types
 
-    3. Scene-Specific Prompts: For each segment, create detailed narration prompts
-       that guide the AI voice actor. Each prompt should include:
-       - Scene summary: A brief description of what is happening in the scene
-       - Desired mood and atmosphere: The overall emotional tone of the scene
-       - Pacing guidance: Whether the narration should be slow, moderate,
-         fast-paced, or varied
-       - Character portrayals: Specific instructions for how each character should
-         sound, including their emotional state, tone, and any vocalizations
-       - Emphasis points: Which words or phrases should be emphasized
-       - Pauses and silences: Where natural pauses should occur for dramatic effect
-       - Sound effects: Any sound effects that should be incorporated into the
-         narration (e.g., footsteps, door creaks, environmental sounds)
+from .prompts import get_prompt
+from .tools import list_stories, read_story, split_scene_files, write_scene_file
 
-    4. Narrative Arc Guidance: Provide an overview of the story's narrative arc
-       and how the emotional tone and pacing should evolve throughout the text.
+# Suppress noisy warnings for cleaner agent output
+warnings.filterwarnings("ignore")
+logging.basicConfig(level=logging.ERROR)
 
-    5. Pronunciation Guide: For any unusual words, names, or technical terms,
-       provide a pronunciation guide (phonetic spelling).
+# ---------------------------------------------------------------------------
+# Safety Settings — all categories set to OFF for explicit content support
+# ---------------------------------------------------------------------------
+safety_settings = [
+    types.SafetySetting(
+        category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+        threshold=types.HarmBlockThreshold.OFF,
+    ),
+    types.SafetySetting(
+        category=types.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+        threshold=types.HarmBlockThreshold.OFF,
+    ),
+    types.SafetySetting(
+        category=types.HarmCategory.HARM_CATEGORY_HARASSMENT,
+        threshold=types.HarmBlockThreshold.OFF,
+    ),
+    types.SafetySetting(
+        category=types.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+        threshold=types.HarmBlockThreshold.OFF,
+    ),
+    types.SafetySetting(
+        category=types.HarmCategory.HARM_CATEGORY_UNSPECIFIED,
+        threshold=types.HarmBlockThreshold.OFF,
+    ),
+]
 
-    You must work with the provided story text and any additional information you
-    deem necessary to create the most comprehensive and engaging TTS prompts possible.
 
-        Your output should be well-organized, easy to follow, and ready to be used by
-    an AI voice actor to produce a high-quality narration.
-    """,
+# ---------------------------------------------------------------------------
+# Custom Gemini model with Vertex AI (global endpoint)
+# ---------------------------------------------------------------------------
+class GlobalGemini(Gemini):
+    @cached_property
+    def api_client(self) -> Client:
+        return Client(vertexai=True, location="global")
+
+
+# ---------------------------------------------------------------------------
+# Sub-Agent 1: Story Analyzer
+# ---------------------------------------------------------------------------
+story_analyzer = LlmAgent(
+    name="story_analyzer",
+    model=GlobalGemini(model="gemini-2.5-flash"),
+    description=(
+        "Analyzes a raw story text to identify characters, assign Gemini "
+        "TTS voices, break the text into logical scenes, and map emotional "
+        "arcs and intimacy levels. Returns structured analysis for the "
+        "scene writer."
+    ),
+    instruction=get_prompt("story-analyzer"),
+    generate_content_config={"safety_settings": safety_settings},
+    include_contents="none",
 )
+
+# ---------------------------------------------------------------------------
+# Sub-Agent 2: Scene Prompt Writer
+# ---------------------------------------------------------------------------
+scene_writer = LlmAgent(
+    name="scene_writer",
+    model=GlobalGemini(model="gemini-2.5-flash"),
+    description=(
+        "Converts a story analysis and raw story text into structured TTS "
+        "scene prompt files following the canonical schema with SYSTEM "
+        "PREAMBLE, AUDIO PROFILE, THE SCENE, DIRECTOR'S NOTES, and "
+        "TRANSCRIPT sections. Outputs delimited scene file blocks."
+    ),
+    instruction=get_prompt("scene-writer"),
+    generate_content_config={"safety_settings": safety_settings},
+    include_contents="none",
+)
+
+# ---------------------------------------------------------------------------
+# Root Orchestrator Agent
+# ---------------------------------------------------------------------------
+root_agent = LlmAgent(
+    name="tts_prompt_crafter",
+    model=GlobalGemini(model="gemini-2.5-flash"),
+    description="Root orchestrator for the TTS prompt crafter pipeline.",
+    instruction=get_prompt("tts-prompt-crafter"),
+    generate_content_config={"safety_settings": safety_settings},
+    sub_agents=[],
+    tools=[
+        # File I/O tools
+        read_story,
+        list_stories,
+        write_scene_file,
+        split_scene_files,
+        # Sub-agent delegation tools
+        agent_tool.AgentTool(agent=story_analyzer),
+        agent_tool.AgentTool(agent=scene_writer),
+    ],
+)
+
+# ---------------------------------------------------------------------------
+# Session & Runner
+# ---------------------------------------------------------------------------
+session_service = InMemorySessionService()
+
+APP_NAME = "tts_prompt_crafter"
+USER_ID = "user_1"
+SESSION_ID = "session_001"
+
+runner = Runner(
+    agent=root_agent,
+    app_name=APP_NAME,
+    session_service=session_service,
+)
+
+print(f"Runner created for agent '{runner.agent.name}'.")
+print(f"  Sub-agent tools: story_analyzer, scene_writer")
+print(f"  Function tools: read_story, list_stories, write_scene_file, split_scene_files")

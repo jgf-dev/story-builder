@@ -20,6 +20,11 @@
 
 ## TTS engine
 
+### Prompt composer agent
+
+- [] Implement a prompt composer agent to compose prompts for TTS engine.
+- [] The prompt composer agent should be able to generate prompts for different TTS engines.
+
 ### GenAI TTS Client
 
 - [] TTS Output Validation is non-existent. Recommendation: Plan a robust validation system to ensure the LLM adheres to all constraints and instructions.
@@ -46,4 +51,3 @@
 ## General Improvement
 
 - [] Clean up single script files in the root directory and move the useful scripts to appropriate submodules.
-- []

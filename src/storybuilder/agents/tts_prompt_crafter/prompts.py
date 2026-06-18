@@ -1,7 +1,7 @@
 import os
 
-PROMPTS_DIR = os.path.join(os.path.dirname(__file__), "../../prompts")
-STORIES_DIR = os.path.join(os.path.dirname(__file__), "../../stories")
+PROMPTS_DIR = os.path.join(os.path.dirname(__file__), "prompts")
+STORIES_DIR = os.path.join(os.path.dirname(__file__), "../../../../../stories/text")
 
 
 def get_prompt(name: str) -> str:
@@ -20,4 +20,3 @@ def get_story(name: str) -> str:
         raise FileNotFoundError(f"Story '{name}' not found at {path}")
     with open(path, "r") as f:
         return f.read()
-

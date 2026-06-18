@@ -55,7 +55,7 @@ def process_files(input_dir):
         with open(filepath, 'r') as f:
             content = f.read()
             
-        parts = content.split("#### TRANSCRIPT")
+        parts = re.split(r'^#### TRANSCRIPT\s*$', content, flags=re.MULTILINE)
         if len(parts) != 2:
             print(f"Skipping {filepath} - no TRANSCRIPT section found.")
             continue

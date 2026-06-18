@@ -9,8 +9,14 @@ using a three-agent pipeline:
 """
 
 import logging
+import os
 import warnings
 from functools import cached_property
+
+from dotenv import load_dotenv
+
+dotenv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", ".env"))
+load_dotenv(dotenv_path)
 
 from google.adk.agents import LlmAgent
 from google.adk.models import Gemini
@@ -54,12 +60,12 @@ safety_settings = [
 
 
 # ---------------------------------------------------------------------------
-# Custom Gemini model with Vertex AI (global endpoint)
+# Custom Gemini model using Vertex AI
 # ---------------------------------------------------------------------------
 class GlobalGemini(Gemini):
     @cached_property
     def api_client(self) -> Client:
-        return Client(vertexai=True, location="global")
+        return Client(vertexai=True, project="storage-499607", location="us-central1")
 
 
 # ---------------------------------------------------------------------------
@@ -75,7 +81,7 @@ story_analyzer = LlmAgent(
         "scene writer."
     ),
     instruction=get_prompt("story-analyzer"),
-    generate_content_config={"safety_settings": safety_settings},
+    generate_content_config=types.GenerateContentConfig(safety_settings=safety_settings),
     include_contents="none",
 )
 
@@ -92,7 +98,7 @@ scene_writer = LlmAgent(
         "TRANSCRIPT sections. Outputs delimited scene file blocks."
     ),
     instruction=get_prompt("scene-writer"),
-    generate_content_config={"safety_settings": safety_settings},
+    generate_content_config=types.GenerateContentConfig(safety_settings=safety_settings),
     include_contents="none",
 )
 
@@ -104,7 +110,7 @@ root_agent = LlmAgent(
     model=GlobalGemini(model="gemini-2.5-flash"),
     description="Root orchestrator for the TTS prompt crafter pipeline.",
     instruction=get_prompt("tts-prompt-crafter"),
-    generate_content_config={"safety_settings": safety_settings},
+    generate_content_config=types.GenerateContentConfig(safety_settings=safety_settings),
     sub_agents=[],
     tools=[
         # File I/O tools

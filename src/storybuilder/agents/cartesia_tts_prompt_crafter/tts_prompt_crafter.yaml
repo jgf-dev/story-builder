@@ -1,0 +1,7 @@
+name: tts_prompt_crafter
+agent_class: SequentialAgent
+description: Orchestrates the sequence of agents to generate TTS prompts.
+sub_agents:
+  - config_path: ./markdown_parser.yaml
+  - config_path: ./emotion_analyzer.yaml
+  - config_path: ./prompt_formatter.yaml

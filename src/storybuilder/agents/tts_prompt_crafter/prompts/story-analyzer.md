@@ -32,6 +32,7 @@ For **every** character who speaks or is narrated about, provide:
 ### 3. Scene Breakdown
 
 Break the story into logical scenes. A scene boundary occurs at:
+
 - Change of location
 - Significant time skip
 - Shift in characters present
@@ -44,7 +45,7 @@ For **each scene**, provide:
 - **Characters Present**: (who speaks, who is referenced)
 - **Emotional Tone**: (the dominant feeling — tension, warmth, lust, humor, etc.)
 - **Intimacy Level**: (none / mild / moderate / high — this determines tag palette restrictions)
-- **Key Events**: (bullet list of plot beats)
+- **Key Events**: (list of plot beats)
 - **Pacing Notes**: (slow/measured, conversational, fast/urgent, building)
 - **Start/End Markers**: (quote the opening and closing lines of this scene from the raw text so the Writer knows exactly where to cut)
 

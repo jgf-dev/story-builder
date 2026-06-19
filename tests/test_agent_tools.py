@@ -10,12 +10,16 @@ class TestReadStory(unittest.TestCase):
     """Tests for the read_story tool function."""
 
     def setUp(self):
+        import unittest.mock
         self.tmpdir = tempfile.mkdtemp()
         self.story_path = os.path.join(self.tmpdir, "test_story.md")
         with open(self.story_path, "w") as f:
             f.write("# Test Story\n\nOnce upon a time...\n")
+        self.patcher = unittest.mock.patch("storybuilder.agents.tts_prompt_crafter.tools._STORIES_DIR", self.tmpdir)
+        self.patcher.start()
 
     def tearDown(self):
+        self.patcher.stop()
         shutil.rmtree(self.tmpdir)
 
     def test_read_existing_story(self):
@@ -39,18 +43,28 @@ class TestReadStory(unittest.TestCase):
         self.assertIn("Error", result)
         self.assertIn("absolute path", result)
 
+    def test_read_story_by_name(self):
+        from storybuilder.agents.tts_prompt_crafter.tools import read_story
+
+        result = read_story("test_story")
+        self.assertIn("# Test Story", result)
+
 
 class TestListStories(unittest.TestCase):
     """Tests for the list_stories tool function."""
 
     def setUp(self):
+        import unittest.mock
         self.tmpdir = tempfile.mkdtemp()
         # Create some test .md files
         for name in ["story_a.md", "story_b.md", "not_a_story.txt"]:
             with open(os.path.join(self.tmpdir, name), "w") as f:
                 f.write("content")
+        self.patcher = unittest.mock.patch("storybuilder.agents.tts_prompt_crafter.tools._STORIES_DIR", self.tmpdir)
+        self.patcher.start()
 
     def tearDown(self):
+        self.patcher.stop()
         shutil.rmtree(self.tmpdir)
 
     def test_list_md_files(self):
@@ -84,6 +98,12 @@ class TestListStories(unittest.TestCase):
         result = list_stories("relative/dir")
         self.assertIn("Error", result)
         self.assertIn("absolute path", result)
+
+    def test_list_default_directory(self):
+        from storybuilder.agents.tts_prompt_crafter.tools import list_stories
+
+        result = list_stories()
+        self.assertIn("story_a.md", result)
 
 
 class TestWriteSceneFile(unittest.TestCase):
@@ -132,6 +152,15 @@ class TestWriteSceneFile(unittest.TestCase):
         result = write_scene_file("relative/story.md", "01-scene1.md", "c")
         self.assertIn("Error", result)
         self.assertIn("absolute path", result)
+
+    def test_write_accepts_output_directory(self):
+        from storybuilder.agents.tts_prompt_crafter.tools import write_scene_file
+
+        output_dir = os.path.join(self.tmpdir, "manual-output")
+        os.makedirs(output_dir)
+        result = write_scene_file(output_dir, "01-scene1.md", "content")
+        self.assertIn("Successfully", result)
+        self.assertTrue(os.path.exists(os.path.join(output_dir, "01-scene1.md")))
 
 
 class TestSplitSceneFiles(unittest.TestCase):
@@ -200,6 +229,27 @@ class TestSplitSceneFiles(unittest.TestCase):
         result = split_scene_files("relative/story.md")
         self.assertIn("Error", result)
         self.assertIn("absolute path", result)
+
+    def test_split_accepts_output_directory(self):
+        from storybuilder.agents.tts_prompt_crafter.tools import split_scene_files
+
+        scene_content = (
+            "# SYSTEM PREAMBLE: Synthesize speech ONLY...\n\n"
+            "# AUDIO PROFILE: Test\n\n"
+            "### DIRECTOR'S NOTES\n\n"
+            "Style:\n\n"
+            "- Alice (Voice: Kore): Test\n"
+            "- Bob (Voice: Puck): Test\n\n"
+            "#### TRANSCRIPT\n"
+            "Alice: Hello there.\n"
+            "Bob: Hi Alice!\n"
+        )
+        scene_path = os.path.join(self.output_dir, "02-scene1.md")
+        with open(scene_path, "w") as f:
+            f.write(scene_content)
+
+        result = split_scene_files(self.output_dir)
+        self.assertIn("Split complete", result)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,15 @@
-# The Secret Vacation
+---
+Title: Vacation with My Straight Brother
+Author: The Eagle <platonicwritings@gmail.com>
+Publication Date: 2026-02-25
+Tags: literature, relationships, love, lgbt
+Chapter: 2/2
+Part: I/II
+---
 
 ## Chapter 2 - Jace
+
+### Part I
 
 I laid in the bed pretending to be asleep as Kerry moved around the room. She was quiet and careful not to wake me up, a skill she had perfected over the past year since she had begun sneaking out to meet her coworker.
 

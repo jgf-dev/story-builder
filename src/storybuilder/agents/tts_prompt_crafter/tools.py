@@ -12,6 +12,7 @@ import sys
 _PROJECT_ROOT = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "..", "..", "..")
 )
+_STORIES_DIR = os.path.join(_PROJECT_ROOT, "stories", "text")
 _SPLIT_SCRIPT_DIR = os.path.join(
     _PROJECT_ROOT, ".agent", "skills", "tts-prompt-crafter", "scripts"
 )
@@ -19,33 +20,102 @@ if _SPLIT_SCRIPT_DIR not in sys.path:
     sys.path.insert(0, _SPLIT_SCRIPT_DIR)
 
 
+def _resolve_story_path(story_path_or_name: str) -> str | None:
+    """Resolve a story name or path to an existing markdown file."""
+    if not story_path_or_name:
+        return None
+
+    if os.path.isabs(story_path_or_name):
+        candidates = [story_path_or_name]
+        if not story_path_or_name.endswith(".md"):
+            candidates.append(f"{story_path_or_name}.md")
+        for candidate in candidates:
+            if os.path.exists(candidate):
+                return candidate
+        return None
+
+    # Keep explicit relative paths rejected so callers do not accidentally
+    # depend on the current working directory.
+    if os.path.sep in story_path_or_name or (
+        os.path.altsep and os.path.altsep in story_path_or_name
+    ):
+        return None
+
+    candidates = [story_path_or_name]
+    if not story_path_or_name.endswith(".md"):
+        candidates.insert(0, f"{story_path_or_name}.md")
+
+    for candidate in candidates:
+        resolved = os.path.join(_STORIES_DIR, candidate)
+        if os.path.exists(resolved):
+            return resolved
+    return None
+
+
+def _resolve_output_dir(story_path_or_dir: str) -> str | None:
+    """Resolve either a story path or an output directory."""
+    if not story_path_or_dir:
+        return None
+
+    if os.path.isdir(story_path_or_dir):
+        return story_path_or_dir
+
+    if os.path.isabs(story_path_or_dir):
+        if os.path.isfile(story_path_or_dir):
+            return os.path.join(os.path.dirname(story_path_or_dir), "output")
+        if story_path_or_dir.endswith(".md"):
+            return None
+        return story_path_or_dir
+
+    if os.path.sep in story_path_or_dir or (
+        os.path.altsep and os.path.altsep in story_path_or_dir
+    ):
+        return None
+
+    story_path = _resolve_story_path(story_path_or_dir)
+    if story_path:
+        return os.path.join(os.path.dirname(story_path), "output")
+    return None
+
+
 def read_story(story_path: str) -> str:
-    """Read a story file from disk given its full absolute path.
+    """Read a story from disk by absolute path or story name.
 
     Args:
-        story_path: The absolute path to the story markdown file
-            (e.g. '/home/user/stories/text/my_story.md').
+        story_path: The absolute path to the story markdown file or a
+            story name that exists under ``stories/text``.
 
     Returns:
         The full text content of the story file.
     """
-    if not os.path.isabs(story_path):
-        return f"Error: story_path must be an absolute path. Got: {story_path}"
-    if not os.path.exists(story_path):
+    resolved = _resolve_story_path(story_path)
+    if not resolved:
+        if os.path.isabs(story_path):
+            return f"Error: Story file not found at {story_path}"
+        if os.path.sep in story_path or (
+            os.path.altsep and os.path.altsep in story_path
+        ):
+            return f"Error: story_path must be an absolute path. Got: {story_path}"
+        return f"Error: Story file not found for name '{story_path}' in {_STORIES_DIR}"
+
+    if not os.path.exists(resolved):
         return f"Error: Story file not found at {story_path}"
-    with open(story_path, "r") as f:
+    with open(resolved, "r") as f:
         return f.read()
 
 
-def list_stories(directory: str) -> str:
+def list_stories(directory: str | None = None) -> str:
     """List available story markdown files in a directory.
 
     Args:
         directory: The absolute path to the directory containing story files.
+            If omitted, defaults to ``stories/text``.
 
     Returns:
         A newline-separated list of story file paths found in the directory.
     """
+    if directory is None:
+        directory = _STORIES_DIR
     if not os.path.isabs(directory):
         return f"Error: directory must be an absolute path. Got: {directory}"
     if not os.path.isdir(directory):
@@ -57,14 +127,15 @@ def list_stories(directory: str) -> str:
 
 
 def write_scene_file(story_path: str, filename: str, content: str) -> str:
-    """Write a TTS scene prompt file to an 'output' subdirectory next to the story.
+    """Write a TTS scene prompt file to the resolved output directory.
 
-    The output directory is created as a sibling 'output' subdirectory
-    within the same directory as the source story file.
+    The first argument can be either a story path or an existing output
+    directory. When a story path is provided, the output directory is created
+    as a sibling ``output`` subdirectory next to the story file.
 
     Args:
-        story_path: The absolute path to the original story file. Used to
-            determine the output directory location.
+        story_path: The absolute path to the original story file or an
+            output directory path.
         filename: The scene filename to create (e.g. '01-scene1.md').
             Must match the glob pattern '*-scene*.md'.
         content: The full markdown content of the scene prompt file.
@@ -72,12 +143,14 @@ def write_scene_file(story_path: str, filename: str, content: str) -> str:
     Returns:
         A confirmation message with the path of the written file.
     """
-    if not os.path.isabs(story_path):
-        return f"Error: story_path must be an absolute path. Got: {story_path}"
+    output_dir = _resolve_output_dir(story_path)
+    if not output_dir:
+        if os.path.sep in story_path or (
+            os.path.altsep and os.path.altsep in story_path
+        ):
+            return f"Error: story_path must be an absolute path. Got: {story_path}"
+        return f"Error: Could not resolve output directory for {story_path}"
 
-    # Derive the output directory: same parent as story, in an 'output' subdir
-    story_dir = os.path.dirname(story_path)
-    output_dir = os.path.join(story_dir, "output")
     os.makedirs(output_dir, exist_ok=True)
 
     # Validate filename pattern
@@ -96,23 +169,24 @@ def write_scene_file(story_path: str, filename: str, content: str) -> str:
 def split_scene_files(story_path: str) -> str:
     """Split TTS scene prompt files to respect the 2-voice limit.
 
-    Runs the split_prompts processor on the 'output' subdirectory
-    next to the given story file. This chunks scene files by speaker
-    count (max 2) and character length (max 1800), producing
-    sequentially numbered '*-part.md' files.
+    Runs the split_prompts processor on the resolved output directory.
+    This chunks scene files by speaker count (max 2) and character length
+    (max 1800), producing sequentially numbered '*-part.md' files.
 
     Args:
-        story_path: The absolute path to the original story file. Used to
-            determine the output directory containing scene files.
+        story_path: The absolute path to the original story file or an
+            existing output directory path.
 
     Returns:
         A status message listing the resulting part files.
     """
-    if not os.path.isabs(story_path):
-        return f"Error: story_path must be an absolute path. Got: {story_path}"
-
-    story_dir = os.path.dirname(story_path)
-    output_dir = os.path.join(story_dir, "output")
+    output_dir = _resolve_output_dir(story_path)
+    if not output_dir:
+        if os.path.sep in story_path or (
+            os.path.altsep and os.path.altsep in story_path
+        ):
+            return f"Error: story_path must be an absolute path. Got: {story_path}"
+        return f"Error: Could not resolve output directory for {story_path}"
 
     if not os.path.isdir(output_dir):
         return f"Error: Output directory not found at {output_dir}"

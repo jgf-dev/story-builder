@@ -1,0 +1,12 @@
+name: markdown_parser
+model: gemini-2.5-flash
+agent_class: LlmAgent
+description: Parses a markdown story into distinct text chunks.
+instruction: >
+  You are a markdown parser. Your task is to receive a markdown-formatted short
+  story and break it down into a structured list of text chunks.
+
+  Identify paragraphs, dialogue, and other narrative elements, and output them
+  as a clean list of strings.
+sub_agents: []
+tools: []

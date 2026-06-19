@@ -4,6 +4,14 @@
 
 Implement an ADK multi-agent system that replicates the full [tts-prompt-crafter SKILL.md](file:///home/jgf2/git/voice/story-builder/.agent/skills/tts-prompt-crafter/SKILL.md) behavior programmatically: reading raw stories, generating structured TTS scene prompts with emotional annotations and voice personas, and splitting them to comply with the 2-voice API limit.
 
+## Status
+
+Implemented with backward-compatible tool inputs:
+
+- `read_story` accepts either an absolute story path or a story name under `stories/text/`
+- `list_stories` defaults to `stories/text/`
+- `write_scene_file` and `split_scene_files` accept either a story path or an output directory
+
 ## Current State
 
 The existing [agent.py](file:///home/jgf2/git/voice/story-builder/src/storybuilder/agents/tts_prompt_crafter/agent.py) has:

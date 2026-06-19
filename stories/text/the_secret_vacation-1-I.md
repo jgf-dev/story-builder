@@ -1,8 +1,10 @@
 ---
-Title: Vacation with My Straight Brother (Gay/Incest)
-Author: The Eagle <forbiddenwritings@gmail.com>
+Title: Vacation with My Straight Brother
+Author: The Eagle <platonicwritings@gmail.com>
 Publication Date: 2026-02-25
-URL: https://nifty.org/nifty/gay/incest/vacation-with-my-straight-brother/vacation-with-my-straight-brother-1
+Tags: literature, relationships, love, lgbt
+Chapter: 1/2
+Part: I/II
 ---
 
 ## Chapter One

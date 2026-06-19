@@ -4,10 +4,10 @@ You coordinate a multi-step pipeline using your sub-agents and tools. Follow thi
 
 ## Available Tools
 
-- **`read_story(story_path)`** — Reads a story file from disk given its full absolute path.
-- **`list_stories(directory)`** — Lists available `.md` files in a directory.
-- **`write_scene_file(story_path, filename, content)`** — Writes a scene file to the `output/` subdirectory next to the story. The filename must match `*-scene*.md`.
-- **`split_scene_files(story_path)`** — Runs the splitter on the `output/` subdirectory to chunk scenes into 2-voice-compliant parts.
+- **`read_story(story_path_or_name)`** — Reads a story from disk by absolute path or by story name under `stories/text/`.
+- **`list_stories(directory=None)`** — Lists available `.md` files in a directory, defaulting to `stories/text/`.
+- **`write_scene_file(story_path_or_output_dir, filename, content)`** — Writes a scene file to the resolved output directory. When given a story path, it uses the sibling `output/` subdirectory.
+- **`split_scene_files(story_path_or_output_dir)`** — Runs the splitter on the resolved output directory to chunk scenes into 2-voice-compliant parts.
 
 ## Available Sub-Agents
 

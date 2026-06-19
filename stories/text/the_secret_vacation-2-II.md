@@ -1,4 +1,11 @@
-# The Secret Vacation
+---
+Title: Vacation with My Straight Brother
+Author: The Eagle <platonicwritings@gmail.com>
+Publication Date: 2026-02-25
+Tags: literature, relationships, love, lgbt
+Chapter: 2/2
+Part: II/II
+---
 
 ## Chapter 2 - Jace
 

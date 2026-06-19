@@ -12,25 +12,29 @@
 - [x] **Add a Markdown export function** to download selected stories/search results. (2026-06-19)
 - [ ] **Refine named entity recognition** - improve extraction of relationships and higher-quality entities.
 
-
 ### Phase 2: TTS & Audio Enhancements
 
-- [ ] **Add a Cartesia TTS client** - wire up Cartesia support alongside the existing TTS flow.
-- [ ] **Improve TTS output validation** - verify audio generation, voice assignment, dialogue coverage, sound effects, and performance adherence.
+- [ ] **Add a Cartesia TTS client** - wire up Cartesia support alongside the existing TTS flow. #TASK
+- [ ] **Improve TTS output validation** - verify audio generation, voice assignment, dialogue coverage, sound effects, and performance adherence. #FIXME
 
 ## Waiting On
 
-- [ ] **Optimize FTS across year partitions** - scan all year databases and batch-run `optimize_fts()` or the equivalent PRAGMA optimization path.
-- [ ] **Support cross-partition search** - dynamically attach partition files with `ATTACH DATABASE` when performing global queries.
+- [ ] **Optimize FTS across year partitions** - scan all year databases and batch-run `optimize_fts()` or the equivalent PRAGMA optimization path. #ISSUE
+- [ ] **Support cross-partition search** - dynamically attach partition files with `ATTACH DATABASE` when performing global queries. #ISSUE
 
 ## Someday
 
-- [ ] **Add an ElevenLabs TTS client**
-- [ ] **Make the prompt composer engine-agnostic** - generate prompts for multiple TTS engines.
+- [ ] **Add an ElevenLabs TTS client** #TASK
+- [ ] **Make the prompt composer engine-agnostic** - generate prompts for multiple TTS engines. #TASK
 
-- [ ] **Elevate the TTS output into a high-end, immersive audio drama** (often referred to as an "enhanced audiobook" or "binaural audio play")
-  - [ ] **Gather a targeted collection of sound assets in your DAW** See `stories/text/output/i_came_during_tryouts/daw.md` for an example.
-  - [ ] **Implement advanced audio engineering techniques** to create a polished, professional final product
+- [ ] **Elevate the TTS output into a high-end, immersive audio drama** (often referred to as an "enhanced audiobook" or "binaural audio play") #TASK
+  - [ ] **Gather a targeted collection of sound assets in your DAW** See `stories/text/output/i_came_during_tryouts/daw.md` for an example. #IDEA
+  - [ ] **Implement advanced audio engineering techniques** to create a polished, professional final product #IDEA
+
+## XAI TTS API Skill Implementation
+
+- [ ] Test the benchmark properly using the `benchmark.py` script using the provided evals and sub-agents. #LATER
+- [ ] Update the review.html to display the results properly. If not good , go back to LLM and ask it to fix it. #LATER
 
 ## Done
 

@@ -26,5 +26,8 @@
 		"**/.git/subtree-cache/**": true,
 		"**/node_modules/*/**": true,
 	},
-	"ibm-watsonx-orchestrate.envFile": "/home/jgf2/git/voice/story-builder/ibm-credentials.env"
+	"ibm-watsonx-orchestrate.envFile": "/home/jgf2/git/voice/story-builder/ibm-credentials.env",
+	"todo-tree.tree.showBadges": false,
+	"todo-tree.tree.disableCompactFolders": true,
+	"todo-tree.tree.showCountsInTree": true
 }

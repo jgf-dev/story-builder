@@ -47,10 +47,3 @@ Run each non-live eval with and without the new skill, save outputs under `.agen
 The first implementation pass updates SKILL.md and eval artifacts only.
 Live API tests are optional and gated behind explicit opt-in plus XAI_API_KEY.
 If helper-script execution becomes part of the evals, first fix or account for the current storybuilder.xaiapi.client import mismatch in .agent/skills/xai-tts-api/scripts/annotate.py.
-
-XAI TTS API Skill Implementation
-
-# TODO
-
-- [ ] Test the benchmark properly using the `benchmark.py` script using the provided evals and sub-agents.
-- [ ] Update the review.html to display the results properly. If not good , go back to LLM and ask it to fix it.

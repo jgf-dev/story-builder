@@ -1,7 +1,7 @@
 import os
 
 PROMPTS_DIR = os.path.join(os.path.dirname(__file__), "prompts")
-STORIES_DIR = os.path.join(os.path.dirname(__file__), "../../../../../stories/text")
+STORIES_DIR = os.getenv("STORIES_TEXT")
 
 
 def get_prompt(name: str) -> str:

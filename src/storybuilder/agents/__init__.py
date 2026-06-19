@@ -1,5 +1,5 @@
 """Analysis utilities for story exploration and visualization."""
 
-from . import find_similar
+from . import tts_prompt_creator
 
-__all__ = ["find_similar"]
+__all__ = ["tts_prompt_creator"]

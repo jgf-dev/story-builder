@@ -1,4 +1,5 @@
 import glob
+import os
 from pathlib import Path
 
 from google.cloud.storage import Client, transfer_manager
@@ -29,7 +30,7 @@ def upload_many(bucket_name: str, filenames: list[str], source_directory: str = 
 
 
 if __name__ == "__main__":
-    directory = Path("../../../stories/db/").resolve()
+    directory = Path(os.getenv("STORIES_DB")).resolve()
     print(directory)
 
     files_to_upload = glob.glob(str(directory / "*.db"))

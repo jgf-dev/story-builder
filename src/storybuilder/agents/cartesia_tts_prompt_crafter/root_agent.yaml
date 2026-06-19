@@ -1,0 +1,20 @@
+name: root_agent
+model: gemini-2.5-flash
+agent_class: LlmAgent
+description: Accepts a markdown story and generates a sequence of TTS prompts.
+instruction: >
+  You are the root agent for the TTS Prompt Crafter system.
+
+  Your job is to take a markdown short story from the user and orchestrate the
+  process of converting it into a sequence of TTS prompts.
+
+  You will use the 'tts_prompt_crafter' sub-agent to manage the workflow.
+
+  Once the prompts are generated, save them to a file named 'tts_prompts.txt'
+  using the 'save_prompts' tool.
+sub_agents:
+  - config_path: ./tts_prompt_crafter.yaml
+tools:
+  - name: cartesia_tts_prompt_crafter.tools.prompt_tool.save_prompts
+before_tool_callbacks:
+  - name: before_crafter

@@ -2,6 +2,37 @@
 
 This file captures non-obvious knowledge required to work effectively in this repository. It is derived strictly from observed files, configs, code, tests, CI, and existing rule docs. Only what was directly read is documented.
 
+## Project Overview
+
+StoryBuilder is a Python toolkit for analyzing, embedding, and generating audio from narrative fiction. The main workflow observed in this repo is:
+
+1. Scrape and archive stories.
+2. Import story text into SQLite and FTS5.
+3. Extract entities, sentiment, and embeddings.
+4. Generate and validate TTS prompts and audio.
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Language | Python 3.12+ |
+| Package manager | uv |
+| NLP | spaCy, HuggingFace transformers |
+| Embeddings | sentence-transformers, ChromaDB |
+| Visualization | Plotly, matplotlib, scikit-learn |
+| TTS | Google GenAI |
+| Cloud | AWS Bedrock AgentCore, Boto3 |
+| Data | SQLite |
+
+## Directory Structure
+
+- `src/storybuilder/` - importable package for downloader, genai, cartesia, xaiapi, bedrock, and utils
+- `scripts/` - SQLite import/query tooling
+- `tests/` - unittest coverage for downloader, TTS, and prompt splitting
+- `.agent/skills/` - agent-facing workflow docs and scripts
+- `stories/` and `nifty_stories/` - story text and archived audio parts
+- `src/prompts/` - example prompt templates
+
 ## Essential Commands
 
 **Environment setup (required before most work):**
@@ -42,19 +73,37 @@ This file captures non-obvious knowledge required to work effectively in this re
 
 **Analysis / embedding / viz scripts (root level, from QWEN.md and file headers):**
 
-- `python analyze_sentiment.py --stories-dir test_stories --gpu`
-- `python generate_embeddings.py --stories-dir test_stories`
-- `python find_similar.py "path/to/story.txt"`
-- `python visualize_arcs.py --story "slug" --window 100`
-- `python compare_narratives.py --clusters 4`
-- `python visualize_tsne.py --perplexity 1000`
-- `python extract_entities.py --stories-dir nifty_stories --gpu`
-- `python test_voices.py` (Gemini multi-speaker TTS test)
+- `python -m storybuilder.analysis.analyze_sentiment --stories-dir test_stories --gpu`
+- `python -m storybuilder.analysis.generate_embeddings --stories-dir test_stories`
+- `python -m storybuilder.analysis.find_similar "path/to/story.txt"`
+- `python -m storybuilder.analysis.visualize_arcs --story "slug" --window 100`
+- `python -m storybuilder.analysis.compare_narratives --clusters 4`
+- `python -m storybuilder.analysis.visualize_tsne --perplexity 1000`
+- `python -m storybuilder.analysis.extract_entities --stories-dir nifty_stories --gpu`
+- `python -m storybuilder.genai.test_voices` (Gemini multi-speaker TTS test)
 
 **Cartesia (per SKILL.md):**
 
 - Always fetch `https://docs.cartesia.ai/llms.txt` first before using any API details.
 - Typical: `uv sync && CARTESIA_API_KEY=... uv run python ...` (examples live in `src/storybuilder/cartesia/calls.py`)
+
+## Running Pipeline
+
+Typical observed order for analysis work:
+
+1. `python -m storybuilder.analysis.extract_entities --stories-dir nifty_stories --gpu`
+2. `python -m storybuilder.analysis.analyze_sentiment --stories-dir test_stories --gpu`
+3. `python -m storybuilder.analysis.generate_embeddings --stories-dir test_stories`
+4. `python -m storybuilder.analysis.find_similar "path/to/story.txt"`
+5. `python -m storybuilder.analysis.visualize_arcs --story "slug" --window 100`
+6. `python -m storybuilder.analysis.compare_narratives --clusters 4`
+7. `python -m storybuilder.analysis.visualize_tsne --perplexity 1000`
+8. `python -m storybuilder.genai.test_voices`
+
+## Git Conventions
+
+- Branching is observed on `main`.
+- Recent commits use conventional commit prefixes like `feat:` and `fix:`.
 
 ## Code Organization and Structure
 
@@ -95,7 +144,7 @@ This file captures non-obvious knowledge required to work effectively in this re
 
 - GPU selection in root scripts (spacy, sentence-transformers device, thinc)
 - Dual Chroma collections (story_chunks + story_averages) per QWEN.md
-- src-layout sys.path hacks in `src/storybuilder/main.py` and `cli.py` for direct execution
+- src-layout sys.path hacks in `src/storybuilder/main.py` and `src/storybuilder/downloader/cli.py` for direct execution
 - Thread-safe printing via locks in downloader
 
 ## Naming Conventions and Style Patterns
@@ -178,3 +227,10 @@ This file captures non-obvious knowledge required to work effectively in this re
 - All root analysis scripts follow the "argparse + GPU flag + idempotent skip if already processed" pattern per QWEN.
 
 When adding features or fixing bugs, cross-check the exact behaviors exercised in `tests/test_downloader.py`, `tests/test_genai.py`, and `tests/test_split_prompts.py` — they encode the contract for cache logic, date parsing, dummy padding, chunking, and warning semantics.
+
+## Learned rules (Markr)
+
+- Do not use for: refactoring, writing scripts from scratch, debugging business logic, code review, or general programming concepts
+- If results don't look right, try alternate names or queries (e.g., "next.js" not "nextjs", or rephrase the question)
+- Call `library` first to get a valid ID unless the user provides one directly in `/org/project` format
+- Do not silently fall back to training data

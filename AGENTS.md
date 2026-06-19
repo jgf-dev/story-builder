@@ -227,3 +227,10 @@ Typical observed order for analysis work:
 - All root analysis scripts follow the "argparse + GPU flag + idempotent skip if already processed" pattern per QWEN.
 
 When adding features or fixing bugs, cross-check the exact behaviors exercised in `tests/test_downloader.py`, `tests/test_genai.py`, and `tests/test_split_prompts.py` — they encode the contract for cache logic, date parsing, dummy padding, chunking, and warning semantics.
+
+## Learned rules (Markr)
+
+- Do not use for: refactoring, writing scripts from scratch, debugging business logic, code review, or general programming concepts
+- If results don't look right, try alternate names or queries (e.g., "next.js" not "nextjs", or rephrase the question)
+- Call `library` first to get a valid ID unless the user provides one directly in `/org/project` format
+- Do not silently fall back to training data

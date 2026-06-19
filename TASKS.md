@@ -4,13 +4,14 @@
 
 ### Phase 1: Unified Streamlit Dashboard
 
-- [ ] **Create interactive Streamlit dashboard** (`scripts/dashboard.py`) to search and view stories.
-- [ ] **Implement named entity filters** by joining searches with `nlp_analysis.db`.
-- [ ] **Integrate FTS5 full-text query** with highlighted match snippets across year partitions.
-- [ ] **Add a dynamic statistics tab** with interactive Plotly distribution charts.
-- [ ] **Add a persistent Favorites & Tagging system** saving to `stories/db/dashboard_metadata.db`.
-- [ ] **Add a Markdown export function** to download selected stories/search results.
+- [x] **Create interactive Streamlit dashboard** (`scripts/dashboard.py`) to search and view stories. (2026-06-19)
+- [x] **Implement named entity filters** by joining searches with `nlp_analysis.db`. (2026-06-19)
+- [x] **Integrate FTS5 full-text query** with highlighted match snippets across year partitions. (2026-06-19)
+- [x] **Add a dynamic statistics tab** with interactive Plotly distribution charts. (2026-06-19)
+- [x] **Add a persistent Favorites & Tagging system** saving to `stories/db/dashboard_metadata.db`. (2026-06-19)
+- [x] **Add a Markdown export function** to download selected stories/search results. (2026-06-19)
 - [ ] **Refine named entity recognition** - improve extraction of relationships and higher-quality entities.
+
 
 ### Phase 2: TTS & Audio Enhancements
 

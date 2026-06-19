@@ -2,12 +2,20 @@
 
 ## Active
 
-- [ ] **Implement a story search function** - search stories based on named entities.
-- [ ] **Implement a story database viewer** - let the user search stories with a prompt or filter by date, categories, and similar metadata.
-- [ ] **Add an export function** - export stories to a markdown file.
-- [ ] **Add a statistics tab** - show story counts by date, categories, genre, word count, named entities, and similar metrics.
-- [ ] **Improve TTS output validation** - verify audio generation, voice assignment, dialogue coverage, sound effects, and performance adherence.
+### Phase 1: Unified Streamlit Dashboard
+
+- [ ] **Create interactive Streamlit dashboard** (`scripts/dashboard.py`) to search and view stories.
+- [ ] **Implement named entity filters** by joining searches with `nlp_analysis.db`.
+- [ ] **Integrate FTS5 full-text query** with highlighted match snippets across year partitions.
+- [ ] **Add a dynamic statistics tab** with interactive Plotly distribution charts.
+- [ ] **Add a persistent Favorites & Tagging system** saving to `stories/db/dashboard_metadata.db`.
+- [ ] **Add a Markdown export function** to download selected stories/search results.
+- [ ] **Refine named entity recognition** - improve extraction of relationships and higher-quality entities.
+
+### Phase 2: TTS & Audio Enhancements
+
 - [ ] **Add a Cartesia TTS client** - wire up Cartesia support alongside the existing TTS flow.
+- [ ] **Improve TTS output validation** - verify audio generation, voice assignment, dialogue coverage, sound effects, and performance adherence.
 
 ## Waiting On
 
@@ -18,7 +26,7 @@
 
 - [ ] **Add an ElevenLabs TTS client**
 - [ ] **Make the prompt composer engine-agnostic** - generate prompts for multiple TTS engines.
-- [ ] **Refine named entity recognition** - improve extraction of relationships and higher-quality entities.
+
 - [ ] **Elevate the TTS output into a high-end, immersive audio drama** (often referred to as an "enhanced audiobook" or "binaural audio play")
   - [ ] **Gather a targeted collection of sound assets in your DAW** See `stories/text/output/i_came_during_tryouts/daw.md` for an example.
   - [ ] **Implement advanced audio engineering techniques** to create a polished, professional final product

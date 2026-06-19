@@ -35,7 +35,6 @@ def main():
 
     print(f"Loaded {len(embeddings)} story embeddings.")
 
-    # t-SNE requires perplexity to be less than the number of samples
     perplexity = min(args.perplexity, max(5.0, len(embeddings) - 1))
 
     print(f"Running t-SNE dimensionality reduction (perplexity={perplexity})...")
@@ -44,15 +43,13 @@ def main():
 
     print("Generating interactive plot...")
 
-    # Extract short filenames for better tooltip reading
-    # filepath example: test_stories/gay/incest/summer-eclogue/summer-eclogue-1.txt
     short_names = []
     subcategories = []
     for filepath in ids:
         parts = filepath.replace("\\", "/").split("/")
         short_names.append(parts[-1])
         if len(parts) >= 3:
-            subcategories.append(parts[2])  # test_stories/gay/subcategory/...
+            subcategories.append(parts[2])
         else:
             subcategories.append("unknown")
 
@@ -70,7 +67,6 @@ def main():
 
     fig.update_traces(marker=dict(size=8, line=dict(width=1, color="DarkSlateGrey")))
 
-    # Calculate and plot the centroids (mean position) for each subcategory
     import pandas as pd
 
     df = pd.DataFrame({"x": embeddings_2d[:, 0], "y": embeddings_2d[:, 1], "subcategory": subcategories})

@@ -1,5 +1,4 @@
 import argparse
-import os
 from pathlib import Path
 
 import chromadb
@@ -23,17 +22,13 @@ def main():
     parser.add_argument("--model", type=str, default="all-MiniLM-L6-v2", help="SentenceTransformer model to use.")
     args = parser.parse_args()
 
-    # Initialize ChromaDB client
     chroma_client = chromadb.PersistentClient(path=args.db_path)
-    
-    # Create or get collections
-    # story_chunks will store the individual chunk embeddings
+
     collection_chunks = chroma_client.get_or_create_collection(
         name="story_chunks",
         metadata={"hnsw:space": "cosine"}
     )
-    
-    # story_averages will store the single mean embedding per story
+
     collection_averages = chroma_client.get_or_create_collection(
         name="story_averages",
         metadata={"hnsw:space": "cosine"}
@@ -52,9 +47,8 @@ def main():
 
     for filepath in all_files:
         filepath_str = str(filepath)
-        story_id = filepath_str  # Use filepath as the unique ID
+        story_id = filepath_str
 
-        # Skip if already processed in averages
         existing = collection_averages.get(ids=[story_id])
         if existing and existing["ids"]:
             continue
@@ -67,13 +61,10 @@ def main():
             if not chunks:
                 continue
 
-            # Generate embeddings for all chunks in this story
             chunk_embeddings = model.encode(chunks, convert_to_numpy=True, show_progress_bar=False)
-            
-            # Store chunks
             chunk_ids = [f"{story_id}_chunk_{i}" for i in range(len(chunks))]
             chunk_metadatas = [{"story_id": story_id, "chunk_index": i} for i in range(len(chunks))]
-            
+
             collection_chunks.add(
                 ids=chunk_ids,
                 embeddings=chunk_embeddings.tolist(),
@@ -81,13 +72,12 @@ def main():
                 metadatas=chunk_metadatas
             )
 
-            # Average embedding
             avg_embedding = np.mean(chunk_embeddings, axis=0)
-            
+
             collection_averages.add(
                 ids=[story_id],
                 embeddings=[avg_embedding.tolist()],
-                documents=[""],  # We don't store the full text here to save space, just the ID and embedding
+                documents=[""],
                 metadatas=[{"filepath": filepath_str}]
             )
 

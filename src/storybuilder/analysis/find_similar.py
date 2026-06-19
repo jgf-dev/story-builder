@@ -1,6 +1,5 @@
 import argparse
 import chromadb
-from pathlib import Path
 
 
 def main():
@@ -11,16 +10,15 @@ def main():
     args = parser.parse_args()
 
     chroma_client = chromadb.PersistentClient(path=args.db_path)
-    
+
     try:
         collection_averages = chroma_client.get_collection(name="story_averages")
     except Exception:
         print("Error: Could not find 'story_averages' collection. Run generate_embeddings.py first.")
         return
 
-    # Fetch the embedding for the target story
     result = collection_averages.get(ids=[args.target_story], include=["embeddings"])
-    
+
     if result is None or result.get("embeddings") is None or len(result["embeddings"]) == 0:
         print(f"Error: Story '{args.target_story}' not found in the database.")
         print("Please ensure you use the exact filepath used during generation.")
@@ -28,18 +26,17 @@ def main():
 
     target_embedding = result["embeddings"][0]
 
-    # Query for nearest neighbors
     print(f"Finding top {args.n_results} stories similar to: {args.target_story}\n")
-    
+
     query_results = collection_averages.query(
         query_embeddings=[target_embedding],
-        n_results=args.n_results + 1  # +1 because the query itself will likely be the first result
+        n_results=args.n_results + 1
     )
 
     for idx, (filepath, distance) in enumerate(zip(query_results["ids"][0], query_results["distances"][0])):
         if filepath == args.target_story:
             continue
-            
+
         print(f"{idx}. {filepath}")
         print(f"   Distance (lower is closer): {distance:.4f}\n")
 

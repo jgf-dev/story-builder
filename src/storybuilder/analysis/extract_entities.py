@@ -1,5 +1,4 @@
 import argparse
-import os
 import sqlite3
 from collections import Counter
 from pathlib import Path
@@ -7,11 +6,6 @@ from pathlib import Path
 import spacy
 from thinc.api import require_gpu, set_gpu_allocator
 from tqdm import tqdm
-
-# Use the GPU, with memory allocations directed via PyTorch.
-# This prevents out-of-memory errors that would otherwise occur from competing
-# memory pools.
-
 
 DB_PATH = "nlp_analysis.db"
 ALLOWED_LABELS = {"PERSON", "NORP", "GPE", "LOC", "ORG", "FAC", "EVENT", "PRODUCT", "WORK_OF_ART"}
@@ -80,20 +74,15 @@ def main():
         nlp.select_pipes(enable=["tagger", "parser", "ner"])
         nlp.add_pipe("merge_noun_chunks")
         nlp.add_pipe("merge_entities")
-
-        # Increase max length for long stories
         nlp.max_length = 5000000
     except OSError:
         print("Model 'en_core_web_sm' not found. Please run: python -m spacy download en_core_web_sm")
         return
 
-    # Find all txt files
     all_files = list(Path(args.stories_dir).rglob("*.txt"))
     print(f"Found {len(all_files)} total text files.")
 
     processed_count = 0
-
-    # Progress bar setup
     pbar = tqdm(total=min(len(all_files), args.limit), desc="Processing files")
 
     for filepath in all_files:
@@ -106,18 +95,12 @@ def main():
             with open(filepath, "r", encoding="utf-8") as f:
                 text = f.read()
 
-            # Extract entities
             doc = nlp(text)
-
-            # Count entities (normalize whitespace/case slightly)
-            # We strip whitespace but preserve case for names
             entities = Counter((ent.text.strip(), ent.label_) for ent in doc.ents if ent.label_ in ALLOWED_LABELS and ent.text.strip())
 
-            # Database insertion
             cursor.execute("INSERT INTO stories (filepath) VALUES (?)", (filepath_str,))
             story_id = cursor.lastrowid
 
-            # Prepare batch insert for entities
             entity_records = [(story_id, text, label, count) for (text, label), count in entities.items()]
 
             cursor.executemany(

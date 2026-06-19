@@ -1,7 +1,8 @@
+import argparse
 import sqlite3
+
 import pandas as pd
 import plotly.graph_objects as go
-import argparse
 from pathlib import Path
 
 
@@ -13,39 +14,33 @@ def main():
     args = parser.parse_args()
 
     conn = sqlite3.connect(args.db_path)
-    
-    # Get a story
+
     if args.story:
-        df_story = pd.read_sql_query("SELECT id, story_dir FROM stories WHERE story_dir LIKE ?", conn, params=(f'%{args.story}%',))
+        df_story = pd.read_sql_query("SELECT id, story_dir FROM stories WHERE story_dir LIKE ?", conn, params=(f"%{args.story}%",))
     else:
         df_story = pd.read_sql_query("SELECT id, story_dir FROM stories LIMIT 1", conn)
-        
+
     if df_story.empty:
         print("No processed stories found in DB.")
         return
-        
-    story_id = int(df_story.iloc[0]['id'])
-    story_dir = df_story.iloc[0]['story_dir']
-    
+
+    story_id = int(df_story.iloc[0]["id"])
+    story_dir = df_story.iloc[0]["story_dir"]
+
     print(f"Visualizing narrative arc for: {story_dir}")
-    
-    # Fetch sentences
+
     df_sentences = pd.read_sql_query("""
         SELECT id, chapter_index, sentence_index, sentiment_score
         FROM sentences
         WHERE story_id = ?
         ORDER BY chapter_index, sentence_index
     """, conn, params=(story_id,))
-    
-    # Add a global sentence index
-    df_sentences['global_index'] = range(len(df_sentences))
-    
-    # Calculate overall moving average
-    df_sentences['smoothed_sentiment'] = df_sentences['sentiment_score'].rolling(
+
+    df_sentences["global_index"] = range(len(df_sentences))
+    df_sentences["smoothed_sentiment"] = df_sentences["sentiment_score"].rolling(
         window=args.window, center=True, min_periods=max(1, args.window // 10)
     ).mean()
-    
-    # Fetch top characters
+
     df_chars = pd.read_sql_query("""
         SELECT entity_text, COUNT(*) as freq
         FROM sentence_entities
@@ -55,24 +50,21 @@ def main():
         ORDER BY freq DESC
         LIMIT 5
     """, conn, params=(story_id,))
-    
-    top_chars = df_chars['entity_text'].tolist()
+
+    top_chars = df_chars["entity_text"].tolist()
     print(f"Found top characters: {', '.join(top_chars)}")
-    
+
     fig = go.Figure()
-    
-    # Plot overall arc
+
     fig.add_trace(go.Scatter(
-        x=df_sentences['global_index'],
-        y=df_sentences['smoothed_sentiment'],
-        mode='lines',
-        name='Overall Narrative Arc',
-        line=dict(width=4, color='white')
+        x=df_sentences["global_index"],
+        y=df_sentences["smoothed_sentiment"],
+        mode="lines",
+        name="Overall Narrative Arc",
+        line=dict(width=4, color="white")
     ))
-    
-    # Plot character arcs
+
     for char in top_chars:
-        # Get sentences where this character appears
         char_sentences = pd.read_sql_query("""
             SELECT sentences.id, sentiment_score
             FROM sentences
@@ -80,26 +72,24 @@ def main():
             WHERE sentences.story_id = ? AND entity_text = ?
             ORDER BY chapter_index, sentences.id
         """, conn, params=(story_id, char))
-        
-        # Map back to the global index
-        char_sentences = char_sentences.merge(df_sentences[['id', 'global_index']], on='id')
-        char_sentences = char_sentences.sort_values('global_index')
-        
-        # Use a smaller window for character specific trajectories
+
+        char_sentences = char_sentences.merge(df_sentences[["id", "global_index"]], on="id")
+        char_sentences = char_sentences.sort_values("global_index")
+
         char_window = max(5, args.window // 4)
-        char_sentences['smoothed_sentiment'] = char_sentences['sentiment_score'].rolling(
+        char_sentences["smoothed_sentiment"] = char_sentences["sentiment_score"].rolling(
             window=char_window, center=True, min_periods=1
         ).mean()
-        
+
         fig.add_trace(go.Scatter(
-            x=char_sentences['global_index'],
-            y=char_sentences['smoothed_sentiment'],
-            mode='lines',
+            x=char_sentences["global_index"],
+            y=char_sentences["smoothed_sentiment"],
+            mode="lines",
             name=f"{char}'s Emotional Arc",
             opacity=0.7,
             line=dict(width=2)
         ))
-        
+
     story_name = Path(story_dir).name
     fig.update_layout(
         title=f"Emotional Trajectories: {story_name}",
@@ -115,7 +105,7 @@ def main():
             x=1
         )
     )
-    
+
     out_file = f"arc_{story_name}.html"
     fig.write_html(out_file)
     print(f"Saved interactive visualization to {out_file}")

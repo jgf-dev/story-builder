@@ -13,12 +13,18 @@ from storybuilder.agents.tts_prompt_crafter.agent import APP_NAME, SESSION_ID, U
 
 
 async def main():
-    # Create session
-    session = await session_service.create_session(
+    # Get or create session
+    session = await session_service.get_session(
         app_name=APP_NAME,
         user_id=USER_ID,
         session_id=SESSION_ID,
     )
+    if not session:
+        session = await session_service.create_session(
+            app_name=APP_NAME,
+            user_id=USER_ID,
+            session_id=SESSION_ID,
+        )
 
     story_path = "/home/jgf2/git/voice/story-builder/stories/text/the_secret_vacation-1-I.md"
     user_msg = f"Generate TTS prompts for {story_path}"

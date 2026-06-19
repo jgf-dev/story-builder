@@ -30,18 +30,11 @@ StoryBuilder is an integrated Python toolkit and pipeline designed to scrape, st
 
 ```text
 storybuilder/
-├── main.py                      # Application entry stub
-├── analyze_sentiment.py         # Sentiment + entity extraction → SQLite
-├── extract_entities.py          # Named entity extraction → SQLite
-├── generate_embeddings.py       # Story embeddings → ChromaDB
-├── find_similar.py              # Semantic similarity search via ChromaDB
-├── compare_narratives.py        # K-Means clustering of narrative emotional arcs
-├── visualize_arcs.py            # Per-story emotional trajectory Plotly plots
-├── visualize_tsne.py            # t-SNE 2D projection plots of story collections
 ├── pyproject.toml               # Package configuration and dependencies
 ├── src/                         # Python source package modules
 │   └── storybuilder/
 │       ├── downloader/          # Scraping, IP rotation, writer, and caching layers
+│       ├── analysis/            # Sentiment, entity, embedding, and visualization CLIs
 │       ├── genai/               # Google GenAI TTS client & voice assigners
 │       └── utils/               # Prompts and common utilities
 ├── scripts/                     # SQLite database indexing and querying scripts
@@ -115,8 +108,8 @@ python3 scripts/import_to_sqlite.py --db stories/stories.db
 Compute sentence sentiment and extract named entities:
 
 ```bash
-python3 analyze_sentiment.py --stories-dir nifty_stories --gpu
-python3 extract_entities.py --stories-dir nifty_stories --gpu
+python3 -m storybuilder.analysis.analyze_sentiment --stories-dir nifty_stories --gpu
+python3 -m storybuilder.analysis.extract_entities --stories-dir nifty_stories --gpu
 ```
 
 ### Step 4: Embed & Search
@@ -124,8 +117,8 @@ python3 extract_entities.py --stories-dir nifty_stories --gpu
 Generate ChromaDB embeddings and run a similarity query:
 
 ```bash
-python3 generate_embeddings.py --stories-dir nifty_stories
-python3 find_similar.py "nifty_stories/gay/subcat/slug/story.txt"
+python3 -m storybuilder.analysis.generate_embeddings --stories-dir nifty_stories
+python3 -m storybuilder.analysis.find_similar "nifty_stories/gay/subcat/slug/story.txt"
 ```
 
 ### Step 5: Visualize
@@ -133,8 +126,8 @@ python3 find_similar.py "nifty_stories/gay/subcat/slug/story.txt"
 Generate t-SNE scatter plots and Plotly emotional arc trajectories:
 
 ```bash
-python3 visualize_arcs.py --story "story-slug" --window 100
-python3 visualize_tsne.py --perplexity 1000
+python3 -m storybuilder.analysis.visualize_arcs --story "story-slug" --window 100
+python3 -m storybuilder.analysis.visualize_tsne --perplexity 1000
 ```
 
 ---

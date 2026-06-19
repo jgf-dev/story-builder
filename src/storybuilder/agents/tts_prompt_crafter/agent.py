@@ -14,20 +14,18 @@ import warnings
 from enum import Enum
 from functools import cached_property
 
-import vertexai
 from dotenv import load_dotenv
 from google.adk.agents import LlmAgent
-from google.adk.artifacts import InMemoryArtifactService
-from google.adk.memory import InMemoryMemoryService
+from google.adk.artifacts.in_memory_artifact_service import InMemoryArtifactService
+from google.adk.memory.vertex_ai_memory_bank_service import VertexAiMemoryBankService
 from google.adk.models import Gemini
 from google.adk.planners import BuiltInPlanner
 from google.adk.runners import Runner
-from google.adk.sessions import DatabaseSessionService, InMemorySessionService
+from google.adk.sessions import DatabaseSessionService, InMemorySessionService, VertexAiSessionService
 from google.adk.telemetry.setup import maybe_set_otel_providers
 from google.genai import Client, types
 from pydantic import BaseModel, Field
 from pydantic.types import NonNegativeInt
-from vertexai import VertexAiArtifactService, VertexAiMemoryService, VertexAiSessionService, agent_engines
 
 from .prompts import get_prompt
 from .tools import list_stories, read_story, split_scene_files, write_scene_file
@@ -141,8 +139,8 @@ class SceneSchema(BaseModel):
     intimacy_level: IntimacyLevel = Field(default=IntimacyLevel.NONE, description="The intimacy level of the scene.")
     key_events: list[str] = Field(min_items=1, description="The key events of the scene.")
     pacing_notes: PacingNotes = Field(default=PacingNotes.CONVERSATIONAL, description="The pacing notes for the scene.")
-    start_marker: str = Field(max_length=100, min_length=10, description="The start marker for the scene.")
-    end_marker: str = Field(max_length=100, min_length=10, description="The end marker for the scene.")
+    start_marker: str = Field(description="The start marker for the scene.")
+    end_marker: str = Field(description="The end marker for the scene.")
 
 
 class VoiceInteractionNotesSchema(BaseModel):
@@ -209,7 +207,7 @@ class StoryAnalysisSchema(BaseModel):
 
 story_analyzer = LlmAgent(
     name="story_analyzer",
-    model=GlobalGemini(model="gemini-2.5-flash"),
+    model=GlobalGemini(model="gemini-3.5-flash"),
     description=(
         "Analyzes a raw story text to identify characters, assign Gemini "
         "TTS voices, break the text into logical scenes, and map emotional "
@@ -222,6 +220,8 @@ story_analyzer = LlmAgent(
     output_key="story-analysis",
     input_schema=StorySchema,
     output_schema=StoryAnalysisSchema,
+    disallow_transfer_to_parent=True,
+    disallow_transfer_to_peers=True,
 )
 
 
@@ -250,7 +250,7 @@ class PromptFilesOutputSchema(BaseModel):
 # ---------------------------------------------------------------------------
 scene_writer = LlmAgent(
     name="scene_writer",
-    model=GlobalGemini(model="gemini-2.5-flash"),
+    model=GlobalGemini(model="gemini-3.5-flash"),
     description=(
         "Converts a story analysis and raw story text into structured TTS "
         "scene prompt files following the canonical schema with SYSTEM "
@@ -263,6 +263,8 @@ scene_writer = LlmAgent(
     output_key="scene-prompts",
     input_schema=ScenePromptWriterInputSchema,
     output_schema=PromptFilesOutputSchema,
+    disallow_transfer_to_parent=True,
+    disallow_transfer_to_peers=True,
 )
 
 # ---------------------------------------------------------------------------
@@ -282,30 +284,17 @@ root_agent = LlmAgent(
 # Session & Runner
 # ---------------------------------------------------------------------------
 
-# For the prebuilt templates
 
-client = vertexai.Client(  # For service interactions via client.agent_engines
+memory_service = VertexAiMemoryBankService(
     project="storage-499607",
     location="global",
-)
-
-
-memory_service = VertexAiMemoryService(
     agent_engine_id="8434441657599918080",
-    user_id="user_1",
-    session_id="session_001",
 )
 
-db_url = "sqlite+aiosqlite:///./tts_prompt_crafter.db"
+db_url = "sqlite+aiosqlite:///./stories/db/tts_prompt_crafter.db"
 session_service = DatabaseSessionService(db_url=db_url)
 
-# artifact_service = InMemoryArtifactService()
-
-artifact_service = VertexAiArtifactService(
-    agent_engine_id="8434441657599918080",
-    user_id="user_1",
-    session_id="session_001",
-)
+artifact_service = InMemoryArtifactService()
 
 APP_NAME = "tts_prompt_crafter"
 USER_ID = "user_1"

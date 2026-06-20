@@ -302,19 +302,44 @@ def get_story(output_path: str, story_date: str) -> "dict | None":
             return None
 
 
-def optimize_fts() -> None:
-    """Rebuild the FTS index for optimal search performance."""
+def optimize_fts_all(db_dir: str) -> None:
+    """Scan the partition directory and run FTS optimize on every partition database."""
+    if not db_dir or not os.path.isdir(db_dir):
+        return
+        
+    db_files = sorted(Path(db_dir).glob("*.db"))
     with _lock:
-        conns = list(_connections.values())
-        if _conn is not None and not _is_partitioned:
-            conns.append(_conn)
-            
-        for conn in conns:
+        for db_path in db_files:
+            db_path_str = str(db_path)
+            if db_path.name == "stories.db":
+                continue
+                
             try:
-                conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
-                conn.commit()
+                # If there's an active connection, use it; otherwise open a temporary one
+                if db_path_str in _connections:
+                    conn = _connections[db_path_str]
+                    conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
+                    conn.commit()
+                else:
+                    conn = sqlite3.connect(db_path_str)
+                    conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
+                    conn.commit()
+                    conn.close()
             except sqlite3.OperationalError:
                 pass
+
+def optimize_fts() -> None:
+    """Rebuild the FTS index for optimal search performance."""
+    if _is_partitioned and _db_dir:
+        optimize_fts_all(_db_dir)
+    else:
+        with _lock:
+            if _conn is not None:
+                try:
+                    _conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
+                    _conn.commit()
+                except sqlite3.OperationalError:
+                    pass
 
 
 def close_db() -> None:

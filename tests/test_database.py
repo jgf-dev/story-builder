@@ -672,6 +672,42 @@ class TestDatabasePartitioning(unittest.TestCase):
         self.assertEqual(row3[1], "Content for story 3.")
         conn3.close()
 
+    def test_optimize_fts_all(self):
+        from storybuilder.downloader import db
+        # Initialize
+        db.init_db(self.temp_dir)
+        
+        # Insert to create partitioned databases
+        db.insert_story(
+            output_path="nifty_stories/gay/adult-friends/story1/story1.txt",
+            title="2012 Story",
+            author="Author One",
+            story_date="2012-05-14",
+            url="http://example.com/1",
+            content="Content for story 1.",
+        )
+        db.insert_story(
+            output_path="nifty_stories/gay/college/story2/story2.txt",
+            title="2025 Story",
+            author="Author Two",
+            story_date="2025-05-10",
+            url="http://example.com/2",
+            content="Content for story 2.",
+        )
+        
+        # Call optimize_fts_all
+        db.optimize_fts_all(self.temp_dir)
+        # Should not raise any error, and the search must still work
+        db1_path = os.path.join(self.temp_dir, "2012.db")
+        conn = sqlite3.connect(db1_path)
+        row = conn.execute(
+            "SELECT s.title FROM stories s JOIN stories_fts ON s.id = stories_fts.rowid "
+            "WHERE stories_fts MATCH 'vampire OR content'"
+        ).fetchone()
+        self.assertIsNotNone(row)
+        self.assertEqual(row[0], "2012 Story")
+        conn.close()
+
 
 if __name__ == "__main__":
     unittest.main()

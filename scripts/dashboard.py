@@ -9,12 +9,7 @@ from datetime import datetime
 
 # Define paths
 SCRIPT_DIR = Path(__file__).parent.resolve()
-if os.path.exists("stories/db"):
-    WORKSPACE_ROOT = Path(".").resolve()
-elif os.path.exists(SCRIPT_DIR.parent / "stories/db"):
-    WORKSPACE_ROOT = SCRIPT_DIR.parent
-else:
-    WORKSPACE_ROOT = Path(".").resolve()
+WORKSPACE_ROOT = SCRIPT_DIR.parent
 
 DB_DIR = str(WORKSPACE_ROOT / "stories/db")
 NLP_DB_PATH = str(WORKSPACE_ROOT / "nlp_analysis.db")

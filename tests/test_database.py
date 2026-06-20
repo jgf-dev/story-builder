@@ -709,5 +709,98 @@ class TestDatabasePartitioning(unittest.TestCase):
         conn.close()
 
 
+class TestLibraryPartitionSearch(unittest.TestCase):
+    """Tests for connect_multi and search_all_partitions in db.py."""
+
+    def setUp(self):
+        self.temp_dir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        from storybuilder.downloader import db
+        db.close_db()
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+    def _create_test_db(self, filename, title, author, content, date="2025-01-01"):
+        path = os.path.join(self.temp_dir, filename)
+        conn = sqlite3.connect(path)
+        conn.row_factory = sqlite3.Row
+        
+        # Schema matching minimal stories + FTS
+        conn.execute("""
+            CREATE TABLE stories (
+                id              INTEGER PRIMARY KEY,
+                path            TEXT UNIQUE NOT NULL,
+                orientation     TEXT NOT NULL DEFAULT 'gay',
+                category        TEXT NOT NULL,
+                story_slug      TEXT NOT NULL,
+                chapter_num     INTEGER,
+                title           TEXT NOT NULL,
+                author_name     TEXT,
+                author_email    TEXT,
+                publication_date TEXT,
+                url             TEXT,
+                char_count      INTEGER NOT NULL,
+                word_count      INTEGER NOT NULL,
+                content         TEXT NOT NULL
+            );
+        """)
+        conn.execute("""
+            CREATE VIRTUAL TABLE stories_fts USING fts5(
+                title,
+                author_name,
+                content,
+                content=stories,
+                content_rowid=id
+            );
+        """)
+        conn.execute("INSERT INTO stories (path, category, story_slug, title, author_name, publication_date, char_count, word_count, content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                     (f"nifty_stories/gay/category/{title}/{filename}", "category", title.lower().replace(" ", "-"), title, author, date, len(content), len(content.split()), content))
+        # Insert FTS index entry manually
+        conn.execute("INSERT INTO stories_fts (rowid, title, author_name, content) VALUES (1, ?, ?, ?)", (title, author, content))
+        conn.commit()
+        conn.close()
+
+    def test_connect_multi_library(self):
+        from storybuilder.downloader.db import connect_multi
+        self._create_test_db("2024.db", "Story A", "Author X", "Some vampire content")
+        self._create_test_db("2025.db", "Story B", "Author Y", "Some werewolf content")
+        
+        conn, db_names = connect_multi(self.temp_dir)
+        try:
+            self.assertEqual(len(db_names), 2)
+            self.assertIn("main", db_names)
+            self.assertIn("db1", db_names)
+        finally:
+            conn.close()
+
+    def test_connect_multi_empty_raises_value_error(self):
+        from storybuilder.downloader.db import connect_multi
+        with self.assertRaises(ValueError):
+            connect_multi(self.temp_dir)
+
+    def test_search_all_partitions_library(self):
+        from storybuilder.downloader.db import search_all_partitions
+        self._create_test_db("2024.db", "Vampire Legend", "Bram Stoker", "Classic vampire tale", "2024-05-01")
+        self._create_test_db("2025.db", "Werewolf Legend", "Lon Chaney", "Classic werewolf tale", "2025-06-01")
+        
+        # Test basic search across all partitions
+        results = search_all_partitions("Legend", db_dir=self.temp_dir)
+        self.assertEqual(len(results), 2)
+        
+        # Test FTS match specific content
+        vampire_results = search_all_partitions("vampire", db_dir=self.temp_dir)
+        self.assertEqual(len(vampire_results), 1)
+        self.assertEqual(vampire_results[0]["title"], "Vampire Legend")
+        
+        # Test filters (author, category, date_from)
+        bram_results = search_all_partitions("Legend", db_dir=self.temp_dir, author="Stoker")
+        self.assertEqual(len(bram_results), 1)
+        self.assertEqual(bram_results[0]["author_name"], "Bram Stoker")
+
+        date_results = search_all_partitions("Legend", db_dir=self.temp_dir, date_from="2025-01-01")
+        self.assertEqual(len(date_results), 1)
+        self.assertEqual(date_results[0]["title"], "Werewolf Legend")
+
+
 if __name__ == "__main__":
     unittest.main()

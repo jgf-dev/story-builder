@@ -342,6 +342,146 @@ def optimize_fts() -> None:
                     pass
 
 
+def connect_multi(db_dir: str) -> "tuple[sqlite3.Connection, list[str]]":
+    """Open all partitioned .db files in a directory, attaching them to a primary connection.
+
+    Returns (conn, db_names) where db_names is a list of alias names (db0, db1, ...)
+    for use in UNION ALL queries. db0 is the primary (first) database.
+    """
+    db_files = sorted(
+        str(p) for p in Path(db_dir).glob("*.db")
+        if p.name not in ("stories.db", "dashboard_metadata.db", "tts_prompt_crafter.db", "nlp_analysis.db")
+    )
+    if not db_files:
+        raise ValueError(f"No partition .db files found in '{db_dir}'")
+
+    # Open the first DB as primary
+    conn = sqlite3.connect(db_files[0], check_same_thread=False)
+    conn.row_factory = sqlite3.Row
+
+    db_names = ["main"]
+    for i, db_path in enumerate(db_files[1:], 1):
+        alias = f"db{i}"
+        conn.execute(f"ATTACH DATABASE ? AS {alias}", (db_path,))
+        db_names.append(alias)
+
+    return conn, db_names
+
+
+def search_all_partitions(
+    query: str,
+    *,
+    conn: "sqlite3.Connection | None" = None,
+    db_dir: "str | None" = None,
+    author: "str | None" = None,
+    category: "str | None" = None,
+    date_from: "str | None" = None,
+    date_to: "str | None" = None,
+    limit: int = 20,
+) -> list[dict]:
+    """Search for stories across all partitioned databases using FTS.
+
+    Returns a list of dicts with story metadata and snippet.
+    """
+    target_dir = db_dir or _db_dir
+    
+    if not target_dir:
+        # Single database search
+        active_conn = conn or get_conn()
+        if not active_conn:
+            return []
+            
+        conditions = ["stories_fts MATCH ?"]
+        params = [query]
+        if author:
+            conditions.append("s.author_name LIKE ?")
+            params.append(f"%{author}%")
+        if category:
+            conditions.append("s.category = ?")
+            params.append(category)
+        if date_from:
+            conditions.append("s.publication_date >= ?")
+            params.append(date_from)
+        if date_to:
+            conditions.append("s.publication_date <= ?")
+            params.append(date_to)
+
+        where = " AND ".join(conditions)
+        sql = f"""
+            SELECT s.id, s.path, s.category, s.story_slug, s.chapter_num,
+                   s.title, s.author_name, s.publication_date,
+                   s.char_count, s.word_count,
+                   snippet(stories_fts, 2, '<b>', '</b>', '…', 40) AS snippet
+            FROM stories s
+            JOIN stories_fts ON s.id = stories_fts.rowid
+            WHERE {where}
+            ORDER BY rank
+            LIMIT ?
+        """
+        params.append(limit)
+        
+        with _lock:
+            try:
+                cursor = active_conn.execute(sql, params)
+                return [dict(r) for r in cursor.fetchall()]
+            except sqlite3.OperationalError:
+                return []
+
+    # Partitioned search
+    try:
+        multi_conn, db_names = connect_multi(target_dir)
+    except ValueError:
+        return []
+
+    conditions = ["stories_fts MATCH ?"]
+    params = [query]
+    if author:
+        conditions.append("s.author_name LIKE ?")
+        params.append(f"%{author}%")
+    if category:
+        conditions.append("s.category = ?")
+        params.append(category)
+    if date_from:
+        conditions.append("s.publication_date >= ?")
+        params.append(date_from)
+    if date_to:
+        conditions.append("s.publication_date <= ?")
+        params.append(date_to)
+
+    where = " AND ".join(conditions)
+
+    all_rows = []
+    with _lock:
+        try:
+            for db_name in db_names:
+                table_ref = f"{db_name}.stories" if db_name != "main" else "stories"
+                fts_ref = f"{db_name}.stories_fts" if db_name != "main" else "stories_fts"
+                sql = f"""
+                    SELECT s.id, s.path, s.category, s.story_slug, s.chapter_num,
+                           s.title, s.author_name, s.publication_date,
+                           s.char_count, s.word_count,
+                           snippet(stories_fts, 2, '<b>', '</b>', '…', 40) AS snippet
+                    FROM {table_ref} s
+                    JOIN {fts_ref} ON s.id = {fts_ref}.rowid
+                    WHERE {where}
+                    ORDER BY rank
+                    LIMIT ?
+                """
+                try:
+                    cursor = multi_conn.execute(sql, params + [limit])
+                    rows = [dict(r) for r in cursor.fetchall()]
+                    all_rows.extend(rows)
+                except sqlite3.OperationalError:
+                    pass
+        finally:
+            multi_conn.close()
+
+    # Sort results
+    all_rows.sort(key=lambda r: (0 if r["snippet"] and "<b>" in (r["snippet"] or "") else 1, r["id"]))
+    return all_rows[:limit]
+
+
+
 def close_db() -> None:
     global _conn, _connections, _is_partitioned, _db_dir
     with _lock:

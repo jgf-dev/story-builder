@@ -4,16 +4,16 @@
 
 ### Phase 1: Database Improvements (from 2026-06-18 Implementation Plan)
 
-- [ ] **Batch FTS Optimize for All Partitions** (Task 1) #ISSUE
-  - [] Implement `optimize_fts_all(db_dir)` in `src/storybuilder/downloader/db.py` to optimize all partition databases.
-  - [] Modify existing `optimize_fts()` to call this in partitioned mode.
-  - [] Add tests in `tests/test_database.py`.
-  - [] *Commit:* `feat(db): batch FTS optimize across all partitions`
-- [ ] **Cross-Partition Search in Shared db.py Module** (Task 2) #ISSUE
-  - [] Move the ATTACH/connect_multi logic to `src/storybuilder/downloader/db.py:search_all_partitions`.
-  - [] Refactor `scripts/story_db.py` to use new API.
-  - [] Add tests in `tests/test_database.py`.
-  - []*Commit:* `feat(db): library-level cross-partition FTS search API`
+- [x] **Batch FTS Optimize for All Partitions** (Task 1) #ISSUE (2026-06-20)
+  - [x] Implement `optimize_fts_all(db_dir)` in `src/storybuilder/downloader/db.py` to optimize all partition databases.
+  - [x] Modify existing `optimize_fts()` to call this in partitioned mode.
+  - [x] Add tests in `tests/test_database.py`.
+  - [x] *Commit:* `feat(db): batch FTS optimize across all partitions`
+- [x] **Cross-Partition Search in Shared db.py Module** (Task 2) #ISSUE (2026-06-20)
+  - [x] Move the ATTACH/connect_multi logic to `src/storybuilder/downloader/db.py:search_all_partitions`.
+  - [x] Refactor `scripts/story_db.py` to use new API.
+  - [x] Add tests in `tests/test_database.py`.
+  - [x] *Commit:* `feat(db): library-level cross-partition FTS search API`
 
 ### Phase 2: NER Refinement + Entity Search (from 2026-06-18 Implementation Plan)
 

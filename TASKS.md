@@ -64,14 +64,14 @@
 - [x] **Integrate FTS5 full-text query** with highlighted match snippets across year partitions. (2026-06-19)
 - [x] **Add a dynamic statistics tab** with interactive Plotly distribution charts. (2026-06-19)
 - [x] **Add a persistent Favorites & Tagging system** saving to `stories/db/dashboard_metadata.db`. (2026-06-19)
-- [ ] Full text search does not consider the title. #ISSUE
-- [ ] Multi-chapter stories are not linked in any way, making it hard to find a series or the first or last chapter. #ISSUE
-- [ ] Author filter does not work. #ISSUE
-- [ ] Category filter does not work. #ISSUE
-- [ ] Many stories from 2026 are in multiple identical copies [Weird distribution](newplot.png) #ISSUE
-- [ ] Selecting a story does not transition to reading panel, only darkens the screen. #ISSUE
-- [ ] Entity filter does not work. #ISSUE
-- [ ] It would be nice to see a search result score next to each story. #IDEA
+- [x] Full text search does not consider the title. #ISSUE (2026-06-20)
+- [x] Multi-chapter stories are not linked in any way, making it hard to find a series or the first or last chapter. #ISSUE (2026-06-20)
+- [x] Author filter does not work. #ISSUE (2026-06-20)
+- [x] Category filter does not work. #ISSUE (2026-06-20)
+- [x] Many stories from 2026 are in multiple identical copies [Weird distribution](newplot.png) #ISSUE (2026-06-20)
+- [x] Selecting a story does not transition to reading panel, only darkens the screen. #ISSUE (2026-06-20)
+- [x] Entity filter does not work. #ISSUE (2026-06-20)
+- [x] It would be nice to see a search result score next to each story. #IDEA (2026-06-20)
 
 ### Phase 5: Codebase Cleanup (from 2026-06-18 Implementation Plan)
 

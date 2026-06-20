@@ -8,9 +8,17 @@ from pathlib import Path
 from datetime import datetime
 
 # Define paths
-DB_DIR = "stories/db"
-NLP_DB_PATH = "nlp_analysis.db"
-META_DB_PATH = "stories/db/dashboard_metadata.db"
+SCRIPT_DIR = Path(__file__).parent.resolve()
+if os.path.exists("stories/db"):
+    WORKSPACE_ROOT = Path(".").resolve()
+elif os.path.exists(SCRIPT_DIR.parent / "stories/db"):
+    WORKSPACE_ROOT = SCRIPT_DIR.parent
+else:
+    WORKSPACE_ROOT = Path(".").resolve()
+
+DB_DIR = str(WORKSPACE_ROOT / "stories/db")
+NLP_DB_PATH = str(WORKSPACE_ROOT / "nlp_analysis.db")
+META_DB_PATH = str(WORKSPACE_ROOT / "stories/db/dashboard_metadata.db")
 
 # Set up page config
 st.set_page_config(
@@ -178,9 +186,20 @@ def load_archive_stats():
         except sqlite3.Error:
             pass
             
-    df_years = pd.DataFrame(year_stats)
-    df_cats = pd.DataFrame(list(category_counts.items()), columns=["Category", "Count"]).sort_values("Count", ascending=False)
-    df_auths = pd.DataFrame(list(author_counts.items()), columns=["Author", "Count"]).sort_values("Count", ascending=False)
+    if not year_stats:
+        df_years = pd.DataFrame(columns=["Year", "Stories Count", "Total Words"])
+    else:
+        df_years = pd.DataFrame(year_stats)
+        
+    if not category_counts:
+        df_cats = pd.DataFrame(columns=["Category", "Count"])
+    else:
+        df_cats = pd.DataFrame(list(category_counts.items()), columns=["Category", "Count"]).sort_values("Count", ascending=False)
+        
+    if not author_counts:
+        df_auths = pd.DataFrame(columns=["Author", "Count"])
+    else:
+        df_auths = pd.DataFrame(list(author_counts.items()), columns=["Author", "Count"]).sort_values("Count", ascending=False)
     
     return df_years, df_cats, df_auths, word_counts
 
@@ -597,45 +616,49 @@ elif page == "📊 Archive Stats":
     st.markdown("---")
     
     # Overview metrics row
-    total_stories = df_years["Stories Count"].sum()
-    total_words = df_years["Total Words"].sum()
+    total_stories = df_years["Stories Count"].sum() if not df_years.empty else 0
+    total_words = df_years["Total Words"].sum() if not df_years.empty else 0
+    avg_length = total_words // total_stories if total_stories > 0 else 0
     
     col_m1, col_m2, col_m3 = st.columns(3)
     col_m1.metric("Total Stories", f"{total_stories:,}")
     col_m2.metric("Total Archive Words", f"{total_words:,}")
-    col_m3.metric("Average Story Length", f"{total_words // total_stories:,} words")
+    col_m3.metric("Average Story Length", f"{avg_length:,} words")
     
     st.markdown("---")
     
-    # 1. Timeline Chart
-    st.subheader("📈 Publications Timeline (1990 - 2026)")
-    fig_line = px.line(df_years, x="Year", y="Stories Count", title="Story Publications Per Year", markers=True)
-    fig_line.update_layout(template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f")
-    st.plotly_chart(fig_line, use_container_width=True)
-    
-    # 2. Categories & Authors Charts
-    col_left, col_right = st.columns(2)
-    
-    with col_left:
-        st.subheader("🏷️ Top 15 Categories")
-        fig_cat = px.bar(df_cats.head(15), x="Count", y="Category", orientation="h", title="Story Counts by Category")
-        fig_cat.update_layout(template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f", yaxis={'categoryorder':'total ascending'})
-        st.plotly_chart(fig_cat, use_container_width=True)
+    if total_stories == 0:
+        st.info("No story data found in the databases. Please verify your database directory and story import.")
+    else:
+        # 1. Timeline Chart
+        st.subheader("📈 Publications Timeline (1990 - 2026)")
+        fig_line = px.line(df_years, x="Year", y="Stories Count", title="Story Publications Per Year", markers=True)
+        fig_line.update_layout(template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f")
+        st.plotly_chart(fig_line, use_container_width=True)
         
-    with col_right:
-        st.subheader("✍️ Top 15 Authors")
-        fig_auth = px.bar(df_auths.head(15), x="Count", y="Author", orientation="h", title="Story Counts by Author")
-        fig_auth.update_layout(template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f", yaxis={'categoryorder':'total ascending'})
-        st.plotly_chart(fig_auth, use_container_width=True)
+        # 2. Categories & Authors Charts
+        col_left, col_right = st.columns(2)
         
-    # 3. Word Count Bracket Distribution
-    st.subheader("📐 Story Length Distribution")
-    word_bins = pd.cut(
-        word_counts,
-        bins=[0, 1000, 5000, 10000, 20000, 50000, 1000000],
-        labels=["Short (<1K)", "Medium-Short (1K-5K)", "Medium (5K-10K)", "Medium-Long (10K-20K)", "Long (20K-50K)", "Epic (>50K)"]
-    )
-    df_words = pd.DataFrame({"Bracket": word_bins}).value_counts().reset_index(name="Stories")
-    fig_words = px.bar(df_words, x="Bracket", y="Stories", title="Story Word Count Distribution Bracket")
-    fig_words.update_layout(template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f")
-    st.plotly_chart(fig_words, use_container_width=True)
+        with col_left:
+            st.subheader("🏷️ Top 15 Categories")
+            fig_cat = px.bar(df_cats.head(15), x="Count", y="Category", orientation="h", title="Story Counts by Category")
+            fig_cat.update_layout(template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f", yaxis={'categoryorder':'total ascending'})
+            st.plotly_chart(fig_cat, use_container_width=True)
+            
+        with col_right:
+            st.subheader("✍️ Top 15 Authors")
+            fig_auth = px.bar(df_auths.head(15), x="Count", y="Author", orientation="h", title="Story Counts by Author")
+            fig_auth.update_layout(template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f", yaxis={'categoryorder':'total ascending'})
+            st.plotly_chart(fig_auth, use_container_width=True)
+            
+        # 3. Word Count Bracket Distribution
+        st.subheader("📐 Story Length Distribution")
+        word_bins = pd.cut(
+            word_counts,
+            bins=[0, 1000, 5000, 10000, 20000, 50000, 1000000],
+            labels=["Short (<1K)", "Medium-Short (1K-5K)", "Medium (5K-10K)", "Medium-Long (10K-20K)", "Long (20K-50K)", "Epic (>50K)"]
+        )
+        df_words = pd.DataFrame({"Bracket": word_bins}).value_counts().reset_index(name="Stories")
+        fig_words = px.bar(df_words, x="Bracket", y="Stories", title="Story Word Count Distribution Bracket")
+        fig_words.update_layout(template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f")
+        st.plotly_chart(fig_words, use_container_width=True)

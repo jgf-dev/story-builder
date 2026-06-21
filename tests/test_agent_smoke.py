@@ -44,7 +44,7 @@ class TestAgentSmoke(unittest.IsolatedAsyncioTestCase):
                     for part in event.content.parts:
                         if hasattr(part, "text") and part.text:
                             final_response = part.text
-            self.assertTrue(len(final_response) > 0)
+            self.assertGreater(len(final_response), 0)
         except Exception as e:
             if "quota" in str(e).lower() or "permission" in str(e).lower() or "unauthenticated" in str(e).lower():
                 self.skipTest(f"Skipped due to API/auth issue: {e}")

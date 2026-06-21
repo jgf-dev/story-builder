@@ -131,7 +131,6 @@ class TestAnalyzeSentiment(unittest.TestCase):
 
         # Mock the open() function for reading files
         from unittest.mock import mock_open
-
         m = mock_open(read_data="This is a sentence.")
 
         with (

@@ -131,7 +131,5 @@ class TestCompareNarratives(unittest.TestCase):
             "Saved archetype visualization to narrative_archetypes.html", output
         )
         mock_write_html.assert_called_once_with("narrative_archetypes.html")
-
-
 if __name__ == "__main__":
     unittest.main()

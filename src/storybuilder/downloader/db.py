@@ -1,3 +1,5 @@
+import concurrent.futures
+
 """
 Database layer for story storage -- shared by the downloader (live insert) and
 the batch import script.
@@ -83,6 +85,7 @@ _CHAPTER_SUFFIX_RE = re.compile(r"^(.+?)-(\d+)\.(txt|html)$")
 
 # -- Author parsing -----------------------------------------------------
 
+
 def _parse_author(raw: "str | None") -> "tuple[str | None, str | None]":
     """Parse 'Name <email>' or bare email into (name, email)."""
     if not raw:
@@ -91,12 +94,13 @@ def _parse_author(raw: "str | None") -> "tuple[str | None, str | None]":
     m = _EMAIL_AUTHOR_RE.match(raw)
     if m:
         return m.group(1).strip(), m.group(2).strip()
-    if '@' in raw and '<' not in raw:
+    if "@" in raw and "<" not in raw:
         return None, raw.strip()
     return raw.strip(), None
 
 
 # -- Path parsing -------------------------------------------------------
+
 
 def _parse_output_path(output_path: str) -> "tuple[str, str, str, int | None]":
     """Extract (orientation, category, story_slug, chapter_num) from a path.
@@ -105,9 +109,9 @@ def _parse_output_path(output_path: str) -> "tuple[str, str, str, int | None]":
     Path structure (5+ parts): <output_dir>/<orientation>/<category>/<story_slug>/<file>
     """
     parts = Path(output_path).parts
-    orientation = 'gay'
-    category = ''
-    story_slug = ''
+    orientation = "gay"
+    category = ""
+    story_slug = ""
     chapter_num = None
 
     filename = parts[-1]
@@ -135,12 +139,15 @@ def _parse_output_path(output_path: str) -> "tuple[str, str, str, int | None]":
 
 # -- DB init ------------------------------------------------------------
 
+
 def init_db(db_path: str) -> "sqlite3.Connection":
     """Initialize the database (idempotent). Returns the connection."""
     global _conn, _is_partitioned, _db_dir
-    
-    is_dir = os.path.isdir(db_path) or (not db_path.endswith(".db") and not Path(db_path).suffix)
-    
+
+    is_dir = os.path.isdir(db_path) or (
+        not db_path.endswith(".db") and not Path(db_path).suffix
+    )
+
     if is_dir:
         os.makedirs(db_path, exist_ok=True)
         _is_partitioned = True
@@ -151,7 +158,7 @@ def init_db(db_path: str) -> "sqlite3.Connection":
     else:
         _is_partitioned = False
         _db_dir = None
-        os.makedirs(os.path.dirname(db_path) or '.', exist_ok=True)
+        os.makedirs(os.path.dirname(db_path) or ".", exist_ok=True)
         _conn = sqlite3.connect(db_path, check_same_thread=False)
         _conn.execute("PRAGMA journal_mode=WAL")
         _conn.execute("PRAGMA synchronous=NORMAL")
@@ -167,11 +174,12 @@ def get_conn() -> "sqlite3.Connection | None":
 
 # -- Partition Routing --------------------------------------------------
 
+
 def get_partition_path(story_date) -> str:
     """Resolve the partitioned database path based on the story's date."""
     if not _db_dir:
         return ""
-    
+
     year = None
     if not story_date:
         filename = "unknown.db"
@@ -186,10 +194,10 @@ def get_partition_path(story_date) -> str:
                 year = int(story_date_str[:4])
             except ValueError:
                 filename = "unknown.db"
-                
+
     if year is not None:
         filename = f"{year}.db"
-            
+
     return os.path.join(_db_dir, filename)
 
 
@@ -198,7 +206,7 @@ def _get_write_conn(story_date) -> "sqlite3.Connection | None":
     global _conn
     if not _is_partitioned:
         return _conn
-        
+
     partition_path = get_partition_path(story_date)
     with _lock:
         if partition_path not in _connections:
@@ -213,6 +221,7 @@ def _get_write_conn(story_date) -> "sqlite3.Connection | None":
 
 
 # -- Insert -------------------------------------------------------------
+
 
 def insert_story(
     *,
@@ -242,10 +251,19 @@ def insert_story(
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
     params = (
-        output_path, orientation, category, story_slug, chapter_num,
-        title, author_name, author_email,
-        story_date, url,
-        char_count, word_count, content,
+        output_path,
+        orientation,
+        category,
+        story_slug,
+        chapter_num,
+        title,
+        author_name,
+        author_email,
+        story_date,
+        url,
+        char_count,
+        word_count,
+        content,
     )
 
     with _lock:
@@ -265,7 +283,9 @@ def story_exists(output_path: str, story_date: str) -> bool:
         return False
     with _lock:
         try:
-            cursor = conn.execute("SELECT 1 FROM stories WHERE path = ?", (output_path,))
+            cursor = conn.execute(
+                "SELECT 1 FROM stories WHERE path = ?", (output_path,)
+            )
             return cursor.fetchone() is not None
         except Exception:
             return False
@@ -280,7 +300,7 @@ def get_story(output_path: str, story_date: str) -> "dict | None":
         try:
             cursor = conn.execute(
                 "SELECT title, author_name, author_email, publication_date, url, content FROM stories WHERE path = ?",
-                (output_path,)
+                (output_path,),
             )
             row = cursor.fetchone()
             if row:
@@ -295,7 +315,7 @@ def get_story(output_path: str, story_date: str) -> "dict | None":
                     "author": author,
                     "story_date": row[3],
                     "url": row[4],
-                    "content": row[5]
+                    "content": row[5],
                 }
             return None
         except Exception:
@@ -308,13 +328,22 @@ def optimize_fts() -> None:
         conns = list(_connections.values())
         if _conn is not None and not _is_partitioned:
             conns.append(_conn)
-            
-        for conn in conns:
-            try:
-                conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
-                conn.commit()
-            except sqlite3.OperationalError:
-                pass
+
+    def _opt(conn: sqlite3.Connection) -> None:
+        try:
+            conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
+            conn.commit()
+        except sqlite3.OperationalError:
+            pass
+
+    if conns:
+        # SQLite FTS optimize can be CPU/IO intensive.
+        # Using a ThreadPoolExecutor prevents holding the global _lock
+        # and blocking other inserts during long optimize operations.
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=min(len(conns), 10)
+        ) as executor:
+            list(executor.map(_opt, conns))
 
 
 def close_db() -> None:

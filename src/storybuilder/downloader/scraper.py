@@ -110,13 +110,7 @@ def parse_listing_rows(soup):
     return rows
 
 
-def scrape_subcategory(sub_url, start_date, end_date, delay, force_scan=False):
-    """
-    Crawls a subcategory directory, handling pagination.
-    Uses the local metadata cache to avoid crawling previously scraped pages.
-    Returns all stories/directories in this subcategory that fall in the date range.
-    """
-    # Load cached stories if any
+def _get_cached_subcategory(sub_url):
     cached_entry = None
     with cache_lock:
         cached_entry = metadata_cache.get(sub_url)
@@ -127,25 +121,14 @@ def scrape_subcategory(sub_url, start_date, end_date, delay, force_scan=False):
         cached_stories = cached_entry.get("stories", [])
         is_complete = cached_entry.get("complete", False)
 
-    # Calculate min_cached_date (oldest cached story date)
-    min_cached_date = None
-    if cached_stories:
-        try:
-            # Assumes stories are sorted descending (latest first), so the last one is the oldest
-            min_cached_date = datetime.datetime.strptime(cached_stories[-1]["date"], "%Y-%m-%d").date()
-        except Exception:
-            pass
+    return cached_stories, is_complete
 
-    # We only use cache-hit early-stop if we are not forcing a scan and the cache is marked complete.
-    # This ensures that we do not stop traversing on a cache hit when the cache has gaps or is partial.
-    use_cache = not force_scan and is_complete
 
-    # Create a quick lookup for cached stories by URL
-    cached_lookup = {s["url"]: s for s in cached_stories}
-
+def _scrape_subcategory_pages(sub_url, start_date, delay, force_scan, use_cache, cached_lookup):
     scraped_stories = []
     current_url = sub_url
     page_num = 1
+    reached_end = False
 
     while current_url:
         safe_print(f"Scanning subcategory page {page_num}: {current_url}")
@@ -209,7 +192,12 @@ def scrape_subcategory(sub_url, start_date, end_date, delay, force_scan=False):
             time.sleep(delay)
         else:
             current_url = None  # No more pages
+            reached_end = True
 
+    return scraped_stories, reached_end
+
+
+def _merge_and_save_stories(sub_url, scraped_stories, cached_stories, is_complete, reached_end):
     # Merge scraped stories with cached stories
     scraped_urls = {s["url"] for s in scraped_stories}
     remaining_cached = [s for s in cached_stories if s["url"] not in scraped_urls]
@@ -224,8 +212,6 @@ def scrape_subcategory(sub_url, start_date, end_date, delay, force_scan=False):
 
     merged_stories.sort(key=get_sort_key, reverse=True)
 
-    reached_end = (current_url is None)
-
     # Save merged stories back to the cache dictionary
     with cache_lock:
         metadata_cache[sub_url] = {
@@ -234,6 +220,10 @@ def scrape_subcategory(sub_url, start_date, end_date, delay, force_scan=False):
             "stories": merged_stories
         }
 
+    return merged_stories
+
+
+def _filter_stories_by_date(merged_stories, start_date, end_date):
     # Now filter and return only the stories that match the current date query!
     filtered_stories = []
     for s in merged_stories:
@@ -253,6 +243,32 @@ def scrape_subcategory(sub_url, start_date, end_date, delay, force_scan=False):
             filtered_stories.append({"name": s["name"], "url": s["url"], "date": s_date, "is_dir": s["is_dir"]})
 
     return filtered_stories
+
+
+def scrape_subcategory(sub_url, start_date, end_date, delay, force_scan=False):
+    """
+    Crawls a subcategory directory, handling pagination.
+    Uses the local metadata cache to avoid crawling previously scraped pages.
+    Returns all stories/directories in this subcategory that fall in the date range.
+    """
+    cached_stories, is_complete = _get_cached_subcategory(sub_url)
+
+    # We only use cache-hit early-stop if we are not forcing a scan and the cache is marked complete.
+    # This ensures that we do not stop traversing on a cache hit when the cache has gaps or is partial.
+    use_cache = not force_scan and is_complete
+
+    # Create a quick lookup for cached stories by URL
+    cached_lookup = {s["url"]: s for s in cached_stories}
+
+    scraped_stories, reached_end = _scrape_subcategory_pages(
+        sub_url, start_date, delay, force_scan, use_cache, cached_lookup
+    )
+
+    merged_stories = _merge_and_save_stories(
+        sub_url, scraped_stories, cached_stories, is_complete, reached_end
+    )
+
+    return _filter_stories_by_date(merged_stories, start_date, end_date)
 
 
 def scrape_multi_chapter_folder(folder_url, folder_date, start_date, end_date, delay, force_scan=False):

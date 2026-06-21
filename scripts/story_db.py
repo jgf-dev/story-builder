@@ -45,11 +45,12 @@ def connect_multi(db_dir: str) -> "tuple[sqlite3.Connection, list[str]]":
 
     We dynamically ATTACH these later to avoid SQLITE_MAX_ATTACHED limits.
     """
-    from storybuilder.downloader.db import connect_multi as lib_connect_multi
-    try:
-        return lib_connect_multi(db_dir)
-    except ValueError as e:
-        print(f"Error: {e}", file=sys.stderr)
+    db_files = sorted(
+        str(p) for p in Path(db_dir).glob("*.db")
+        if p.name not in ("stories.db",)  # skip the monolithic db
+    )
+    if not db_files:
+        print(f"Error: No .db files found in '{db_dir}'", file=sys.stderr)
         sys.exit(1)
 
     conn = sqlite3.connect(":memory:")
@@ -109,7 +110,23 @@ def _resolve_connection(args) -> "tuple[sqlite3.Connection, list[str] | None]":
 
 def cmd_search(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None):
     """Full-text search across titles, authors, and content."""
-    from storybuilder.downloader.db import search_all_partitions
+    conditions = ["stories_fts MATCH ?"]
+    params = [args.query]
+
+    if args.author:
+        conditions.append("s.author_name LIKE ?")
+        params.append(f"%{args.author}%")
+    if args.category:
+        conditions.append("s.category = ?")
+        params.append(args.category)
+    if args.date_from:
+        conditions.append("s.publication_date >= ?")
+        params.append(args.date_from)
+    if args.date_to:
+        conditions.append("s.publication_date <= ?")
+        params.append(args.date_to)
+
+    where = " AND ".join(conditions)
 
     if db_paths:
         # Multi-DB: attach each database sequentially and merge results
@@ -174,7 +191,6 @@ def cmd_search(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = No
             snip = row["snippet"] or "(no snippet)"
             print(f"       Snippet: {snip}")
         print()
-
 
 
 # ——— Get ————————————————————————————————————————————————————————————————————————

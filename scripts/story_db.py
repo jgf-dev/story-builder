@@ -41,56 +41,65 @@ def connect(db_path: str) -> sqlite3.Connection:
 
 
 def connect_multi(db_dir: str) -> "tuple[sqlite3.Connection, list[str]]":
-    """Open all .db files in a directory, attaching them to a primary connection.
+    """Return an empty memory connection and a list of DB paths.
 
-    Returns (conn, db_names) where db_names is a list of alias names (db0, db1, ...)
-    for use in UNION ALL queries. db0 is the primary (first) database.
+    We dynamically ATTACH these later to avoid SQLITE_MAX_ATTACHED limits.
     """
-    from storybuilder.downloader.db import connect_multi as lib_connect_multi
-    try:
-        return lib_connect_multi(db_dir)
-    except ValueError as e:
-        print(f"Error: {e}", file=sys.stderr)
+    db_files = sorted(
+        str(p) for p in Path(db_dir).glob("*.db")
+        if p.name not in ("stories.db",)  # skip the monolithic db
+    )
+    if not db_files:
+        print(f"Error: No .db files found in '{db_dir}'", file=sys.stderr)
         sys.exit(1)
 
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+
+    return conn, db_files
 
 
-def _query_all(conn: sqlite3.Connection, db_names: list[str], sql: str, params: tuple = ()) -> list:
-    """Execute a SELECT via UNION ALL across all attached databases.
+def _query_all(conn: sqlite3.Connection, db_paths: list[str], sql: str, params: tuple = ()) -> list:
+    """Execute a SELECT across all databases by dynamically attaching them.
 
-    Replaces {table} in sql with the actual db-prefixed table references.
-    Extracts any trailing ORDER BY / LIMIT clause and applies it once after
-    the UNION ALL.
+    Returns concatenated results. Does not perform a global ORDER BY or LIMIT.
     """
     import re
 
-    # Strip trailing ORDER BY ... LIMIT ... from the template, capture them
-    order_limit = ""
-    m = re.search(r"\s+ORDER\s+BY\s+.+$", sql, re.IGNORECASE | re.DOTALL)
-    if m:
-        order_limit = m.group(0)
-        sql = sql[: m.start()]
+    # Strip trailing ORDER BY ... LIMIT ... from the template
+    # We will just yield all results and let the caller sort/limit if needed,
+    # or the caller can pass queries that are already batched.
+    # Actually, if the caller gave us an ORDER BY / LIMIT, we should apply it
+    # to each individual database to reduce memory usage, then the caller
+    # sorts the combined results.
 
-    parts = []
-    for db_name in db_names:
-        table_ref = f"{db_name}.stories" if db_name != "main" else "stories"
-        parts.append(sql.replace("{table}", table_ref))
-    union_sql = " UNION ALL ".join(parts) + " " + order_limit
-    return conn.execute(union_sql, params).fetchall()
+    all_rows = []
+    for db_path in db_paths:
+        conn.execute('ATTACH DATABASE ? AS curr_db', (db_path,))
+        try:
+            curs = conn.cursor()
+            sql_with_ref = sql.replace("{table}", "curr_db.stories")
+            rows = curs.execute(sql_with_ref, params).fetchall()
+            all_rows.extend(rows)
+            curs.close()
+        finally:
+            conn.execute("DETACH DATABASE curr_db")
+
+    return all_rows
 
 
 def _resolve_connection(args) -> "tuple[sqlite3.Connection, list[str] | None]":
     """Resolve connection from args, supporting both --db and --db-dir.
 
-    Returns (conn, db_names) where db_names is None for single-DB mode
-    and a list of alias names for multi-DB mode.
+    Returns (conn, db_paths) where db_paths is None for single-DB mode
+    and a list of file paths for multi-DB mode.
     Auto-detects if --db is a directory.
     """
     db_path = getattr(args, "db_dir", None) or args.db
     if os.path.isdir(db_path):
-        conn, db_names = connect_multi(db_path)
-        print(f"Connected to {len(db_names)} databases in {db_path}")
-        return conn, db_names
+        conn, db_paths = connect_multi(db_path)
+        print(f"Connected to {len(db_paths)} databases in {db_path}")
+        return conn, db_paths
     else:
         conn = connect(db_path)
         return conn, None
@@ -99,23 +108,73 @@ def _resolve_connection(args) -> "tuple[sqlite3.Connection, list[str] | None]":
 # ——— Search ————————————————————————————————————————————————————————————————————
 
 
-def cmd_search(conn: sqlite3.Connection, args, db_names: "list[str] | None" = None):
+def cmd_search(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None):
     """Full-text search across titles, authors, and content."""
-    from storybuilder.downloader.db import search_all_partitions
+    conditions = ["stories_fts MATCH ?"]
+    params = [args.query]
 
-    db_path = getattr(args, "db_dir", None) or args.db
-    db_dir = db_path if os.path.isdir(db_path) else None
+    if args.author:
+        conditions.append("s.author_name LIKE ?")
+        params.append(f"%{args.author}%")
+    if args.category:
+        conditions.append("s.category = ?")
+        params.append(args.category)
+    if args.date_from:
+        conditions.append("s.publication_date >= ?")
+        params.append(args.date_from)
+    if args.date_to:
+        conditions.append("s.publication_date <= ?")
+        params.append(args.date_to)
 
-    rows = search_all_partitions(
-        args.query,
-        conn=conn,
-        db_dir=db_dir,
-        author=args.author,
-        category=args.category,
-        date_from=args.date_from,
-        date_to=args.date_to,
-        limit=args.limit
-    )
+    where = " AND ".join(conditions)
+
+    if db_paths:
+        # Multi-DB: attach each database sequentially and merge results
+        all_rows = []
+        for db_path in db_paths:
+            conn.execute('ATTACH DATABASE ? AS curr_db', (db_path,))
+            table_ref = "curr_db.stories"
+            fts_ref = "curr_db.stories_fts"
+            sql = f"""
+                SELECT s.id, s.path, s.category, s.story_slug, s.chapter_num,
+                       s.title, s.author_name, s.publication_date,
+                       s.char_count, s.word_count,
+                       snippet({fts_ref}, 2, '<b>', '</b>', '…', 40) AS snippet
+                FROM {table_ref} s
+                JOIN {fts_ref} ON s.id = {fts_ref}.rowid
+                WHERE {where}
+                ORDER BY rank
+                LIMIT ?
+            """
+            try:
+                # Need explicit cursor to close it and release DB lock for DETACH
+                curs = conn.cursor()
+                rows = curs.execute(sql, params + [args.limit]).fetchall()
+                all_rows.extend(rows)
+                curs.close()
+            except sqlite3.OperationalError:
+                # DB may not have FTS table; skip
+                pass
+            finally:
+                conn.execute("DETACH DATABASE curr_db")
+
+        # Sort by a simple heuristic: prefer those with snippets, then by id
+        all_rows.sort(key=lambda r: (0 if r["snippet"] and "<b>" in (r["snippet"] or "") else 1, r["id"]))
+        rows = all_rows[:args.limit]
+    else:
+        sql = f"""
+            SELECT s.id, s.path, s.category, s.story_slug, s.chapter_num,
+                   s.title, s.author_name, s.publication_date,
+                   s.char_count, s.word_count,
+                   snippet(stories_fts, 2, '<b>', '</b>', '…', 40) AS snippet
+            FROM stories s
+            JOIN stories_fts ON s.id = stories_fts.rowid
+            WHERE {where}
+            ORDER BY rank
+            LIMIT ?
+        """
+        params.append(args.limit)
+        rows = conn.execute(sql, params).fetchall()
 
     if not rows:
         print(f"No results for '{args.query}'")
@@ -134,24 +193,31 @@ def cmd_search(conn: sqlite3.Connection, args, db_names: "list[str] | None" = No
         print()
 
 
-
 # ——— Get ————————————————————————————————————————————————————————————————————————
 
 
-def cmd_get(conn: sqlite3.Connection, args, db_names: "list[str] | None" = None):
+def cmd_get(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None):
     """Retrieve a specific story or all chapters of a story."""
     slug = args.slug
 
-    # Try each database in multi-DB mode
-    targets = db_names if (db_names and len(db_names) > 1) else ["main"]
     rows = []
-    for db_name in targets:
-        table_ref = f"{db_name}.stories" if db_name != "main" else "stories"
-        sql = f"SELECT * FROM {table_ref} WHERE path = ? OR story_slug = ?"
+    if db_paths:
+        for db_path in db_paths:
+            conn.execute('ATTACH DATABASE ? AS curr_db', (db_path,))
+            try:
+                curs = conn.cursor()
+                sql = f"SELECT * FROM curr_db.stories WHERE path = ? OR story_slug = ?"
+                db_rows = curs.execute(sql, (slug, slug)).fetchall()
+                curs.close()
+                if db_rows:
+                    rows.extend(db_rows)
+                    break
+            finally:
+                conn.execute("DETACH DATABASE curr_db")
+    else:
+        sql = f"SELECT * FROM stories WHERE path = ? OR story_slug = ?"
         db_rows = conn.execute(sql, (slug, slug)).fetchall()
         rows.extend(db_rows)
-        if rows:
-            break  # Found results, stop searching
 
     if not rows:
         print(f"No story found for '{slug}'")
@@ -200,7 +266,7 @@ def cmd_get(conn: sqlite3.Connection, args, db_names: "list[str] | None" = None)
 # ——— List ———————————————————————————————————————————————————————————————————————
 
 
-def cmd_list(conn: sqlite3.Connection, args, db_names: "list[str] | None" = None):
+def cmd_list(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None):
     """Browse stories with filters."""
     conditions = ["1=1"]
     params = []
@@ -225,10 +291,10 @@ def cmd_list(conn: sqlite3.Connection, args, db_names: "list[str] | None" = None
         "chars": "char_count DESC",
     }.get(args.sort, "publication_date DESC")
 
-    if db_names and len(db_names) > 1:
-        # Multi-DB: UNION ALL
-        rows = _query_all(
-            conn, db_names,
+    if db_paths:
+        # Multi-DB: we collect top N from each partition, then sort and slice in Python
+        raw_rows = _query_all(
+            conn, db_paths,
             f"""SELECT id, path, category, story_slug, title, author_name,
                        publication_date, char_count, word_count
                 FROM {{table}}
@@ -237,6 +303,24 @@ def cmd_list(conn: sqlite3.Connection, args, db_names: "list[str] | None" = None
                 LIMIT ?""",
             tuple(params) + (args.limit,),
         )
+
+        # Determine python sorting key based on selected order
+        if args.sort == "title":
+            key_func = lambda r: r["title"] or ""
+            rev = False
+        elif args.sort == "words":
+            key_func = lambda r: r["word_count"] or 0
+            rev = True
+        elif args.sort == "chars":
+            key_func = lambda r: r["char_count"] or 0
+            rev = True
+        else:
+            key_func = lambda r: r["publication_date"] or ""
+            rev = True
+
+        # Sort in place
+        raw_rows.sort(key=key_func, reverse=rev)
+        rows = raw_rows[:args.limit]
     else:
         sql = f"""
             SELECT id, path, category, story_slug, title, author_name,
@@ -265,7 +349,7 @@ def cmd_list(conn: sqlite3.Connection, args, db_names: "list[str] | None" = None
 # ——— Stats ——————————————————————————————————————————————————————————————————————
 
 
-def cmd_stats(conn: sqlite3.Connection, args, db_names: "list[str] | None" = None):
+def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None):
     """Show database statistics."""
     where = ""
     params = []
@@ -273,25 +357,25 @@ def cmd_stats(conn: sqlite3.Connection, args, db_names: "list[str] | None" = Non
         where = "WHERE category = ?"
         params.append(args.category)
 
-    if db_names and len(db_names) > 1:
-        # Multi-DB: UNION ALL
+    if db_paths:
+        # Multi-DB: we execute queries across all attachments dynamically
         total = sum(
             row[0] for row in _query_all(
-                conn, db_names,
+                conn, db_paths,
                 f"SELECT COUNT(*) FROM {{table}} {where}",
                 tuple(params),
             )
         )
         total_chars = sum(
             (row[0] or 0) for row in _query_all(
-                conn, db_names,
+                conn, db_paths,
                 f"SELECT SUM(char_count) FROM {{table}} {where}",
                 tuple(params),
             )
         )
         total_words = sum(
             (row[0] or 0) for row in _query_all(
-                conn, db_names,
+                conn, db_paths,
                 f"SELECT SUM(word_count) FROM {{table}} {where}",
                 tuple(params),
             )
@@ -311,9 +395,9 @@ def cmd_stats(conn: sqlite3.Connection, args, db_names: "list[str] | None" = Non
 
     # Top categories
     print("\n  Top categories:")
-    if db_names and len(db_names) > 1:
+    if db_paths:
         cat_rows = _query_all(
-            conn, db_names,
+            conn, db_paths,
             f"""SELECT category, COUNT(*) as cnt
                 FROM {{table}} {'WHERE category = ?' if args.category else ''}
                 GROUP BY category""",
@@ -338,9 +422,9 @@ def cmd_stats(conn: sqlite3.Connection, args, db_names: "list[str] | None" = Non
 
     # Top authors
     print("\n  Top authors:")
-    if db_names and len(db_names) > 1:
+    if db_paths:
         auth_rows = _query_all(
-            conn, db_names,
+            conn, db_paths,
             f"""SELECT author_name, COUNT(*) as cnt, SUM(word_count) as total_words
                 FROM {{table}} {'WHERE category = ?' if args.category else ''}
                 GROUP BY author_name""",
@@ -368,19 +452,24 @@ def cmd_stats(conn: sqlite3.Connection, args, db_names: "list[str] | None" = Non
         print(f"    {name:<30} {a['cnt']:>5} stories  ({a['total_words']:,} words)")
 
     # Date range
-    if db_names and len(db_names) > 1:
+    if db_paths:
         min_dates = []
         max_dates = []
-        for db_name in db_names:
-            table_ref = f"{db_name}.stories" if db_name != "main" else "stories"
-            dr = conn.execute(
-                f"SELECT MIN(publication_date), MAX(publication_date) FROM {table_ref} {where}",
-                params,
-            ).fetchone()
-            if dr[0]:
-                min_dates.append(dr[0])
-            if dr[1]:
-                max_dates.append(dr[1])
+        for db_path in db_paths:
+            conn.execute('ATTACH DATABASE ? AS curr_db', (db_path,))
+            try:
+                curs = conn.cursor()
+                dr = curs.execute(
+                    f"SELECT MIN(publication_date), MAX(publication_date) FROM curr_db.stories {where}",
+                    params,
+                ).fetchone()
+                curs.close()
+                if dr[0]:
+                    min_dates.append(dr[0])
+                if dr[1]:
+                    max_dates.append(dr[1])
+            finally:
+                conn.execute("DETACH DATABASE curr_db")
         d_min = min(min_dates) if min_dates else "N/A"
         d_max = max(max_dates) if max_dates else "N/A"
     else:
@@ -439,7 +528,7 @@ def main():
     p.add_argument("--category", help="Filter by category")
 
     args = parser.parse_args()
-    conn, db_names = _resolve_connection(args)
+    conn, db_paths = _resolve_connection(args)
 
     dispatch = {
         "search": cmd_search,
@@ -447,7 +536,7 @@ def main():
         "list": cmd_list,
         "stats": cmd_stats,
     }
-    dispatch[args.command](conn, args, db_names)
+    dispatch[args.command](conn, args, db_paths)
     conn.close()
 
 

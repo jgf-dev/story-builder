@@ -302,9 +302,35 @@ def get_story(output_path: str, story_date: str) -> "dict | None":
             return None
 
 
+def optimize_fts_all(db_dir: str) -> None:
+    """Scan the given directory and rebuild FTS on all .db files."""
+    if not os.path.isdir(db_dir):
+        return
+
+    for filename in os.listdir(db_dir):
+        if not filename.endswith(".db"):
+            continue
+
+        db_path = os.path.join(db_dir, filename)
+        conn = None
+        try:
+            conn = sqlite3.connect(db_path, check_same_thread=False)
+            conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
+            conn.commit()
+        except sqlite3.OperationalError:
+            pass
+        finally:
+            if conn:
+                conn.close()
+
+
 def optimize_fts() -> None:
     """Rebuild the FTS index for optimal search performance."""
     with _lock:
+        if _is_partitioned and _db_dir:
+            optimize_fts_all(_db_dir)
+            return
+
         conns = list(_connections.values())
         if _conn is not None and not _is_partitioned:
             conns.append(_conn)

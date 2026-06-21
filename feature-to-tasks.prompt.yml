@@ -10,3 +10,5 @@ model: mistral-ai/codestral-2501
 responseFormat: text
 modelParameters:
   max_tokens: 4096
+testData: []
+evaluators: []

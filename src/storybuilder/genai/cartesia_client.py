@@ -82,17 +82,34 @@ def parse_speech_config_cartesia(markdown_content):
     return speaker_to_voice_id
 
 
+def _extract_transcript(markdown_content):
+    parts = markdown_content.split("#### TRANSCRIPT")
+    return parts[1] if len(parts) == 2 else markdown_content
+
+
+def _parse_line_speaker_and_text(line):
+    match = re.match(r"^([A-Za-z0-9_-]+):", line)
+    if match:
+        speaker = match.group(1)
+        text = line[match.end() :].strip()
+    else:
+        # Assume narration spoken by Narrator or fallback
+        speaker = "Narrator"
+        text = line
+    text = text.strip("\"'")
+    return speaker, text
+
+
+def _resolve_voice_id(speaker, speaker_to_voice_id, default_voice_id):
+    return speaker_to_voice_id.get(speaker) or NAME_FALLBACK_MAP.get(speaker.lower()) or default_voice_id
+
+
 def parse_transcript_segments(markdown_content, speaker_to_voice_id, default_voice_id):
     """
     Parses the transcript section into contiguous segments spoken by the same voice ID.
     This minimizes API requests by grouping adjacent lines spoken by the same character.
     """
-    parts = markdown_content.split("#### TRANSCRIPT")
-    if len(parts) != 2:
-        # Fallback if no TRANSCRIPT section is marked
-        transcript = markdown_content
-    else:
-        transcript = parts[1]
+    transcript = _extract_transcript(markdown_content)
 
     segments = []
     current_voice_id = None
@@ -103,29 +120,11 @@ def parse_transcript_segments(markdown_content, speaker_to_voice_id, default_voi
         if not line:
             continue
 
-        # Match speaker prefix: e.g. "Jace: \"Line text...\""
-        match = re.match(r"^([A-Za-z0-9_-]+):", line)
-        if match:
-            speaker = match.group(1)
-            text = line[match.end() :].strip()
-        else:
-            # Assume narration spoken by Narrator or fallback
-            speaker = "Narrator"
-            text = line
-
-        # Strip any surrounding quotes from the dialogue text
-        text = text.strip("\"'")
+        speaker, text = _parse_line_speaker_and_text(line)
         if not text:
             continue
 
-        # Resolve speaker to voice ID
-        voice_id = speaker_to_voice_id.get(speaker)
-        if not voice_id:
-            # Try name-based fallback matching
-            voice_id = NAME_FALLBACK_MAP.get(speaker.lower())
-            if not voice_id:
-                # Fallback to the default narrator/first speaker
-                voice_id = default_voice_id
+        voice_id = _resolve_voice_id(speaker, speaker_to_voice_id, default_voice_id)
 
         if voice_id == current_voice_id:
             current_lines.append(text)
@@ -173,9 +172,7 @@ def generate_segment_audio(api_key, text, voice_id, rate=24000):
                 return response.content
             elif response.status_code == 429:
                 wait_time = 10 * (attempt + 1)
-                print(
-                    f"  Cartesia Rate Limit (429). Retrying in {wait_time}s... ({attempt + 1}/{max_retries})"
-                )
+                print(f"  Cartesia Rate Limit (429). Retrying in {wait_time}s... ({attempt + 1}/{max_retries})")
                 time.sleep(wait_time)
             else:
                 print(f"  Cartesia error {response.status_code}: {response.text}")
@@ -215,9 +212,7 @@ def process_file_cartesia(md_file, wav_file, api_key, rate=24000):
     success = True
 
     for idx, (voice_id, text) in enumerate(segments):
-        print(
-            f"  Synthesizing segment {idx + 1}/{len(segments)} (Voice ID: {voice_id[:8]}...): {text[:40]}..."
-        )
+        print(f"  Synthesizing segment {idx + 1}/{len(segments)} (Voice ID: {voice_id[:8]}...): {text[:40]}...")
         try:
             segment_pcm = generate_segment_audio(api_key, text, voice_id, rate=rate)
             accumulated_pcm += segment_pcm
@@ -257,76 +252,18 @@ def process_directory_cartesia(directory, rate=24000):
 
         # Check if already generated
         if os.path.exists(wav_file):
-            print(
-                f"Skipping {os.path.basename(md_file)}, {os.path.basename(wav_file)} already exists."
-            )
+            print(f"Skipping {os.path.basename(md_file)}, {os.path.basename(wav_file)} already exists.")
             continue
 
         process_file_cartesia(md_file, wav_file, api_key, rate=rate)
-        print(f"Processing {os.path.basename(md_file)} with Cartesia...")
-        with open(md_file, "r") as f:
-            content = f.read()
-
-        # Parse voice mappings
-        speaker_to_voice_id = parse_speech_config_cartesia(content)
-
-        # Determine default narrator voice (first defined, or Maya fallback)
-        default_voice_id = (
-            list(speaker_to_voice_id.values())[0]
-            if speaker_to_voice_id
-            else NAME_FALLBACK_MAP["narrator"]
-        )
-
-        # Parse dialogue segments
-        segments = parse_transcript_segments(
-            content, speaker_to_voice_id, default_voice_id
-        )
-        print(f"  Parsed {len(segments)} narrative segments.")
-
-        # Sequentially synthesize each segment and accumulate raw PCM data
-        accumulated_pcm = b""
-        success = True
-
-        for idx, (voice_id, text) in enumerate(segments):
-            print(
-                f"  Synthesizing segment {idx + 1}/{len(segments)} (Voice ID: {voice_id[:8]}...): {text[:40]}..."
-            )
-            try:
-                segment_pcm = generate_segment_audio(api_key, text, voice_id, rate=rate)
-                accumulated_pcm += segment_pcm
-                # Short rest between segment API calls to respect rate limits
-                time.sleep(0.5)
-            except Exception as e:
-                print(f"  Failed to synthesize segment {idx + 1}: {e}")
-                success = False
-                break
-
-        if success and accumulated_pcm:
-            # Save accumulated PCM bytes as a unified WAV file
-            wave_file(wav_file, accumulated_pcm, rate=rate)
-            print(f"  Saved unified audio to {os.path.basename(wav_file)}")
-        else:
-            print("  Skipped saving WAV due to synthesis failure.")
-
         # Brief sleep between files
         time.sleep(1)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Process TTS prompt files using Cartesia API."
-    )
-    parser.add_argument(
-        "--dir",
-        default="stories/the_secret_vacation",
-        help="Directory containing the *-part.md files",
-    )
-    parser.add_argument(
-        "--rate",
-        type=int,
-        default=24000,
-        help="Audio output sample rate (default 24000)",
-    )
+    parser = argparse.ArgumentParser(description="Process TTS prompt files using Cartesia API.")
+    parser.add_argument("--dir", default="stories/the_secret_vacation", help="Directory containing the *-part.md files")
+    parser.add_argument("--rate", type=int, default=24000, help="Audio output sample rate (default 24000)")
     args = parser.parse_args()
 
     if os.path.isdir(args.dir):

@@ -213,7 +213,7 @@ def query_stories(fts_query="", category="All", author="All", year_range=None, e
                 parts = Path(r[0]).parts
                 if len(parts) >= 3:
                     entity_suffixes.append("/".join(parts[-3:]))
-    
+
     # Process each partition database
     for db_path in db_files:
         db_year = int(Path(db_path).stem)
@@ -612,10 +612,10 @@ elif page == "📊 Archive Stats":
     fig_line = px.line(df_years, x="Year", y="Stories Count", title="Story Publications Per Year", markers=True)
     fig_line.update_layout(template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f")
     st.plotly_chart(fig_line, use_container_width=True)
-    
+
     # 2. Categories & Authors Charts
     col_left, col_right = st.columns(2)
-    
+
     with col_left:
         st.subheader("🏷️ Top 15 Categories")
         fig_cat = px.bar(df_cats.head(15), x="Count", y="Category", orientation="h", title="Story Counts by Category")

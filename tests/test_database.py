@@ -531,10 +531,10 @@ class TestMultiDBConnect(unittest.TestCase):
         self._create_test_db("db1.db")
         self._create_test_db("db2.db")
 
-        conn, db_names = story_db.connect_multi(self.temp_dir)
-        self.assertEqual(len(db_names), 2)
-        self.assertIn("main", db_names)
-        self.assertIn("db1", db_names)
+        conn, db_paths = story_db.connect_multi(self.temp_dir)
+        self.assertEqual(len(db_paths), 2)
+        self.assertTrue(any("db1.db" in p for p in db_paths))
+        self.assertTrue(any("db2.db" in p for p in db_paths))
         conn.close()
 
     def test_query_all(self):
@@ -566,8 +566,9 @@ class TestMultiDBConnect(unittest.TestCase):
         self._create_test_db("stories.db")  # should be skipped
         self._create_test_db("real.db")
 
-        conn, db_names = story_db.connect_multi(self.temp_dir)
-        self.assertEqual(len(db_names), 1)  # only real.db
+        conn, db_paths = story_db.connect_multi(self.temp_dir)
+        self.assertEqual(len(db_paths), 1)  # only real.db
+        self.assertTrue(any("real.db" in p for p in db_paths))
         conn.close()
 class TestDatabasePartitioning(unittest.TestCase):
     """Tests for year-range partitioning in db.py."""

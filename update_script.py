@@ -1,4 +1,9 @@
-import argparse
+import re
+
+with open('src/storybuilder/analysis/visualize_tsne.py', 'r') as f:
+    code = f.read()
+
+new_code = """import argparse
 from typing import List, Tuple
 
 import chromadb
@@ -48,7 +53,7 @@ def extract_labels(ids: List[str]) -> Tuple[List[str], List[str]]:
     short_names = []
     subcategories = []
     for filepath in ids:
-        parts = filepath.replace("\\", "/").split("/")
+        parts = filepath.replace("\\\\", "/").split("/")
         short_names.append(parts[-1])
         if len(parts) >= 3:
             subcategories.append(parts[2])
@@ -114,3 +119,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+"""
+
+with open('src/storybuilder/analysis/visualize_tsne.py', 'w') as f:
+    f.write(new_code)

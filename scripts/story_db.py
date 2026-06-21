@@ -46,25 +46,13 @@ def connect_multi(db_dir: str) -> "tuple[sqlite3.Connection, list[str]]":
     Returns (conn, db_names) where db_names is a list of alias names (db0, db1, ...)
     for use in UNION ALL queries. db0 is the primary (first) database.
     """
-    db_files = sorted(
-        str(p) for p in Path(db_dir).glob("*.db")
-        if p.name not in ("stories.db",)  # skip the monolithic db
-    )
-    if not db_files:
-        print(f"Error: No .db files found in '{db_dir}'", file=sys.stderr)
+    from storybuilder.downloader.db import connect_multi as lib_connect_multi
+    try:
+        return lib_connect_multi(db_dir)
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
 
-    # Open the first DB as primary
-    conn = sqlite3.connect(db_files[0])
-    conn.row_factory = sqlite3.Row
-
-    db_names = ["main"]
-    for i, db_path in enumerate(db_files[1:], 1):
-        alias = f"db{i}"
-        conn.execute(f"ATTACH DATABASE ? AS {alias}", (db_path,))
-        db_names.append(alias)
-
-    return conn, db_names
 
 
 def _query_all(conn: sqlite3.Connection, db_names: list[str], sql: str, params: tuple = ()) -> list:
@@ -113,64 +101,21 @@ def _resolve_connection(args) -> "tuple[sqlite3.Connection, list[str] | None]":
 
 def cmd_search(conn: sqlite3.Connection, args, db_names: "list[str] | None" = None):
     """Full-text search across titles, authors, and content."""
-    conditions = ["stories_fts MATCH ?"]
-    params = [args.query]
+    from storybuilder.downloader.db import search_all_partitions
 
-    if args.author:
-        conditions.append("s.author_name LIKE ?")
-        params.append(f"%{args.author}%")
-    if args.category:
-        conditions.append("s.category = ?")
-        params.append(args.category)
-    if args.date_from:
-        conditions.append("s.publication_date >= ?")
-        params.append(args.date_from)
-    if args.date_to:
-        conditions.append("s.publication_date <= ?")
-        params.append(args.date_to)
+    db_path = getattr(args, "db_dir", None) or args.db
+    db_dir = db_path if os.path.isdir(db_path) else None
 
-    where = " AND ".join(conditions)
-
-    if db_names and len(db_names) > 1:
-        # Multi-DB: query each database and merge results
-        all_rows = []
-        for db_name in db_names:
-            table_ref = f"{db_name}.stories" if db_name != "main" else "stories"
-            fts_ref = f"{db_name}.stories_fts" if db_name != "main" else "stories_fts"
-            sql = f"""
-                SELECT s.id, s.path, s.category, s.story_slug, s.chapter_num,
-                       s.title, s.author_name, s.publication_date,
-                       s.char_count, s.word_count,
-                       snippet({fts_ref}, 2, '<b>', '</b>', '…', 40) AS snippet
-                FROM {table_ref} s
-                JOIN {fts_ref} ON s.id = {fts_ref}.rowid
-                WHERE {where}
-                ORDER BY rank
-                LIMIT ?
-            """
-            try:
-                rows = conn.execute(sql, params + [args.limit]).fetchall()
-                all_rows.extend(rows)
-            except sqlite3.OperationalError:
-                # DB may not have FTS table; skip
-                pass
-        # Sort by a simple heuristic: prefer those with snippets, then by id
-        all_rows.sort(key=lambda r: (0 if r["snippet"] and "<b>" in (r["snippet"] or "") else 1, r["id"]))
-        rows = all_rows[:args.limit]
-    else:
-        sql = f"""
-            SELECT s.id, s.path, s.category, s.story_slug, s.chapter_num,
-                   s.title, s.author_name, s.publication_date,
-                   s.char_count, s.word_count,
-                   snippet(stories_fts, 2, '<b>', '</b>', '…', 40) AS snippet
-            FROM stories s
-            JOIN stories_fts ON s.id = stories_fts.rowid
-            WHERE {where}
-            ORDER BY rank
-            LIMIT ?
-        """
-        params.append(args.limit)
-        rows = conn.execute(sql, params).fetchall()
+    rows = search_all_partitions(
+        args.query,
+        conn=conn,
+        db_dir=db_dir,
+        author=args.author,
+        category=args.category,
+        date_from=args.date_from,
+        date_to=args.date_to,
+        limit=args.limit
+    )
 
     if not rows:
         print(f"No results for '{args.query}'")
@@ -187,6 +132,7 @@ def cmd_search(conn: sqlite3.Connection, args, db_names: "list[str] | None" = No
             snip = row["snippet"] or "(no snippet)"
             print(f"       Snippet: {snip}")
         print()
+
 
 
 # ——— Get ————————————————————————————————————————————————————————————————————————

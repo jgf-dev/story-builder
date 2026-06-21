@@ -309,68 +309,122 @@ def get_story(output_path: str, story_date: str) -> "dict | None":
         except Exception:
             return None
 
-def optimize_fts_all(db_dir: str) -> None:
-    """Scan the given directory and rebuild FTS on all .db files."""
-    if not os.path.isdir(db_dir):
-        return
 
-    for filename in os.listdir(db_dir):
-        if not filename.endswith(".db"):
-            continue
 
-        db_path = os.path.join(db_dir, filename)
-        conn = None
+def search_all_partitions(
+    query: str,
+    *,
+    category: "str | None" = None,
+    author: "str | None" = None,
+    date_from: "str | None" = None,
+    date_to: "str | None" = None,
+    limit: int = 20,
+    db_dir: "str | None" = None,
+    db_paths: "list[str] | None" = None,
+) -> "list[dict]":
+    """FTS search across all year-partition databases via ATTACH."""
+
+    if db_paths is not None:
+        db_files = [Path(p) for p in db_paths]
+    else:
+        partition_dir = db_dir or _db_dir
+        if not partition_dir:
+            return []
+
+        db_files = sorted(Path(partition_dir).glob("*.db"))
+        if not db_files:
+            return []
+
+        # Filter out stories.db if it exists, since we only want partitions
+        db_files = [p for p in db_files if p.name != "stories.db"]
+
+    conditions = ["stories_fts MATCH ?"]
+    params = [query]
+
+    if author:
+        conditions.append("s.author_name LIKE ?")
+        params.append(f"%{author}%")
+    if category:
+        conditions.append("s.category = ?")
+        params.append(category)
+    if date_from:
+        conditions.append("s.publication_date >= ?")
+        params.append(date_from)
+    if date_to:
+        conditions.append("s.publication_date <= ?")
+        params.append(date_to)
+
+    where = " AND ".join(conditions)
+
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+
+    all_rows = []
+    for db_path in db_files:
+        conn.execute("ATTACH DATABASE ? AS curr_db", (str(db_path),))
         try:
-            conn = sqlite3.connect(db_path, check_same_thread=False)
-            conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
-            conn.commit()
+            curs = conn.cursor()
+            table_ref = "curr_db.stories"
+            fts_ref = "curr_db.stories_fts"
+            sql = f"""
+                SELECT s.id, s.path, s.category, s.story_slug, s.chapter_num,
+                       s.title, s.author_name, s.publication_date, s.url,
+                       s.char_count, s.word_count, s.content,
+                       snippet({fts_ref}, 2, '<b>', '</b>', '…', 40) AS snippet
+                FROM {table_ref} s
+                JOIN {fts_ref} ON s.id = {fts_ref}.rowid
+                WHERE {where}
+                ORDER BY rank
+                LIMIT ?
+            """
+            rows = curs.execute(sql, params + [limit]).fetchall()
+            all_rows.extend([dict(r) for r in rows])
+            curs.close()
         except sqlite3.OperationalError:
             pass
         finally:
-            if conn:
-                conn.close()
+            conn.execute("DETACH DATABASE curr_db")
 
+    conn.close()
 
-def optimize_fts_all(db_dir: str) -> None:
-    """Scan the given directory and rebuild FTS on all .db files."""
-    if not os.path.isdir(db_dir):
-        return
+    # Sort combined results based on FTS rank (which we don't have access to directly,
+    # so we sort by whether they have highlighted snippets, then publication date descending)
+    all_rows.sort(
+        key=lambda r: (
+            1 if r.get("snippet") and "<b>" in str(r.get("snippet")) else 0,
+            r.get("publication_date") or "",
+        ),
+        reverse=True,
+    )
 
-    for filename in os.listdir(db_dir):
-        if not filename.endswith(".db"):
-            continue
-
-        db_path = os.path.join(db_dir, filename)
-        conn = None
-        try:
-            conn = sqlite3.connect(db_path, check_same_thread=False)
-            conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
-            conn.commit()
-        except sqlite3.OperationalError:
-            # Best-effort optimization: skip databases that do not support FTS optimize.
-            continue
-        finally:
-            if conn:
-                conn.close()
+    return all_rows[:limit]
 
 
 def optimize_fts() -> None:
     """Rebuild the FTS index for optimal search performance."""
     with _lock:
+        conns_to_optimize = []
         if _is_partitioned and _db_dir:
-            optimize_fts_all(_db_dir)
-            return
+            for db_file in Path(_db_dir).glob("*.db"):
+                try:
+                    conn = sqlite3.connect(str(db_file), check_same_thread=False)
+                    conns_to_optimize.append(conn)
+                except sqlite3.Error:
+                    pass
+        else:
+            conns_to_optimize = list(_connections.values())
+            if _conn is not None and not _is_partitioned:
+                conns_to_optimize.append(_conn)
 
-        conns = list(_connections.values())
-        if _conn is not None and not _is_partitioned:
-            conns.append(_conn)
-
-        for conn in conns:
+        for conn in conns_to_optimize:
             try:
                 conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
                 conn.commit()
             except sqlite3.OperationalError:
                 pass
+            finally:
+                if _is_partitioned and _db_dir:
+                    conn.close()
 
 
 def close_db() -> None:

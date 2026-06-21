@@ -8,12 +8,9 @@ from pathlib import Path
 from datetime import datetime
 
 # Define paths
-SCRIPT_DIR = Path(__file__).parent.resolve()
-WORKSPACE_ROOT = SCRIPT_DIR.parent
-
-DB_DIR = str(WORKSPACE_ROOT / "stories/db")
-NLP_DB_PATH = str(WORKSPACE_ROOT / "nlp_analysis.db")
-META_DB_PATH = str(WORKSPACE_ROOT / "stories/db/dashboard_metadata.db")
+DB_DIR = "stories/db"
+NLP_DB_PATH = "nlp_analysis.db"
+META_DB_PATH = "stories/db/dashboard_metadata.db"
 
 # Set up page config
 st.set_page_config(
@@ -22,13 +19,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
-# Initialize session state for navigation
-if "nav_page" not in st.session_state:
-    if "nav_page" in st.query_params:
-        st.session_state.nav_page = st.query_params["nav_page"]
-    else:
-        st.session_state.nav_page = "🔍 Search & Explorer"
 
 # Inject custom CSS for premium design
 st.markdown(
@@ -188,20 +178,9 @@ def load_archive_stats():
         except sqlite3.Error:
             pass
             
-    if not year_stats:
-        df_years = pd.DataFrame(columns=["Year", "Stories Count", "Total Words"])
-    else:
-        df_years = pd.DataFrame(year_stats)
-        
-    if not category_counts:
-        df_cats = pd.DataFrame(columns=["Category", "Count"])
-    else:
-        df_cats = pd.DataFrame(list(category_counts.items()), columns=["Category", "Count"]).sort_values("Count", ascending=False)
-        
-    if not author_counts:
-        df_auths = pd.DataFrame(columns=["Author", "Count"])
-    else:
-        df_auths = pd.DataFrame(list(author_counts.items()), columns=["Author", "Count"]).sort_values("Count", ascending=False)
+    df_years = pd.DataFrame(year_stats)
+    df_cats = pd.DataFrame(list(category_counts.items()), columns=["Category", "Count"]).sort_values("Count", ascending=False)
+    df_auths = pd.DataFrame(list(author_counts.items()), columns=["Author", "Count"]).sort_values("Count", ascending=False)
     
     return df_years, df_cats, df_auths, word_counts
 
@@ -215,7 +194,7 @@ def query_stories(fts_query="", category="All", author="All", year_range=None, e
     results = []
     
     # 1. Filter by entity first if specified
-    entity_filenames = None
+    entity_suffixes = None
     if entity_text:
         nlp_conn = get_nlp_conn()
         if nlp_conn:
@@ -229,8 +208,12 @@ def query_stories(fts_query="", category="All", author="All", year_range=None, e
                 """,
                 (f"%{entity_text}%", entity_label)
             )
-            entity_filenames = set(Path(r[0]).name for r in cursor.fetchall())
-            
+            entity_suffixes = []
+            for r in cursor.fetchall():
+                parts = Path(r[0]).parts
+                if len(parts) >= 3:
+                    entity_suffixes.append("/".join(parts[-3:]))
+
     # Process each partition database
     for db_path in db_files:
         db_year = int(Path(db_path).stem)
@@ -257,11 +240,9 @@ def query_stories(fts_query="", category="All", author="All", year_range=None, e
             where_clause = " AND ".join(conditions)
             
             if fts_query:
-                # FTS Search query (considers title, author_name, and content)
+                # FTS Search query
                 sql = f"""
-                    SELECT s.path, s.title, s.author_name, s.category, s.publication_date, s.word_count, s.story_slug, s.chapter_num,
-                           highlight(stories_fts, 0, '___HIGHLIGHT_START___', '___HIGHLIGHT_END___') AS title_highlighted,
-                           stories_fts.rank AS rank,
+                    SELECT s.path, s.title, s.author_name, s.category, s.publication_date, s.word_count,
                            snippet(stories_fts, 2, '___HIGHLIGHT_START___', '___HIGHLIGHT_END___', '…', 40) AS snippet
                     FROM stories s
                     JOIN stories_fts ON s.id = stories_fts.rowid
@@ -273,9 +254,7 @@ def query_stories(fts_query="", category="All", author="All", year_range=None, e
             else:
                 # Metadata-only browse query
                 sql = f"""
-                    SELECT s.path, s.title, s.author_name, s.category, s.publication_date, s.word_count, s.story_slug, s.chapter_num,
-                           NULL AS title_highlighted,
-                           NULL AS rank,
+                    SELECT s.path, s.title, s.author_name, s.category, s.publication_date, s.word_count,
                            NULL AS snippet
                     FROM stories s
                     WHERE {where_clause}
@@ -289,9 +268,14 @@ def query_stories(fts_query="", category="All", author="All", year_range=None, e
                 row_dict = dict(r)
                 row_dict["db_year"] = db_year
                 
-                # Check entity match if filter active
-                if entity_filenames is not None:
-                    if Path(row_dict["path"]).name not in entity_filenames:
+                # Check entity suffixes match if filter active
+                if entity_suffixes is not None:
+                    matched_entity = False
+                    for suffix in entity_suffixes:
+                        if row_dict["path"].endswith(suffix):
+                            matched_entity = True
+                            break
+                    if not matched_entity:
                         continue
                         
                 results.append(row_dict)
@@ -300,24 +284,14 @@ def query_stories(fts_query="", category="All", author="All", year_range=None, e
         except sqlite3.Error:
             pass
             
-    # Deduplicate identical chapters of the same story across different categories/paths
-    seen = set()
-    deduped_results = []
-    for res in results:
-        key = (res["title"], res["author_name"], res.get("chapter_num"), res.get("word_count"))
-        if key not in seen:
-            seen.add(key)
-            deduped_results.append(res)
-            
     # Sort final combined results
     if fts_query:
-        # Sort by relevance rank (lower/negative is better)
-        deduped_results.sort(key=lambda x: x.get("rank") if x.get("rank") is not None else 999999)
+        # If FTS, we preserve ordering by partition rank or date desc
+        results.sort(key=lambda x: (x.get("publication_date") or ""), reverse=True)
     else:
-        # Sort by publication date desc
-        deduped_results.sort(key=lambda x: (x.get("publication_date") or ""), reverse=True)
+        results.sort(key=lambda x: (x.get("publication_date") or ""), reverse=True)
         
-    return deduped_results[:limit]
+    return results[:limit]
 
 def get_story_by_path(story_path, db_year):
     """Retrieve full text and details of a single story from its year partition db."""
@@ -335,37 +309,6 @@ def get_story_by_path(story_path, db_year):
         return dict(row) if row else None
     except sqlite3.Error:
         return None
-
-def get_all_chapters_by_slug(story_slug):
-    """Retrieve all chapters of a story across all partition databases."""
-    db_files = get_db_files()
-    chapters = []
-    for db_path in db_files:
-        try:
-            conn = sqlite3.connect(db_path)
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
-            cursor.execute(
-                "SELECT path, title, chapter_num, publication_date FROM stories WHERE story_slug = ? ORDER BY chapter_num ASC",
-                (story_slug,)
-            )
-            rows = cursor.fetchall()
-            for r in rows:
-                row_dict = dict(r)
-                row_dict["db_year"] = int(Path(db_path).stem)
-                chapters.append(row_dict)
-            conn.close()
-        except sqlite3.Error:
-            pass
-            
-    # Deduplicate chapters by path
-    seen = set()
-    deduped = []
-    for ch in sorted(chapters, key=lambda x: (x.get("chapter_num") or 0, x.get("path"))):
-        if ch["path"] not in seen:
-            seen.add(ch["path"])
-            deduped.append(ch)
-    return deduped
 
 # ------------------------------------------------------------------------------
 # FAVORITES OPERATIONS
@@ -482,21 +425,15 @@ if page == "🔍 Search & Explorer":
     st.subheader(f"Found {len(search_results)} Result(s)")
     
     for res in search_results:
-        # Use highlighted title if available
-        display_title = res['title']
-        if res.get("title_highlighted"):
-            display_title = res["title_highlighted"].replace("___HIGHLIGHT_START___", "<span class='highlight'>").replace("___HIGHLIGHT_END___", "</span>")
-            
         # Create a container for the card styling
         card_html = f"""
         <div class="story-card">
-            <h4>{display_title}</h4>
+            <h4>{res['title']}</h4>
             <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 8px;'>
                 <b>Author:</b> {res['author_name'] or 'Unknown'} | 
                 <b>Category:</b> {res['category']} | 
                 <b>Published:</b> {res['publication_date'] or 'Unknown'} | 
                 <b>Words:</b> {res['word_count']:,}
-                {f" | <b>Relevance:</b> {-res['rank']:.2f}" if res.get('rank') is not None else ""}
             </p>
         """
         
@@ -514,7 +451,7 @@ if page == "🔍 Search & Explorer":
             if st.button("Read", key=f"read_{res['path']}_{res['db_year']}"):
                 st.session_state.selected_story_path = res["path"]
                 st.session_state.selected_story_year = res["db_year"]
-                st.session_state.nav_page = "📖 Read Story"
+                # Programmatically update radio key by modifying query params or session state navigation
                 st.query_params["nav_page"] = "📖 Read Story"
                 st.rerun()
         st.write("")
@@ -581,41 +518,8 @@ elif page == "📖 Read Story":
             st.write(f"**Category:** `{story['category']}` | **Published:** `{story['publication_date'] or 'Unknown'}` | **Words:** `{story['word_count']:,}`")
             st.markdown("---")
             
-            # Chapters in series (Top navigation)
-            chapters = get_all_chapters_by_slug(story["story_slug"])
-            if len(chapters) > 1:
-                st.write("📂 **Chapters in this Series:**")
-                cols = st.columns(min(len(chapters), 10))
-                for idx, ch in enumerate(chapters):
-                    col = cols[idx % 10]
-                    btn_label = f"Ch {ch['chapter_num']}" if ch['chapter_num'] is not None else f"Part {idx+1}"
-                    if ch["path"] == story["path"]:
-                        col.button(btn_label, key=f"ch_top_curr_{ch['path']}", disabled=True, use_container_width=True)
-                    else:
-                        if col.button(btn_label, key=f"ch_top_{ch['path']}", use_container_width=True):
-                            st.session_state.selected_story_path = ch["path"]
-                            st.session_state.selected_story_year = ch["db_year"]
-                            st.rerun()
-                st.markdown("---")
-            
             # Story Content Display
             st.markdown(story["content"])
-            
-            # Chapters in series (Bottom navigation)
-            if len(chapters) > 1:
-                st.markdown("---")
-                st.write("📂 **Continue Reading:**")
-                cols = st.columns(min(len(chapters), 10))
-                for idx, ch in enumerate(chapters):
-                    col = cols[idx % 10]
-                    btn_label = f"Ch {ch['chapter_num']}" if ch['chapter_num'] is not None else f"Part {idx+1}"
-                    if ch["path"] == story["path"]:
-                        col.button(btn_label, key=f"ch_bot_curr_{ch['path']}", disabled=True, use_container_width=True)
-                    else:
-                        if col.button(btn_label, key=f"ch_bot_{ch['path']}", use_container_width=True):
-                            st.session_state.selected_story_path = ch["path"]
-                            st.session_state.selected_story_year = ch["db_year"]
-                            st.rerun()
 
 # -- PAGE 3: FAVORITES & TAGS --
 elif page == "⭐ Favorites & Tags":
@@ -678,7 +582,6 @@ elif page == "⭐ Favorites & Tags":
                     if st.button("Read", key=f"read_fav_{f['story_path']}"):
                         st.session_state.selected_story_path = f["story_path"]
                         st.session_state.selected_story_year = db_year
-                        st.session_state.nav_page = "📖 Read Story"
                         st.query_params["nav_page"] = "📖 Read Story"
                         st.rerun()
                 st.write("")
@@ -694,49 +597,45 @@ elif page == "📊 Archive Stats":
     st.markdown("---")
     
     # Overview metrics row
-    total_stories = df_years["Stories Count"].sum() if not df_years.empty else 0
-    total_words = df_years["Total Words"].sum() if not df_years.empty else 0
-    avg_length = total_words // total_stories if total_stories > 0 else 0
+    total_stories = df_years["Stories Count"].sum()
+    total_words = df_years["Total Words"].sum()
     
     col_m1, col_m2, col_m3 = st.columns(3)
     col_m1.metric("Total Stories", f"{total_stories:,}")
     col_m2.metric("Total Archive Words", f"{total_words:,}")
-    col_m3.metric("Average Story Length", f"{avg_length:,} words")
+    col_m3.metric("Average Story Length", f"{total_words // total_stories:,} words")
     
     st.markdown("---")
     
-    if total_stories == 0:
-        st.info("No story data found in the databases. Please verify your database directory and story import.")
-    else:
-        # 1. Timeline Chart
-        st.subheader("📈 Publications Timeline (1990 - 2026)")
-        fig_line = px.line(df_years, x="Year", y="Stories Count", title="Story Publications Per Year", markers=True)
-        fig_line.update_layout(template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f")
-        st.plotly_chart(fig_line, use_container_width=True)
+    # 1. Timeline Chart
+    st.subheader("📈 Publications Timeline (1990 - 2026)")
+    fig_line = px.line(df_years, x="Year", y="Stories Count", title="Story Publications Per Year", markers=True)
+    fig_line.update_layout(template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f")
+    st.plotly_chart(fig_line, use_container_width=True)
+
+    # 2. Categories & Authors Charts
+    col_left, col_right = st.columns(2)
+
+    with col_left:
+        st.subheader("🏷️ Top 15 Categories")
+        fig_cat = px.bar(df_cats.head(15), x="Count", y="Category", orientation="h", title="Story Counts by Category")
+        fig_cat.update_layout(template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f", yaxis={'categoryorder':'total ascending'})
+        st.plotly_chart(fig_cat, use_container_width=True)
         
-        # 2. Categories & Authors Charts
-        col_left, col_right = st.columns(2)
+    with col_right:
+        st.subheader("✍️ Top 15 Authors")
+        fig_auth = px.bar(df_auths.head(15), x="Count", y="Author", orientation="h", title="Story Counts by Author")
+        fig_auth.update_layout(template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f", yaxis={'categoryorder':'total ascending'})
+        st.plotly_chart(fig_auth, use_container_width=True)
         
-        with col_left:
-            st.subheader("🏷️ Top 15 Categories")
-            fig_cat = px.bar(df_cats.head(15), x="Count", y="Category", orientation="h", title="Story Counts by Category")
-            fig_cat.update_layout(template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f", yaxis={'categoryorder':'total ascending'})
-            st.plotly_chart(fig_cat, use_container_width=True)
-            
-        with col_right:
-            st.subheader("✍️ Top 15 Authors")
-            fig_auth = px.bar(df_auths.head(15), x="Count", y="Author", orientation="h", title="Story Counts by Author")
-            fig_auth.update_layout(template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f", yaxis={'categoryorder':'total ascending'})
-            st.plotly_chart(fig_auth, use_container_width=True)
-            
-        # 3. Word Count Bracket Distribution
-        st.subheader("📐 Story Length Distribution")
-        word_bins = pd.cut(
-            word_counts,
-            bins=[0, 1000, 5000, 10000, 20000, 50000, 1000000],
-            labels=["Short (<1K)", "Medium-Short (1K-5K)", "Medium (5K-10K)", "Medium-Long (10K-20K)", "Long (20K-50K)", "Epic (>50K)"]
-        )
-        df_words = pd.DataFrame({"Bracket": word_bins}).value_counts().reset_index(name="Stories")
-        fig_words = px.bar(df_words, x="Bracket", y="Stories", title="Story Word Count Distribution Bracket")
-        fig_words.update_layout(template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f")
-        st.plotly_chart(fig_words, use_container_width=True)
+    # 3. Word Count Bracket Distribution
+    st.subheader("📐 Story Length Distribution")
+    word_bins = pd.cut(
+        word_counts,
+        bins=[0, 1000, 5000, 10000, 20000, 50000, 1000000],
+        labels=["Short (<1K)", "Medium-Short (1K-5K)", "Medium (5K-10K)", "Medium-Long (10K-20K)", "Long (20K-50K)", "Epic (>50K)"]
+    )
+    df_words = pd.DataFrame({"Bracket": word_bins}).value_counts().reset_index(name="Stories")
+    fig_words = px.bar(df_words, x="Bracket", y="Stories", title="Story Word Count Distribution Bracket")
+    fig_words.update_layout(template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f")
+    st.plotly_chart(fig_words, use_container_width=True)

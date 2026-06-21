@@ -531,10 +531,10 @@ class TestMultiDBConnect(unittest.TestCase):
         self._create_test_db("db1.db")
         self._create_test_db("db2.db")
 
-        conn, db_names = story_db.connect_multi(self.temp_dir)
-        self.assertEqual(len(db_names), 2)
-        self.assertIn("main", db_names)
-        self.assertIn("db1", db_names)
+        conn, db_paths = story_db.connect_multi(self.temp_dir)
+        self.assertEqual(len(db_paths), 2)
+        self.assertTrue(any("db1.db" in p for p in db_paths))
+        self.assertTrue(any("db2.db" in p for p in db_paths))
         conn.close()
 
     def test_query_all(self):
@@ -566,8 +566,9 @@ class TestMultiDBConnect(unittest.TestCase):
         self._create_test_db("stories.db")  # should be skipped
         self._create_test_db("real.db")
 
-        conn, db_names = story_db.connect_multi(self.temp_dir)
-        self.assertEqual(len(db_names), 1)  # only real.db
+        conn, db_paths = story_db.connect_multi(self.temp_dir)
+        self.assertEqual(len(db_paths), 1)  # only real.db
+        self.assertTrue(any("real.db" in p for p in db_paths))
         conn.close()
 class TestDatabasePartitioning(unittest.TestCase):
     """Tests for year-range partitioning in db.py."""
@@ -671,135 +672,6 @@ class TestDatabasePartitioning(unittest.TestCase):
         self.assertEqual(row3[0], "2026 Story")
         self.assertEqual(row3[1], "Content for story 3.")
         conn3.close()
-
-    def test_optimize_fts_all(self):
-        from storybuilder.downloader import db
-        # Initialize
-        db.init_db(self.temp_dir)
-        
-        # Insert to create partitioned databases
-        db.insert_story(
-            output_path="nifty_stories/gay/adult-friends/story1/story1.txt",
-            title="2012 Story",
-            author="Author One",
-            story_date="2012-05-14",
-            url="http://example.com/1",
-            content="Content for story 1.",
-        )
-        db.insert_story(
-            output_path="nifty_stories/gay/college/story2/story2.txt",
-            title="2025 Story",
-            author="Author Two",
-            story_date="2025-05-10",
-            url="http://example.com/2",
-            content="Content for story 2.",
-        )
-        
-        # Call optimize_fts_all
-        db.optimize_fts_all(self.temp_dir)
-        # Should not raise any error, and the search must still work
-        db1_path = os.path.join(self.temp_dir, "2012.db")
-        conn = sqlite3.connect(db1_path)
-        row = conn.execute(
-            "SELECT s.title FROM stories s JOIN stories_fts ON s.id = stories_fts.rowid "
-            "WHERE stories_fts MATCH 'vampire OR content'"
-        ).fetchone()
-        self.assertIsNotNone(row)
-        self.assertEqual(row[0], "2012 Story")
-        conn.close()
-
-
-class TestLibraryPartitionSearch(unittest.TestCase):
-    """Tests for connect_multi and search_all_partitions in db.py."""
-
-    def setUp(self):
-        self.temp_dir = tempfile.mkdtemp()
-
-    def tearDown(self):
-        from storybuilder.downloader import db
-        db.close_db()
-        shutil.rmtree(self.temp_dir, ignore_errors=True)
-
-    def _create_test_db(self, filename, title, author, content, date="2025-01-01"):
-        path = os.path.join(self.temp_dir, filename)
-        conn = sqlite3.connect(path)
-        conn.row_factory = sqlite3.Row
-        
-        # Schema matching minimal stories + FTS
-        conn.execute("""
-            CREATE TABLE stories (
-                id              INTEGER PRIMARY KEY,
-                path            TEXT UNIQUE NOT NULL,
-                orientation     TEXT NOT NULL DEFAULT 'gay',
-                category        TEXT NOT NULL,
-                story_slug      TEXT NOT NULL,
-                chapter_num     INTEGER,
-                title           TEXT NOT NULL,
-                author_name     TEXT,
-                author_email    TEXT,
-                publication_date TEXT,
-                url             TEXT,
-                char_count      INTEGER NOT NULL,
-                word_count      INTEGER NOT NULL,
-                content         TEXT NOT NULL
-            );
-        """)
-        conn.execute("""
-            CREATE VIRTUAL TABLE stories_fts USING fts5(
-                title,
-                author_name,
-                content,
-                content=stories,
-                content_rowid=id
-            );
-        """)
-        conn.execute("INSERT INTO stories (path, category, story_slug, title, author_name, publication_date, char_count, word_count, content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                     (f"nifty_stories/gay/category/{title}/{filename}", "category", title.lower().replace(" ", "-"), title, author, date, len(content), len(content.split()), content))
-        # Insert FTS index entry manually
-        conn.execute("INSERT INTO stories_fts (rowid, title, author_name, content) VALUES (1, ?, ?, ?)", (title, author, content))
-        conn.commit()
-        conn.close()
-
-    def test_connect_multi_library(self):
-        from storybuilder.downloader.db import connect_multi
-        self._create_test_db("2024.db", "Story A", "Author X", "Some vampire content")
-        self._create_test_db("2025.db", "Story B", "Author Y", "Some werewolf content")
-        
-        conn, db_names = connect_multi(self.temp_dir)
-        try:
-            self.assertEqual(len(db_names), 2)
-            self.assertIn("main", db_names)
-            self.assertIn("db1", db_names)
-        finally:
-            conn.close()
-
-    def test_connect_multi_empty_raises_value_error(self):
-        from storybuilder.downloader.db import connect_multi
-        with self.assertRaises(ValueError):
-            connect_multi(self.temp_dir)
-
-    def test_search_all_partitions_library(self):
-        from storybuilder.downloader.db import search_all_partitions
-        self._create_test_db("2024.db", "Vampire Legend", "Bram Stoker", "Classic vampire tale", "2024-05-01")
-        self._create_test_db("2025.db", "Werewolf Legend", "Lon Chaney", "Classic werewolf tale", "2025-06-01")
-        
-        # Test basic search across all partitions
-        results = search_all_partitions("Legend", db_dir=self.temp_dir)
-        self.assertEqual(len(results), 2)
-        
-        # Test FTS match specific content
-        vampire_results = search_all_partitions("vampire", db_dir=self.temp_dir)
-        self.assertEqual(len(vampire_results), 1)
-        self.assertEqual(vampire_results[0]["title"], "Vampire Legend")
-        
-        # Test filters (author, category, date_from)
-        bram_results = search_all_partitions("Legend", db_dir=self.temp_dir, author="Stoker")
-        self.assertEqual(len(bram_results), 1)
-        self.assertEqual(bram_results[0]["author_name"], "Bram Stoker")
-
-        date_results = search_all_partitions("Legend", db_dir=self.temp_dir, date_from="2025-01-01")
-        self.assertEqual(len(date_results), 1)
-        self.assertEqual(date_results[0]["title"], "Werewolf Legend")
 
 
 if __name__ == "__main__":

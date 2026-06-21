@@ -11,4 +11,10 @@ responseFormat: text
 modelParameters:
   max_tokens: 4096
 testData: []
-evaluators: []
+evaluators:
+  - name: Coherence
+    uses: github/coherence
+  - name: Relevance
+    uses: github/relevance
+  - name: Groundedness
+    uses: github/groundedness

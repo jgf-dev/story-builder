@@ -10,8 +10,6 @@ from storybuilder.analysis.analyze_sentiment import (
     init_db,
     main,
 )
-
-
 class TestAnalyzeSentiment(unittest.TestCase):
     def test_get_sentiment_value(self):
         # Positive sentiment
@@ -132,7 +130,6 @@ class TestAnalyzeSentiment(unittest.TestCase):
 
         # Mock the open() function for reading files
         from unittest.mock import mock_open
-
         m = mock_open(read_data="This is a sentence.")
 
         with (

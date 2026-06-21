@@ -542,16 +542,39 @@ elif page == "⭐ Favorites & Tags":
         
         st.write("---")
         
-        # Display favorites
+        # Pre-resolve database years for filtered favorites
+        filtered_favorites = []
         for f in favorites:
-            # Filter by tag if needed
             if filter_tag != "All" and f["tags"]:
                 tags_list = [t.strip() for t in f["tags"].split(",")]
                 if filter_tag not in tags_list:
                     continue
             elif filter_tag != "All" and not f["tags"]:
                 continue
-                
+            filtered_favorites.append(f)
+
+        db_year_map = {}
+        unknown_paths = list(set(f["story_path"] for f in filtered_favorites))
+
+        if unknown_paths:
+            for y_db in get_db_files():
+                if not unknown_paths:
+                    break
+                y = int(Path(y_db).stem)
+                try:
+                    conn = sqlite3.connect(y_db)
+                    placeholders = ",".join(["?"] * len(unknown_paths))
+                    res = conn.execute(f"SELECT path FROM stories WHERE path IN ({placeholders})", unknown_paths).fetchall()
+                    for (found_path,) in res:
+                        db_year_map[found_path] = y
+                        if found_path in unknown_paths:
+                            unknown_paths.remove(found_path)
+                    conn.close()
+                except Exception as e:
+                    st.error(f"Error querying database {y_db}: {e}")
+
+        # Display favorites
+        for f in filtered_favorites:
             with st.container():
                 st.markdown(
                     f"""
@@ -566,18 +589,7 @@ elif page == "⭐ Favorites & Tags":
                 )
                 col1, col2 = st.columns([1, 8])
                 with col1:
-                    # Attempt to resolve database year based on path to load it in reader
-                    parts = Path(f["story_path"]).parts
-                    db_year = 2026 # Default fallback
-                    # Check year directories if any
-                    for y_db in get_db_files():
-                        y = int(Path(y_db).stem)
-                        conn = sqlite3.connect(y_db)
-                        if conn.cursor().execute("SELECT 1 FROM stories WHERE path = ?", (f["story_path"],)).fetchone():
-                            db_year = y
-                            conn.close()
-                            break
-                        conn.close()
+                    db_year = db_year_map.get(f["story_path"], 2026)
                         
                     if st.button("Read", key=f"read_fav_{f['story_path']}"):
                         st.session_state.selected_story_path = f["story_path"]

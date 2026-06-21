@@ -10,7 +10,10 @@ model: mistral-ai/codestral-2501
 responseFormat: text
 modelParameters:
   max_tokens: 4096
-testData: []
+testData:
+  - input: >-
+      Implement a TTS pipeline using the Cartesia API for markdown formatted
+      stories
 evaluators:
   - name: Coherence
     uses: github/coherence
@@ -18,3 +21,5 @@ evaluators:
     uses: github/relevance
   - name: Groundedness
     uses: github/groundedness
+  - name: Fluency
+    uses: github/fluency

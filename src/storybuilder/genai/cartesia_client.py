@@ -179,6 +179,46 @@ def generate_segment_audio(api_key, text, voice_id, rate=24000):
             
     raise RuntimeError(f"Failed to generate segment after {max_retries} attempts.")
 
+
+def process_file_cartesia(md_file, wav_file, api_key, rate=24000):
+    """Processes a single markdown file and generates matched WAVs using Cartesia."""
+    print(f"Processing {os.path.basename(md_file)} with Cartesia...")
+    with open(md_file, 'r') as f:
+        content = f.read()
+
+    # Parse voice mappings
+    speaker_to_voice_id = parse_speech_config_cartesia(content)
+
+    # Determine default narrator voice (first defined, or Maya fallback)
+    default_voice_id = list(speaker_to_voice_id.values())[0] if speaker_to_voice_id else NAME_FALLBACK_MAP["narrator"]
+
+    # Parse dialogue segments
+    segments = parse_transcript_segments(content, speaker_to_voice_id, default_voice_id)
+    print(f"  Parsed {len(segments)} narrative segments.")
+
+    # Sequentially synthesize each segment and accumulate raw PCM data
+    accumulated_pcm = b""
+    success = True
+
+    for idx, (voice_id, text) in enumerate(segments):
+        print(f"  Synthesizing segment {idx+1}/{len(segments)} (Voice ID: {voice_id[:8]}...): {text[:40]}...")
+        try:
+            segment_pcm = generate_segment_audio(api_key, text, voice_id, rate=rate)
+            accumulated_pcm += segment_pcm
+            # Short rest between segment API calls to respect rate limits
+            time.sleep(0.5)
+        except Exception as e:
+            print(f"  Failed to synthesize segment {idx+1}: {e}")
+            success = False
+            break
+
+    if success and accumulated_pcm:
+        # Save accumulated PCM bytes as a unified WAV file
+        wave_file(wav_file, accumulated_pcm, rate=rate)
+        print(f"  Saved unified audio to {os.path.basename(wav_file)}")
+    else:
+        print(f"  Skipped saving WAV due to synthesis failure.")
+
 def process_directory_cartesia(directory, rate=24000):
     """Processes a directory of scene part markdown files and generates matched WAVs using Cartesia."""
     api_key = os.getenv("CARTESIA_API_KEY")
@@ -203,42 +243,7 @@ def process_directory_cartesia(directory, rate=24000):
             print(f"Skipping {os.path.basename(md_file)}, {os.path.basename(wav_file)} already exists.")
             continue
             
-        print(f"Processing {os.path.basename(md_file)} with Cartesia...")
-        with open(md_file, 'r') as f:
-            content = f.read()
-            
-        # Parse voice mappings
-        speaker_to_voice_id = parse_speech_config_cartesia(content)
-        
-        # Determine default narrator voice (first defined, or Maya fallback)
-        default_voice_id = list(speaker_to_voice_id.values())[0] if speaker_to_voice_id else NAME_FALLBACK_MAP["narrator"]
-        
-        # Parse dialogue segments
-        segments = parse_transcript_segments(content, speaker_to_voice_id, default_voice_id)
-        print(f"  Parsed {len(segments)} narrative segments.")
-        
-        # Sequentially synthesize each segment and accumulate raw PCM data
-        accumulated_pcm = b""
-        success = True
-        
-        for idx, (voice_id, text) in enumerate(segments):
-            print(f"  Synthesizing segment {idx+1}/{len(segments)} (Voice ID: {voice_id[:8]}...): {text[:40]}...")
-            try:
-                segment_pcm = generate_segment_audio(api_key, text, voice_id, rate=rate)
-                accumulated_pcm += segment_pcm
-                # Short rest between segment API calls to respect rate limits
-                time.sleep(0.5)
-            except Exception as e:
-                print(f"  Failed to synthesize segment {idx+1}: {e}")
-                success = False
-                break
-                
-        if success and accumulated_pcm:
-            # Save accumulated PCM bytes as a unified WAV file
-            wave_file(wav_file, accumulated_pcm, rate=rate)
-            print(f"  Saved unified audio to {os.path.basename(wav_file)}")
-        else:
-            print(f"  Skipped saving WAV due to synthesis failure.")
+        process_file_cartesia(md_file, wav_file, api_key, rate=rate)
             
         # Brief sleep between files
         time.sleep(1)

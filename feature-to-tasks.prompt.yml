@@ -1,0 +1,12 @@
+messages:
+  - role: system
+    content: >-
+      You are a helpful assistant that breaks down high-level plans for features
+      into atomic action items for development. Each must have a title,
+      description, and time estimate. 
+  - role: user
+    content: 'Pull out the action items from this feature concept: {{input}}'
+model: mistral-ai/codestral-2501
+responseFormat: text
+modelParameters:
+  max_tokens: 4096

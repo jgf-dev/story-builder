@@ -14,6 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from storybuilder.analysis.compare_narratives import main
 
 
+
 class TestCompareNarratives(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()

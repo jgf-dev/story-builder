@@ -30,6 +30,8 @@ import textwrap
 from collections import Counter
 from pathlib import Path
 
+from storybuilder.downloader.db import search_all_partitions
+
 
 def connect(db_path: str) -> sqlite3.Connection:
     if not os.path.exists(db_path):
@@ -110,58 +112,37 @@ def _resolve_connection(args) -> "tuple[sqlite3.Connection, list[str] | None]":
 
 def cmd_search(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None):
     """Full-text search across titles, authors, and content."""
-    conditions = ["stories_fts MATCH ?"]
-    params = [args.query]
-
-    if args.author:
-        conditions.append("s.author_name LIKE ?")
-        params.append(f"%{args.author}%")
-    if args.category:
-        conditions.append("s.category = ?")
-        params.append(args.category)
-    if args.date_from:
-        conditions.append("s.publication_date >= ?")
-        params.append(args.date_from)
-    if args.date_to:
-        conditions.append("s.publication_date <= ?")
-        params.append(args.date_to)
-
-    where = " AND ".join(conditions)
 
     if db_paths:
         # Multi-DB: attach each database sequentially and merge results
-        all_rows = []
-        for db_path in db_paths:
-            conn.execute('ATTACH DATABASE ? AS curr_db', (db_path,))
-            table_ref = "curr_db.stories"
-            fts_ref = "curr_db.stories_fts"
-            sql = f"""
-                SELECT s.id, s.path, s.category, s.story_slug, s.chapter_num,
-                       s.title, s.author_name, s.publication_date,
-                       s.char_count, s.word_count,
-                       snippet({fts_ref}, 2, '<b>', '</b>', '…', 40) AS snippet
-                FROM {table_ref} s
-                JOIN {fts_ref} ON s.id = {fts_ref}.rowid
-                WHERE {where}
-                ORDER BY rank
-                LIMIT ?
-            """
-            try:
-                # Need explicit cursor to close it and release DB lock for DETACH
-                curs = conn.cursor()
-                rows = curs.execute(sql, params + [args.limit]).fetchall()
-                all_rows.extend(rows)
-                curs.close()
-            except sqlite3.OperationalError:
-                # DB may not have FTS table; skip
-                pass
-            finally:
-                conn.execute("DETACH DATABASE curr_db")
-
-        # Sort by a simple heuristic: prefer those with snippets, then by id
-        all_rows.sort(key=lambda r: (0 if r["snippet"] and "<b>" in (r["snippet"] or "") else 1, r["id"]))
-        rows = all_rows[:args.limit]
+        rows = search_all_partitions(
+            query=args.query,
+            category=args.category,
+            author=args.author,
+            date_from=args.date_from,
+            date_to=args.date_to,
+            limit=args.limit,
+            db_paths=db_paths
+        )
     else:
+        conditions = ["stories_fts MATCH ?"]
+        params = [args.query]
+
+        if args.author:
+            conditions.append("s.author_name LIKE ?")
+            params.append(f"%{args.author}%")
+        if args.category:
+            conditions.append("s.category = ?")
+            params.append(args.category)
+        if args.date_from:
+            conditions.append("s.publication_date >= ?")
+            params.append(args.date_from)
+        if args.date_to:
+            conditions.append("s.publication_date <= ?")
+            params.append(args.date_to)
+
+        where = " AND ".join(conditions)
+
         sql = f"""
             SELECT s.id, s.path, s.category, s.story_slug, s.chapter_num,
                    s.title, s.author_name, s.publication_date,

@@ -2376,15 +2376,10 @@ void main() {
 	vec2 endJoinDirection = normalize(currTangent - nextTangent);
 
 	// collapsed/unidirectional segment cases
-	// FIXME: there should be more elegant solution
-	vec2 prevTanDiff = abs(prevTangent - currTangent);
-	vec2 nextTanDiff = abs(nextTangent - currTangent);
-	if (max(prevTanDiff.x, prevTanDiff.y) < MIN_DIFF) {
-		startJoinDirection = currNormal;
-	}
-	if (max(nextTanDiff.x, nextTanDiff.y) < MIN_DIFF) {
-		endJoinDirection = currNormal;
-	}
+	float startIsCollapsed = step(max(abs(prevTangent.x - currTangent.x), abs(prevTangent.y - currTangent.y)), MIN_DIFF);
+	float endIsCollapsed = step(max(abs(nextTangent.x - currTangent.x), abs(nextTangent.y - currTangent.y)), MIN_DIFF);
+	startJoinDirection = mix(startJoinDirection, currNormal, startIsCollapsed);
+	endJoinDirection = mix(endJoinDirection, currNormal, endIsCollapsed);
 	if (aCoord == bCoord) {
 		endJoinDirection = startJoinDirection;
 		currNormal = prevNormal;

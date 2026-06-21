@@ -134,12 +134,14 @@ def main():
 
     processed_stories = 0
 
+    cursor.execute("SELECT story_dir FROM stories")
+    processed_story_dirs = {row[0] for row in cursor.fetchall()}
+
     for story_dir, filepaths in multi_stories.items():
         if processed_stories >= args.limit_stories:
             break
 
-        cursor.execute("SELECT id FROM stories WHERE story_dir = ?", (story_dir,))
-        if cursor.fetchone():
+        if story_dir in processed_story_dirs:
             print(f"Skipping already processed story: {story_dir}")
             continue
 

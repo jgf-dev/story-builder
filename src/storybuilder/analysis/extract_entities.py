@@ -8,7 +8,17 @@ from thinc.api import require_gpu, set_gpu_allocator
 from tqdm import tqdm
 
 DB_PATH = "nlp_analysis.db"
-ALLOWED_LABELS = {"PERSON", "NORP", "GPE", "LOC", "ORG", "FAC", "EVENT", "PRODUCT", "WORK_OF_ART"}
+ALLOWED_LABELS = {
+    "PERSON",
+    "NORP",
+    "GPE",
+    "LOC",
+    "ORG",
+    "FAC",
+    "EVENT",
+    "PRODUCT",
+    "WORK_OF_ART",
+}
 
 
 def init_db(db_path):
@@ -44,13 +54,33 @@ def is_processed(cursor, filepath):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Extract Named Entities from stories using spaCy.")
-    parser.add_argument("--limit", type=int, default=float("inf"), help="Maximum number of new files to process.")
-    parser.add_argument("--stories-dir", type=str, default="nifty_stories", help="Directory containing the text files.")
-    parser.add_argument("--db-path", type=str, default=DB_PATH, help="Path to the SQLite database.")
-    parser.add_argument("--force", action="store_true", help="Force reprocessing of all files.")
-    parser.add_argument("--model", type=str, default="en_core_web_lg", help="spaCy model to use.")
-    parser.add_argument("--gpu", action="store_true", default=True, help="Use GPU for spaCy model.")
+    parser = argparse.ArgumentParser(
+        description="Extract Named Entities from stories using spaCy."
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=float("inf"),
+        help="Maximum number of new files to process.",
+    )
+    parser.add_argument(
+        "--stories-dir",
+        type=str,
+        default="nifty_stories",
+        help="Directory containing the text files.",
+    )
+    parser.add_argument(
+        "--db-path", type=str, default=DB_PATH, help="Path to the SQLite database."
+    )
+    parser.add_argument(
+        "--force", action="store_true", help="Force reprocessing of all files."
+    )
+    parser.add_argument(
+        "--model", type=str, default="en_core_web_lg", help="spaCy model to use."
+    )
+    parser.add_argument(
+        "--gpu", action="store_true", default=True, help="Use GPU for spaCy model."
+    )
     args = parser.parse_args()
 
     print("Initializing database...")
@@ -76,7 +106,9 @@ def main():
         nlp.add_pipe("merge_entities")
         nlp.max_length = 5000000
     except OSError:
-        print("Model 'en_core_web_sm' not found. Please run: python -m spacy download en_core_web_sm")
+        print(
+            "Model 'en_core_web_sm' not found. Please run: python -m spacy download en_core_web_sm"
+        )
         return
 
     all_files = list(Path(args.stories_dir).rglob("*.txt"))
@@ -96,12 +128,19 @@ def main():
                 text = f.read()
 
             doc = nlp(text)
-            entities = Counter((ent.text.strip(), ent.label_) for ent in doc.ents if ent.label_ in ALLOWED_LABELS and ent.text.strip())
+            entities = Counter(
+                (ent.text.strip(), ent.label_)
+                for ent in doc.ents
+                if ent.label_ in ALLOWED_LABELS and ent.text.strip()
+            )
 
             cursor.execute("INSERT INTO stories (filepath) VALUES (?)", (filepath_str,))
             story_id = cursor.lastrowid
 
-            entity_records = [(story_id, text, label, count) for (text, label), count in entities.items()]
+            entity_records = [
+                (story_id, text, label, count)
+                for (text, label), count in entities.items()
+            ]
 
             cursor.executemany(
                 """

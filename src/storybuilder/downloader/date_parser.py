@@ -1,6 +1,41 @@
 import datetime
 import re
 
+def _adjust_year(dt, reference_date):
+    year = reference_date.year
+    dt = dt.replace(year=year)
+    if dt > reference_date:
+        dt = dt.replace(year=year - 1)
+    return dt
+
+def _parse_with_year(date_str):
+    for fmt in ("%b %d %Y", "%B %d %Y"):
+        try:
+            dt = datetime.datetime.strptime(date_str, fmt)
+            return dt.date()
+        except ValueError:
+            continue
+    return None
+
+def _parse_with_time(date_str, reference_date):
+    for fmt in ("%b %d %H:%M", "%B %d %H:%M"):
+        try:
+            dt = datetime.datetime.strptime(date_str, fmt)
+            return _adjust_year(dt, reference_date).date()
+        except ValueError:
+            continue
+    return None
+
+def _parse_fallback(date_str, reference_date):
+    try:
+        match = re.match(r"^([a-zA-Z]+)\s+(\d+)$", date_str)
+        if match:
+            mon, day = match.groups()
+            dt = datetime.datetime.strptime(f"{mon} {day}", "%b %d")
+            return _adjust_year(dt, reference_date).date()
+    except ValueError:
+        pass
+    return None
 
 def parse_nifty_date(date_str, reference_date=None):
     """
@@ -20,43 +55,14 @@ def parse_nifty_date(date_str, reference_date=None):
 
     date_str = " ".join(date_str.strip().split())  # Normalize whitespace
 
-    # Try parsing with year (MMM DD YYYY)
-    for fmt in ("%b %d %Y", "%B %d %Y"):
-        try:
-            dt = datetime.datetime.strptime(date_str, fmt)
-            return dt.date()
-        except ValueError:
-            continue
+    result = _parse_with_year(date_str)
+    if result: return result
 
-    # Try parsing with time (MMM DD HH:MM)
-    for fmt in ("%b %d %H:%M", "%B %d %H:%M"):
-        try:
-            dt = datetime.datetime.strptime(date_str, fmt)
-            # Impute current year
-            year = reference_date.year
-            dt = dt.replace(year=year)
-            # If the date is in the future, it belongs to the previous year
-            if dt > reference_date:
-                dt = dt.replace(year=year - 1)
-            return dt.date()
-        except ValueError:
-            continue
+    result = _parse_with_time(date_str, reference_date)
+    if result: return result
 
-    # Fallback to try matching just month and day if time parsing failed
-    # (e.g. sometimes it might just be 'Jun 6')
-    try:
-        # Match 'MMM DD'
-        match = re.match(r"^([a-zA-Z]+)\s+(\d+)$", date_str)
-        if match:
-            mon, day = match.groups()
-            dt = datetime.datetime.strptime(f"{mon} {day}", "%b %d")
-            year = reference_date.year
-            dt = dt.replace(year=year)
-            if dt > reference_date:
-                dt = dt.replace(year=year - 1)
-            return dt.date()
-    except ValueError:
-        pass
+    result = _parse_fallback(date_str, reference_date)
+    if result: return result
 
     print(f"Warning: Could not parse date string '{date_str}'")
     return None

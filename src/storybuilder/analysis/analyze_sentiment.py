@@ -189,22 +189,32 @@ def main():
                     except Exception:
                         sentiments.append({"label": "neutral", "score": 0.0})
 
+            cursor.execute("SELECT MAX(id) FROM sentences")
+            row = cursor.fetchone()
+            last_id_before = row[0] if row[0] is not None else 0
+
+            sentence_batch = []
+            entity_batch = []
+
             for sent_idx, (sent, sent_result) in enumerate(zip(sentences, sentiments)):
                 score = get_sentiment_value(sent_result)
+                sentence_batch.append((story_id, filepath.name, chapter_idx, sent_idx, sent.text, score))
 
-                cursor.execute("""
-                    INSERT INTO sentences (story_id, chapter_filename, chapter_index, sentence_index, text, sentiment_score)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                """, (story_id, filepath.name, chapter_idx, sent_idx, sent.text, score))
-
-                sentence_id = cursor.lastrowid
-
+                sentence_id = last_id_before + 1 + sent_idx
                 for ent in sent.ents:
                     if ent.label_ in ALLOWED_LABELS:
-                        cursor.execute("""
-                            INSERT INTO sentence_entities (sentence_id, entity_text, entity_label)
-                            VALUES (?, ?, ?)
-                        """, (sentence_id, ent.text, ent.label_))
+                        entity_batch.append((sentence_id, ent.text, ent.label_))
+
+            cursor.executemany("""
+                INSERT INTO sentences (story_id, chapter_filename, chapter_index, sentence_index, text, sentiment_score)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, sentence_batch)
+
+            if entity_batch:
+                cursor.executemany("""
+                    INSERT INTO sentence_entities (sentence_id, entity_text, entity_label)
+                    VALUES (?, ?, ?)
+                """, entity_batch)
 
             conn.commit()
 

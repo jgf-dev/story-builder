@@ -144,9 +144,7 @@ def init_db(db_path: str) -> "sqlite3.Connection":
     """Initialize the database (idempotent). Returns the connection."""
     global _conn, _is_partitioned, _db_dir
 
-    is_dir = os.path.isdir(db_path) or (
-        not db_path.endswith(".db") and not Path(db_path).suffix
-    )
+    is_dir = os.path.isdir(db_path) or (not db_path.endswith(".db") and not Path(db_path).suffix)
 
     if is_dir:
         os.makedirs(db_path, exist_ok=True)
@@ -283,9 +281,7 @@ def story_exists(output_path: str, story_date: str) -> bool:
         return False
     with _lock:
         try:
-            cursor = conn.execute(
-                "SELECT 1 FROM stories WHERE path = ?", (output_path,)
-            )
+            cursor = conn.execute("SELECT 1 FROM stories WHERE path = ?", (output_path,))
             return cursor.fetchone() is not None
         except Exception:
             return False
@@ -338,8 +334,7 @@ def optimize_fts_all(db_dir: str) -> None:
             conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
             conn.commit()
         except sqlite3.OperationalError:
-            # Best-effort optimization: skip databases that do not support FTS optimize.
-            continue
+            pass
         finally:
             if conn:
                 conn.close()
@@ -369,9 +364,7 @@ def optimize_fts() -> None:
         # SQLite FTS optimize can be CPU/IO intensive.
         # Using a ThreadPoolExecutor prevents holding the global _lock
         # and blocking other inserts during long optimize operations.
-        with concurrent.futures.ThreadPoolExecutor(
-            max_workers=min(len(conns), 10)
-        ) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(conns), 10)) as executor:
             list(executor.map(_opt, conns))
 
 

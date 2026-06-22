@@ -20,20 +20,8 @@ def wave_file(filename, pcm, channels=1, rate=24000, sample_width=2):
         wf.writeframes(pcm)
 
 
-def parse_speech_config(markdown_content):
-    """Parses the markdown content to extract speakers and voices, dynamically matching active speakers in the transcript."""
-    # 1. Parse all voice mappings defined in the preamble
+def _parse_voice_mappings(preamble):
     speaker_to_voice = {}
-    preamble = ""
-    transcript = ""
-
-    parts = markdown_content.split("#### TRANSCRIPT")
-    if len(parts) == 2:
-        preamble, transcript = parts[0], parts[1]
-    else:
-        preamble = markdown_content
-        transcript = ""
-
     for line in preamble.split("\n"):
         line = line.strip()
         if line.startswith("*") or line.startswith("-"):
@@ -42,8 +30,10 @@ def parse_speech_config(markdown_content):
                 speaker = match.group(1)
                 voice = match.group(2)
                 speaker_to_voice[speaker] = voice
+    return speaker_to_voice, list(speaker_to_voice.keys())
 
-    # 2. Extract active speakers actually speaking in the transcript (in order of appearance)
+
+def _extract_active_speakers(transcript):
     active_speakers = []
     for line in transcript.split("\n"):
         line = line.strip()
@@ -52,8 +42,10 @@ def parse_speech_config(markdown_content):
             sp = match.group(1)
             if sp not in active_speakers:
                 active_speakers.append(sp)
+    return active_speakers
 
-    # 3. Build speech_config using the active speakers
+
+def _build_speech_config(active_speakers, speaker_to_voice):
     speech_config = []
     for sp in active_speakers:
         if sp in speaker_to_voice:
@@ -77,6 +69,20 @@ def parse_speech_config(markdown_content):
         speech_config.append({"speaker": "Dummy", "voice": "Puck"})
 
     return speech_config
+
+
+def parse_speech_config(markdown_content):
+    """Parses the markdown content to extract speakers and voices, dynamically matching active speakers in the transcript."""
+    parts = markdown_content.split("#### TRANSCRIPT")
+    if len(parts) == 2:
+        preamble, transcript = parts[0], parts[1]
+    else:
+        preamble = markdown_content
+        transcript = ""
+
+    speaker_to_voice, _ = _parse_voice_mappings(preamble)
+    active_speakers = _extract_active_speakers(transcript)
+    return _build_speech_config(active_speakers, speaker_to_voice)
 
 
 def get_gemini_api_keys():

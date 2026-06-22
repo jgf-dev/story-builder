@@ -24,15 +24,15 @@ class TestDashboard(unittest.TestCase):
         self.temp_dir = tempfile.mkdtemp()
         self.db_dir = os.path.join(self.temp_dir, "db")
         os.makedirs(self.db_dir, exist_ok=True)
-        
+
         self.nlp_db_path = os.path.join(self.temp_dir, "nlp_analysis.db")
         self.meta_db_path = os.path.join(self.temp_dir, "dashboard_metadata.db")
-        
+
         # Patch paths inside dashboard
         self.patch_dir = patch("dashboard.DB_DIR", self.db_dir)
         self.patch_nlp = patch("dashboard.NLP_DB_PATH", self.nlp_db_path)
         self.patch_meta = patch("dashboard.META_DB_PATH", self.meta_db_path)
-        
+
         self.patch_dir.start()
         self.patch_nlp.start()
         self.patch_meta.start()
@@ -43,13 +43,16 @@ class TestDashboard(unittest.TestCase):
         self.patch_meta.stop()
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def _create_mock_partition(self, year, category, title, author, date, word_count, path, content):
+    def _create_mock_partition(
+        self, year, category, title, author, date, word_count, path, content
+    ):
         from storybuilder.downloader.db import SCHEMA, INDEXES
+
         db_path = os.path.join(self.db_dir, f"{year}.db")
         conn = sqlite3.connect(db_path)
         conn.executescript(SCHEMA)
         conn.executescript(INDEXES)
-        
+
         # Insert test story
         conn.execute(
             """
@@ -59,7 +62,17 @@ class TestDashboard(unittest.TestCase):
             )
             VALUES (?, 'gay', ?, ?, 1, ?, ?, 'test@email.com', ?, 'http://test', ?, ?, ?)
             """,
-            (path, category, Path(path).stem, title, author, date, len(content), word_count, content)
+            (
+                path,
+                category,
+                Path(path).stem,
+                title,
+                author,
+                date,
+                len(content),
+                word_count,
+                content,
+            ),
         )
         conn.commit()
         conn.close()
@@ -87,50 +100,63 @@ class TestDashboard(unittest.TestCase):
             )
             """
         )
-        conn.execute("INSERT OR REPLACE INTO stories (filepath) VALUES (?)", (filepath,))
-        story_id = conn.execute("SELECT id FROM stories WHERE filepath = ?", (filepath,)).fetchone()[0]
+        conn.execute(
+            "INSERT OR REPLACE INTO stories (filepath) VALUES (?)", (filepath,)
+        )
+        story_id = conn.execute(
+            "SELECT id FROM stories WHERE filepath = ?", (filepath,)
+        ).fetchone()[0]
         conn.execute(
             "INSERT INTO entities (story_id, text, label, frequency) VALUES (?, ?, ?, 1)",
-            (story_id, text, label)
+            (story_id, text, label),
         )
         conn.commit()
         conn.close()
 
     def test_get_db_files(self):
         from dashboard import get_db_files
+
         self.assertEqual(get_db_files(), [])
-        
+
         # Create mock db files
         open(os.path.join(self.db_dir, "2025.db"), "w").close()
         open(os.path.join(self.db_dir, "2026.db"), "w").close()
-        
+
         files = [os.path.basename(f) for f in get_db_files()]
         self.assertEqual(files, ["2025.db", "2026.db"])
 
     def test_favorites_crud(self):
         from dashboard import add_favorite, remove_favorite, get_favorites
-        
+
         # Initial empty
         self.assertEqual(get_favorites(), [])
-        
+
         # Add favorite
-        success = add_favorite("test_path.txt", "Test Story", "Test Author", "tag1,tag2", "Some notes")
+        success = add_favorite(
+            "test_path.txt", "Test Story", "Test Author", "tag1,tag2", "Some notes"
+        )
         self.assertTrue(success)
-        
+
         favs = get_favorites()
         self.assertEqual(len(favs), 1)
         self.assertEqual(favs[0]["story_path"], "test_path.txt")
         self.assertEqual(favs[0]["title"], "Test Story")
         self.assertEqual(favs[0]["tags"], "tag1,tag2")
         self.assertEqual(favs[0]["notes"], "Some notes")
-        
+
         # Update favorite
-        success_update = add_favorite("test_path.txt", "Test Story", "Test Author", "tag1,tag2,tag3", "Updated notes")
+        success_update = add_favorite(
+            "test_path.txt",
+            "Test Story",
+            "Test Author",
+            "tag1,tag2,tag3",
+            "Updated notes",
+        )
         self.assertTrue(success_update)
         favs = get_favorites()
         self.assertEqual(favs[0]["tags"], "tag1,tag2,tag3")
         self.assertEqual(favs[0]["notes"], "Updated notes")
-        
+
         # Remove favorite
         success_remove = remove_favorite("test_path.txt")
         self.assertTrue(success_remove)
@@ -138,7 +164,7 @@ class TestDashboard(unittest.TestCase):
 
     def test_query_stories_metadata(self):
         from dashboard import query_stories
-        
+
         # Create stories in different partitions
         self._create_mock_partition(
             year=2025,
@@ -148,9 +174,9 @@ class TestDashboard(unittest.TestCase):
             date="2025-05-10",
             word_count=500,
             path="nifty_stories/gay/college/story1.txt",
-            content="This is the content of story one."
+            content="This is the content of story one.",
         )
-        
+
         self._create_mock_partition(
             year=2026,
             category="athletics",
@@ -159,26 +185,26 @@ class TestDashboard(unittest.TestCase):
             date="2026-06-12",
             word_count=1200,
             path="nifty_stories/gay/athletics/story2.txt",
-            content="This is the content of story two containing werewolf words."
+            content="This is the content of story two containing werewolf words.",
         )
-        
+
         # Browse all
         results = query_stories()
         self.assertEqual(len(results), 2)
         # Results should be sorted by date desc
         self.assertEqual(results[0]["title"], "2026 Story Title")
         self.assertEqual(results[1]["title"], "2025 Story Title")
-        
+
         # Filter by category
         res_cat = query_stories(category="college")
         self.assertEqual(len(res_cat), 1)
         self.assertEqual(res_cat[0]["title"], "2025 Story Title")
-        
+
         # Filter by author
         res_auth = query_stories(author="Author Beta")
         self.assertEqual(len(res_auth), 1)
         self.assertEqual(res_auth[0]["title"], "2026 Story Title")
-        
+
         # Filter by year range
         res_year = query_stories(year_range=(2025, 2025))
         self.assertEqual(len(res_year), 1)
@@ -186,7 +212,7 @@ class TestDashboard(unittest.TestCase):
 
     def test_query_stories_fts(self):
         from dashboard import query_stories
-        
+
         self._create_mock_partition(
             year=2026,
             category="athletics",
@@ -195,21 +221,21 @@ class TestDashboard(unittest.TestCase):
             date="2026-06-12",
             word_count=1200,
             path="nifty_stories/gay/athletics/story2.txt",
-            content="This is the content of story two containing werewolf words."
+            content="This is the content of story two containing werewolf words.",
         )
-        
+
         # FTS query match
         res_fts = query_stories(fts_query="werewolf")
         self.assertEqual(len(res_fts), 1)
         self.assertEqual(res_fts[0]["title"], "Wolverine vs Werewolf")
-        
+
         # FTS query no match
         res_no_match = query_stories(fts_query="vampire")
         self.assertEqual(len(res_no_match), 0)
 
     def test_query_stories_with_entities(self):
         from dashboard import query_stories
-        
+
         story_path = "nifty_stories/gay/college/story1.txt"
         self._create_mock_partition(
             year=2025,
@@ -219,22 +245,22 @@ class TestDashboard(unittest.TestCase):
             date="2025-05-10",
             word_count=500,
             path=story_path,
-            content="This is a story about Jordi Santos."
+            content="This is a story about Jordi Santos.",
         )
-        
+
         # Create NLP entries
         # Path inside NLP db starts with test_stories, but we normalize
         self._create_mock_nlp_db(
             filepath="test_stories/gay/college/story1.txt",
             text="Jordi Santos",
-            label="PERSON"
+            label="PERSON",
         )
-        
+
         # Filter by entity text & label
         res_ent = query_stories(entity_text="Jordi", entity_label="PERSON")
         self.assertEqual(len(res_ent), 1)
         self.assertEqual(res_ent[0]["title"], "College Romance")
-        
+
         # Filter by non-existent entity
         res_ent_none = query_stories(entity_text="Bram Stoker", entity_label="PERSON")
         self.assertEqual(len(res_ent_none), 0)

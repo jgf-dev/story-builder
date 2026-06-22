@@ -19,9 +19,10 @@ from google.adk.agents import LlmAgent
 from google.adk.artifacts.in_memory_artifact_service import InMemoryArtifactService
 from google.adk.memory.vertex_ai_memory_bank_service import VertexAiMemoryBankService
 from google.adk.models import Gemini
-from google.adk.planners import BuiltInPlanner
 from google.adk.runners import Runner
-from google.adk.sessions import DatabaseSessionService, InMemorySessionService, VertexAiSessionService
+from google.adk.sessions import (
+    DatabaseSessionService,
+)
 from google.adk.telemetry.setup import maybe_set_otel_providers
 from google.genai import Client, types
 from pydantic import BaseModel, Field
@@ -30,11 +31,15 @@ from pydantic.types import NonNegativeInt
 from .prompts import get_prompt
 from .tools import list_stories, read_story, split_scene_files, write_scene_file
 
-dotenv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", ".env"))
+dotenv_path = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", ".env")
+)
 load_dotenv(dotenv_path)
 
 warnings.filterwarnings("ignore")
-logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s")
+logging.basicConfig(
+    level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+)
 
 os.environ["OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"] = "true"
 
@@ -96,11 +101,21 @@ class CharacterSchema(BaseModel):
     name: CharacterName
     role: str = Field(default="", description="The role of the character.")
     voice: str = Field(default="", description="The voice to use for the character.")
-    voice_archetype: str = Field(default="", description="The voice archetype of the character.")
-    recommended_voice: str = Field(default="", description="The recommended voice for the character.")
-    vocal_qualities: str = Field(default="", description="The vocal qualities of the character.")
-    personality_in_brief: str = Field(default="", description="The personality of the character in brief.")
-    emotional_range: str = Field(default="", description="The emotional range of the character.")
+    voice_archetype: str = Field(
+        default="", description="The voice archetype of the character."
+    )
+    recommended_voice: str = Field(
+        default="", description="The recommended voice for the character."
+    )
+    vocal_qualities: str = Field(
+        default="", description="The vocal qualities of the character."
+    )
+    personality_in_brief: str = Field(
+        default="", description="The personality of the character in brief."
+    )
+    emotional_range: str = Field(
+        default="", description="The emotional range of the character."
+    )
 
 
 class StorySchema(BaseModel):
@@ -134,11 +149,20 @@ class SceneSchema(BaseModel):
     scene_number: NonNegativeInt = Field(default=0, description="The scene number.")
     scene_title: str = Field(description="The title of the scene.")
     location: str = Field(description="The location of the scene.")
-    characters_present: list[CharacterName] = Field(min_items=1, description="The characters present in the scene.")
+    characters_present: list[CharacterName] = Field(
+        min_items=1, description="The characters present in the scene."
+    )
     emotional_tone: str = Field(description="The emotional tone of the scene.")
-    intimacy_level: IntimacyLevel = Field(default=IntimacyLevel.NONE, description="The intimacy level of the scene.")
-    key_events: list[str] = Field(min_items=1, description="The key events of the scene.")
-    pacing_notes: PacingNotes = Field(default=PacingNotes.CONVERSATIONAL, description="The pacing notes for the scene.")
+    intimacy_level: IntimacyLevel = Field(
+        default=IntimacyLevel.NONE, description="The intimacy level of the scene."
+    )
+    key_events: list[str] = Field(
+        min_items=1, description="The key events of the scene."
+    )
+    pacing_notes: PacingNotes = Field(
+        default=PacingNotes.CONVERSATIONAL,
+        description="The pacing notes for the scene.",
+    )
     start_marker: str = Field(description="The start marker for the scene.")
     end_marker: str = Field(description="The end marker for the scene.")
 
@@ -146,16 +170,26 @@ class SceneSchema(BaseModel):
 class VoiceInteractionNotesSchema(BaseModel):
     """Schema for voice interaction notes."""
 
-    dialogue_heavy_scenes: list[str] = Field(default=[], description="The dialogue-heavy scenes.")
-    narrator_heavy_scenes: list[str] = Field(default=[], description="The narrator-heavy scenes.")
-    emotional_transitions: list[str] = Field(default=[], description="The emotional transitions.")
+    dialogue_heavy_scenes: list[str] = Field(
+        default=[], description="The dialogue-heavy scenes."
+    )
+    narrator_heavy_scenes: list[str] = Field(
+        default=[], description="The narrator-heavy scenes."
+    )
+    emotional_transitions: list[str] = Field(
+        default=[], description="The emotional transitions."
+    )
 
 
 class SceneAnalysisSchema(BaseModel):
     """Schema for scene analysis output."""
 
-    scenes: list[SceneSchema] = Field(min_items=1, description="The scenes in the story.")
-    voice_interaction_notes: VoiceInteractionNotesSchema = Field(description="The voice interaction notes.")
+    scenes: list[SceneSchema] = Field(
+        min_items=1, description="The scenes in the story."
+    )
+    voice_interaction_notes: VoiceInteractionNotesSchema = Field(
+        description="The voice interaction notes."
+    )
 
 
 class Genre(str, Enum):
@@ -197,11 +231,16 @@ class StoryAnalysisSchema(BaseModel):
     """Schema for story analysis output."""
 
     title: str = Field(description="The title of the story.")
-    genre_tone: list[Genre] = Field(min_items=1, description="The genres and tones of the story. Use as many as appropriate.")
+    genre_tone: list[Genre] = Field(
+        min_items=1,
+        description="The genres and tones of the story. Use as many as appropriate.",
+    )
     setting: str = Field(description="The setting of the story.")
     narrative_voice: str = Field(description="The narrative voice of the story.")
     emotional_arc: str = Field(description="The emotional arc of the story.")
-    characters: list[CharacterSchema] = Field(min_items=1, description="The characters in the story.")
+    characters: list[CharacterSchema] = Field(
+        min_items=1, description="The characters in the story."
+    )
     scene_analysis: SceneAnalysisSchema = Field(description="The scene analysis.")
 
 
@@ -215,7 +254,9 @@ story_analyzer = LlmAgent(
         "scene writer."
     ),
     instruction=get_prompt("story-analyzer"),
-    generate_content_config=types.GenerateContentConfig(safety_settings=safety_settings),
+    generate_content_config=types.GenerateContentConfig(
+        safety_settings=safety_settings
+    ),
     mode="single_turn",
     output_key="story-analysis",
     input_schema=StorySchema,
@@ -242,7 +283,9 @@ class PromptFileSchema(BaseModel):
 class PromptFilesOutputSchema(BaseModel):
     """Schema for scene prompt files output."""
 
-    prompt_files: list[PromptFileSchema] = Field(min_items=1, description="The prompt files.")
+    prompt_files: list[PromptFileSchema] = Field(
+        min_items=1, description="The prompt files."
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -258,7 +301,9 @@ scene_writer = LlmAgent(
         "TRANSCRIPT sections. Outputs delimited scene file blocks."
     ),
     instruction=get_prompt("scene-writer"),
-    generate_content_config=types.GenerateContentConfig(safety_settings=safety_settings),
+    generate_content_config=types.GenerateContentConfig(
+        safety_settings=safety_settings
+    ),
     mode="single_turn",
     output_key="scene-prompts",
     input_schema=ScenePromptWriterInputSchema,
@@ -275,7 +320,9 @@ root_agent = LlmAgent(
     model=GlobalGemini(model="gemini-3.5-flash"),
     description="Root orchestrator for the TTS prompt crafter pipeline.",
     instruction=get_prompt("tts-prompt-crafter"),
-    generate_content_config=types.GenerateContentConfig(safety_settings=safety_settings),
+    generate_content_config=types.GenerateContentConfig(
+        safety_settings=safety_settings
+    ),
     sub_agents=[story_analyzer, scene_writer],
     tools=[read_story, list_stories, write_scene_file, split_scene_files],
 )
@@ -309,4 +356,6 @@ runner = Runner(
 
 print(f"Runner created for agent '{runner.agent.name}'.")
 print(f"  Sub-agents: {story_analyzer.name}, {scene_writer.name}")
-print(f"  Function tools: {read_story.__name__}, {list_stories.__name__}, {write_scene_file.__name__}, {split_scene_files.__name__}")
+print(
+    f"  Function tools: {read_story.__name__}, {list_stories.__name__}, {write_scene_file.__name__}, {split_scene_files.__name__}"
+)

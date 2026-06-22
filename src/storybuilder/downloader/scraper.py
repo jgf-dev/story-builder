@@ -127,14 +127,13 @@ def scrape_subcategory(sub_url, start_date, end_date, delay, force_scan=False):
         cached_stories = cached_entry.get("stories", [])
         is_complete = cached_entry.get("complete", False)
 
-    # Calculate min_cached_date (oldest cached story date)
-    min_cached_date = None
+    # Validate oldest cached story date format (non-fatal on malformed cache entries)
     if cached_stories:
         try:
             # Assumes stories are sorted descending (latest first), so the last one is the oldest
-            min_cached_date = datetime.datetime.strptime(cached_stories[-1]["date"], "%Y-%m-%d").date()
+            datetime.datetime.strptime(cached_stories[-1]["date"], "%Y-%m-%d").date()
         except (KeyError, ValueError, TypeError, IndexError) as e:
-            # Non-fatal: malformed cache entries should not stop scraping; fallback is min_cached_date=None.
+            # Non-fatal: malformed cache entries should not stop scraping.
             safe_print(f"[WARN] Failed to parse cached story date for {sub_url}: {e}")
 
     # We only use cache-hit early-stop if we are not forcing a scan and the cache is marked complete.

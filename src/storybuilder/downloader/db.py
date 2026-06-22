@@ -334,6 +334,8 @@ def optimize_fts() -> None:
             conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
             conn.commit()
         except sqlite3.OperationalError:
+            # Best-effort maintenance operation: ignore per-connection optimize
+            # failures so search optimization does not interrupt normal writes.
             pass
 
     if conns:

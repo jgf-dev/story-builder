@@ -197,6 +197,7 @@ class TestGenerateEmbeddings(unittest.TestCase):
                 return mock_chunks_collection
             elif name == "story_averages":
                 return mock_averages_collection
+            return None
 
         mock_client.get_or_create_collection.side_effect = side_effect
 

@@ -11,27 +11,49 @@ from tqdm import tqdm
 def get_chunks(text, chunk_size=200):
     """Splits text into chunks of approximately `chunk_size` words."""
     words = text.split()
-    return [" ".join(words[i: i + chunk_size]) for i in range(0, len(words), chunk_size)]
+    return [
+        " ".join(words[i : i + chunk_size]) for i in range(0, len(words), chunk_size)
+    ]
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate embeddings for stories and store in ChromaDB.")
-    parser.add_argument("--limit", type=int, default=float("inf"), help="Maximum number of files to process.")
-    parser.add_argument("--stories-dir", type=str, default="test_stories", help="Directory containing the text files.")
-    parser.add_argument("--db-path", type=str, default="./chroma_db", help="Path to the Chroma database.")
-    parser.add_argument("--model", type=str, default="all-MiniLM-L6-v2", help="SentenceTransformer model to use.")
+    parser = argparse.ArgumentParser(
+        description="Generate embeddings for stories and store in ChromaDB."
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=float("inf"),
+        help="Maximum number of files to process.",
+    )
+    parser.add_argument(
+        "--stories-dir",
+        type=str,
+        default="test_stories",
+        help="Directory containing the text files.",
+    )
+    parser.add_argument(
+        "--db-path",
+        type=str,
+        default="./chroma_db",
+        help="Path to the Chroma database.",
+    )
+    parser.add_argument(
+        "--model",
+        type=str,
+        default="all-MiniLM-L6-v2",
+        help="SentenceTransformer model to use.",
+    )
     args = parser.parse_args()
 
     chroma_client = chromadb.PersistentClient(path=args.db_path)
 
     collection_chunks = chroma_client.get_or_create_collection(
-        name="story_chunks",
-        metadata={"hnsw:space": "cosine"}
+        name="story_chunks", metadata={"hnsw:space": "cosine"}
     )
 
     collection_averages = chroma_client.get_or_create_collection(
-        name="story_averages",
-        metadata={"hnsw:space": "cosine"}
+        name="story_averages", metadata={"hnsw:space": "cosine"}
     )
 
     print(f"Loading SentenceTransformer model: {args.model}")
@@ -61,15 +83,19 @@ def main():
             if not chunks:
                 continue
 
-            chunk_embeddings = model.encode(chunks, convert_to_numpy=True, show_progress_bar=False)
+            chunk_embeddings = model.encode(
+                chunks, convert_to_numpy=True, show_progress_bar=False
+            )
             chunk_ids = [f"{story_id}_chunk_{i}" for i in range(len(chunks))]
-            chunk_metadatas = [{"story_id": story_id, "chunk_index": i} for i in range(len(chunks))]
+            chunk_metadatas = [
+                {"story_id": story_id, "chunk_index": i} for i in range(len(chunks))
+            ]
 
             collection_chunks.add(
                 ids=chunk_ids,
                 embeddings=chunk_embeddings.tolist(),
                 documents=chunks,
-                metadatas=chunk_metadatas
+                metadatas=chunk_metadatas,
             )
 
             avg_embedding = np.mean(chunk_embeddings, axis=0)
@@ -78,7 +104,7 @@ def main():
                 ids=[story_id],
                 embeddings=[avg_embedding.tolist()],
                 documents=[""],
-                metadatas=[{"filepath": filepath_str}]
+                metadatas=[{"filepath": filepath_str}],
             )
 
             processed_count += 1

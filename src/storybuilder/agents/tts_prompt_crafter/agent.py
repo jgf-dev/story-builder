@@ -49,6 +49,9 @@ os.environ["OTEL_SERVICE_NAME"] = "story-builder"
 
 maybe_set_otel_providers()
 
+logger = logging.getLogger(__name__)
+
+
 # ---------------------------------------------------------------------------
 # Safety Settings — all categories set to OFF for explicit content support
 # ---------------------------------------------------------------------------

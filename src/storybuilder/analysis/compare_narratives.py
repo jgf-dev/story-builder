@@ -91,7 +91,7 @@ def main():
     for i in range(args.clusters):
         cluster_arcs = X[labels == i]
         mean_arc = cluster_arcs.mean(axis=0)
-        std_arc = cluster_arcs.std(axis=0)
+        cluster_arcs.std(axis=0)
 
         x_vals = np.arange(100)
 

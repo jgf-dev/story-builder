@@ -126,39 +126,6 @@ def list_stories(directory: str | None = None) -> str:
     return "\n".join(files)
 
 
-def _get_validated_output_dir(story_path: str) -> tuple[str | None, str | None]:
-    """Validate story_path and return (output_dir, error_message)."""
-    output_dir = _resolve_output_dir(story_path)
-    if not output_dir:
-        if os.path.sep in story_path or (
-            os.path.altsep and os.path.altsep in story_path
-        ):
-            return (
-                None,
-                f"Error: story_path must be an absolute path. Got: {story_path}",
-            )
-        return None, f"Error: Could not resolve output directory for {story_path}"
-    return output_dir, None
-
-
-def _format_split_results(output_dir: str) -> str:
-    """Format the results of split_prompts for the ADK agent."""
-    part_files = sorted(glob.glob(os.path.join(output_dir, "*-part.md")))
-    archived = sorted(glob.glob(os.path.join(output_dir, "archive", "*-scene*.md")))
-
-    result_lines = [
-        f"Split complete. Generated {len(part_files)} part file(s):",
-    ]
-    for pf in part_files:
-        result_lines.append(f"  - {os.path.basename(pf)}")
-    if archived:
-        result_lines.append(
-            f"Archived {len(archived)} original scene file(s) to output/archive/"
-        )
-
-    return "\n".join(result_lines)
-
-
 def write_scene_file(story_path: str, filename: str, content: str) -> str:
     """Write a TTS scene prompt file to the resolved output directory.
 
@@ -176,15 +143,22 @@ def write_scene_file(story_path: str, filename: str, content: str) -> str:
     Returns:
         A confirmation message with the path of the written file.
     """
-    output_dir, error = _get_validated_output_dir(story_path)
-    if error:
-        return error
+    output_dir = _resolve_output_dir(story_path)
+    if not output_dir:
+        if os.path.sep in story_path or (
+            os.path.altsep and os.path.altsep in story_path
+        ):
+            return f"Error: story_path must be an absolute path. Got: {story_path}"
+        return f"Error: Could not resolve output directory for {story_path}"
 
     os.makedirs(output_dir, exist_ok=True)
 
     # Validate filename pattern
     if "-scene" not in filename or not filename.endswith(".md"):
-        return f"Error: filename must match '*-scene*.md' pattern. Got: {filename}"
+        return (
+            f"Error: filename must match '*-scene*.md' pattern. "
+            f"Got: {filename}"
+        )
 
     filepath = os.path.join(output_dir, filename)
     with open(filepath, "w") as f:
@@ -206,9 +180,13 @@ def split_scene_files(story_path: str) -> str:
     Returns:
         A status message listing the resulting part files.
     """
-    output_dir, error = _get_validated_output_dir(story_path)
-    if error:
-        return error
+    output_dir = _resolve_output_dir(story_path)
+    if not output_dir:
+        if os.path.sep in story_path or (
+            os.path.altsep and os.path.altsep in story_path
+        ):
+            return f"Error: story_path must be an absolute path. Got: {story_path}"
+        return f"Error: Could not resolve output directory for {story_path}"
 
     if not os.path.isdir(output_dir):
         return f"Error: Output directory not found at {output_dir}"
@@ -224,4 +202,20 @@ def split_scene_files(story_path: str) -> str:
     except Exception as e:
         return f"Error running splitter: {e}"
 
-    return _format_split_results(output_dir)
+    # Report results
+    part_files = sorted(glob.glob(os.path.join(output_dir, "*-part.md")))
+    archived = sorted(
+        glob.glob(os.path.join(output_dir, "archive", "*-scene*.md"))
+    )
+
+    result_lines = [
+        f"Split complete. Generated {len(part_files)} part file(s):",
+    ]
+    for pf in part_files:
+        result_lines.append(f"  - {os.path.basename(pf)}")
+    if archived:
+        result_lines.append(
+            f"Archived {len(archived)} original scene file(s) to output/archive/"
+        )
+
+    return "\n".join(result_lines)

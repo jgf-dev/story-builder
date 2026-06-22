@@ -3,6 +3,7 @@ import argparse
 from unittest.mock import patch, MagicMock
 from pathlib import Path
 import tempfile
+import shutil
 
 from storybuilder.analysis.generate_embeddings import get_chunks, main
 
@@ -44,9 +45,8 @@ class TestGenerateEmbeddings(unittest.TestCase):
         def side_effect(name, metadata=None):
             if name == "story_chunks":
                 return mock_chunks_collection
-            if name == "story_averages":
+            elif name == "story_averages":
                 return mock_averages_collection
-            raise ValueError(f"Unexpected collection name: {name}")
         mock_client.get_or_create_collection.side_effect = side_effect
 
         # Mock that no existing averages are found to force processing
@@ -129,7 +129,6 @@ class TestGenerateEmbeddings(unittest.TestCase):
                 return mock_chunks_collection
             elif name == "story_averages":
                 return mock_averages_collection
-            return None
         mock_client.get_or_create_collection.side_effect = side_effect
 
         # Mock that an existing average is found
@@ -171,9 +170,8 @@ class TestGenerateEmbeddings(unittest.TestCase):
         def side_effect(name, metadata=None):
             if name == "story_chunks":
                 return mock_chunks_collection
-            if name == "story_averages":
+            elif name == "story_averages":
                 return mock_averages_collection
-            raise ValueError(f"Unexpected collection name: {name}")
         mock_client.get_or_create_collection.side_effect = side_effect
 
         # no existing average

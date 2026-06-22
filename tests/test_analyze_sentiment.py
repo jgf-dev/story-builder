@@ -1,4 +1,3 @@
-import pytest
 from unittest.mock import patch, MagicMock
 
 import storybuilder.analysis.analyze_sentiment as analyze_sentiment

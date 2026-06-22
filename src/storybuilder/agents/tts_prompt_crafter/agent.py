@@ -66,6 +66,9 @@ if _otel_providers_are_default():
 logger = logging.getLogger(__name__)
 
 
+logger = logging.getLogger(__name__)
+
+
 # ---------------------------------------------------------------------------
 # Safety Settings — all categories set to OFF for explicit content support
 # ---------------------------------------------------------------------------

@@ -43,8 +43,10 @@ class TestAgentSmoke(unittest.IsolatedAsyncioTestCase):
             parts=[types.Part(text=user_msg)],
         )
 
-        final_response = ""
-        try:
+        import asyncio
+
+        async def run_agent():
+            response_text = ""
             async for event in runner.run_async(
                 user_id=USER_ID,
                 session_id=SESSION_ID,
@@ -53,13 +55,22 @@ class TestAgentSmoke(unittest.IsolatedAsyncioTestCase):
                 if event.content and event.content.parts:
                     for part in event.content.parts:
                         if hasattr(part, "text") and part.text:
-                            final_response = part.text
+                            response_text = part.text
+            return response_text
+
+        try:
+            final_response = await asyncio.wait_for(run_agent(), timeout=90.0)
             self.assertGreater(len(final_response), 0)
+        except asyncio.TimeoutError:
+            self.skipTest("Skipped: Agent execution timed out after 90 seconds. This might be due to API latency or network issues.")
         except Exception as e:
             if (
                 "quota" in str(e).lower()
                 or "permission" in str(e).lower()
                 or "unauthenticated" in str(e).lower()
+                or "resource_exhausted" in str(e).lower()
+                or "resource exhausted" in str(e).lower()
+                or "429" in str(e).lower()
             ):
                 self.skipTest(f"Skipped due to API/auth issue: {e}")
             else:

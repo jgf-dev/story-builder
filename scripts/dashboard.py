@@ -1,4 +1,5 @@
 import streamlit as st
+import html
 import sqlite3
 import os
 import glob
@@ -427,18 +428,20 @@ if page == "🔍 Search & Explorer":
         # Create a container for the card styling
         card_html = f"""
         <div class="story-card">
-            <h4>{res['title']}</h4>
+            <h4>{html.escape(res['title'])}</h4>
             <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 8px;'>
-                <b>Author:</b> {res['author_name'] or 'Unknown'} |
-                <b>Category:</b> {res['category']} |
-                <b>Published:</b> {res['publication_date'] or 'Unknown'} |
+                <b>Author:</b> {html.escape(res['author_name'] or 'Unknown')} |
+                <b>Category:</b> {html.escape(res['category'] or 'Unknown')} |
+                <b>Published:</b> {html.escape(str(res['publication_date'] or 'Unknown'))} |
                 <b>Words:</b> {res['word_count']:,}
             </p>
         """
         
         # Display highlighted snippets if any
         if res.get("snippet"):
-            snippet_cleaned = res["snippet"].replace("___HIGHLIGHT_START___", "<span class='highlight'>").replace("___HIGHLIGHT_END___", "</span>")
+            # Escape the snippet first, then replace the placeholder highlight markers with actual HTML span tags
+            snippet_escaped = html.escape(res["snippet"])
+            snippet_cleaned = snippet_escaped.replace("___HIGHLIGHT_START___", "<span class='highlight'>").replace("___HIGHLIGHT_END___", "</span>")
             card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
             
         card_html += "</div>"
@@ -555,10 +558,10 @@ elif page == "⭐ Favorites & Tags":
                 st.markdown(
                     f"""
                     <div class='story-card'>
-                        <h4>{f['title']}</h4>
-                        <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 4px;'><b>Author:</b> {f['author'] or 'Unknown'}</p>
-                        <p style='font-size: 0.9rem;'><span class='highlight'>Tags:</span> {f['tags'] or 'None'}</p>
-                        <p style='font-size: 0.9rem; color: #cbd5e1;'><i>Notes:</i> {f['notes'] or 'None'}</p>
+                        <h4>{html.escape(f['title'])}</h4>
+                        <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 4px;'><b>Author:</b> {html.escape(f['author'] or 'Unknown')}</p>
+                        <p style='font-size: 0.9rem;'><span class='highlight'>Tags:</span> {html.escape(f['tags'] or 'None')}</p>
+                        <p style='font-size: 0.9rem; color: #cbd5e1;'><i>Notes:</i> {html.escape(f['notes'] or 'None')}</p>
                     </div>
                     """,
                     unsafe_allow_html=True

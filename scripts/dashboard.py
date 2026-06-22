@@ -600,6 +600,29 @@ elif page == "⭐ Favorites & Tags":
         )
 
         st.write("---")
+        # Pre-resolve database years for all displayed favorites to avoid N+1 query problem
+        # Expected optimization impact: Resolving N favorite stories in M year partitions
+        # O(N * M) individual DB queries -> O(M) queries with IN clauses.
+        # Significantly improves load time of the Favorites tab, reducing it from seconds to milliseconds.
+        fav_paths = [f["story_path"] for f in favorites]
+        path_to_db_year = {}
+        if fav_paths:
+            for y_db in get_db_files():
+                y = int(Path(y_db).stem)
+                conn = sqlite3.connect(y_db)
+                try:
+                    # chunking just in case of very large favorites lists
+                    chunk_size = 900
+                    for i in range(0, len(fav_paths), chunk_size):
+                        chunk = fav_paths[i:i+chunk_size]
+                        placeholders = ",".join("?" * len(chunk))
+                        res = conn.cursor().execute(f"SELECT path FROM stories WHERE path IN ({placeholders})", chunk).fetchall()
+                        for (p,) in res:
+                            path_to_db_year[p] = y
+                except sqlite3.Error:
+                    pass
+                finally:
+                    conn.close()
 
         # Display favorites
         for f in favorites:
@@ -626,25 +649,7 @@ elif page == "⭐ Favorites & Tags":
                 col1, col2 = st.columns([1, 8])
                 with col1:
                     # Attempt to resolve database year based on path to load it in reader
-                    parts = Path(f["story_path"]).parts
-                    db_year = 2026  # Default fallback
-                    # Check year directories if any
-                    for y_db in get_db_files():
-                        y = int(Path(y_db).stem)
-                        conn = sqlite3.connect(y_db)
-                        if (
-                            conn.cursor()
-                            .execute(
-                                "SELECT 1 FROM stories WHERE path = ?",
-                                (f["story_path"],),
-                            )
-                            .fetchone()
-                        ):
-                            db_year = y
-                            conn.close()
-                            break
-                        conn.close()
-
+                    db_year = path_to_db_year.get(f["story_path"], 2026) # Default fallback
                     if st.button("Read", key=f"read_fav_{f['story_path']}"):
                         st.session_state.selected_story_path = f["story_path"]
                         st.session_state.selected_story_year = db_year

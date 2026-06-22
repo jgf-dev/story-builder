@@ -3,7 +3,6 @@ import sqlite3
 import tempfile
 import os
 from unittest.mock import patch
-from pathlib import Path
 
 from storybuilder.analysis.visualize_arcs import main
 

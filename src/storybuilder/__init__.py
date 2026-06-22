@@ -9,12 +9,16 @@ def __getattr__(name):
     if name == "cartesia":
         # Attempt to lazily load cartesia (could be third-party or formerly local)
         try:
-            return importlib.import_module(f"{__name__}.cartesia")
+            from . import cartesia as _cartesia
+            return _cartesia
         except ImportError:
-            return importlib.import_module("cartesia")
+            import cartesia as _cartesia
+            return _cartesia
     if name == "utils":
         try:
-            return importlib.import_module(f"{__name__}.utils")
+            from . import utils as _utils
+            return _utils
         except ImportError:
-            return importlib.import_module("utils")
+            import utils as _utils
+            return _utils
     raise AttributeError(f"module 'storybuilder' has no attribute '{name}'")

@@ -305,7 +305,8 @@ def main():
     elapsed = time.time() - _start_time
     rate = imported / elapsed if elapsed > 0 else 0
 
-    print("\n  Optimizing FTS index...")
+    # Build FTS index (should already be built via triggers, but optimize)
+    print(f"\n  Optimizing FTS index...")
     try:
         from storybuilder.downloader.db import _is_partitioned
     except ImportError:

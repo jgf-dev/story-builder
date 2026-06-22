@@ -23,7 +23,11 @@ def save_story(story_url, output_path, story_date, delay):
     author = ""
     story_text = ""
 
-    if "text/html" in content_type or response.text.strip().startswith("<!DOCTYPE") or response.text.strip().startswith("<html"):
+    if (
+        "text/html" in content_type
+        or response.text.strip().startswith("<!DOCTYPE")
+        or response.text.strip().startswith("<html")
+    ):
         # Parse HTML story
         soup = BeautifulSoup(response.text, "html.parser")
 
@@ -61,11 +65,15 @@ def save_story(story_url, output_path, story_date, delay):
         story_text = raw_text
 
         # Try to parse headers (Subject, From)
-        subject_match = re.search(r"^Subject:\s*(.*)$", raw_text, re.IGNORECASE | re.MULTILINE)
+        subject_match = re.search(
+            r"^Subject:\s*(.*)$", raw_text, re.IGNORECASE | re.MULTILINE
+        )
         if subject_match:
             title = subject_match.group(1).strip()
 
-        from_match = re.search(r"^From:\s*(.*)$", raw_text, re.IGNORECASE | re.MULTILINE)
+        from_match = re.search(
+            r"^From:\s*(.*)$", raw_text, re.IGNORECASE | re.MULTILINE
+        )
         if from_match:
             author = from_match.group(1).strip()
 
@@ -88,8 +96,8 @@ def save_story(story_url, output_path, story_date, delay):
     if db.get_conn() is not None:
         db.insert_story(
             output_path=output_path,
-            title=title or 'Unknown',
-            author=author or 'Unknown',
+            title=title or "Unknown",
+            author=author or "Unknown",
             story_date=story_date,
             url=story_url,
             content=story_text,
@@ -122,7 +130,9 @@ def download_single_target(idx_str, url, output_paths, story_date, delay, force=
                     all_exist = False
                     break
             if all_exist:
-                safe_print(f"[{idx_str}] Skipping target (already exists on disk): {url}")
+                safe_print(
+                    f"[{idx_str}] Skipping target (already exists on disk): {url}"
+                )
                 return True
 
     safe_print(f"\n[{idx_str}] Downloading target...")
@@ -133,13 +143,16 @@ def download_single_target(idx_str, url, output_paths, story_date, delay, force=
         if len(output_paths) > 1:
             if db.get_conn() is None:
                 import shutil
+
                 for extra_path in output_paths[1:]:
                     safe_print(f"Copying already downloaded story to: {extra_path}")
                     os.makedirs(os.path.dirname(extra_path), exist_ok=True)
                     try:
                         shutil.copy2(primary_path, extra_path)
                     except Exception as e:
-                        safe_print(f"Warning: Failed to copy {primary_path} to {extra_path}: {e}")
+                        safe_print(
+                            f"Warning: Failed to copy {primary_path} to {extra_path}: {e}"
+                        )
             else:
                 # Retrieve from database and insert for duplicates
                 story_data = db.get_story(primary_path, story_date)

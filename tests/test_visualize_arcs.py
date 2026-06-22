@@ -1,42 +1,20 @@
 import unittest
-import sqlite3
-import tempfile
-import os
 from unittest.mock import patch
+import pandas as pd
+import io
 
 from storybuilder.analysis.visualize_arcs import main
 
 
 class TestVisualizeArcs(unittest.TestCase):
-    def setUp(self):
-        self.temp_dir = tempfile.TemporaryDirectory()
-        self.db_path = os.path.join(self.temp_dir.name, "test_sentiment.db")
-        self.conn = sqlite3.connect(self.db_path)
-        self.cursor = self.conn.cursor()
+    @patch("sys.argv", ["visualize_arcs.py"])
+    @patch("sqlite3.connect")
+    @patch("pandas.read_sql_query")
+    @patch("sys.stdout", new_callable=io.StringIO)
+    def test_empty_stories_condition(self, mock_stdout, mock_read_sql_query, mock_connect):
+        mock_read_sql_query.return_value = pd.DataFrame()
 
-        # Create necessary tables
-        self.cursor.execute("""
-            CREATE TABLE stories (
-                id INTEGER PRIMARY KEY,
-                story_dir TEXT
-            )
-        """)
-        self.cursor.execute("""
-            CREATE TABLE sentences (
-                id INTEGER PRIMARY KEY,
-                story_id INTEGER,
-                chapter_index INTEGER,
-                sentence_index INTEGER,
-                sentiment_score REAL
-            )
-        """)
-        self.cursor.execute("""
-            CREATE TABLE sentence_entities (
-                sentence_id INTEGER,
-                entity_text TEXT,
-                entity_label TEXT
-            )
-        """)
+        main()
 
         # Insert dummy data
         self.cursor.execute(

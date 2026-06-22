@@ -10,27 +10,10 @@ import pandas as pd
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Visualize story embeddings using t-SNE."
-    )
-    parser.add_argument(
-        "--db-path",
-        type=str,
-        default="./chroma_db",
-        help="Path to the Chroma database.",
-    )
-    parser.add_argument(
-        "--output",
-        type=str,
-        default="tsne_visualization.html",
-        help="Output HTML file path.",
-    )
-    parser.add_argument(
-        "--perplexity",
-        type=float,
-        default=1000.0,
-        help="Perplexity for t-SNE (adjust based on dataset size).",
-    )
+    parser = argparse.ArgumentParser(description="Visualize story embeddings using t-SNE.")
+    parser.add_argument("--db-path", type=str, default="./chroma_db", help="Path to the Chroma database.")
+    parser.add_argument("--output", type=str, default="tsne_visualization.html", help="Output HTML file path.")
+    parser.add_argument("--perplexity", type=float, default=1000.0, help="Perplexity for t-SNE (adjust based on dataset size).")
     return parser.parse_args()
 
 
@@ -40,9 +23,7 @@ def fetch_embeddings(db_path: str) -> Tuple[List[str], np.ndarray, List[dict]]:
     try:
         collection_averages = chroma_client.get_collection(name="story_averages")
     except Exception:
-        print(
-            "Error: Could not find 'story_averages' collection. Run generate_embeddings.py first."
-        )
+        print("Error: Could not find 'story_averages' collection. Run generate_embeddings.py first.")
         return [], np.array([]), []
 
     print("Fetching embeddings from database...")
@@ -82,13 +63,7 @@ def extract_labels(ids: List[str]) -> Tuple[List[str], List[str]]:
     return short_names, subcategories
 
 
-def create_and_save_plot(
-    embeddings_2d: np.ndarray,
-    ids: List[str],
-    short_names: List[str],
-    subcategories: List[str],
-    output_path: str,
-) -> None:
+def create_and_save_plot(embeddings_2d: np.ndarray, ids: List[str], short_names: List[str], subcategories: List[str], output_path: str) -> None:
     print("Generating interactive plot...")
     fig = px.scatter(
         x=embeddings_2d[:, 0],
@@ -108,13 +83,7 @@ def create_and_save_plot(
 
     fig.update_traces(marker=dict(size=8, line=dict(width=1, color="DarkSlateGrey")))
 
-    df = pd.DataFrame(
-        {
-            "x": embeddings_2d[:, 0],
-            "y": embeddings_2d[:, 1],
-            "subcategory": subcategories,
-        }
-    )
+    df = pd.DataFrame({"x": embeddings_2d[:, 0], "y": embeddings_2d[:, 1], "subcategory": subcategories})
     centroids = df.groupby("subcategory")[["x", "y"]].mean().reset_index()
 
     for _, row in centroids.iterrows():

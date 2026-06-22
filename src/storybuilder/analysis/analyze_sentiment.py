@@ -189,8 +189,6 @@ def main():
     parser.add_argument("--gpu", action="store_true", default=True, help="Use GPU.")
     args = parser.parse_args()
 
-    multi_stories = find_multi_stories(args.stories_dir, args.subcategory)
-
             try:
                 doc = nlp(text)
             except Exception as e:

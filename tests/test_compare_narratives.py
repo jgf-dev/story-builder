@@ -5,7 +5,7 @@ import shutil
 import sys
 import io
 import warnings
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from pathlib import Path
 
 # Add the src directory to the python path so we can import the script

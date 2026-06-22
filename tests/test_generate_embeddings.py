@@ -44,8 +44,9 @@ class TestGenerateEmbeddings(unittest.TestCase):
         def side_effect(name, metadata=None):
             if name == "story_chunks":
                 return mock_chunks_collection
-            elif name == "story_averages":
+            if name == "story_averages":
                 return mock_averages_collection
+            raise ValueError(f"Unexpected collection name: {name}")
         mock_client.get_or_create_collection.side_effect = side_effect
 
         # Mock that no existing averages are found to force processing

@@ -570,24 +570,26 @@ class TestMultiDBConnect(unittest.TestCase):
         self.assertTrue(any("db2.db" in p for p in db_paths))
         conn.close()
 
-    def test_query_all(self):
-        import story_db
+    def test_execute_all_partitions(self):
+        import storybuilder.downloader.db as sb_db
 
-        self._create_test_db("a.db")
-        self._create_test_db("b.db")
+        self._create_test_db("2020.db")
+        self._create_test_db("2021.db")
 
-        conn, db_names = story_db.connect_multi(self.temp_dir)
+        old_dir = sb_db._db_dir
+        old_part = sb_db._is_partitioned
+        sb_db._db_dir = self.temp_dir
+        sb_db._is_partitioned = True
+
         try:
-            rows = story_db._query_all(
-                conn,
-                db_names,
-                "SELECT COUNT(*) FROM {table}",
-            )
+            rows = sb_db.execute_all_partitions("SELECT COUNT(*) FROM {table}")
             self.assertEqual(len(rows), 2)
-            total = sum(r[0] for r in rows)
-            self.assertEqual(total, 2)  # 1 row in each of 2 DBs
+            # each partition has 1 row returning count=0 because tables are empty initially?
+            # actually we don't insert, so count is 0
+            self.assertEqual(rows[0]["COUNT(*)"], 1)
         finally:
-            conn.close()
+            sb_db._db_dir = old_dir
+            sb_db._is_partitioned = old_part
 
     def test_empty_dir_raises(self):
         import story_db

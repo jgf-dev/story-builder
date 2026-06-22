@@ -1,42 +1,41 @@
-**SYSTEM PREAMBLE:** This is a professional audio script designed for high-end text-to-speech rendering on the Google Gemini TTS platform.
+# SYSTEM PREAMBLE: Synthesize speech ONLY for the transcripts under the #### TRANSCRIPT headers. Do NOT read aloud the section titles, scene descriptions, actor names, or director notes.
 
-# AUDIO PROFILE: Cody & Sam
+# AUDIO PROFILE: Levi & Ewan
 
-## "Scene 1: Intimidated on the Mats"
+## "The Secret Intimacy"
 
-### THE SCENE: High School Wrestling Gym.
+### THE SCENE: The main bedroom of the Smoky Mountains cabin.
 
-The air is thick with the smell of rubber mats and stale sweat. Sounds of heavy footsteps, bodies hitting the floor, and distant chatter echo loudly off the high metal ceiling. Cody stands near the edge of the mats, feeling small, exposed, and nervous. Sam stands a few feet away, tall, confident, radiating warmth and self-assurance.
+The air in the bedroom is thick with recent passion, a faint smell of industrial cleaner from the pillows mixes with the lingering scent of sex and sweat. It's a hurried, intimate moment before family arrives, making every sound and breath feel amplified in the enclosed space. The light is dim, indicating either early morning or a drawn curtain. Body heat is still radiating from the bed.
 
 ### DIRECTOR'S NOTES
 
 Style:
-- Cody (Voice: Enceladus): Vulnerable, youthful, and slightly self-conscious. High glottal flow, slightly nervous baseline. Maintain 85% voice identity polish, 15% emotional range.
-- Sam (Voice: Orus): Deep, confident, and low-pitched with a natural gravelly resonance. Smooth and slightly teasing.
 
-Pace: Conversational with slight hesitations from Cody.
+- Levi (Voice: Enceladus): Breathy, yielding, intimate, slightly nervous. High breathiness and glottal flow. Raised soft palate. Close proximity. Fluent in the given voice identity, but allows for nuanced emotional range and subtle non-verbal cues.
+- Ewan (Voice: Algenib): Deep, intimate, dominant, protective. Extreme microphone proximity (proximity effect). Low projection for intimacy. Measured, deliberate, with a deep resonance. Maintains 85% voice identity polish, 15% emotional range.
+
+Pace: Slow, measured, ASMR-like pacing (around 0.7x to 0.8x normal conversational speed). Use pauses to emphasize intimacy and urgency.
 Accent: Standard American
 
 ### SAMPLE CONTEXT
 
-Cody enters the intimidating wrestling tryouts under the false pretense of trying to impress girls, only to find himself completely out of his depth. He is spotted by Sam, an attractive and dominant acquaintance, who immediately claims him as a sparring partner.
+Levi and Ewan are having a final, passionate, and hurried sexual encounter in their bedroom before Levi's brother Jace and sister-in-law Kerry arrive. The sense of urgency and secrecy adds a layer of forbidden excitement to their intimacy, forcing them to quickly clean up and prepare for the impending arrival.
 
 #### TRANSCRIPT
 
-Cody: I never planned on joining the wrestling team.
-
-Cody: [sighs] I just figured girls liked wrestlers.
-
-Cody: Something about big dudes getting sweaty and pummeled... it just seemed like a way to get noticed.
-
-Cody: But walking into that gym... it was one of the most confusing afternoons of my life.
-
-Sam: [chuckles] "Didn't know you wrestled, man."
-
-Cody: [nervousness] "I don't. Trying something new."
-
-Sam: [teasing] "You'll love it."
-
-Sam: "I got him."
-
-Cody: [gasp] He clapped me on the shoulder like he had been waiting for this all day.
+Levi: [adoration] He was tearing up my insides, and I was loving every minute of it!
+Levi: My boyfriend, Ewan, was not taking any mercy on me.
+Levi: I was ass-up on the bed with my head buried in a strange set of pillows that smelled of industrial cleaner.
+Ewan: [pant] "Don't fucking move, Levi. I'm so close. We've got to finish before they arrive."
+Levi: [gasp] "Oh God, yes!"
+Ewan: [chuckles] "God is not here, baby," [short pause] "but I'll make you see Heaven."
+Levi: [gasp] "Fuck. Fuck. Fuck."
+Levi: [trembling] "Babe, you're hurting me."
+Ewan: [chuckles] "Oh, sorry." [medium pause] "That's beautiful."
+Levi: [teasing] "You're disgusting."
+Ewan: "Levi, you better open the window. It smells like you just got fucked in here, and you don't want that to be obvious." [short pause] "Do you?"
+Levi: [nervousness] "Shut up."
+Levi: [long pause] However, he was right.
+Levi: This wasn't a private vacation between lovers so I didn't need to bring extra attention to the fact that we had made use of the bed before the others arrived.
+Levi: I flung the window open and pulled on some underwear making sure to wipe a warm rag carefully so there wouldn't be any other evidence.

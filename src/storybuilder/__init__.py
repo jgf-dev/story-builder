@@ -2,7 +2,8 @@ import importlib
 
 from . import agents, analysis, downloader, genai
 
-__all__ = ["cartesia", "downloader", "utils", "genai", "agents", "analysis"]
+
+__all__ = ["downloader", "genai", "agents", "analysis"]
 
 def __getattr__(name):
     if name == "cartesia":

@@ -72,17 +72,31 @@ def parse_speech_config_cartesia(markdown_content):
                     
     return speaker_to_voice_id
 
+def _extract_transcript(markdown_content):
+    parts = markdown_content.split('#### TRANSCRIPT')
+    return parts[1] if len(parts) == 2 else markdown_content
+
+def _parse_line_speaker_and_text(line):
+    match = re.match(r'^([A-Za-z0-9_-]+):', line)
+    if match:
+        speaker = match.group(1)
+        text = line[match.end():].strip()
+    else:
+        # Assume narration spoken by Narrator or fallback
+        speaker = "Narrator"
+        text = line
+    text = text.strip('"\'')
+    return speaker, text
+
+def _resolve_voice_id(speaker, speaker_to_voice_id, default_voice_id):
+    return speaker_to_voice_id.get(speaker) or NAME_FALLBACK_MAP.get(speaker.lower()) or default_voice_id
+
 def parse_transcript_segments(markdown_content, speaker_to_voice_id, default_voice_id):
     """
     Parses the transcript section into contiguous segments spoken by the same voice ID.
     This minimizes API requests by grouping adjacent lines spoken by the same character.
     """
-    parts = markdown_content.split('#### TRANSCRIPT')
-    if len(parts) != 2:
-        # Fallback if no TRANSCRIPT section is marked
-        transcript = markdown_content
-    else:
-        transcript = parts[1]
+    transcript = _extract_transcript(markdown_content)
         
     segments = []
     current_voice_id = None
@@ -93,29 +107,11 @@ def parse_transcript_segments(markdown_content, speaker_to_voice_id, default_voi
         if not line:
             continue
             
-        # Match speaker prefix: e.g. "Jace: \"Line text...\""
-        match = re.match(r'^([A-Za-z0-9_-]+):', line)
-        if match:
-            speaker = match.group(1)
-            text = line[match.end():].strip()
-        else:
-            # Assume narration spoken by Narrator or fallback
-            speaker = "Narrator"
-            text = line
-            
-        # Strip any surrounding quotes from the dialogue text
-        text = text.strip('"\'')
+        speaker, text = _parse_line_speaker_and_text(line)
         if not text:
             continue
             
-        # Resolve speaker to voice ID
-        voice_id = speaker_to_voice_id.get(speaker)
-        if not voice_id:
-            # Try name-based fallback matching
-            voice_id = NAME_FALLBACK_MAP.get(speaker.lower())
-            if not voice_id:
-                # Fallback to the default narrator/first speaker
-                voice_id = default_voice_id
+        voice_id = _resolve_voice_id(speaker, speaker_to_voice_id, default_voice_id)
                 
         if voice_id == current_voice_id:
             current_lines.append(text)
@@ -129,7 +125,6 @@ def parse_transcript_segments(markdown_content, speaker_to_voice_id, default_voi
         segments.append((current_voice_id, " ".join(current_lines)))
         
     return segments
-
 def generate_segment_audio(api_key, text, voice_id, rate=24000):
     """
     Calls Cartesia's REST API endpoint /tts/bytes to synthesize a single speech segment.

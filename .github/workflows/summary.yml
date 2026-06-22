@@ -1,0 +1,58 @@
+name: Summarize new issues
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  summary:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      models: read
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run AI inference
+        id: inference
+        uses: actions/ai-inference@v1
+        with:
+          prompt: |
+            You are refining the description (body) of a draft issue; title/body are included below along with the workspace path and repositiry url. 
+            Expand the discription of the issue and improve it's clarity. Return only the description and nothing else.
+            
+            Title: ${{ github.event.issue.title }}
+            Body: ${{ github.event.issue.body }}
+
+            Repository: ${{runner.workspace}}
+            Repo url: ${{github.repositoryUrl}}
+
+      - name: Comment with AI summary
+        run: |
+          gh issue edit $ISSUE_NUMBER --body "$RESPONSE"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          RESPONSE: ${{ steps.inference.outputs.response }}
+
+      - name: AI Improve Title
+        id: title-edit
+        uses: actions/ai-inference@v1
+        with:
+          prompt: |
+            You are improving the title of an issue; the current title and body are included below.
+            Edit the title to match the contents of the body. Return only the improved title.
+
+            Title: ${{ github.event.issue.title }}
+            Body: ${{ github.event.issue.body }}
+
+      - name: Comment with AI summary
+        run: |
+          gh issue edit $ISSUE_NUMBER --title "$RESPONSE"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          RESPONSE: ${{ steps.title-edit.outputs.response }}

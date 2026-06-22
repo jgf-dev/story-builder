@@ -219,8 +219,8 @@ def _flush_batch(conn: sqlite3.Connection, batch: list, force: bool) -> int:
                             c.execute(sql, r)
                             c.commit()
                             count += 1
-                        except Exception:
-                            pass
+                        except Exception as e:
+                            print(f"[WARN] Skipping row during forced import (path={r[0]!r}): {e}", file=sys.stderr)
                     imported += count
         return imported
 

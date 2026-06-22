@@ -20,7 +20,7 @@ from google.adk.artifacts.in_memory_artifact_service import InMemoryArtifactServ
 from google.adk.memory.vertex_ai_memory_bank_service import VertexAiMemoryBankService
 from google.adk.models import Gemini
 from google.adk.runners import Runner
-from google.adk.sessions import DatabaseSessionService, InMemorySessionService, VertexAiSessionService
+from google.adk.sessions import DatabaseSessionService, VertexAiSessionService
 from google.adk.telemetry.setup import maybe_set_otel_providers
 from google.genai import Client, types
 from pydantic import BaseModel, Field

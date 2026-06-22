@@ -43,8 +43,11 @@ class TestDashboard(unittest.TestCase):
         self.patch_meta.stop()
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def _create_mock_partition(self, year, category, title, author, date, word_count, path, content):
+    def _create_mock_partition(
+        self, year, category, title, author, date, word_count, path, content
+    ):
         from storybuilder.downloader.db import SCHEMA, INDEXES
+
         db_path = os.path.join(self.db_dir, f"{year}.db")
         conn = sqlite3.connect(db_path)
         conn.executescript(SCHEMA)
@@ -59,7 +62,17 @@ class TestDashboard(unittest.TestCase):
             )
             VALUES (?, 'gay', ?, ?, 1, ?, ?, 'test@email.com', ?, 'http://test', ?, ?, ?)
             """,
-            (path, category, Path(path).stem, title, author, date, len(content), word_count, content)
+            (
+                path,
+                category,
+                Path(path).stem,
+                title,
+                author,
+                date,
+                len(content),
+                word_count,
+                content,
+            ),
         )
         conn.commit()
         conn.close()
@@ -87,17 +100,22 @@ class TestDashboard(unittest.TestCase):
             )
             """
         )
-        conn.execute("INSERT OR REPLACE INTO stories (filepath) VALUES (?)", (filepath,))
-        story_id = conn.execute("SELECT id FROM stories WHERE filepath = ?", (filepath,)).fetchone()[0]
+        conn.execute(
+            "INSERT OR REPLACE INTO stories (filepath) VALUES (?)", (filepath,)
+        )
+        story_id = conn.execute(
+            "SELECT id FROM stories WHERE filepath = ?", (filepath,)
+        ).fetchone()[0]
         conn.execute(
             "INSERT INTO entities (story_id, text, label, frequency) VALUES (?, ?, ?, 1)",
-            (story_id, text, label)
+            (story_id, text, label),
         )
         conn.commit()
         conn.close()
 
     def test_get_db_files(self):
         from dashboard import get_db_files
+
         self.assertEqual(get_db_files(), [])
 
         # Create mock db files
@@ -114,7 +132,9 @@ class TestDashboard(unittest.TestCase):
         self.assertEqual(get_favorites(), [])
 
         # Add favorite
-        success = add_favorite("test_path.txt", "Test Story", "Test Author", "tag1,tag2", "Some notes")
+        success = add_favorite(
+            "test_path.txt", "Test Story", "Test Author", "tag1,tag2", "Some notes"
+        )
         self.assertTrue(success)
 
         favs = get_favorites()
@@ -125,7 +145,13 @@ class TestDashboard(unittest.TestCase):
         self.assertEqual(favs[0]["notes"], "Some notes")
 
         # Update favorite
-        success_update = add_favorite("test_path.txt", "Test Story", "Test Author", "tag1,tag2,tag3", "Updated notes")
+        success_update = add_favorite(
+            "test_path.txt",
+            "Test Story",
+            "Test Author",
+            "tag1,tag2,tag3",
+            "Updated notes",
+        )
         self.assertTrue(success_update)
         favs = get_favorites()
         self.assertEqual(favs[0]["tags"], "tag1,tag2,tag3")
@@ -148,7 +174,7 @@ class TestDashboard(unittest.TestCase):
             date="2025-05-10",
             word_count=500,
             path="nifty_stories/gay/college/story1.txt",
-            content="This is the content of story one."
+            content="This is the content of story one.",
         )
 
         self._create_mock_partition(
@@ -159,7 +185,7 @@ class TestDashboard(unittest.TestCase):
             date="2026-06-12",
             word_count=1200,
             path="nifty_stories/gay/athletics/story2.txt",
-            content="This is the content of story two containing werewolf words."
+            content="This is the content of story two containing werewolf words.",
         )
 
         # Browse all
@@ -195,7 +221,7 @@ class TestDashboard(unittest.TestCase):
             date="2026-06-12",
             word_count=1200,
             path="nifty_stories/gay/athletics/story2.txt",
-            content="This is the content of story two containing werewolf words."
+            content="This is the content of story two containing werewolf words.",
         )
 
         # FTS query match
@@ -219,7 +245,7 @@ class TestDashboard(unittest.TestCase):
             date="2025-05-10",
             word_count=500,
             path=story_path,
-            content="This is a story about Jordi Santos."
+            content="This is a story about Jordi Santos.",
         )
 
         # Create NLP entries
@@ -227,7 +253,7 @@ class TestDashboard(unittest.TestCase):
         self._create_mock_nlp_db(
             filepath="test_stories/gay/college/story1.txt",
             text="Jordi Santos",
-            label="PERSON"
+            label="PERSON",
         )
 
         # Filter by entity text & label

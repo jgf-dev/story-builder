@@ -19,9 +19,13 @@ class TestDateParser(unittest.TestCase):
         # MMM DD HH:MM
         ref_date = datetime.datetime(2026, 6, 10, 12, 0)
         # In past relative to ref_date, so stays 2026
-        self.assertEqual(parse_nifty_date("Jun  6 08:55", ref_date), datetime.date(2026, 6, 6))
+        self.assertEqual(
+            parse_nifty_date("Jun  6 08:55", ref_date), datetime.date(2026, 6, 6)
+        )
         # In future relative to ref_date (e.g. Dec), so gets previous year (2025)
-        self.assertEqual(parse_nifty_date("Dec 12 19:52", ref_date), datetime.date(2025, 12, 12))
+        self.assertEqual(
+            parse_nifty_date("Dec 12 19:52", ref_date), datetime.date(2025, 12, 12)
+        )
 
     def test_fallback_parsing(self):
         ref_date = datetime.datetime(2026, 6, 10, 12, 0)
@@ -31,6 +35,7 @@ class TestDateParser(unittest.TestCase):
 class TestScraper(unittest.TestCase):
     def test_parse_listing_rows_ftr(self):
         from bs4 import BeautifulSoup
+
         html = """
         <div class="ftr">
             <div>13K</div>
@@ -48,6 +53,7 @@ class TestScraper(unittest.TestCase):
 
     def test_parse_listing_rows_table(self):
         from bs4 import BeautifulSoup
+
         html = """
         <table>
             <tr><th>Size</th><th>Date</th><th>Title</th></tr>
@@ -74,6 +80,7 @@ class TestCache(unittest.TestCase):
     def test_cache_loading_and_saving(self):
         import tempfile
         import shutil
+
         temp_dir = tempfile.mkdtemp()
         try:
             cache.metadata_cache = {"some_key": "some_value"}
@@ -86,11 +93,11 @@ class TestCache(unittest.TestCase):
             shutil.rmtree(temp_dir)
 
 
-
 class TestNetwork(unittest.TestCase):
     @unittest.mock.patch("requests.get")
     def test_fetch_page_success(self, mock_get):
         from storybuilder.downloader.network import fetch_page
+
         mock_response = unittest.mock.Mock()
         mock_response.status_code = 200
         mock_get.return_value = mock_response
@@ -102,6 +109,7 @@ class TestNetwork(unittest.TestCase):
     @unittest.mock.patch("requests.get")
     def test_fetch_page_404(self, mock_get):
         from storybuilder.downloader.network import fetch_page
+
         mock_response = unittest.mock.Mock()
         mock_response.status_code = 404
         mock_get.return_value = mock_response
@@ -113,6 +121,7 @@ class TestNetwork(unittest.TestCase):
     @unittest.mock.patch("requests.get")
     def test_fetch_page_retry_and_rotate(self, mock_get, mock_rotate):
         from storybuilder.downloader import network
+
         old_rot = network.ENABLE_ROTATION
         network.ENABLE_ROTATION = True
         try:
@@ -120,7 +129,9 @@ class TestNetwork(unittest.TestCase):
             mock_response_fail.status_code = 403
             mock_get.return_value = mock_response_fail
 
-            res = network.fetch_page("https://example.com/blocked", delay=0, max_retries=2)
+            res = network.fetch_page(
+                "https://example.com/blocked", delay=0, max_retries=2
+            )
             self.assertIsNone(res)
             self.assertEqual(mock_rotate.call_count, 2)
         finally:
@@ -130,15 +141,18 @@ class TestNetwork(unittest.TestCase):
 class TestWriter(unittest.TestCase):
     def setUp(self):
         import tempfile
+
         self.temp_dir = tempfile.mkdtemp()
 
     def tearDown(self):
         import shutil
+
         shutil.rmtree(self.temp_dir)
 
     @unittest.mock.patch("storybuilder.downloader.writer.fetch_page")
     def test_save_story_html(self, mock_fetch):
         from storybuilder.downloader.writer import save_story
+
         mock_response = unittest.mock.Mock()
         mock_response.headers = {"Content-Type": "text/html"}
         mock_response.text = """
@@ -154,7 +168,9 @@ class TestWriter(unittest.TestCase):
         mock_fetch.return_value = mock_response
 
         out_path = os.path.join(self.temp_dir, "story.txt")
-        success = save_story("https://example.com/story.html", out_path, "Jun 6 2024", delay=0)
+        success = save_story(
+            "https://example.com/story.html", out_path, "Jun 6 2024", delay=0
+        )
         self.assertTrue(success)
         self.assertTrue(os.path.exists(out_path))
 
@@ -168,6 +184,7 @@ class TestWriter(unittest.TestCase):
     @unittest.mock.patch("storybuilder.downloader.writer.fetch_page")
     def test_save_story_text(self, mock_fetch):
         from storybuilder.downloader.writer import save_story
+
         mock_response = unittest.mock.Mock()
         mock_response.headers = {"Content-Type": "text/plain"}
         mock_response.text = """Subject: Usenet Story Subject
@@ -179,7 +196,9 @@ It has multiple lines.
         mock_fetch.return_value = mock_response
 
         out_path = os.path.join(self.temp_dir, "story_raw.txt")
-        success = save_story("https://example.com/story.txt", out_path, "Jun 6 2024", delay=0)
+        success = save_story(
+            "https://example.com/story.txt", out_path, "Jun 6 2024", delay=0
+        )
         self.assertTrue(success)
 
         with open(out_path, "r", encoding="utf-8") as f:
@@ -191,6 +210,7 @@ It has multiple lines.
     @unittest.mock.patch("storybuilder.downloader.writer.save_story")
     def test_download_single_target_with_duplicates(self, mock_save_story):
         from storybuilder.downloader.writer import download_single_target
+
         mock_save_story.return_value = True
 
         p1 = os.path.join(self.temp_dir, "cat1", "story.txt")
@@ -201,9 +221,12 @@ It has multiple lines.
             with open(path, "w") as f:
                 f.write("mocked contents")
             return True
+
         mock_save_story.side_effect = side_effect
 
-        success = download_single_target("1/1", "https://example.com/story.txt", [p1, p2], "Jun 6 2024", delay=0)
+        success = download_single_target(
+            "1/1", "https://example.com/story.txt", [p1, p2], "Jun 6 2024", delay=0
+        )
         self.assertTrue(success)
         self.assertTrue(os.path.exists(p1))
         self.assertTrue(os.path.exists(p2))

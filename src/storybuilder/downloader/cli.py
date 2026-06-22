@@ -19,64 +19,21 @@ from storybuilder.downloader.writer import download_single_target
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Download stories from Nifty Archive based on date range and category."
-    )
+    parser = argparse.ArgumentParser(description="Download stories from Nifty Archive based on date range and category.")
     parser.add_argument(
-        "--category",
-        required=True,
-        choices=["gay", "lesbian", "bisexual", "transgender", "bestiality"],
-        help="High-level category to download stories from.",
+        "--category", required=True, choices=["gay", "lesbian", "bisexual", "transgender", "bestiality"], help="High-level category to download stories from."
     )
+    parser.add_argument("--start-date", default="1990-01-01", help="Start date of publication range (YYYY-MM-DD). Defaults to 1990-01-01.")
+    parser.add_argument("--end-date", default=None, help="End date of publication range (YYYY-MM-DD). Defaults to today's date.")
+    parser.add_argument("--output-dir", default="stories/text", help="Directory to save downloaded stories. Defaults to 'nifty_stories'.")
+    parser.add_argument("--delay", type=float, default=0.01, help="Delay in seconds between HTTP requests (default 1.0) to avoid overloading the server.")
+    parser.add_argument("--force", action="store_true", help="Force full scan of all pages in a subcategory, bypassing early-stop optimization.")
+    parser.add_argument("--socks5-proxy", default="192.168.2.10:37459", help="SOCKS5 proxy server to route requests through (e.g. 127.0.0.1:1080).")
     parser.add_argument(
-        "--start-date",
-        default="1990-01-01",
-        help="Start date of publication range (YYYY-MM-DD). Defaults to 1990-01-01.",
+        "--rotate-on-refusal", action="store_true", default=True, help="Enable IP rotation using windscribe-cli if requests are refused or fail."
     )
-    parser.add_argument(
-        "--end-date",
-        default=None,
-        help="End date of publication range (YYYY-MM-DD). Defaults to today's date.",
-    )
-    parser.add_argument(
-        "--output-dir",
-        default="stories/text",
-        help="Directory to save downloaded stories. Defaults to 'nifty_stories'.",
-    )
-    parser.add_argument(
-        "--delay",
-        type=float,
-        default=0.01,
-        help="Delay in seconds between HTTP requests (default 1.0) to avoid overloading the server.",
-    )
-    parser.add_argument(
-        "--force",
-        action="store_true",
-        help="Force full scan of all pages in a subcategory, bypassing early-stop optimization.",
-    )
-    parser.add_argument(
-        "--socks5-proxy",
-        default="192.168.2.10:37459",
-        help="SOCKS5 proxy server to route requests through (e.g. 127.0.0.1:1080).",
-    )
-    parser.add_argument(
-        "--rotate-on-refusal",
-        action="store_true",
-        default=True,
-        help="Enable IP rotation using windscribe-cli if requests are refused or fail.",
-    )
-    parser.add_argument(
-        "--max-workers",
-        type=int,
-        default=5,
-        help="Maximum number of parallel download workers (default 1).",
-    )
-    parser.add_argument(
-        "--max-scraping",
-        type=int,
-        default=5,
-        help="Maximum number of parallel scraping workers (default 4).",
-    )
+    parser.add_argument("--max-workers", type=int, default=5, help="Maximum number of parallel download workers (default 1).")
+    parser.add_argument("--max-scraping", type=int, default=5, help="Maximum number of parallel scraping workers (default 4).")
     parser.add_argument(
         "--db",
         default="stories/db",
@@ -152,29 +109,16 @@ def main():
     try:
         # Crawl each subcategory to collect story links
         if args.max_scraping > 1:
-            with concurrent.futures.ThreadPoolExecutor(
-                max_workers=args.max_scraping
-            ) as executor:
-                futures = [
-                    executor.submit(
-                        process_subcategory, sub, start_date, end_date, args
-                    )
-                    for sub in subcategories
-                ]
+            with concurrent.futures.ThreadPoolExecutor(max_workers=args.max_scraping) as executor:
+                futures = [executor.submit(process_subcategory, sub, start_date, end_date, args) for sub in subcategories]
                 for future in concurrent.futures.as_completed(futures):
                     try:
                         sub_targets = future.result()
                         for target in sub_targets:
                             key = target["key"]
                             if key not in all_story_targets:
-                                all_story_targets[key] = {
-                                    "url": target["url"],
-                                    "output_paths": [],
-                                    "date": target["date"],
-                                }
-                            all_story_targets[key]["output_paths"].append(
-                                target["output_path"]
-                            )
+                                all_story_targets[key] = {"url": target["url"], "output_paths": [], "date": target["date"]}
+                            all_story_targets[key]["output_paths"].append(target["output_path"])
                     except Exception as e:
                         safe_print(f"Error occurred in scraping worker thread: {e}")
         else:
@@ -183,11 +127,7 @@ def main():
                 for target in sub_targets:
                     key = target["key"]
                     if key not in all_story_targets:
-                        all_story_targets[key] = {
-                            "url": target["url"],
-                            "output_paths": [],
-                            "date": target["date"],
-                        }
+                        all_story_targets[key] = {"url": target["url"], "output_paths": [], "date": target["date"]}
                     all_story_targets[key]["output_paths"].append(target["output_path"])
     finally:
         save_cache(args.output_dir)
@@ -201,21 +141,11 @@ def main():
     successful_downloads = 0
 
     if args.max_workers > 1:
-        with concurrent.futures.ThreadPoolExecutor(
-            max_workers=args.max_workers
-        ) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=args.max_workers) as executor:
             futures = []
             for idx, (key, target) in enumerate(all_story_targets.items()):
                 idx_str = f"{idx + 1}/{total_downloads}"
-                future = executor.submit(
-                    download_single_target,
-                    idx_str,
-                    target["url"],
-                    target["output_paths"],
-                    target["date"],
-                    args.delay,
-                    force=args.force,
-                )
+                future = executor.submit(download_single_target, idx_str, target["url"], target["output_paths"], target["date"], args.delay, force=args.force)
                 futures.append(future)
 
             for future in concurrent.futures.as_completed(futures):
@@ -228,14 +158,7 @@ def main():
     else:
         for idx, (key, target) in enumerate(all_story_targets.items()):
             idx_str = f"{idx + 1}/{total_downloads}"
-            success = download_single_target(
-                idx_str,
-                target["url"],
-                target["output_paths"],
-                target["date"],
-                args.delay,
-                force=args.force,
-            )
+            success = download_single_target(idx_str, target["url"], target["output_paths"], target["date"], args.delay, force=args.force)
             if success:
                 successful_downloads += 1
             time.sleep(args.delay)

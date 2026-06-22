@@ -10,17 +10,7 @@ from tqdm import tqdm
 from transformers import pipeline
 
 DB_PATH = "sentiment_analysis.db"
-ALLOWED_LABELS = {
-    "PERSON",
-    "NORP",
-    "GPE",
-    "LOC",
-    "ORG",
-    "FAC",
-    "EVENT",
-    "PRODUCT",
-    "WORK_OF_ART",
-}
+ALLOWED_LABELS = {"PERSON", "NORP", "GPE", "LOC", "ORG", "FAC", "EVENT", "PRODUCT", "WORK_OF_ART"}
 
 
 def init_db(db_path):
@@ -54,15 +44,9 @@ def init_db(db_path):
             FOREIGN KEY(sentence_id) REFERENCES sentences(id)
         )
     """)
-    cursor.execute(
-        "CREATE INDEX IF NOT EXISTS idx_sentences_story ON sentences(story_id)"
-    )
-    cursor.execute(
-        "CREATE INDEX IF NOT EXISTS idx_entities_sentence ON sentence_entities(sentence_id)"
-    )
-    cursor.execute(
-        "CREATE INDEX IF NOT EXISTS idx_entities_text ON sentence_entities(entity_text)"
-    )
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_sentences_story ON sentences(story_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_entities_sentence ON sentence_entities(sentence_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_entities_text ON sentence_entities(entity_text)")
 
     conn.commit()
     return conn
@@ -93,39 +77,13 @@ def extract_chapter_number(filename):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Analyze narrative sentiment and entity interactions."
-    )
-    parser.add_argument(
-        "--stories-dir",
-        type=str,
-        default="test_stories",
-        help="Directory containing stories.",
-    )
-    parser.add_argument(
-        "--subcategory",
-        type=str,
-        default=None,
-        help="Process only a specific subcategory (e.g. 'gay/incest').",
-    )
-    parser.add_argument(
-        "--limit-stories",
-        type=int,
-        default=1,
-        help="Max number of multi-chapter stories to process.",
-    )
-    parser.add_argument(
-        "--db-path", type=str, default=DB_PATH, help="Path to SQLite DB."
-    )
-    parser.add_argument(
-        "--spacy-model", type=str, default="en_core_web_sm", help="spaCy model."
-    )
-    parser.add_argument(
-        "--sentiment-model",
-        type=str,
-        default="cardiffnlp/twitter-roberta-base-sentiment-latest",
-        help="HF Sentiment Model.",
-    )
+    parser = argparse.ArgumentParser(description="Analyze narrative sentiment and entity interactions.")
+    parser.add_argument("--stories-dir", type=str, default="test_stories", help="Directory containing stories.")
+    parser.add_argument("--subcategory", type=str, default=None, help="Process only a specific subcategory (e.g. 'gay/incest').")
+    parser.add_argument("--limit-stories", type=int, default=1, help="Max number of multi-chapter stories to process.")
+    parser.add_argument("--db-path", type=str, default=DB_PATH, help="Path to SQLite DB.")
+    parser.add_argument("--spacy-model", type=str, default="en_core_web_sm", help="spaCy model.")
+    parser.add_argument("--sentiment-model", type=str, default="cardiffnlp/twitter-roberta-base-sentiment-latest", help="HF Sentiment Model.")
     parser.add_argument("--gpu", action="store_true", default=True, help="Use GPU.")
     args = parser.parse_args()
 
@@ -195,10 +153,7 @@ def main():
             if len(parts) > idx + 2:
                 subcat = f"{parts[idx + 1]}/{parts[idx + 2]}"
 
-        cursor.execute(
-            "INSERT INTO stories (story_dir, subcategory) VALUES (?, ?)",
-            (story_dir, subcat),
-        )
+        cursor.execute("INSERT INTO stories (story_dir, subcategory) VALUES (?, ?)", (story_dir, subcat))
         story_id = cursor.lastrowid
 
         for chapter_idx, filepath in enumerate(tqdm(filepaths, desc="Chapters")):
@@ -236,25 +191,19 @@ def main():
             for sent_idx, (sent, sent_result) in enumerate(zip(sentences, sentiments)):
                 score = get_sentiment_value(sent_result)
 
-                cursor.execute(
-                    """
+                cursor.execute("""
                     INSERT INTO sentences (story_id, chapter_filename, chapter_index, sentence_index, text, sentiment_score)
                     VALUES (?, ?, ?, ?, ?, ?)
-                """,
-                    (story_id, filepath.name, chapter_idx, sent_idx, sent.text, score),
-                )
+                """, (story_id, filepath.name, chapter_idx, sent_idx, sent.text, score))
 
                 sentence_id = cursor.lastrowid
 
                 for ent in sent.ents:
                     if ent.label_ in ALLOWED_LABELS:
-                        cursor.execute(
-                            """
+                        cursor.execute("""
                             INSERT INTO sentence_entities (sentence_id, entity_text, entity_label)
                             VALUES (?, ?, ?)
-                        """,
-                            (sentence_id, ent.text, ent.label_),
-                        )
+                        """, (sentence_id, ent.text, ent.label_))
 
             conn.commit()
 

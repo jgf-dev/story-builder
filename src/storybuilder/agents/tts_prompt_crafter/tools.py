@@ -155,7 +155,10 @@ def write_scene_file(story_path: str, filename: str, content: str) -> str:
 
     # Validate filename pattern
     if "-scene" not in filename or not filename.endswith(".md"):
-        return f"Error: filename must match '*-scene*.md' pattern. Got: {filename}"
+        return (
+            f"Error: filename must match '*-scene*.md' pattern. "
+            f"Got: {filename}"
+        )
 
     filepath = os.path.join(output_dir, filename)
     with open(filepath, "w") as f:
@@ -201,7 +204,9 @@ def split_scene_files(story_path: str) -> str:
 
     # Report results
     part_files = sorted(glob.glob(os.path.join(output_dir, "*-part.md")))
-    archived = sorted(glob.glob(os.path.join(output_dir, "archive", "*-scene*.md")))
+    archived = sorted(
+        glob.glob(os.path.join(output_dir, "archive", "*-scene*.md"))
+    )
 
     result_lines = [
         f"Split complete. Generated {len(part_files)} part file(s):",

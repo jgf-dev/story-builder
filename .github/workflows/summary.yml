@@ -40,7 +40,7 @@ jobs:
 
       - name: AI Improve Title
         id: title-edit
-        uses: actions/ai-iinference@v1
+        uses: actions/ai-inference@v1
         with:
           promtpt: |
             You are improving the title of an issue; the current title and body are included below.
@@ -56,5 +56,3 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           RESPONSE: ${{ steps.title-edit.outputs.response }}
-
-      

@@ -76,6 +76,7 @@ def extract_chapter_number(filename):
     return 0
 
 
+
 def find_multi_stories(stories_dir: str, subcategory: str) -> dict:
     search_pattern = "*.txt"
     if subcategory:

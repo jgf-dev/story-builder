@@ -558,7 +558,6 @@ def optimize_fts_all(db_dir: str) -> None:
                 conn.close()
 
 
-def optimize_fts() -> None:
     """Rebuild the FTS index for optimal search performance across all databases."""
     import concurrent.futures
 

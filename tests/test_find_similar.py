@@ -1,30 +1,68 @@
 import unittest
 from unittest.mock import patch, MagicMock
-import sys
 from io import StringIO
 
 from storybuilder.analysis.find_similar import main
 
 class TestFindSimilar(unittest.TestCase):
+    @patch('sys.argv', ['find_similar.py', 'test_story.md', '--db-path', '/fake/path'])
+    @patch('chromadb.PersistentClient')
     @patch('sys.stdout', new_callable=StringIO)
-    @patch('storybuilder.analysis.find_similar.chromadb.PersistentClient')
-    @patch('sys.argv', ['find_similar.py', 'test_story.txt'])
-    def test_missing_collection_error(self, mock_client_class, mock_stdout):
+    def test_collection_not_found(self, mock_stdout, mock_chroma_client):
         # Setup mock client
-        mock_client = MagicMock()
-        mock_client_class.return_value = mock_client
+        mock_instance = MagicMock()
+        mock_chroma_client.return_value = mock_instance
+        mock_instance.get_collection.side_effect = Exception("Collection not found")
 
-        # Simulate getting collection throwing an exception
-        mock_client.get_collection.side_effect = Exception("Collection not found")
-
-        # Run main
+        # Call main
         main()
 
-        # Assertions
-        mock_client.get_collection.assert_called_once_with(name="story_averages")
+        # Check output
+        output = mock_stdout.getvalue()
+        self.assertIn("Error: Could not find 'story_averages' collection", output)
+
+    @patch('sys.argv', ['find_similar.py', 'test_story.md'])
+    @patch('chromadb.PersistentClient')
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_story_not_found(self, mock_stdout, mock_chroma_client):
+        mock_instance = MagicMock()
+        mock_chroma_client.return_value = mock_instance
+        mock_collection = MagicMock()
+        mock_instance.get_collection.return_value = mock_collection
+
+        # return empty embeddings
+        mock_collection.get.return_value = {"embeddings": []}
+
+        main()
 
         output = mock_stdout.getvalue()
-        self.assertIn("Error: Could not find 'story_averages' collection. Run generate_embeddings.py first.", output)
+        self.assertIn("Error: Story 'test_story.md' not found", output)
+
+    @patch('sys.argv', ['find_similar.py', 'target.md', '--n-results', '2'])
+    @patch('chromadb.PersistentClient')
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_success_find_similar(self, mock_stdout, mock_chroma_client):
+        mock_instance = MagicMock()
+        mock_chroma_client.return_value = mock_instance
+        mock_collection = MagicMock()
+        mock_instance.get_collection.return_value = mock_collection
+
+        # return embeddings for target
+        mock_collection.get.return_value = {"embeddings": [[0.1, 0.2, 0.3]]}
+
+        # return query results
+        mock_collection.query.return_value = {
+            "ids": [["target.md", "sim1.md", "sim2.md"]],
+            "distances": [[0.0, 0.5, 0.6]]
+        }
+
+        main()
+
+        output = mock_stdout.getvalue()
+        self.assertIn("Finding top 2 stories similar to: target.md", output)
+        self.assertNotIn("0. target.md", output) # Should skip itself
+        self.assertIn("1. sim1.md", output)
+        self.assertIn("2. sim2.md", output)
 
 if __name__ == "__main__":
     unittest.main()

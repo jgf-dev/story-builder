@@ -1,2 +1,1 @@
-#!/bin/bash
-uv run pytest tests/
+404: Not Found

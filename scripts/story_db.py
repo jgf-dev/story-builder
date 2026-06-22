@@ -26,7 +26,6 @@ import argparse
 import os
 import sqlite3
 import sys
-import textwrap
 from collections import Counter
 from pathlib import Path
 
@@ -64,7 +63,6 @@ def _query_all(conn: sqlite3.Connection, db_paths: list[str], sql: str, params: 
 
     Returns concatenated results. Does not perform a global ORDER BY or LIMIT.
     """
-    import re
 
     # Strip trailing ORDER BY ... LIMIT ... from the template
     # We will just yield all results and let the caller sort/limit if needed,
@@ -206,7 +204,7 @@ def cmd_get(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None)
             conn.execute('ATTACH DATABASE ? AS curr_db', (db_path,))
             try:
                 curs = conn.cursor()
-                sql = f"SELECT * FROM curr_db.stories WHERE path = ? OR story_slug = ?"
+                sql = "SELECT * FROM curr_db.stories WHERE path = ? OR story_slug = ?"
                 db_rows = curs.execute(sql, (slug, slug)).fetchall()
                 curs.close()
                 if db_rows:
@@ -215,7 +213,7 @@ def cmd_get(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None)
             finally:
                 conn.execute("DETACH DATABASE curr_db")
     else:
-        sql = f"SELECT * FROM stories WHERE path = ? OR story_slug = ?"
+        sql = "SELECT * FROM stories WHERE path = ? OR story_slug = ?"
         db_rows = conn.execute(sql, (slug, slug)).fetchall()
         rows.extend(db_rows)
 

@@ -14,18 +14,7 @@ seen_folders = set()
 seen_folders_lock = threading.Lock()
 
 
-def get_subcategories(category, delay):
-    """
-    Scrapes the category index page to find all subcategory folders.
-    Returns a list of dicts: [{'name': 'Adult Friends', 'url': 'https://nifty.org/nifty/gay/adult-friends/'}]
-    """
-    url = urllib.parse.urljoin(BASE_URL, f"{category}/")
-    safe_print(f"Fetching subcategories from {url}...")
-    response = fetch_page(url, delay)
-    if not response:
-        return []
-
-    soup = BeautifulSoup(response.text, "html.parser")
+def _extract_subcategories_from_html(soup, url):
     subcategories = []
 
     # Nifty pages have lists of subcategories under list-group-item class
@@ -48,6 +37,10 @@ def get_subcategories(category, delay):
                 sub_name = a_tag.get_text(strip=True) or href.rstrip("/")
                 subcategories.append({"name": sub_name, "url": sub_url})
 
+    return subcategories
+
+
+def _filter_subcategories(subcategories, category):
     # Filter out external links or parent directories
     filtered = []
     seen_urls = set()
@@ -64,6 +57,24 @@ def get_subcategories(category, delay):
             if normalized_url not in seen_urls:
                 seen_urls.add(normalized_url)
                 filtered.append({"name": sub["name"], "url": normalized_url})
+
+    return filtered
+
+
+def get_subcategories(category, delay):
+    """
+    Scrapes the category index page to find all subcategory folders.
+    Returns a list of dicts: [{'name': 'Adult Friends', 'url': 'https://nifty.org/nifty/gay/adult-friends/'}]
+    """
+    url = urllib.parse.urljoin(BASE_URL, f"{category}/")
+    safe_print(f"Fetching subcategories from {url}...")
+    response = fetch_page(url, delay)
+    if not response:
+        return []
+
+    soup = BeautifulSoup(response.text, "html.parser")
+    subcategories = _extract_subcategories_from_html(soup, url)
+    filtered = _filter_subcategories(subcategories, category)
 
     safe_print(f"Found {len(filtered)} subcategories for category '{category}'")
     for sub in filtered:
@@ -127,14 +138,6 @@ def scrape_subcategory(sub_url, start_date, end_date, delay, force_scan=False):
         cached_stories = cached_entry.get("stories", [])
         is_complete = cached_entry.get("complete", False)
 
-    # Calculate min_cached_date (oldest cached story date)
-    min_cached_date = None
-    if cached_stories:
-        try:
-            # Assumes stories are sorted descending (latest first), so the last one is the oldest
-            min_cached_date = datetime.datetime.strptime(cached_stories[-1]["date"], "%Y-%m-%d").date()
-        except Exception:
-            pass
 
     # We only use cache-hit early-stop if we are not forcing a scan and the cache is marked complete.
     # This ensures that we do not stop traversing on a cache hit when the cache has gaps or is partial.

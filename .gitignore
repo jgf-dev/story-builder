@@ -22,4 +22,3 @@ ibm-credentials.env
 stories/db/2025.db
 stories/db/2004.db
 .coverage
-.coverage

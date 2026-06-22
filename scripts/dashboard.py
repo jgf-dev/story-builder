@@ -1,3 +1,4 @@
+import html
 import streamlit as st
 import sqlite3
 import os
@@ -438,27 +439,28 @@ if page == "🔍 Search & Explorer":
     st.subheader(f"Found {len(search_results)} Result(s)")
 
     for res in search_results:
+        # Sanitize variables for HTML
+        safe_title = html.escape(str(res.get('title') or ''))
+        safe_author = html.escape(str(res.get('author_name') or 'Unknown'))
+        safe_category = html.escape(str(res.get('category') or ''))
+        safe_pub_date = html.escape(str(res.get('publication_date') or 'Unknown'))
+
         # Create a container for the card styling
         card_html = f"""
         <div class="story-card">
-            <h4>{html.escape(res["title"] or "")}</h4>
+            <h4>{safe_title}</h4>
             <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 8px;'>
-                <b>Author:</b> {html.escape(res["author_name"] or "Unknown")} |
-                <b>Category:</b> {html.escape(res["category"] or "Unknown")} |
-                <b>Published:</b> {html.escape(str(res["publication_date"] or "Unknown"))} |
-                <b>Words:</b> {res["word_count"]:,}
+                <b>Author:</b> {safe_author} |
+                <b>Category:</b> {safe_category} |
+                <b>Published:</b> {safe_pub_date} |
+                <b>Words:</b> {res['word_count']:,}
             </p>
         """
 
         # Display highlighted snippets if any
         if res.get("snippet"):
-            # Escape the snippet first, then replace the placeholder highlight
-            # markers with actual HTML span tags so DB content cannot inject HTML.
-            snippet_cleaned = (
-                html.escape(res["snippet"])
-                .replace("___HIGHLIGHT_START___", "<span class='highlight'>")
-                .replace("___HIGHLIGHT_END___", "</span>")
-            )
+            safe_snippet = html.escape(str(res["snippet"]))
+            snippet_cleaned = safe_snippet.replace("___HIGHLIGHT_START___", "<span class='highlight'>").replace("___HIGHLIGHT_END___", "</span>")
             card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
 
         card_html += "</div>"
@@ -650,13 +652,18 @@ elif page == "⭐ Favorites & Tags":
                 continue
 
             with st.container():
+                # Sanitize favorites variables for HTML
+                safe_fav_title = html.escape(str(f.get('title') or ''))
+                safe_fav_author = html.escape(str(f.get('author') or 'Unknown'))
+                safe_fav_tags = html.escape(str(f.get('tags') or 'None'))
+                safe_fav_notes = html.escape(str(f.get('notes') or 'None'))
                 st.markdown(
                      f"""
                     <div class='story-card'>
-                        <h4>{html.escape(f["title"] or "")}</h4>
-                        <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 4px;'><b>Author:</b> {html.escape(f["author"] or "Unknown")}</p>
-                        <p style='font-size: 0.9rem;'><span class='highlight'>Tags:</span> {html.escape(f["tags"] or "None")}</p>
-                        <p style='font-size: 0.9rem; color: #cbd5e1;'><i>Notes:</i> {html.escape(f["notes"] or "None")}</p>
+                        <h4>{safe_fav_title}</h4>
+                        <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 4px;'><b>Author:</b> {safe_fav_author}</p>
+                        <p style='font-size: 0.9rem;'><span class='highlight'>Tags:</span> {safe_fav_tags}</p>
+                        <p style='font-size: 0.9rem; color: #cbd5e1;'><i>Notes:</i> {safe_fav_notes}</p>
                     </div>
                     """,
                     unsafe_allow_html=True,

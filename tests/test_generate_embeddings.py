@@ -3,7 +3,6 @@ import argparse
 from unittest.mock import patch, MagicMock
 from pathlib import Path
 import tempfile
-import shutil
 
 from storybuilder.analysis.generate_embeddings import get_chunks, main
 

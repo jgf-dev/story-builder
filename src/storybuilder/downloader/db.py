@@ -1,44 +1,34 @@
-"""
-Database layer for story storage -- shared by the downloader (live insert) and
-the batch import script.
-
-Thread-safe: uses WAL mode + a write lock.  Call init_db() once at startup,
-then insert_story() from any thread.
-"""
-
 import os
 import re
-import sqlite3
 import threading
+import sqlite3
 from pathlib import Path
-
-# -- Schema -------------------------------------------------------------
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS stories (
-    id              INTEGER PRIMARY KEY,
-    path            TEXT UNIQUE NOT NULL,
-    orientation     TEXT NOT NULL DEFAULT 'gay',
-    category        TEXT NOT NULL,
-    story_slug      TEXT NOT NULL,
-    chapter_num     INTEGER,
-    title           TEXT NOT NULL,
-    author_name     TEXT,
-    author_email    TEXT,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    path TEXT UNIQUE NOT NULL,
+    orientation TEXT,
+    category TEXT,
+    story_slug TEXT,
+    chapter_num INTEGER,
+    title TEXT,
+    author_name TEXT,
+    author_email TEXT,
     publication_date TEXT,
-    url             TEXT,
-    email_date      TEXT,
-    char_count      INTEGER NOT NULL,
-    word_count      INTEGER NOT NULL,
-    content         TEXT NOT NULL
+    url TEXT,
+    char_count INTEGER,
+    word_count INTEGER,
+    content TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE VIRTUAL TABLE IF NOT EXISTS stories_fts USING fts5(
     title,
     author_name,
     content,
-    content=stories,
-    content_rowid=id
+    content='stories',
+    content_rowid='id'
 );
 
 CREATE TRIGGER IF NOT EXISTS stories_ai AFTER INSERT ON stories BEGIN
@@ -550,6 +540,27 @@ def optimize_fts_all(db_dir: str) -> None:
             # Best-effort optimization: skip databases that do not support FTS
             # optimize or that are unreadable/corrupted.
             continue
+        finally:
+            if conn:
+                conn.close()
+
+def optimize_fts_all(db_dir: str) -> None:
+    """Scan the given directory and rebuild FTS on all .db files."""
+    if not os.path.isdir(db_dir):
+        return
+
+    for filename in os.listdir(db_dir):
+        if not filename.endswith(".db"):
+            continue
+
+        db_path = os.path.join(db_dir, filename)
+        conn = None
+        try:
+            conn = sqlite3.connect(db_path, check_same_thread=False)
+            conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
+            conn.commit()
+        except sqlite3.OperationalError:
+            pass
         finally:
             if conn:
                 conn.close()

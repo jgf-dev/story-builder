@@ -210,7 +210,8 @@ class TestExtractEntities(unittest.TestCase):
         mock_spacy_load.side_effect = OSError("Model not found")
 
         # Capture print output
-        with patch("builtins.print") as mock_print:
+        # Capture print output
+        with patch('builtins.print') as mock_print:
             with self.assertRaises(SystemExit) as cm:
                 main()
             self.assertEqual(cm.exception.code, 1)

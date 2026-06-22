@@ -1,5 +1,3 @@
-import re
-
 with open("src/storybuilder/downloader/db.py", "r") as f:
     content = f.read()
 

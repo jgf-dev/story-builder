@@ -2,8 +2,12 @@ import os
 import re
 import threading
 import sqlite3
+import logging
 from pathlib import Path
 
+# -- Schema -------------------------------------------------------------
+
+logger = logging.getLogger(__name__)
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS stories (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -1,6 +1,5 @@
 import unittest
 from unittest.mock import patch, MagicMock
-import sys
 from io import StringIO
 from contextlib import redirect_stdout
 from storybuilder.analysis.extract_entities import main

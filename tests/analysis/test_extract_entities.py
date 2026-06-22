@@ -1,9 +1,9 @@
-import unittest
-from unittest.mock import patch, MagicMock
+import os
 import sqlite3
 import tempfile
-import os
+import unittest
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 from storybuilder.analysis.extract_entities import (
     init_db,
@@ -196,8 +196,8 @@ class TestExtractEntities(unittest.TestCase):
 
         conn.close()
 
-    @patch('argparse.ArgumentParser.parse_args')
-    @patch('spacy.load')
+    @patch("argparse.ArgumentParser.parse_args")
+    @patch("spacy.load")
     def test_main_model_not_found(self, mock_spacy_load, mock_parse_args):
         # Setup mocks to raise OSError
         mock_args = MagicMock()
@@ -210,10 +210,13 @@ class TestExtractEntities(unittest.TestCase):
         mock_spacy_load.side_effect = OSError("Model not found")
 
         # Capture print output
-        with patch('builtins.print') as mock_print:
-            main()
+        with patch("builtins.print") as mock_print:
+            with self.assertRaises(SystemExit) as cm:
+                main()
+            self.assertEqual(cm.exception.code, 1)
 
-        mock_print.assert_any_call("Model 'en_core_web_sm' not found. Please run: python -m spacy download en_core_web_sm")
+        mock_print.assert_any_call("Model 'en_core_web_sm' not found.")
+        mock_print.assert_any_call("Please run: python -m spacy download en_core_web_sm")
 
     @patch('argparse.ArgumentParser.parse_args')
     @patch('spacy.load')

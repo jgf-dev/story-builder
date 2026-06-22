@@ -1,20 +1,6 @@
-<<<<<<< SEARCH
-def optimize_fts() -> None:
-    """Rebuild the FTS index for optimal search performance."""
-    with _lock:
-        conns = list(_connections.values())
-        if _conn is not None and not _is_partitioned:
-            conns.append(_conn)
-
-        for conn in conns:
-            try:
-                conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
-                conn.commit()
-            except sqlite3.OperationalError:
-                pass
-=======
 import concurrent.futures
 
+
 def optimize_fts() -> None:
     """Rebuild the FTS index for optimal search performance."""
     with _lock:
@@ -22,7 +8,7 @@ def optimize_fts() -> None:
         if _conn is not None and not _is_partitioned:
             conns.append(_conn)
 
-    def _optimize(conn: sqlite3.Connection) -> None:
+    def _opt(conn: sqlite3.Connection) -> None:
         try:
             conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
             conn.commit()
@@ -33,5 +19,4 @@ def optimize_fts() -> None:
     # The connections are opened with check_same_thread=False
     if conns:
         with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(conns), 10)) as executor:
-            list(executor.map(_optimize, conns))
->>>>>>> REPLACE
+            list(executor.map(_opt, conns))

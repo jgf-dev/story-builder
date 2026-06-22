@@ -141,7 +141,7 @@ def cmd_search(conn: sqlite3.Connection, args, db_names: "list[str] | None" = No
                 SELECT s.id, s.path, s.category, s.story_slug, s.chapter_num,
                        s.title, s.author_name, s.publication_date,
                        s.char_count, s.word_count,
-                       snippet({fts_ref}, 2, '<b>', '</b>', '…', 40) AS snippet
+                       snippet(stories_fts, 2, '<b>', '</b>', '…', 40) AS snippet
                 FROM {table_ref} s
                 JOIN {fts_ref} ON s.id = {fts_ref}.rowid
                 WHERE {where}

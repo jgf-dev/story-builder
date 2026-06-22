@@ -27,6 +27,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 # Import shared database functions
 from storybuilder.downloader.db import (
+    optimize_fts,
     SCHEMA, INDEXES, init_db as _db_init_db, insert_story,
     _parse_output_path, _parse_author,
 )
@@ -177,6 +178,48 @@ _start_time = 0.0
 
 
 def _flush_batch(conn: sqlite3.Connection, batch: list, force: bool) -> int:
+    try:
+        from storybuilder.downloader.db import _is_partitioned
+    except ImportError:
+        _is_partitioned = False
+
+    if _is_partitioned:
+        from storybuilder.downloader.db import _get_write_conn
+        conns = {}
+        for row in batch:
+            story_date = row[8]
+            c = _get_write_conn(story_date)
+            if c not in conns:
+                conns[c] = []
+            conns[c].append(row)
+        imported = 0
+        for c, rows in conns.items():
+            sql = """
+                INSERT OR REPLACE INTO stories
+                    (path, orientation, category, story_slug, chapter_num,
+                     title, author_name, author_email,
+                     publication_date, url, email_date,
+                     char_count, word_count, content)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """
+            try:
+                c.executemany(sql, rows)
+                c.commit()
+                imported += len(rows)
+            except sqlite3.IntegrityError:
+                c.rollback()
+                if force:
+                    count = 0
+                    for r in rows:
+                        try:
+                            c.execute(sql, r)
+                            c.commit()
+                            count += 1
+                        except Exception:
+                            pass
+                    imported += count
+        return imported
+
     sql = """
         INSERT OR REPLACE INTO stories
             (path, orientation, category, story_slug, chapter_num,
@@ -247,8 +290,15 @@ def main():
 
     # Build FTS index (should already be built via triggers, but optimize)
     print(f"\n  Optimizing FTS index...")
-    conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
-    conn.commit()
+    try:
+        from storybuilder.downloader.db import _is_partitioned
+    except ImportError:
+        _is_partitioned = False
+    if not _is_partitioned:
+        conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
+        conn.commit()
+    else:
+        optimize_fts()
 
     # Print stats
     row = conn.execute("SELECT COUNT(*), SUM(char_count), SUM(word_count) FROM stories").fetchone()

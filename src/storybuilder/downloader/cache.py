@@ -29,7 +29,9 @@ def load_cache(cache_dir):
                     data = json.load(f)
                     metadata_cache.clear()
                     metadata_cache.update(data)
-            safe_print(f"Loaded cache from {cache_path} with {len(metadata_cache)} entries.")
+            safe_print(
+                f"Loaded cache from {cache_path} with {len(metadata_cache)} entries."
+            )
         except Exception as e:
             safe_print(f"Warning: Failed to load cache: {e}")
     else:

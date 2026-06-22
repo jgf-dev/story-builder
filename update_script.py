@@ -1,4 +1,9 @@
-import argparse
+import re
+
+with open('src/storybuilder/analysis/visualize_tsne.py', 'r') as f:
+    code = f.read()
+
+new_code = """import argparse
 from typing import List, Tuple
 
 import chromadb
@@ -10,27 +15,10 @@ import pandas as pd
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Visualize story embeddings using t-SNE."
-    )
-    parser.add_argument(
-        "--db-path",
-        type=str,
-        default="./chroma_db",
-        help="Path to the Chroma database.",
-    )
-    parser.add_argument(
-        "--output",
-        type=str,
-        default="tsne_visualization.html",
-        help="Output HTML file path.",
-    )
-    parser.add_argument(
-        "--perplexity",
-        type=float,
-        default=1000.0,
-        help="Perplexity for t-SNE (adjust based on dataset size).",
-    )
+    parser = argparse.ArgumentParser(description="Visualize story embeddings using t-SNE.")
+    parser.add_argument("--db-path", type=str, default="./chroma_db", help="Path to the Chroma database.")
+    parser.add_argument("--output", type=str, default="tsne_visualization.html", help="Output HTML file path.")
+    parser.add_argument("--perplexity", type=float, default=1000.0, help="Perplexity for t-SNE (adjust based on dataset size).")
     return parser.parse_args()
 
 
@@ -40,9 +28,7 @@ def fetch_embeddings(db_path: str) -> Tuple[List[str], np.ndarray, List[dict]]:
     try:
         collection_averages = chroma_client.get_collection(name="story_averages")
     except Exception:
-        print(
-            "Error: Could not find 'story_averages' collection. Run generate_embeddings.py first."
-        )
+        print("Error: Could not find 'story_averages' collection. Run generate_embeddings.py first.")
         return [], np.array([]), []
 
     print("Fetching embeddings from database...")
@@ -58,13 +44,7 @@ def fetch_embeddings(db_path: str) -> Tuple[List[str], np.ndarray, List[dict]]:
 def run_tsne(embeddings: np.ndarray, perplexity_arg: float) -> np.ndarray:
     perplexity = min(perplexity_arg, max(5.0, len(embeddings) - 1))
     print(f"Running t-SNE dimensionality reduction (perplexity={perplexity})...")
-    tsne = TSNE(
-        n_components=2,
-        perplexity=perplexity,
-        random_state=42,
-        init="pca",
-        learning_rate="auto",
-    )
+    tsne = TSNE(n_components=2, perplexity=perplexity, random_state=42, init="pca", learning_rate="auto")
     embeddings_2d = tsne.fit_transform(embeddings)
     return embeddings_2d
 
@@ -73,7 +53,7 @@ def extract_labels(ids: List[str]) -> Tuple[List[str], List[str]]:
     short_names = []
     subcategories = []
     for filepath in ids:
-        parts = filepath.replace("\\", "/").split("/")
+        parts = filepath.replace("\\\\", "/").split("/")
         short_names.append(parts[-1])
         if len(parts) >= 3:
             subcategories.append(parts[2])
@@ -82,13 +62,7 @@ def extract_labels(ids: List[str]) -> Tuple[List[str], List[str]]:
     return short_names, subcategories
 
 
-def create_and_save_plot(
-    embeddings_2d: np.ndarray,
-    ids: List[str],
-    short_names: List[str],
-    subcategories: List[str],
-    output_path: str,
-) -> None:
+def create_and_save_plot(embeddings_2d: np.ndarray, ids: List[str], short_names: List[str], subcategories: List[str], output_path: str) -> None:
     print("Generating interactive plot...")
     fig = px.scatter(
         x=embeddings_2d[:, 0],
@@ -97,24 +71,14 @@ def create_and_save_plot(
         hover_name=short_names,
         hover_data={"filepath": ids, "subcategory": subcategories},
         title="t-SNE Projection of Story Plots by Subcategory",
-        labels={
-            "x": "t-SNE Dimension 1",
-            "y": "t-SNE Dimension 2",
-            "color": "Subcategory",
-        },
+        labels={"x": "t-SNE Dimension 1", "y": "t-SNE Dimension 2", "color": "Subcategory"},
         opacity=0.7,
         template="plotly_dark",
     )
 
     fig.update_traces(marker=dict(size=8, line=dict(width=1, color="DarkSlateGrey")))
 
-    df = pd.DataFrame(
-        {
-            "x": embeddings_2d[:, 0],
-            "y": embeddings_2d[:, 1],
-            "subcategory": subcategories,
-        }
-    )
+    df = pd.DataFrame({"x": embeddings_2d[:, 0], "y": embeddings_2d[:, 1], "subcategory": subcategories})
     centroids = df.groupby("subcategory")[["x", "y"]].mean().reset_index()
 
     for _, row in centroids.iterrows():
@@ -155,3 +119,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+"""
+
+with open('src/storybuilder/analysis/visualize_tsne.py', 'w') as f:
+    f.write(new_code)

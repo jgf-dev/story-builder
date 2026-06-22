@@ -1,13 +1,15 @@
+import datetime
 import os
 import re
+import threading
 import time
 import urllib.parse
-import datetime
-import threading
+
 from bs4 import BeautifulSoup
-from .cache import safe_print, cache_lock, metadata_cache
-from .network import fetch_page, BASE_URL
+
+from .cache import cache_lock, metadata_cache, safe_print
 from .date_parser import parse_nifty_date
+from .network import BASE_URL, fetch_page
 
 # Thread synchronization structures for folder processing
 seen_folders = set()
@@ -224,15 +226,11 @@ def scrape_subcategory(sub_url, start_date, end_date, delay, force_scan=False):
 
     merged_stories.sort(key=get_sort_key, reverse=True)
 
-    reached_end = (current_url is None)
+    reached_end = current_url is None
 
     # Save merged stories back to the cache dictionary
     with cache_lock:
-        metadata_cache[sub_url] = {
-            "last_updated": datetime.datetime.now().isoformat(),
-            "complete": is_complete or reached_end,
-            "stories": merged_stories
-        }
+        metadata_cache[sub_url] = {"last_updated": datetime.datetime.now().isoformat(), "complete": is_complete or reached_end, "stories": merged_stories}
 
     # Now filter and return only the stories that match the current date query!
     filtered_stories = []
@@ -353,11 +351,7 @@ def scrape_multi_chapter_folder(folder_url, folder_date, start_date, end_date, d
 
     # Save to cache
     with cache_lock:
-        metadata_cache[folder_url] = {
-            "last_updated": datetime.datetime.now().isoformat(),
-            "folder_date": folder_date.isoformat(),
-            "chapters": scraped_chapters
-        }
+        metadata_cache[folder_url] = {"last_updated": datetime.datetime.now().isoformat(), "folder_date": folder_date.isoformat(), "chapters": scraped_chapters}
 
     if has_matching:
         safe_print(f"Folder {folder_url} has at least one chapter in date range. Downloading all {len(chapters)} chapters.")
@@ -365,6 +359,47 @@ def scrape_multi_chapter_folder(folder_url, folder_date, start_date, end_date, d
     else:
         safe_print(f"Folder {folder_url} has no chapters in date range. Skipping all.")
         return []
+
+
+def _process_directory_story(s, start_date, end_date, args, sub_folder):
+    folder_url = s["url"]
+
+    # Thread-safe check of seen_folders
+    should_skip = False
+    with seen_folders_lock:
+        if folder_url in seen_folders:
+            should_skip = True
+        else:
+            seen_folders.add(folder_url)
+
+    if should_skip:
+        safe_print(f"Skipping already scraped folder: {folder_url}")
+        return []
+
+    # Fetch multi-chapter story chapters
+    chapters = scrape_multi_chapter_folder(folder_url, s["date"], start_date, end_date, delay=args.delay, force_scan=args.force)
+
+    targets = []
+    for ch in chapters:
+        story_slug = s["name"].lower().replace(" ", "-")
+        story_slug = re.sub(r"[^\w\-]", "", story_slug)
+
+        filename = ch["name"]
+        if not filename.endswith(".txt") and not filename.endswith(".html"):
+            filename += ".txt"
+
+        output_path = os.path.join(args.output_dir, args.category, sub_folder, story_slug, filename)
+        targets.append({"key": (story_slug, filename), "url": ch["url"], "output_path": output_path, "date": ch["date"]})
+    return targets
+
+
+def _process_single_story(s, args, sub_folder):
+    filename = s["name"]
+    if not filename.endswith(".txt") and not filename.endswith(".html"):
+        filename += ".txt"
+
+    output_path = os.path.join(args.output_dir, args.category, sub_folder, filename)
+    return [{"key": (None, filename), "url": s["url"], "output_path": output_path, "date": s["date"]}]
 
 
 def process_subcategory(sub, start_date, end_date, args):
@@ -388,38 +423,8 @@ def process_subcategory(sub, start_date, end_date, args):
 
     for s in stories:
         if s["is_dir"]:
-            folder_url = s["url"]
-
-            # Thread-safe check of seen_folders
-            should_skip = False
-            with seen_folders_lock:
-                if folder_url in seen_folders:
-                    should_skip = True
-                else:
-                    seen_folders.add(folder_url)
-
-            if should_skip:
-                safe_print(f"Skipping already scraped folder: {folder_url}")
-                continue
-
-            # Fetch multi-chapter story chapters
-            chapters = scrape_multi_chapter_folder(folder_url, s["date"], start_date, end_date, delay=args.delay, force_scan=args.force)
-            for ch in chapters:
-                story_slug = s["name"].lower().replace(" ", "-")
-                story_slug = re.sub(r"[^\w\-]", "", story_slug)
-
-                filename = ch["name"]
-                if not filename.endswith(".txt") and not filename.endswith(".html"):
-                    filename += ".txt"
-
-                output_path = os.path.join(args.output_dir, args.category, sub_folder, story_slug, filename)
-                sub_targets.append({"key": (story_slug, filename), "url": ch["url"], "output_path": output_path, "date": ch["date"]})
+            sub_targets.extend(_process_directory_story(s, start_date, end_date, args, sub_folder))
         else:
-            filename = s["name"]
-            if not filename.endswith(".txt") and not filename.endswith(".html"):
-                filename += ".txt"
-
-            output_path = os.path.join(args.output_dir, args.category, sub_folder, filename)
-            sub_targets.append({"key": (None, filename), "url": s["url"], "output_path": output_path, "date": s["date"]})
+            sub_targets.extend(_process_single_story(s, args, sub_folder))
 
     return sub_targets

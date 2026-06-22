@@ -1,5 +1,4 @@
 """Extract Named Entities from stories using spaCy."""
-
 import argparse
 import sqlite3
 from collections import Counter
@@ -11,15 +10,8 @@ from tqdm import tqdm
 
 DB_PATH = "nlp_analysis.db"
 ALLOWED_LABELS = {
-    "PERSON",
-    "NORP",
-    "GPE",
-    "LOC",
-    "ORG",
-    "FAC",
-    "EVENT",
-    "PRODUCT",
-    "WORK_OF_ART",
+    "PERSON", "NORP", "GPE", "LOC", "ORG", "FAC", "EVENT", "PRODUCT",
+    "WORK_OF_ART"
 }
 
 
@@ -63,28 +55,27 @@ def parse_args():
         description="Extract Named Entities from stories using spaCy."
     )
     parser.add_argument(
-        "--limit",
-        type=int,
-        default=float("inf"),
-        help="Maximum number of new files to process.",
+        "--limit", type=int, default=float("inf"),
+        help="Maximum number of new files to process."
     )
     parser.add_argument(
-        "--stories-dir",
-        type=str,
-        default="nifty_stories",
-        help="Directory containing the text files.",
+        "--stories-dir", type=str, default="nifty_stories",
+        help="Directory containing the text files."
     )
     parser.add_argument(
-        "--db-path", type=str, default=DB_PATH, help="Path to the SQLite database."
+        "--db-path", type=str, default=DB_PATH,
+        help="Path to the SQLite database."
     )
     parser.add_argument(
         "--force", action="store_true", help="Force reprocessing of all files."
     )
     parser.add_argument(
-        "--model", type=str, default="en_core_web_lg", help="spaCy model to use."
+        "--model", type=str, default="en_core_web_lg",
+        help="spaCy model to use."
     )
     parser.add_argument(
-        "--gpu", action="store_true", default=True, help="Use GPU for spaCy model."
+        "--gpu", action="store_true", default=True,
+        help="Use GPU for spaCy model."
     )
     return parser.parse_args()
 
@@ -118,8 +109,7 @@ def process_file(filepath_str, nlp, cursor):
 
     doc = nlp(text)
     entities = Counter(
-        (ent.text.strip(), ent.label_)
-        for ent in doc.ents
+        (ent.text.strip(), ent.label_) for ent in doc.ents
         if ent.label_ in ALLOWED_LABELS and ent.text.strip()
     )
 

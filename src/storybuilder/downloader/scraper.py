@@ -136,17 +136,6 @@ def scrape_subcategory(sub_url, start_date, end_date, delay, force_scan=False):
         cached_stories = cached_entry.get("stories", [])
         is_complete = cached_entry.get("complete", False)
 
-    # Calculate min_cached_date (oldest cached story date)
-    min_cached_date = None
-    if cached_stories:
-        try:
-            # Assumes stories are sorted descending (latest first), so the last one is the oldest
-            min_cached_date = datetime.datetime.strptime(
-                cached_stories[-1]["date"], "%Y-%m-%d"
-            ).date()
-        except Exception:
-            pass
-
     # We only use cache-hit early-stop if we are not forcing a scan and the cache is marked complete.
     # This ensures that we do not stop traversing on a cache hit when the cache has gaps or is partial.
     use_cache = not force_scan and is_complete

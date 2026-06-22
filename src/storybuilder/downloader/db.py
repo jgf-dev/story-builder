@@ -560,7 +560,9 @@ def optimize_fts_all(db_dir: str) -> None:
             conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
             conn.commit()
         except sqlite3.OperationalError:
-            pass
+            # Some partitions may not have the expected FTS objects/schema;
+            # skip those partitions and continue searching the rest.
+            continue
         finally:
             if conn:
                 conn.close()

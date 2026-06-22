@@ -214,7 +214,6 @@ def query_stories(
     limit=100,
 ):
     """Perform queries across databases, combining FTS, standard metadata, and entity filters."""
-
     # 1. Filter by entity first if specified
     entity_suffixes = None
     if entity_text:

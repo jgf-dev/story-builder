@@ -498,12 +498,7 @@ def optimize_fts_all(db_dir: str) -> None:
 
 
 def optimize_fts() -> None:
-    """Rebuild the FTS index for optimal search performance."""
-    global _is_partitioned, _db_dir
-    if _is_partitioned and _db_dir:
-        optimize_fts_all(_db_dir)
-        return
-
+    """Rebuild the FTS index for optimal search performance across all databases."""
     import concurrent.futures
 
     db_paths_to_optimize = []

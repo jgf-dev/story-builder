@@ -1,5 +1,6 @@
 import argparse
 import sqlite3
+import sys
 from collections import Counter
 from pathlib import Path
 
@@ -76,8 +77,8 @@ def main():
         nlp.add_pipe("merge_entities")
         nlp.max_length = 5000000
     except OSError:
-        print("Model 'en_core_web_sm' not found. Please run: python -m spacy download en_core_web_sm")
-        return
+        print(f"Model '{args.model}' not found. Please run: python -m spacy download {args.model}")
+        sys.exit(1)
 
     all_files = list(Path(args.stories_dir).rglob("*.txt"))
     print(f"Found {len(all_files)} total text files.")
@@ -108,6 +109,20 @@ def main():
 
             new_stories_to_insert.append((filepath_str,))
             entities_by_filepath[filepath_str] = entities
+            cursor.execute("INSERT INTO stories (filepath) VALUES (?)", (filepath_str,))
+            story_id = cursor.lastrowid
+
+            entity_records = [(story_id, text, label, count) for (text, label), count in entities.items()]
+
+            cursor.executemany(
+                """
+                INSERT INTO entities (story_id, text, label, frequency)
+                VALUES (?, ?, ?, ?)
+            """,
+                entity_records,
+            )
+
+            conn.commit()
 
             processed_count += 1
             pbar.update(1)

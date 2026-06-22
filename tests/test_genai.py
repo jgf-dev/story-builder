@@ -1,6 +1,7 @@
 import unittest
 from storybuilder.genai.client import parse_speech_config
 
+
 class TestGenAIClient(unittest.TestCase):
     def test_parse_speech_config_multi_speaker(self):
         markdown_content = """
@@ -115,30 +116,31 @@ class TestGenAIClient(unittest.TestCase):
 
     def test_extract_markdown_block(self):
         from unittest.mock import patch
-        
+
         # We patch Client and sys.exit to allow importing fix_prompts safely
-        with patch('google.genai.Client'), \
-             patch('os.getenv', return_value="fake_key"), \
-             patch('sys.exit'):
-            
+        with (
+            patch("google.genai.Client"),
+            patch("os.getenv", return_value="fake_key"),
+            patch("sys.exit"),
+        ):
             from storybuilder.genai.fix_prompts import extract_markdown_block
-            
+
             # 1. With markdown block
             content = "```markdown\nhello world\n```"
             self.assertEqual(extract_markdown_block(content), "hello world")
-            
+
             # 2. With generic code block
-            content = "```json\n{\"a\": 1}\n```"
-            self.assertEqual(extract_markdown_block(content), "{\"a\": 1}")
-            
+            content = '```json\n{"a": 1}\n```'
+            self.assertEqual(extract_markdown_block(content), '{"a": 1}')
+
             # 3. Without block
             content = "just raw text"
             self.assertEqual(extract_markdown_block(content), "just raw text")
-            
+
             # 4. Fallback code block cleanup
             content = "```\nfallback content\n```"
             self.assertEqual(extract_markdown_block(content), "fallback content")
 
+
 if __name__ == "__main__":
     unittest.main()
-

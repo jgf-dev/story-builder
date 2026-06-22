@@ -5,7 +5,6 @@ import glob
 import pandas as pd
 import plotly.express as px
 from pathlib import Path
-from datetime import datetime
 
 # Define paths
 DB_DIR = "stories/db"
@@ -430,9 +429,9 @@ if page == "🔍 Search & Explorer":
         <div class="story-card">
             <h4>{res['title']}</h4>
             <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 8px;'>
-                <b>Author:</b> {res['author_name'] or 'Unknown'} | 
-                <b>Category:</b> {res['category']} | 
-                <b>Published:</b> {res['publication_date'] or 'Unknown'} | 
+                <b>Author:</b> {res['author_name'] or 'Unknown'} |
+                <b>Category:</b> {res['category']} |
+                <b>Published:</b> {res['publication_date'] or 'Unknown'} |
                 <b>Words:</b> {res['word_count']:,}
             </p>
         """

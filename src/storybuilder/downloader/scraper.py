@@ -14,18 +14,7 @@ seen_folders = set()
 seen_folders_lock = threading.Lock()
 
 
-def get_subcategories(category, delay):
-    """
-    Scrapes the category index page to find all subcategory folders.
-    Returns a list of dicts: [{'name': 'Adult Friends', 'url': 'https://nifty.org/nifty/gay/adult-friends/'}]
-    """
-    url = urllib.parse.urljoin(BASE_URL, f"{category}/")
-    safe_print(f"Fetching subcategories from {url}...")
-    response = fetch_page(url, delay)
-    if not response:
-        return []
-
-    soup = BeautifulSoup(response.text, "html.parser")
+def _extract_subcategories_from_html(soup, url):
     subcategories = []
 
     # Nifty pages have lists of subcategories under list-group-item class
@@ -53,6 +42,10 @@ def get_subcategories(category, delay):
                 sub_name = a_tag.get_text(strip=True) or href.rstrip("/")
                 subcategories.append({"name": sub_name, "url": sub_url})
 
+    return subcategories
+
+
+def _filter_subcategories(subcategories, category):
     # Filter out external links or parent directories
     filtered = []
     seen_urls = set()
@@ -69,6 +62,24 @@ def get_subcategories(category, delay):
             if normalized_url not in seen_urls:
                 seen_urls.add(normalized_url)
                 filtered.append({"name": sub["name"], "url": normalized_url})
+
+    return filtered
+
+
+def get_subcategories(category, delay):
+    """
+    Scrapes the category index page to find all subcategory folders.
+    Returns a list of dicts: [{'name': 'Adult Friends', 'url': 'https://nifty.org/nifty/gay/adult-friends/'}]
+    """
+    url = urllib.parse.urljoin(BASE_URL, f"{category}/")
+    safe_print(f"Fetching subcategories from {url}...")
+    response = fetch_page(url, delay)
+    if not response:
+        return []
+
+    soup = BeautifulSoup(response.text, "html.parser")
+    subcategories = _extract_subcategories_from_html(soup, url)
+    filtered = _filter_subcategories(subcategories, category)
 
     safe_print(f"Found {len(filtered)} subcategories for category '{category}'")
     for sub in filtered:

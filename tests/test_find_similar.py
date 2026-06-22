@@ -1,6 +1,7 @@
 import io
 import sys
 import unittest
+from io import StringIO
 from unittest.mock import MagicMock, patch
 
 from storybuilder.analysis.find_similar import main

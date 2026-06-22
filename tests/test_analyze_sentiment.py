@@ -1,10 +1,15 @@
+import unittest
+import tempfile
 import os
 import sqlite3
-import tempfile
-import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch, MagicMock
 
-from storybuilder.analysis.analyze_sentiment import extract_chapter_number, get_sentiment_value, init_db, main
+from storybuilder.analysis.analyze_sentiment import (
+    get_sentiment_value,
+    extract_chapter_number,
+    init_db,
+    main,
+)
 
 
 class TestAnalyzeSentiment(unittest.TestCase):
@@ -61,7 +66,17 @@ class TestAnalyzeSentiment(unittest.TestCase):
     @patch("storybuilder.analysis.analyze_sentiment.spacy.load")
     @patch("storybuilder.analysis.analyze_sentiment.pipeline")
     @patch("storybuilder.analysis.analyze_sentiment.init_db")
-    @patch("sys.argv", ["analyze_sentiment.py", "--stories-dir", "fake_dir", "--limit-stories", "1", "--gpu"])
+    @patch(
+        "sys.argv",
+        [
+            "analyze_sentiment.py",
+            "--stories-dir",
+            "fake_dir",
+            "--limit-stories",
+            "1",
+            "--gpu",
+        ],
+    )
     def test_main_no_stories(self, mock_init_db, mock_pipeline, mock_spacy_load):
         # When no stories exist, main should just return early.
         with patch("pathlib.Path.rglob", return_value=[]):
@@ -71,7 +86,10 @@ class TestAnalyzeSentiment(unittest.TestCase):
     @patch("storybuilder.analysis.analyze_sentiment.spacy.load")
     @patch("storybuilder.analysis.analyze_sentiment.pipeline")
     @patch("storybuilder.analysis.analyze_sentiment.init_db")
-    @patch("sys.argv", ["analyze_sentiment.py", "--stories-dir", "fake_dir", "--limit-stories", "1"])
+    @patch(
+        "sys.argv",
+        ["analyze_sentiment.py", "--stories-dir", "fake_dir", "--limit-stories", "1"],
+    )
     def test_main_with_stories(self, mock_init_db, mock_pipeline, mock_spacy_load):
         # Create a mock database connection
         mock_conn = MagicMock()
@@ -117,7 +135,10 @@ class TestAnalyzeSentiment(unittest.TestCase):
 
         m = mock_open(read_data="This is a sentence.")
 
-        with patch("pathlib.Path.rglob", return_value=fake_files), patch("builtins.open", m):
+        with (
+            patch("pathlib.Path.rglob", return_value=fake_files),
+            patch("builtins.open", m),
+        ):
             main()
 
         mock_init_db.assert_called_once()

@@ -381,7 +381,9 @@ def search_all_partitions(
             all_rows.extend([dict(r) for r in rows])
             curs.close()
         except sqlite3.OperationalError:
-            pass
+            # Some partitions may not have the expected FTS objects/schema;
+            # skip those partitions and continue searching the rest.
+            continue
         finally:
             conn.execute("DETACH DATABASE curr_db")
 

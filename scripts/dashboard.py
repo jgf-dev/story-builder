@@ -1,5 +1,4 @@
 import streamlit as st
-import html
 import sqlite3
 import os
 import glob

@@ -490,6 +490,8 @@ def optimize_fts_all(db_dir: str) -> None:
             conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
             conn.commit()
         except sqlite3.OperationalError:
+            # Best-effort optimization: some DB files may not have the FTS table
+            # (or may otherwise not support this command), so ignore and continue.
             pass
         finally:
             conn.close()

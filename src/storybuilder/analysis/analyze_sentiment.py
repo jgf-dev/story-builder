@@ -76,6 +76,101 @@ def extract_chapter_number(filename):
     return 0
 
 
+
+
+def find_multi_stories(stories_dir: str, subcategory: str) -> dict:
+    search_pattern = "*.txt"
+    if subcategory:
+        base_path = Path(stories_dir) / subcategory
+    else:
+        base_path = Path(stories_dir)
+
+    all_files = list(base_path.rglob(search_pattern))
+
+    stories_map = defaultdict(list)
+    for filepath in all_files:
+        stories_map[str(filepath.parent)].append(filepath)
+
+    multi_stories = {k: v for k, v in stories_map.items() if len(v) > 1}
+    print(f"Found {len(multi_stories)} multi-chapter stories in {base_path}.")
+    return multi_stories
+
+
+def load_models(gpu: bool, spacy_model: str, sentiment_model: str) -> tuple:
+    print(f"Loading models (spaCy: {spacy_model}, HF: {sentiment_model})...")
+    device = 0 if gpu else -1
+
+    if gpu:
+        try:
+            set_gpu_allocator("pytorch")
+            require_gpu(0)
+            spacy.require_gpu()
+        except Exception as e:
+            print(f"Could not enable spaCy GPU: {e}")
+
+    nlp = spacy.load(spacy_model)
+    nlp.add_pipe("sentencizer")
+
+    sentiment_pipe = pipeline(
+        "sentiment-analysis",
+        model=sentiment_model,
+        device=device,
+        truncation=True,
+        max_length=512,
+    )
+    return nlp, sentiment_pipe
+
+
+def process_chapter(filepath: Path, chapter_idx: int, story_id: int, nlp, sentiment_pipe, cursor):
+    with open(filepath, "r", encoding="utf-8") as f:
+        text = f.read()
+
+    text = re.sub(r"\s+", " ", text).strip()
+    if not text:
+        return
+
+    try:
+        doc = nlp(text)
+    except Exception as e:
+        print(f"spaCy error on {filepath}: {e}")
+        return
+
+    sentences = list(doc.sents)
+    if not sentences:
+        return
+
+    sentence_texts = [sent.text for sent in sentences]
+
+    try:
+        sentiments = sentiment_pipe(sentence_texts, batch_size=32)
+    except Exception as e:
+        print(f"Sentiment pipeline error on {filepath}: {e}")
+        sentiments = []
+        for s in sentence_texts:
+            try:
+                res = sentiment_pipe(s[:512])[0]
+                sentiments.append(res)
+            except Exception:
+                sentiments.append({"label": "neutral", "score": 0.0})
+
+    for sent_idx, (sent, sent_result) in enumerate(zip(sentences, sentiments)):
+        score = get_sentiment_value(sent_result)
+
+        cursor.execute("""
+            INSERT INTO sentences (story_id, chapter_filename, chapter_index, sentence_index, text, sentiment_score)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (story_id, filepath.name, chapter_idx, sent_idx, sent.text, score))
+
+        sentence_id = cursor.lastrowid
+
+        for ent in sent.ents:
+            if ent.label_ in ALLOWED_LABELS:
+                cursor.execute("""
+                    INSERT INTO sentence_entities (sentence_id, entity_text, entity_label)
+                    VALUES (?, ?, ?)
+                """, (sentence_id, ent.text, ent.label_))
+
+
 def main():
     parser = argparse.ArgumentParser(description="Analyze narrative sentiment and entity interactions.")
     parser.add_argument("--stories-dir", type=str, default="test_stories", help="Directory containing stories.")
@@ -87,20 +182,7 @@ def main():
     parser.add_argument("--gpu", action="store_true", default=True, help="Use GPU.")
     args = parser.parse_args()
 
-    search_pattern = "*.txt"
-    if args.subcategory:
-        base_path = Path(args.stories_dir) / args.subcategory
-    else:
-        base_path = Path(args.stories_dir)
-
-    all_files = list(base_path.rglob(search_pattern))
-
-    stories_map = defaultdict(list)
-    for filepath in all_files:
-        stories_map[str(filepath.parent)].append(filepath)
-
-    multi_stories = {k: v for k, v in stories_map.items() if len(v) > 1}
-    print(f"Found {len(multi_stories)} multi-chapter stories in {base_path}.")
+    multi_stories = find_multi_stories(args.stories_dir, args.subcategory)
 
     if not multi_stories:
         print("No multi-chapter stories found. Exiting.")
@@ -109,27 +191,7 @@ def main():
     conn = init_db(args.db_path)
     cursor = conn.cursor()
 
-    print(f"Loading models (spaCy: {args.spacy_model}, HF: {args.sentiment_model})...")
-    device = 0 if args.gpu else -1
-
-    if args.gpu:
-        try:
-            set_gpu_allocator("pytorch")
-            require_gpu(0)
-            spacy.require_gpu()
-        except Exception as e:
-            print(f"Could not enable spaCy GPU: {e}")
-
-    nlp = spacy.load(args.spacy_model)
-    nlp.add_pipe("sentencizer")
-
-    sentiment_pipe = pipeline(
-        "sentiment-analysis",
-        model=args.sentiment_model,
-        device=device,
-        truncation=True,
-        max_length=512,
-    )
+    nlp, sentiment_pipe = load_models(args.gpu, args.spacy_model, args.sentiment_model)
 
     processed_stories = 0
 
@@ -157,64 +219,7 @@ def main():
         story_id = cursor.lastrowid
 
         for chapter_idx, filepath in enumerate(tqdm(filepaths, desc="Chapters")):
-            with open(filepath, "r", encoding="utf-8") as f:
-                text = f.read()
-
-            text = re.sub(r"\s+", " ", text).strip()
-            if not text:
-                continue
-
-            try:
-                doc = nlp(text)
-            except Exception as e:
-                print(f"spaCy error on {filepath}: {e}")
-                continue
-
-            sentences = list(doc.sents)
-            if not sentences:
-                continue
-
-            sentence_texts = [sent.text for sent in sentences]
-
-            try:
-                sentiments = sentiment_pipe(sentence_texts, batch_size=32)
-            except Exception as e:
-                print(f"Sentiment pipeline error on {filepath}: {e}")
-                sentiments = []
-                for s in sentence_texts:
-                    try:
-                        res = sentiment_pipe(s[:512])[0]
-                        sentiments.append(res)
-                    except Exception:
-                        sentiments.append({"label": "neutral", "score": 0.0})
-
-            cursor.execute("SELECT MAX(id) FROM sentences")
-            row = cursor.fetchone()
-            last_id_before = row[0] if row[0] is not None else 0
-
-            sentence_batch = []
-            entity_batch = []
-
-            for sent_idx, (sent, sent_result) in enumerate(zip(sentences, sentiments)):
-                score = get_sentiment_value(sent_result)
-                sentence_batch.append((story_id, filepath.name, chapter_idx, sent_idx, sent.text, score))
-
-                sentence_id = last_id_before + 1 + sent_idx
-                for ent in sent.ents:
-                    if ent.label_ in ALLOWED_LABELS:
-                        entity_batch.append((sentence_id, ent.text, ent.label_))
-
-            cursor.executemany("""
-                INSERT INTO sentences (story_id, chapter_filename, chapter_index, sentence_index, text, sentiment_score)
-                VALUES (?, ?, ?, ?, ?, ?)
-            """, sentence_batch)
-
-            if entity_batch:
-                cursor.executemany("""
-                    INSERT INTO sentence_entities (sentence_id, entity_text, entity_label)
-                    VALUES (?, ?, ?)
-                """, entity_batch)
-
+            process_chapter(filepath, chapter_idx, story_id, nlp, sentiment_pipe, cursor)
             conn.commit()
 
         processed_stories += 1

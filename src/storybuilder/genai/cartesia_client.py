@@ -233,7 +233,7 @@ def process_directory_cartesia(directory, rate=24000):
             wave_file(wav_file, accumulated_pcm, rate=rate)
             print(f"  Saved unified audio to {os.path.basename(wav_file)}")
         else:
-            print(f"  Skipped saving WAV due to synthesis failure.")
+            print("  Skipped saving WAV due to synthesis failure.")
             
         # Brief sleep between files
         time.sleep(1)

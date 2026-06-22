@@ -1,0 +1,3 @@
+## 2026-06-22 - File Input Accessibility
+**Learning:** Using `display: none` on native file inputs completely removes them from the accessibility tree and tab order, preventing keyboard users from accessing them, even if there's an associated `<label>` styled as a button.
+**Action:** Use a `.sr-only` visually-hidden class for the `<input type="file">` instead, and place it immediately before its associated `<label>`. This allows using the adjacent sibling combinator (`input[type="file"]:focus-visible + .file-label`) to style the label when the hidden input receives keyboard focus, restoring full keyboard accessibility.

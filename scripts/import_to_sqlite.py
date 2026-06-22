@@ -27,8 +27,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 # Import shared database functions
 from storybuilder.downloader.db import (
-    SCHEMA, INDEXES, init_db as _db_init_db, insert_story,
-    _parse_output_path, _parse_author,
+    init_db as _db_init_db, _parse_output_path, _parse_author,
 )
 
 BATCH_SIZE = 1000
@@ -246,7 +245,7 @@ def main():
     rate = imported / elapsed if elapsed > 0 else 0
 
     # Build FTS index (should already be built via triggers, but optimize)
-    print(f"\n  Optimizing FTS index...")
+    print("\n  Optimizing FTS index...")
     conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
     conn.commit()
 

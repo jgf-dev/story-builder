@@ -20,17 +20,9 @@ def wave_file(filename, pcm, channels=1, rate=24000, sample_width=2):
         wf.writeframes(pcm)
 
 
-def _parse_voice_mappings(markdown_content):
-    """Parses the markdown content to extract speaker to voice mappings and the transcript."""
+def _parse_voice_mappings(preamble):
+    """Extract voice mappings from the preamble section."""
     speaker_to_voice = {}
-
-    parts = markdown_content.split("#### TRANSCRIPT")
-    if len(parts) == 2:
-        preamble, transcript = parts[0], parts[1]
-    else:
-        preamble = markdown_content
-        transcript = ""
-
     for line in preamble.split("\n"):
         line = line.strip()
         if line.startswith("*") or line.startswith("-"):
@@ -41,12 +33,11 @@ def _parse_voice_mappings(markdown_content):
                 speaker = match.group(1)
                 voice = match.group(2)
                 speaker_to_voice[speaker] = voice
-
-    return speaker_to_voice, transcript
+    return speaker_to_voice
 
 
 def _extract_active_speakers(transcript):
-    """Extracts active speakers actually speaking in the transcript in order of appearance."""
+    """Extract active speakers actually speaking in the transcript, in order of appearance."""
     active_speakers = []
     for line in transcript.split("\n"):
         line = line.strip()
@@ -59,7 +50,7 @@ def _extract_active_speakers(transcript):
 
 
 def _build_speech_config(active_speakers, speaker_to_voice):
-    """Builds the final speech config array with fallbacks and padding."""
+    """Build the speech configuration based on active speakers and mappings."""
     speech_config = []
     for sp in active_speakers:
         if sp in speaker_to_voice:
@@ -87,13 +78,15 @@ def _build_speech_config(active_speakers, speaker_to_voice):
 
 def parse_speech_config(markdown_content):
     """Parses the markdown content to extract speakers and voices, dynamically matching active speakers in the transcript."""
-    # 1. Parse all voice mappings defined in the preamble
-    speaker_to_voice, transcript = _parse_voice_mappings(markdown_content)
+    parts = markdown_content.split("#### TRANSCRIPT")
+    if len(parts) == 2:
+        preamble, transcript = parts[0], parts[1]
+    else:
+        preamble = markdown_content
+        transcript = ""
 
-    # 2. Extract active speakers actually speaking in the transcript (in order of appearance)
+    speaker_to_voice = _parse_voice_mappings(preamble)
     active_speakers = _extract_active_speakers(transcript)
-
-    # 3. Build speech_config using the active speakers
     return _build_speech_config(active_speakers, speaker_to_voice)
 
 

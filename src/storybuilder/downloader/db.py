@@ -2,8 +2,12 @@ import os
 import re
 import threading
 import sqlite3
+import logging
 from pathlib import Path
 
+# -- Schema -------------------------------------------------------------
+
+logger = logging.getLogger(__name__)
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS stories (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -411,8 +415,8 @@ def optimize_fts() -> None:
                 try:
                     conn = sqlite3.connect(str(db_file), check_same_thread=False)
                     conns_to_optimize.append(conn)
-                except sqlite3.Error:
-                    pass
+                except sqlite3.Error as exc:
+                    logger.warning("Skipping FTS optimize for database %s: %s", db_file, exc)
         else:
             conns_to_optimize = list(_connections.values())
             if _conn is not None and not _is_partitioned:

@@ -52,7 +52,7 @@ class TestDashboard(unittest.TestCase):
         self, year, category, title, author, date, word_count, path, content
     ):
         from storybuilder.downloader.db import SCHEMA, INDEXES
-
+        from storybuilder.downloader.db import optimize_fts
         db_path = os.path.join(self.db_dir, f"{year}.db")
         conn = sqlite3.connect(db_path)
         conn.executescript(SCHEMA)
@@ -79,6 +79,8 @@ class TestDashboard(unittest.TestCase):
                 content,
             ),
         )
+        conn.commit()
+        conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
         conn.commit()
         conn.close()
 

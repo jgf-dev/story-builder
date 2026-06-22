@@ -595,7 +595,6 @@ def search_all_partitions(
     return all_rows[:limit]
 
 
-def optimize_fts() -> None:
     """Rebuild the FTS index for optimal search performance across all databases."""
     import concurrent.futures
 

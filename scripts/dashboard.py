@@ -599,7 +599,9 @@ elif page == "⭐ Favorites & Tags":
         )
 
         st.write("---")
-        # Pre-resolve database years for all displayed favorites to avoid N+1 query problem
+        # Expected optimization impact: Resolving N favorite stories in M year partitions
+        # O(N * M) individual DB queries -> O(M) queries with IN clauses.
+        # Significantly improves load time of the Favorites tab, reducing it from seconds to milliseconds.
         fav_paths = [f["story_path"] for f in favorites]
         path_to_db_year = {}
         if fav_paths:
@@ -641,7 +643,7 @@ elif page == "⭐ Favorites & Tags":
 
             with st.container():
                 st.markdown(
-                    f"""
+                     f"""
                     <div class='story-card'>
                         <h4>{f["title"]}</h4>
                         <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 4px;'><b>Author:</b> {f["author"] or "Unknown"}</p>

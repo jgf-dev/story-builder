@@ -53,7 +53,6 @@ class TestDashboard(unittest.TestCase):
     ):
         from storybuilder.downloader.db import SCHEMA, INDEXES
         from storybuilder.downloader.db import optimize_fts
-
         db_path = os.path.join(self.db_dir, f"{year}.db")
         conn = sqlite3.connect(db_path)
         conn.executescript(SCHEMA)

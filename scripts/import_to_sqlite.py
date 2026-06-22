@@ -26,8 +26,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 # ——— Schema ——————————————————————————————————————————————————————————————————
 
 # Import shared database functions
-from storybuilder.downloader.db import _parse_author, _parse_output_path
-from storybuilder.downloader.db import init_db as _db_init_db
+from storybuilder.downloader.db import (
+    optimize_fts,
+    SCHEMA, INDEXES, init_db as _db_init_db, insert_story,
+    _parse_output_path, _parse_author,
+)
 
 BATCH_SIZE = 1000
 
@@ -216,8 +219,8 @@ def _flush_batch(conn: sqlite3.Connection, batch: list, force: bool) -> int:
                             c.execute(sql, r)
                             c.commit()
                             count += 1
-                        except Exception as e:
-                            print(f"[WARN] Skipping row during forced import (path={r[0]!r}): {e}", file=sys.stderr)
+                        except Exception:
+                            pass
                     imported += count
         return imported
 
@@ -302,9 +305,16 @@ def main():
     rate = imported / elapsed if elapsed > 0 else 0
 
     # Build FTS index (should already be built via triggers, but optimize)
-    print("\n  Optimizing FTS index...")
-    conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
-    conn.commit()
+    print(f"\n  Optimizing FTS index...")
+    try:
+        from storybuilder.downloader.db import _is_partitioned
+    except ImportError:
+        _is_partitioned = False
+    if not _is_partitioned:
+        conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
+        conn.commit()
+    else:
+        optimize_fts()
 
     # Print stats
     row = conn.execute("SELECT COUNT(*), SUM(char_count), SUM(word_count) FROM stories").fetchone()

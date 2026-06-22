@@ -481,18 +481,55 @@ def get_story(output_path: str, story_date: str) -> "dict | None":
 
 
 def optimize_fts() -> None:
-    """Rebuild the FTS index for optimal search performance."""
-    with _lock:
-        conns = list(_connections.values())
-        if _conn is not None and not _is_partitioned:
-            conns.append(_conn)
+    """Rebuild the FTS index for optimal search performance across all databases."""
+    import glob
+    import os
 
-        for conn in conns:
-            try:
+    import concurrent.futures
+
+    db_paths_to_optimize = []
+
+    with _lock:
+        if not _is_partitioned and _conn is not None:
+            # Monolithic active
+            db_paths_to_optimize = [None]  # None indicates to use the active _conn
+        elif _is_partitioned and _db_dir:
+            # Gather all partitions
+            db_paths_to_optimize = get_all_partition_paths()
+
+    def _opt(path: "str | None") -> None:
+        conn = None
+        need_close = False
+        try:
+            if path is None:
+                # Monolithic
+                with _lock:
+                    if _conn:
+                        _conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
+                        _conn.commit()
+            else:
+                # Partitions
+                conn = sqlite3.connect(path)
+                need_close = True
                 conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
                 conn.commit()
-            except sqlite3.OperationalError:
-                pass
+        except sqlite3.OperationalError:
+            # Best-effort maintenance operation: ignore per-connection optimize
+            # failures so search optimization does not interrupt normal writes.
+            pass
+        finally:
+            if need_close and conn:
+                conn.close()
+
+    if db_paths_to_optimize:
+        # SQLite FTS optimize can be CPU/IO intensive.
+        # Using a ThreadPoolExecutor prevents holding the global _lock
+        # and blocking other inserts during long optimize operations.
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=min(len(db_paths_to_optimize), 10)
+        ) as executor:
+            list(executor.map(_opt, db_paths_to_optimize))
+
 
 
 def close_db() -> None:

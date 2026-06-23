@@ -33,6 +33,11 @@ class TestDashboard(unittest.TestCase):
         self.patch_nlp = patch("dashboard.NLP_DB_PATH", self.nlp_db_path)
         self.patch_meta = patch("dashboard.META_DB_PATH", self.meta_db_path)
 
+        # Patch db.py globals used by dashboard's new refactored code
+        import storybuilder.downloader.db as sb_db
+        sb_db._db_dir = self.db_dir
+        sb_db._is_partitioned = True
+
         self.patch_dir.start()
         self.patch_nlp.start()
         self.patch_meta.start()

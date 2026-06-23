@@ -947,41 +947,13 @@ if __name__ == "__main__":
     import sys
 
     available_functions = {
-        "tts_generate_to_file": tts_generate_to_file,
-        "tts_bytes_to_file": tts_bytes_to_file,
-        "tts_sse_basic": tts_sse_basic,
-        "tts_sse_with_timestamps": tts_sse_with_timestamps,
-        "tts_sse_with_phoneme_timestamps": tts_sse_with_phoneme_timestamps,
-        "tts_sse_with_match": tts_sse_with_match,
-        "tts_websocket_basic": tts_websocket_basic,
-        "tts_websocket_continuations": tts_websocket_continuations,
-        "tts_websocket_flushing": tts_websocket_flushing,
-        "tts_websocket_emotion": tts_websocket_emotion,
-        "tts_websocket_speed": tts_websocket_speed,
-        "tts_websocket_concurrent_receives": tts_websocket_concurrent_receives,
-        "tts_websocket_response_handling": tts_websocket_response_handling,
-        "voices_list": voices_list,
-        "voices_get": voices_get,
-        "voices_clone": voices_clone,
-        "voices_update": voices_update,
-        "voices_delete": voices_delete,
-        "infill_create": infill_create,
-        "stt_transcribe": stt_transcribe,
-        "stt_auto_finalize_websocket": stt_auto_finalize_websocket,
-        "stt_manual_finalize_websocket": stt_manual_finalize_websocket,
-        "error_handling_example": error_handling_example,
+        name: obj for name, obj in globals().items()
+        if inspect.isfunction(obj) and obj.__module__ == __name__ and obj != create_client
     }
 
     if len(sys.argv) < 2:
         print("Usage: python examples.py <function_name>")
-        available_functions = [
-            name
-            for name, obj in globals().items()
-            if inspect.isfunction(obj)
-            and obj.__module__ == __name__
-            and obj != create_client
-        ]
-        print(f"Available functions: {', '.join(available_functions)}")
+        print(f"Available functions: {', '.join(available_functions.keys())}")
         sys.exit(1)
 
     func_name = sys.argv[1]

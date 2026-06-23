@@ -430,6 +430,13 @@
       }
     });
 
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        document.getElementById('saveBtn').click();
+      }
+    });
+
     loadText(template, 'TASKS.md');
   </script>
 </body>

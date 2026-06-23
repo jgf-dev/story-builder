@@ -35,8 +35,8 @@ def tts_generate_to_file(client: Cartesia) -> None:
         language="en",
     )
     response.write_to_file("output.wav")
-    print(f"Saved audio to output.wav")
-    print(f"Play with: ffplay -f wav output.wav")
+    print("Saved audio to output.wav")
+    print("Play with: ffplay -f wav output.wav")
 
 
 def tts_bytes_to_file(client: Cartesia) -> None:
@@ -51,8 +51,8 @@ def tts_bytes_to_file(client: Cartesia) -> None:
     with open("output.wav", "wb") as f:
         for chunk in response:
             f.write(chunk)
-    print(f"Saved audio to output.wav")
-    print(f"Play with: ffplay -f wav output.wav")
+    print("Saved audio to output.wav")
+    print("Play with: ffplay -f wav output.wav")
 
 
 # =============================================================================
@@ -449,7 +449,7 @@ def tts_websocket_concurrent_receives(client: Cartesia) -> None:
 
         print(f"Saved context 1 audio to {filename1}")
         print(f"Saved context 2 audio to {filename2}")
-        print(f"Play with:")
+        print("Play with:")
         print(f"  ffplay -f s16le -ar 44100 {filename1}")
         print(f"  ffplay -f s16le -ar 44100 {filename2}")
 
@@ -593,8 +593,8 @@ def infill_create(client: Cartesia, *args: str) -> None:
         output_format={"container": "wav", "encoding": "pcm_s16le", "sample_rate": 44100},
     )
     response.write_to_file("infill_output.wav")
-    print(f"Saved audio to infill_output.wav")
-    print(f"Play with: ffplay -f wav infill_output.wav")
+    print("Saved audio to infill_output.wav")
+    print("Play with: ffplay -f wav infill_output.wav")
 
 
 # =============================================================================

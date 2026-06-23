@@ -23,8 +23,7 @@ import split_prompts
 from storybuilder.downloader.date_parser import parse_nifty_date
 from storybuilder.downloader.scraper import parse_listing_rows
 from storybuilder.downloader import cache
-from storybuilder.downloader.writer import download_single_target
-from storybuilder.downloader.db import init_db, insert_story, optimize_fts, close_db, get_conn, SCHEMA, INDEXES
+from storybuilder.downloader.db import init_db, insert_story, close_db, get_conn
 from storybuilder.genai.client import parse_speech_config
 
 

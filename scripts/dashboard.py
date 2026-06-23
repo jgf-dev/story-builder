@@ -315,6 +315,49 @@ def query_stories(
     else:
         results.sort(key=lambda x: x.get("publication_date") or "", reverse=True)
 
+    from storybuilder.downloader import db as storybuilder_db
+
+    date_from = None
+    date_to = None
+    if year_range:
+        date_from = f"{year_range[0]}-01-01"
+        date_to = f"{year_range[1]}-12-31"
+
+    # Use central search API
+    raw_results = storybuilder_db.search_all_partitions(
+        fts_query=fts_query,
+        category=category,
+        author=author,
+        date_from=date_from,
+        date_to=date_to,
+        limit=limit,
+        snippets=True
+    )
+
+    results = []
+    for r in raw_results:
+        # Re-inject db_year from path or publication_date for dashboard router compatibility
+        pub_date = r.get("publication_date")
+        db_year = 2026
+        if pub_date and len(str(pub_date)) >= 4:
+            try:
+                db_year = int(str(pub_date)[:4])
+            except ValueError:
+                pass
+        
+        # Check entity suffixes match if filter active
+        if entity_suffixes is not None:
+            matched_entity = False
+            for suffix in entity_suffixes:
+                if r["path"].endswith(suffix):
+                    matched_entity = True
+                    break
+            if not matched_entity:
+                continue
+                
+        r["db_year"] = db_year
+        results.append(r)
+        
     return results[:limit]
 
 

@@ -947,24 +947,22 @@ if __name__ == "__main__":
     import os
     import sys
 
+    available_functions = {
+        name: obj for name, obj in globals().items()
+        if inspect.isfunction(obj) and obj.__module__ == __name__ and obj != create_client
+    }
+
     if len(sys.argv) < 2:
         print("Usage: python examples.py <function_name>")
-        available_functions = [
-            name
-            for name, obj in globals().items()
-            if inspect.isfunction(obj)
-            and obj.__module__ == __name__
-            and obj != create_client
-        ]
-        print(f"Available functions: {', '.join(available_functions)}")
+        print(f"Available functions: {', '.join(available_functions.keys())}")
         sys.exit(1)
 
     func_name = sys.argv[1]
-    if func_name not in globals():
+    if func_name not in available_functions:
         print(f"Error: Function '{func_name}' not found.")
         sys.exit(1)
 
-    func = globals()[func_name]
+    func = available_functions[func_name]
 
     api_key = os.environ.get("CARTESIA_API_KEY")
     if not api_key:

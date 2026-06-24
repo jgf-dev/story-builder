@@ -974,7 +974,14 @@ if __name__ == "__main__":
 
     if len(sys.argv) < 2:
         print("Usage: python examples.py <function_name>")
-        print(f"Available functions: {', '.join(available_functions.keys())}")
+        available_functions = [
+            name
+            for name, obj in globals().items()
+            if inspect.isfunction(obj)
+            and obj.__module__ == __name__
+            and obj != create_client
+        ]
+        print(f"Available functions: {', '.join(available_functions)}")
         sys.exit(1)
 
     func_name = sys.argv[1]

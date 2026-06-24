@@ -344,7 +344,11 @@ db_files = get_db_files()
 if db_files:
     min_year = int(Path(db_files[0]).stem)
     max_year = int(Path(db_files[-1]).stem)
-    year_range = st.sidebar.slider("Publication Year Range", min_year, max_year, (min_year, max_year))
+    if min_year == max_year:
+        year_range = (min_year, max_year)
+        st.sidebar.write(f"Publication Year: {min_year}")
+    else:
+        year_range = st.sidebar.slider("Publication Year Range", min_year, max_year, (min_year, max_year))
 else:
     year_range = (1990, 2026)
 

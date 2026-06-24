@@ -482,7 +482,33 @@ def get_story(output_path: str, story_date: str) -> "dict | None":
             return None
 
 
+def optimize_fts_all(db_dir: str) -> None:
+    """Rebuild the FTS index for all partitions in a directory."""
+    import glob
+    db_files = glob.glob(os.path.join(db_dir, "*.db"))
+    for db_file in db_files:
+        conn = sqlite3.connect(db_file)
+        try:
+            conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
+            conn.commit()
+        except sqlite3.OperationalError:
+            # Best-effort optimization: some DB files may not have the FTS table
+            # (or may otherwise not support this command), so ignore and continue.
+            pass
+        finally:
+            conn.close()
+
 def optimize_fts() -> None:
+    """Rebuild the FTS index for optimal search performance."""
+    global _is_partitioned, _db_dir
+    if _is_partitioned and _db_dir:
+        optimize_fts_all(_db_dir)
+        return
+
+    with _lock:
+        conns = list(_connections.values())
+        if _conn is not None and not _is_partitioned:
+            conns.append(_conn)
     """Rebuild the FTS index for optimal search performance across all databases."""
     import glob
     import os

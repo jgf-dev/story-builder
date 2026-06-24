@@ -279,6 +279,7 @@ def main():
 
             break
 
+
         was_processed = process_story(
             story_dir, filepaths, cursor, conn, nlp, sentiment_pipe
         )

@@ -656,7 +656,9 @@ elif page == "⭐ Favorites & Tags":
                 col1, col2 = st.columns([1, 8])
                 with col1:
                     # Attempt to resolve database year based on path to load it in reader
-                    db_year = path_to_db_year.get(f["story_path"], 2026)  # Default fallback
+                    db_year = path_to_db_year.get(
+                        f["story_path"], 2026
+                    )  # Default fallback
                     if st.button("Read", key=f"read_fav_{f['story_path']}"):
                         st.session_state.selected_story_path = f["story_path"]
                         st.session_state.selected_story_year = db_year

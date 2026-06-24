@@ -213,7 +213,8 @@ def query_stories(
     entity_label="PERSON",
     limit=100,
 ):
-    """Perform queries across databases, combining FTS, standard metadata, and entity filters."""
+    db_files = get_db_files()
+    results = []
     # 1. Filter by entity first if specified
     entity_suffixes = None
     if entity_text:

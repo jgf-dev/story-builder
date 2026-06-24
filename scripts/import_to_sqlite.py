@@ -26,11 +26,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 # ——— Schema ——————————————————————————————————————————————————————————————————
 
 # Import shared database functions
-from storybuilder.downloader.db import (
-    init_db as _db_init_db,
-    _parse_output_path,
-    _parse_author,
-)
+from storybuilder.downloader.db import _parse_author, _parse_output_path
+from storybuilder.downloader.db import init_db as _db_init_db
 
 BATCH_SIZE = 1000
 
@@ -144,24 +141,22 @@ def import_files(
         char_count = len(content)
         word_count = len(content.split())
 
-        batch.append(
-            (
-                rel_path,
-                orientation,
-                category,
-                story_slug,
-                chapter_num,
-                parsed["title"],
-                parsed["author_name"],
-                parsed["author_email"],
-                parsed["publication_date"],
-                parsed["url"],
-                parsed["email_date"],
-                char_count,
-                word_count,
-                content,
-            )
-        )
+        batch.append((
+            rel_path,
+            orientation,
+            category,
+            story_slug,
+            chapter_num,
+            parsed["title"],
+            parsed["author_name"],
+            parsed["author_email"],
+            parsed["publication_date"],
+            parsed["url"],
+            parsed["email_date"],
+            char_count,
+            word_count,
+            content,
+        ))
 
         if len(batch) >= BATCH_SIZE:
             imported += _flush_batch(conn, batch, force)
@@ -260,9 +255,7 @@ def _flush_batch(conn: sqlite3.Connection, batch: list, force: bool) -> int:
 def main():
     global _start_time
 
-    parser = argparse.ArgumentParser(
-        description="Import Nifty story .txt files into SQLite + FTS5"
-    )
+    parser = argparse.ArgumentParser(description="Import Nifty story .txt files into SQLite + FTS5")
     parser.add_argument(
         "--db",
         default="stories/stories.db",
@@ -274,9 +267,7 @@ def main():
         default=0,
         help="Import only N files (for testing, default: all)",
     )
-    parser.add_argument(
-        "--force", action="store_true", help="Force insert even on integrity errors"
-    )
+    parser.add_argument("--force", action="store_true", help="Force insert even on integrity errors")
     args = parser.parse_args()
 
     # Collect all .txt files from nifty_stories/
@@ -316,14 +307,10 @@ def main():
     conn.commit()
 
     # Print stats
-    row = conn.execute(
-        "SELECT COUNT(*), SUM(char_count), SUM(word_count) FROM stories"
-    ).fetchone()
+    row = conn.execute("SELECT COUNT(*), SUM(char_count), SUM(word_count) FROM stories").fetchone()
     conn.close()
 
-    print(
-        f"\nDone! Imported {imported:,} stories ({skipped} skipped) in {elapsed:.1f}s ({rate:.0f}/s)"
-    )
+    print(f"\nDone! Imported {imported:,} stories ({skipped} skipped) in {elapsed:.1f}s ({rate:.0f}/s)")
     print(f"  Total stories:  {row[0]:,}")
     if row[1]:
         print(f"  Total chars:    {row[1]:,}")

@@ -273,12 +273,62 @@ def main():
 
     nlp, sentiment_pipe = load_models(args.spacy_model, args.sentiment_model, args.gpu)
 
-    processed_stories = 0
-    for story_dir, filepaths in multi_stories.items():
-        if args.limit_stories and processed_stories >= args.limit_stories:
 
-            break
+def process_chapter(filepath: Path, chapter_idx: int, story_id: int, nlp, sentiment_pipe, cursor):
+    with open(filepath, "r", encoding="utf-8") as f:
+        text = f.read()
 
+    text = re.sub(r"\s+", " ", text).strip()
+    if not text:
+        return
+
+    try:
+        doc = nlp(text)
+    except Exception as e:
+        print(f"spaCy error on {filepath}: {e}")
+        return
+
+    sentences = list(doc.sents)
+    if not sentences:
+        return
+
+    sentence_texts = [sent.text for sent in sentences]
+
+    try:
+        sentiments = sentiment_pipe(sentence_texts, batch_size=32)
+    except Exception as e:
+        print(f"Sentiment pipeline error on {filepath}: {e}")
+        sentiments = []
+        for s in sentence_texts:
+            try:
+                res = sentiment_pipe(s[:512])[0]
+                sentiments.append(res)
+            except Exception:
+                sentiments.append({"label": "neutral", "score": 0.0})
+
+    for sent_idx, (sent, sent_result) in enumerate(zip(sentences, sentiments)):
+        score = get_sentiment_value(sent_result)
+
+        cursor.execute("""
+            INSERT INTO sentences (story_id, chapter_filename, chapter_index, sentence_index, text, sentiment_score)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (story_id, filepath.name, chapter_idx, sent_idx, sent.text, score))
+
+        sentence_id = cursor.lastrowid
+
+        for ent in sent.ents:
+            if ent.label_ in ALLOWED_LABELS:
+                cursor.execute("""
+                    INSERT INTO sentence_entities (sentence_id, entity_text, entity_label)
+                    VALUES (?, ?, ?)
+                """, (sentence_id, ent.text, ent.label_))
+
+        cursor.execute("INSERT INTO stories (story_dir, subcategory) VALUES (?, ?)", (story_dir, subcat))
+        story_id = cursor.lastrowid
+
+        for chapter_idx, filepath in enumerate(tqdm(filepaths, desc="Chapters")):
+            process_chapter(filepath, chapter_idx, story_id, nlp, sentiment_pipe, cursor)
+            conn.commit()
 
         was_processed = process_story(
             story_dir, filepaths, cursor, conn, nlp, sentiment_pipe

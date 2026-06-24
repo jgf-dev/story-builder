@@ -121,18 +121,25 @@ def get_filter_options():
     # Significantly improves the startup time of the dashboard when building the sidebar filters.
     categories = set()
     authors = set()
+    db_files = get_db_files()
 
-    # Get unique categories
-    cat_results = storybuilder_db.execute_all_partitions("SELECT DISTINCT category FROM {table}")
-    for r in cat_results:
-        if r.get("category"):
-            categories.add(r["category"])
-
-    # Get unique authors
-    auth_results = storybuilder_db.execute_all_partitions("SELECT DISTINCT author_name FROM {table}")
-    for r in auth_results:
-        if r.get("author_name"):
-            authors.add(r["author_name"])
+    for db in db_files:
+        try:
+            conn = sqlite3.connect(db)
+            cursor = conn.cursor()
+            # Get unique categories
+            cursor.execute("SELECT DISTINCT category FROM stories")
+            for r in cursor.fetchall():
+                if r[0]:
+                    categories.add(r[0])
+            # Get unique authors
+            cursor.execute("SELECT DISTINCT author_name FROM stories")
+            for r in cursor.fetchall():
+                if r[0]:
+                    authors.add(r[0])
+            conn.close()
+        except sqlite3.Error:
+            pass
 
     return sorted(list(categories)), sorted(list(authors))
 
@@ -211,7 +218,10 @@ def query_stories(
     entity_label="PERSON",
     limit=100,
 ):
+    """Perform queries across databases, combining FTS, standard metadata, and entity filters."""
+    db_files = get_db_files()
     results = []
+
     # 1. Filter by entity first if specified
     entity_suffixes = None
     if entity_text:
@@ -233,48 +243,83 @@ def query_stories(
                 if len(parts) >= 3:
                     entity_suffixes.append("/".join(parts[-3:]))
 
-    from storybuilder.downloader import db as storybuilder_db
+    # Process each partition database
+    for db_path in db_files:
+        db_year = int(Path(db_path).stem)
 
-    date_from = None
-    date_to = None
-    if year_range:
-        date_from = f"{year_range[0]}-01-01"
-        date_to = f"{year_range[1]}-12-31"
+        # Check year filter
+        if year_range and not (year_range[0] <= db_year <= year_range[1]):
+            continue
 
-    # Use central search API
-    raw_results = storybuilder_db.search_all_partitions(
-        fts_query=fts_query,
-        category=category,
-        author=author,
-        date_from=date_from,
-        date_to=date_to,
-        limit=limit,
-        snippets=True,
-    )
+        try:
+            conn = sqlite3.connect(db_path)
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
 
-    results = []
-    for r in raw_results:
-        # Re-inject db_year from path or publication_date for dashboard router compatibility
-        pub_date = r.get("publication_date")
-        db_year = 2026
-        if pub_date and len(str(pub_date)) >= 4:
-            try:
-                db_year = int(str(pub_date)[:4])
-            except ValueError:
-                pass
+            conditions = ["1=1"]
+            params = []
 
-        # Check entity suffixes match if filter active
-        if entity_suffixes is not None:
-            matched_entity = False
-            for suffix in entity_suffixes:
-                if r["path"].endswith(suffix):
-                    matched_entity = True
-                    break
-            if not matched_entity:
-                continue
+            if category != "All":
+                conditions.append("s.category = ?")
+                params.append(category)
+            if author != "All":
+                conditions.append("s.author_name = ?")
+                params.append(author)
 
-        r["db_year"] = db_year
-        results.append(r)
+            where_clause = " AND ".join(conditions)
+
+            if fts_query:
+                # FTS Search query
+                sql = f"""
+                    SELECT s.path, s.title, s.author_name, s.category, s.publication_date, s.word_count,
+                           snippet(stories_fts, 2, '___HIGHLIGHT_START___', '___HIGHLIGHT_END___', '…', 40) AS snippet
+                    FROM stories s
+                    JOIN stories_fts ON s.id = stories_fts.rowid
+                    WHERE {where_clause} AND stories_fts MATCH ?
+                    ORDER BY rank
+                    LIMIT ?
+                """
+                cursor.execute(sql, params + [fts_query, limit])
+            else:
+                # Metadata-only browse query
+                sql = f"""
+                    SELECT s.path, s.title, s.author_name, s.category, s.publication_date, s.word_count,
+                           NULL AS snippet
+                    FROM stories s
+                    WHERE {where_clause}
+                    ORDER BY s.publication_date DESC
+                    LIMIT ?
+                """
+                cursor.execute(sql, params + [limit])
+
+            rows = cursor.fetchall()
+            for r in rows:
+                row_dict = dict(r)
+                row_dict["db_year"] = db_year
+
+                # Check entity suffixes match if filter active
+                if entity_suffixes is not None:
+                    matched_entity = False
+                    for suffix in entity_suffixes:
+                        if row_dict["path"].endswith(suffix):
+                            matched_entity = True
+                            break
+                    if not matched_entity:
+                        continue
+
+                results.append(row_dict)
+
+            conn.close()
+        except sqlite3.Error:
+            pass
+
+    # Sort final combined results
+    if fts_query:
+        # If FTS, we preserve ordering by partition rank or date desc
+        results.sort(key=lambda x: x.get("publication_date") or "", reverse=True)
+    else:
+        results.sort(key=lambda x: x.get("publication_date") or "", reverse=True)
+
     return results[:limit]
 
 
@@ -375,16 +420,9 @@ db_files = get_db_files()
 if db_files:
     min_year = int(Path(db_files[0]).stem)
     max_year = int(Path(db_files[-1]).stem)
-    if min_year == max_year:
-        year_range = (min_year, max_year)
-        st.sidebar.write(f"Publication Year: {min_year}")
-    else:
-        year_range = st.sidebar.slider(
-            "Publication Year Range",
-            min_year,
-            max_year,
-            (min_year, max_year),
-        )
+    year_range = st.sidebar.slider(
+        "Publication Year Range", min_year, max_year, (min_year, max_year)
+    )
 else:
     year_range = (1990, 2026)
 
@@ -597,37 +635,6 @@ elif page == "⭐ Favorites & Tags":
         )
 
         st.write("---")
-        # Expected optimization impact: Resolving N favorite stories in M year partitions
-        # O(N * M) individual DB queries -> O(M) queries with IN clauses.
-        # Significantly improves load time of the Favorites tab, reducing it from seconds to milliseconds.
-        fav_paths = [f["story_path"] for f in favorites]
-        path_to_db_year = {}
-        if fav_paths:
-            for y_db in get_db_files():
-                y = int(Path(y_db).stem)
-                conn = sqlite3.connect(y_db)
-                try:
-                    # chunking just in case of very large favorites lists
-                    chunk_size = 900
-                    for i in range(0, len(fav_paths), chunk_size):
-                        chunk = fav_paths[i : i + chunk_size]
-                        placeholders = ",".join("?" * len(chunk))
-                        res = (
-                            conn.cursor()
-                            .execute(
-                                f"SELECT path FROM stories WHERE path IN ({placeholders})",
-                                chunk,
-                            )
-                            .fetchall()
-                        )
-                        for (p,) in res:
-                            path_to_db_year[p] = y
-                except sqlite3.Error as e:
-                    st.warning(
-                        f"Could not resolve story paths from database '{y_db}': {e}"
-                    )
-                finally:
-                    conn.close()
 
         # Display favorites
         for f in favorites:
@@ -654,9 +661,25 @@ elif page == "⭐ Favorites & Tags":
                 col1, col2 = st.columns([1, 8])
                 with col1:
                     # Attempt to resolve database year based on path to load it in reader
-                    db_year = path_to_db_year.get(
-                        f["story_path"], 2026
-                    )  # Default fallback
+                    parts = Path(f["story_path"]).parts
+                    db_year = 2026  # Default fallback
+                    # Check year directories if any
+                    for y_db in get_db_files():
+                        y = int(Path(y_db).stem)
+                        conn = sqlite3.connect(y_db)
+                        if (
+                            conn.cursor()
+                            .execute(
+                                "SELECT 1 FROM stories WHERE path = ?",
+                                (f["story_path"],),
+                            )
+                            .fetchone()
+                        ):
+                            db_year = y
+                            conn.close()
+                            break
+                        conn.close()
+
                     if st.button("Read", key=f"read_fav_{f['story_path']}"):
                         st.session_state.selected_story_path = f["story_path"]
                         st.session_state.selected_story_year = db_year

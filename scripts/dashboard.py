@@ -305,8 +305,8 @@ def query_stories(
                 results.append(row_dict)
 
             conn.close()
-        except sqlite3.Error:
-            pass
+        except sqlite3.Error as e:
+            st.warning(f"Skipping database '{db_path}' due to SQLite error: {e}")
 
     # Sort final combined results
     if fts_query:

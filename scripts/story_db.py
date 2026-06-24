@@ -26,7 +26,6 @@ import argparse
 import os
 import sqlite3
 import sys
-import textwrap
 from collections import Counter
 from pathlib import Path
 
@@ -61,6 +60,32 @@ def _query_all(*args, **kwargs):
     # Deprecated
     pass
 
+def _query_all(conn: sqlite3.Connection, db_paths: list[str], sql: str, params: tuple = ()) -> list:
+    """Execute a SELECT across all databases by dynamically attaching them.
+
+    Returns concatenated results. Does not perform a global ORDER BY or LIMIT.
+    """
+
+    # Strip trailing ORDER BY ... LIMIT ... from the template
+    # We will just yield all results and let the caller sort/limit if needed,
+    # or the caller can pass queries that are already batched.
+    # Actually, if the caller gave us an ORDER BY / LIMIT, we should apply it
+    # to each individual database to reduce memory usage, then the caller
+    # sorts the combined results.
+
+    all_rows = []
+    for db_path in db_paths:
+        conn.execute('ATTACH DATABASE ? AS curr_db', (db_path,))
+        try:
+            curs = conn.cursor()
+            sql_with_ref = sql.replace("{table}", "curr_db.stories")
+            rows = curs.execute(sql_with_ref, params).fetchall()
+            all_rows.extend(rows)
+            curs.close()
+        finally:
+            conn.execute("DETACH DATABASE curr_db")
+
+    return all_rows
 
 
 def _resolve_connection(args) -> "tuple[sqlite3.Connection, list[str] | None]":
@@ -177,6 +202,18 @@ def cmd_get(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None)
 
     rows = []
     if db_paths:
+        for db_path in db_paths:
+            conn.execute('ATTACH DATABASE ? AS curr_db', (db_path,))
+            try:
+                curs = conn.cursor()
+                sql = "SELECT * FROM curr_db.stories WHERE path = ? OR story_slug = ?"
+                db_rows = curs.execute(sql, (slug, slug)).fetchall()
+                curs.close()
+                if db_rows:
+                    rows.extend(db_rows)
+                    break
+            finally:
+                conn.execute("DETACH DATABASE curr_db")
         from storybuilder.downloader import db as storybuilder_db
         sql = "SELECT * FROM {table} WHERE path = ? OR story_slug = ?"
         # We fetch all rows that match, then optionally break if we were just doing single?
@@ -185,7 +222,7 @@ def cmd_get(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None)
         if db_rows:
             rows.extend(db_rows)
     else:
-        sql = f"SELECT * FROM stories WHERE path = ? OR story_slug = ?"
+        sql = "SELECT * FROM stories WHERE path = ? OR story_slug = ?"
         db_rows = conn.execute(sql, (slug, slug)).fetchall()
         rows.extend(db_rows)
 

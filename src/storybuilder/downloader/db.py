@@ -1,5 +1,3 @@
-import concurrent.futures
-
 """
 Database layer for story storage -- shared by the downloader (live insert) and
 the batch import script.
@@ -498,6 +496,7 @@ def optimize_fts_all(db_dir: str) -> None:
         finally:
             conn.close()
 
+
 def optimize_fts() -> None:
     """Rebuild the FTS index for optimal search performance."""
     global _is_partitioned, _db_dir
@@ -505,13 +504,7 @@ def optimize_fts() -> None:
         optimize_fts_all(_db_dir)
         return
 
-    with _lock:
-        conns = list(_connections.values())
-        if _conn is not None and not _is_partitioned:
-            conns.append(_conn)
-    """Rebuild the FTS index for optimal search performance across all databases."""
-    import glob
-    import os
+    import concurrent.futures
 
     db_paths_to_optimize = []
 
@@ -555,7 +548,6 @@ def optimize_fts() -> None:
             max_workers=min(len(db_paths_to_optimize), 10)
         ) as executor:
             list(executor.map(_opt, db_paths_to_optimize))
-
 
 
 def close_db() -> None:

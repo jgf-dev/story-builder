@@ -6,7 +6,7 @@ BASE_URL = "https://nifty.org/nifty/"
 
 # Global proxy and rotation settings
 PROXIES = None
-ENABLE_ROTATION = False
+ENABLE_ROTATION: bool = False
 
 
 def safe_print(*args, **kwargs):

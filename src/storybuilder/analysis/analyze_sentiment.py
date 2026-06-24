@@ -163,7 +163,7 @@ def load_models(spacy_model_name, sentiment_model_name, use_gpu):
     nlp = spacy.load(spacy_model_name)
     nlp.add_pipe("sentencizer")
 
-    sentiment_pipe = pipeline(
+    sentiment_pipe = pipeline(  # pyrefly: ignore [no-matching-overload]
         "sentiment-analysis",
         model=sentiment_model_name,
         device=device,

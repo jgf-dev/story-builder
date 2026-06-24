@@ -17,6 +17,9 @@ _scripts_dir = str(Path(__file__).resolve().parents[1] / "scripts")
 if _scripts_dir not in sys.path:
     sys.path.insert(0, _scripts_dir)
 
+import import_to_sqlite  # pyrefly: ignore [missing-import]
+import story_db  # pyrefly: ignore [missing-import]
+
 
 class TestParseAuthor(unittest.TestCase):
     """Tests for _parse_author in storybuilder.downloader.db."""
@@ -443,8 +446,6 @@ class TestParseHeader(unittest.TestCase):
         return path
 
     def test_standard_header(self):
-        import import_to_sqlite
-
         content = (
             "=" * 80 + "\n"
             "Title: My Story\n"
@@ -468,8 +469,6 @@ class TestParseHeader(unittest.TestCase):
         self.assertIn("multiple paragraphs", result["content"])
 
     def test_header_with_email_date(self):
-        import import_to_sqlite
-
         content = (
             "=" * 80 + "\n"
             "Title: Email Story\n"
@@ -485,22 +484,16 @@ class TestParseHeader(unittest.TestCase):
         self.assertEqual(result["author_email"], "user@host.com")
 
     def test_missing_file(self):
-        import import_to_sqlite
-
         result = import_to_sqlite.parse_header("/nonexistent/file.txt")
         self.assertIsNone(result)
 
     def test_no_header_marker(self):
-        import import_to_sqlite
-
         content = "Just plain text without any header markers.\n"
         path = self._write_story_file("noheader.txt", content)
         result = import_to_sqlite.parse_header(path)
         self.assertIsNone(result)
 
     def test_minimal_header(self):
-        import import_to_sqlite
-
         content = (
             "=" * 80 + "\n"
             "Title: Minimal\n"
@@ -515,8 +508,6 @@ class TestParseHeader(unittest.TestCase):
         self.assertEqual(result["content"], "body")
 
     def test_empty_content(self):
-        import import_to_sqlite
-
         content = (
             "=" * 80 + "\n"
             "Title: Empty\n"
@@ -559,8 +550,6 @@ class TestMultiDBConnect(unittest.TestCase):
         return path
 
     def test_connect_multi(self):
-        import story_db
-
         self._create_test_db("db1.db")
         self._create_test_db("db2.db")
 
@@ -592,16 +581,12 @@ class TestMultiDBConnect(unittest.TestCase):
             sb_db._is_partitioned = old_part
 
     def test_empty_dir_raises(self):
-        import story_db
-
         empty_dir = os.path.join(self.temp_dir, "empty")
         os.makedirs(empty_dir)
         with self.assertRaises(SystemExit):
             story_db.connect_multi(empty_dir)
 
     def test_skips_stories_db(self):
-        import story_db
-
         self._create_test_db("stories.db")  # should be skipped
         self._create_test_db("real.db")
 

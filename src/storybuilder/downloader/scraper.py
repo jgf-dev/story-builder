@@ -129,15 +129,6 @@ def scrape_subcategory(sub_url, start_date, end_date, delay, force_scan=False):
         cached_stories = cached_entry.get("stories", [])
         is_complete = cached_entry.get("complete", False)
 
-    # Validate oldest cached story date format (non-fatal on malformed cache entries)
-    if cached_stories:
-        try:
-            # Assumes stories are sorted descending (latest first), so the last one is the oldest
-            datetime.datetime.strptime(cached_stories[-1]["date"], "%Y-%m-%d").date()
-        except (KeyError, ValueError, TypeError, IndexError) as e:
-            # Non-fatal: malformed cache entries should not stop scraping.
-            safe_print(f"[WARN] Failed to parse cached story date for {sub_url}: {e}")
-
     # We only use cache-hit early-stop if we are not forcing a scan and the cache is marked complete.
     # This ensures that we do not stop traversing on a cache hit when the cache has gaps or is partial.
     use_cache = not force_scan and is_complete
@@ -189,7 +180,13 @@ def scrape_subcategory(sub_url, start_date, end_date, delay, force_scan=False):
                     stop_pagination = True
                     break
 
-            scraped_stories.append({"name": name, "url": story_url, "date": story_date.isoformat(), "is_dir": is_directory, "size": size})
+            scraped_stories.append({
+                "name": name,
+                "url": story_url,
+                "date": story_date.isoformat(),
+                "is_dir": is_directory,
+                "size": size,
+            })
 
             # Early-stop optimization: if the story date is older than start_date,
             # and it is NOT a directory (as directories can have stale index dates),
@@ -230,7 +227,11 @@ def scrape_subcategory(sub_url, start_date, end_date, delay, force_scan=False):
 
     # Save merged stories back to the cache dictionary
     with cache_lock:
-        metadata_cache[sub_url] = {"last_updated": datetime.datetime.now().isoformat(), "complete": is_complete or reached_end, "stories": merged_stories}
+        metadata_cache[sub_url] = {
+            "last_updated": datetime.datetime.now().isoformat(),
+            "complete": is_complete or reached_end,
+            "stories": merged_stories,
+        }
 
     # Now filter and return only the stories that match the current date query!
     filtered_stories = []
@@ -248,7 +249,12 @@ def scrape_subcategory(sub_url, start_date, end_date, delay, force_scan=False):
             in_range = start_date <= s_date <= end_date
 
         if in_range:
-            filtered_stories.append({"name": s["name"], "url": s["url"], "date": s_date, "is_dir": s["is_dir"]})
+            filtered_stories.append({
+                "name": s["name"],
+                "url": s["url"],
+                "date": s_date,
+                "is_dir": s["is_dir"],
+            })
 
     return filtered_stories
 
@@ -351,7 +357,11 @@ def scrape_multi_chapter_folder(folder_url, folder_date, start_date, end_date, d
 
     # Save to cache
     with cache_lock:
-        metadata_cache[folder_url] = {"last_updated": datetime.datetime.now().isoformat(), "folder_date": folder_date.isoformat(), "chapters": scraped_chapters}
+        metadata_cache[folder_url] = {
+            "last_updated": datetime.datetime.now().isoformat(),
+            "folder_date": folder_date.isoformat(),
+            "chapters": scraped_chapters,
+        }
 
     if has_matching:
         safe_print(f"Folder {folder_url} has at least one chapter in date range. Downloading all {len(chapters)} chapters.")
@@ -423,8 +433,55 @@ def process_subcategory(sub, start_date, end_date, args):
 
     for s in stories:
         if s["is_dir"]:
-            sub_targets.extend(_process_directory_story(s, start_date, end_date, args, sub_folder))
+            folder_url = s["url"]
+
+            # Thread-safe check of seen_folders
+            should_skip = False
+            with seen_folders_lock:
+                if folder_url in seen_folders:
+                    should_skip = True
+                else:
+                    seen_folders.add(folder_url)
+
+            if should_skip:
+                safe_print(f"Skipping already scraped folder: {folder_url}")
+                continue
+
+            # Fetch multi-chapter story chapters
+            chapters = scrape_multi_chapter_folder(
+                folder_url,
+                s["date"],
+                start_date,
+                end_date,
+                delay=args.delay,
+                force_scan=args.force,
+            )
+            for ch in chapters:
+                story_slug = s["name"].lower().replace(" ", "-")
+                story_slug = re.sub(r"[^\w\-]", "", story_slug)
+
+                filename = ch["name"]
+                if not filename.endswith(".txt") and not filename.endswith(".html"):
+                    filename += ".txt"
+
+                output_path = os.path.join(args.output_dir, args.category, sub_folder, story_slug, filename)
+                sub_targets.append({
+                    "key": (story_slug, filename),
+                    "url": ch["url"],
+                    "output_path": output_path,
+                    "date": ch["date"],
+                })
         else:
-            sub_targets.extend(_process_single_story(s, args, sub_folder))
+            filename = s["name"]
+            if not filename.endswith(".txt") and not filename.endswith(".html"):
+                filename += ".txt"
+
+            output_path = os.path.join(args.output_dir, args.category, sub_folder, filename)
+            sub_targets.append({
+                "key": (None, filename),
+                "url": s["url"],
+                "output_path": output_path,
+                "date": s["date"],
+            })
 
     return sub_targets

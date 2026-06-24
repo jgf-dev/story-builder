@@ -1,5 +1,3 @@
-import concurrent.futures
-
 """
 Database layer for story storage -- shared by the downloader (live insert) and
 the batch import script.
@@ -329,23 +327,12 @@ def optimize_fts() -> None:
         if _conn is not None and not _is_partitioned:
             conns.append(_conn)
 
-    def _opt(conn: sqlite3.Connection) -> None:
-        try:
-            conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
-            conn.commit()
-        except sqlite3.OperationalError:
-            # Best-effort maintenance operation: ignore per-connection optimize
-            # failures so search optimization does not interrupt normal writes.
-            pass
-
-    if conns:
-        # SQLite FTS optimize can be CPU/IO intensive.
-        # Using a ThreadPoolExecutor prevents holding the global _lock
-        # and blocking other inserts during long optimize operations.
-        with concurrent.futures.ThreadPoolExecutor(
-            max_workers=min(len(conns), 10)
-        ) as executor:
-            list(executor.map(_opt, conns))
+        for conn in conns:
+            try:
+                conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
+                conn.commit()
+            except sqlite3.OperationalError:
+                pass
 
 
 def close_db() -> None:

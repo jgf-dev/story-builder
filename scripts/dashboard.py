@@ -619,8 +619,8 @@ elif page == "⭐ Favorites & Tags":
                         res = conn.cursor().execute(f"SELECT path FROM stories WHERE path IN ({placeholders})", chunk).fetchall()
                         for (p,) in res:
                             path_to_db_year[p] = y
-                except sqlite3.Error:
-                    pass
+                except sqlite3.Error as e:
+                    st.warning(f"Could not resolve story paths from database '{y_db}': {e}")
                 finally:
                     conn.close()
 

@@ -300,7 +300,8 @@ def query_stories(
             try:
                 db_year = int(str(pub_date)[:4])
             except ValueError:
-                pass
+                # Malformed publication_date: keep the default fallback year.
+                db_year = 2026
 
         # Check entity suffixes match if filter active
         if entity_suffixes is not None:

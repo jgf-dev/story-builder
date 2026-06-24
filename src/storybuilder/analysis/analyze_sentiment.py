@@ -273,6 +273,16 @@ def main():
 
     nlp, sentiment_pipe = load_models(args.spacy_model, args.sentiment_model, args.gpu)
 
+    for story_dir, subcat, filepaths in tqdm(multi_stories, desc="Stories"):
+        cursor.execute("INSERT INTO stories (story_dir, subcategory) VALUES (?, ?)", (story_dir, subcat))
+        story_id = cursor.lastrowid
+
+        for chapter_idx, filepath in enumerate(tqdm(filepaths, desc="Chapters")):
+            process_chapter(filepath, chapter_idx, story_id, nlp, sentiment_pipe, cursor)
+            conn.commit()
+
+    conn.close()
+
 
 def process_chapter(filepath: Path, chapter_idx: int, story_id: int, nlp, sentiment_pipe, cursor):
     with open(filepath, "r", encoding="utf-8") as f:
@@ -323,20 +333,7 @@ def process_chapter(filepath: Path, chapter_idx: int, story_id: int, nlp, sentim
                     VALUES (?, ?, ?)
                 """, (sentence_id, ent.text, ent.label_))
 
-        cursor.execute("INSERT INTO stories (story_dir, subcategory) VALUES (?, ?)", (story_dir, subcat))
-        story_id = cursor.lastrowid
 
-        for chapter_idx, filepath in enumerate(tqdm(filepaths, desc="Chapters")):
-            process_chapter(filepath, chapter_idx, story_id, nlp, sentiment_pipe, cursor)
-            conn.commit()
-
-        was_processed = process_story(
-            story_dir, filepaths, cursor, conn, nlp, sentiment_pipe
-        )
-        if was_processed:
-            processed_stories += 1
-
-    conn.close()
 
 
 if __name__ == "__main__":

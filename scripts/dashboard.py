@@ -251,7 +251,7 @@ def query_stories(
         date_from=date_from,
         date_to=date_to,
         limit=limit,
-        snippets=True
+        snippets=True,
     )
 
     results = []
@@ -264,7 +264,7 @@ def query_stories(
                 db_year = int(str(pub_date)[:4])
             except ValueError:
                 pass
-        
+
         # Check entity suffixes match if filter active
         if entity_suffixes is not None:
             matched_entity = False
@@ -274,10 +274,10 @@ def query_stories(
                     break
             if not matched_entity:
                 continue
-                
+
         r["db_year"] = db_year
         results.append(r)
-        
+
     return results[:limit]
 
 
@@ -382,7 +382,9 @@ if db_files:
         year_range = (min_year, max_year)
         st.sidebar.write(f"Publication Year: {min_year}")
     else:
-        year_range = st.sidebar.slider("Publication Year Range", min_year, max_year, (min_year, max_year))
+        year_range = st.sidebar.slider(
+            "Publication Year Range", min_year, max_year, (min_year, max_year)
+        )
 else:
     year_range = (1990, 2026)
 
@@ -609,13 +611,22 @@ elif page == "⭐ Favorites & Tags":
                     # chunking just in case of very large favorites lists
                     chunk_size = 900
                     for i in range(0, len(fav_paths), chunk_size):
-                        chunk = fav_paths[i:i+chunk_size]
+                        chunk = fav_paths[i : i + chunk_size]
                         placeholders = ",".join("?" * len(chunk))
-                        res = conn.cursor().execute(f"SELECT path FROM stories WHERE path IN ({placeholders})", chunk).fetchall()
+                        res = (
+                            conn.cursor()
+                            .execute(
+                                f"SELECT path FROM stories WHERE path IN ({placeholders})",
+                                chunk,
+                            )
+                            .fetchall()
+                        )
                         for (p,) in res:
                             path_to_db_year[p] = y
                 except sqlite3.Error as e:
-                    st.warning(f"Could not resolve story paths from database '{y_db}': {e}")
+                    st.warning(
+                        f"Could not resolve story paths from database '{y_db}': {e}"
+                    )
                 finally:
                     conn.close()
 
@@ -644,7 +655,9 @@ elif page == "⭐ Favorites & Tags":
                 col1, col2 = st.columns([1, 8])
                 with col1:
                     # Attempt to resolve database year based on path to load it in reader
-                    db_year = path_to_db_year.get(f["story_path"], 2026) # Default fallback
+                    db_year = path_to_db_year.get(
+                        f["story_path"], 2026
+                    )  # Default fallback
                     if st.button("Read", key=f"read_fav_{f['story_path']}"):
                         st.session_state.selected_story_path = f["story_path"]
                         st.session_state.selected_story_year = db_year

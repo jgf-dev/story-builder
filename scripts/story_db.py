@@ -48,8 +48,9 @@ def connect_multi(db_dir: str) -> "tuple[sqlite3.Connection, list[str]]":
     We dynamically ATTACH these later via db.py to avoid SQLITE_MAX_ATTACHED limits.
     """
     db_files = sorted(
-        str(p) for p in Path(db_dir).glob("*.db")
-        if p.name not in ("stories.db",)
+        str(p)
+        for p in Path(db_dir).glob("*.db")
+        if p.name not in ("stories.db",)  # skip the monolithic db
     )
     if not db_files:
         print(f"Error: No .db files found in '{db_dir}'", file=sys.stderr)
@@ -185,6 +186,7 @@ def cmd_get(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None)
 
     rows = []
     if db_paths:
+
         from storybuilder.downloader import db as storybuilder_db
         sql = "SELECT * FROM {table} WHERE path = ? OR story_slug = ?"
         # We fetch all rows that match, then optionally break if we were just doing single?
@@ -278,6 +280,7 @@ def cmd_list(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None
     if db_paths:
         # Use new db.py API to query across partitions
         from storybuilder.downloader import db as storybuilder_db
+
         raw_rows = storybuilder_db.execute_all_partitions(
             f"""SELECT id, path, category, story_slug, title, author_name,
                        publication_date, char_count, word_count
@@ -285,7 +288,7 @@ def cmd_list(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None
                 WHERE {" AND ".join(conditions)}
                 ORDER BY {order}
                 LIMIT ?""",
-            tuple(params) + (args.limit,)
+            tuple(params) + (args.limit,),
         )
 
         if args.sort == "title":
@@ -349,18 +352,22 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
 
     if db_paths:
         from storybuilder.downloader import db as storybuilder_db
+
         total = sum(
-            row["COUNT(*)"] for row in storybuilder_db.execute_all_partitions(
+            row["COUNT(*)"]
+            for row in storybuilder_db.execute_all_partitions(
                 f"SELECT COUNT(*) FROM {{table}} {where}", tuple(params)
             )
         )
         total_chars = sum(
-            (row["SUM(char_count)"] or 0) for row in storybuilder_db.execute_all_partitions(
+            (row["SUM(char_count)"] or 0)
+            for row in storybuilder_db.execute_all_partitions(
                 f"SELECT SUM(char_count) FROM {{table}} {where}", tuple(params)
             )
         )
         total_words = sum(
-            (row["SUM(word_count)"] or 0) for row in storybuilder_db.execute_all_partitions(
+            (row["SUM(word_count)"] or 0)
+            for row in storybuilder_db.execute_all_partitions(
                 f"SELECT SUM(word_count) FROM {{table}} {where}", tuple(params)
             )
         )
@@ -395,6 +402,7 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
     print("\n  Top categories:")
     if db_paths:
         from storybuilder.downloader import db as storybuilder_db
+
         cat_rows = storybuilder_db.execute_all_partitions(
             f"""SELECT category, COUNT(*) as cnt
                 FROM {{table}} {"WHERE category = ?" if args.category else ""}
@@ -421,6 +429,7 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
     print("\n  Top authors:")
     if db_paths:
         from storybuilder.downloader import db as storybuilder_db
+
         auth_rows = storybuilder_db.execute_all_partitions(
             f"""SELECT author_name, COUNT(*) as cnt, SUM(word_count) as total_words
                 FROM {{table}} {"WHERE category = ?" if args.category else ""}
@@ -433,8 +442,10 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
             name = row["author_name"] or "Unknown"
             auth_counter[name] += row["cnt"]
             auth_words[name] += row["total_words"] or 0
-        authors = [{"author_name": k, "cnt": v, "total_words": auth_words[k]}
-                    for k, v in auth_counter.most_common(15)]
+        authors = [
+            {"author_name": k, "cnt": v, "total_words": auth_words[k]}
+            for k, v in auth_counter.most_common(15)
+        ]
     else:
         authors = conn.execute(
             f"""
@@ -451,9 +462,10 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
     # Date range
     if db_paths:
         from storybuilder.downloader import db as storybuilder_db
+
         date_rows = storybuilder_db.execute_all_partitions(
             f"SELECT MIN(publication_date) as min_date, MAX(publication_date) as max_date FROM {{table}} {where}",
-            tuple(params)
+            tuple(params),
         )
         min_dates = [r["min_date"] for r in date_rows if r["min_date"]]
         max_dates = [r["max_date"] for r in date_rows if r["max_date"]]

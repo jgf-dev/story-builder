@@ -278,6 +278,7 @@ def main():
         if args.limit_stories and processed_stories >= args.limit_stories:
             break
 
+
         was_processed = process_story(
             story_dir, filepaths, cursor, conn, nlp, sentiment_pipe
         )

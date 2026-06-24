@@ -948,8 +948,11 @@ if __name__ == "__main__":
     import sys
 
     available_functions = {
-        name: obj for name, obj in globals().items()
-        if inspect.isfunction(obj) and obj.__module__ == __name__ and obj != create_client
+        name: obj
+        for name, obj in globals().items()
+        if inspect.isfunction(obj)
+        and obj.__module__ == __name__
+        and obj != create_client
     }
 
     if len(sys.argv) < 2:

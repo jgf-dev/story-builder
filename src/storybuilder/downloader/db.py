@@ -496,6 +496,7 @@ def optimize_fts_all(db_dir: str) -> None:
         finally:
             conn.close()
 
+
 def optimize_fts() -> None:
     """Rebuild the FTS index for optimal search performance."""
     global _is_partitioned, _db_dir
@@ -547,7 +548,6 @@ def optimize_fts() -> None:
             max_workers=min(len(db_paths_to_optimize), 10)
         ) as executor:
             list(executor.map(_opt, db_paths_to_optimize))
-
 
 
 def close_db() -> None:

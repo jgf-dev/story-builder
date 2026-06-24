@@ -313,6 +313,22 @@
 
     let currentFileName = 'TASKS.md';
     let currentHandle = null;
+    let hasUnsavedChanges = false;
+
+    function markDirty() {
+      if (!hasUnsavedChanges) {
+        hasUnsavedChanges = true;
+        document.title = `* ${currentFileName} - StoryBuilder Task Dashboard`;
+        setStatus('Unsaved changes.');
+      }
+    }
+
+    function markClean() {
+      if (hasUnsavedChanges) {
+        hasUnsavedChanges = false;
+        document.title = `${currentFileName} - StoryBuilder Task Dashboard`;
+      }
+    }
 
     function setStatus(message) {
       status.textContent = message;
@@ -339,6 +355,8 @@
       editor.value = text;
       currentFileName = fileName;
       updateStats(text);
+      hasUnsavedChanges = true; // Set true to allow markClean to reset title properly
+      markClean();
       setStatus(`Loaded ${fileName}.`);
     }
 
@@ -360,6 +378,7 @@
       try {
         if (currentHandle && window.showSaveFilePicker) {
           await saveViaHandle(currentHandle, editor.value);
+          markClean();
           setStatus(`Saved ${currentFileName}.`);
           return;
         }
@@ -371,6 +390,7 @@
         a.download = currentFileName || 'TASKS.md';
         a.click();
         URL.revokeObjectURL(url);
+        markClean();
         setStatus(`Downloaded ${a.download}.`);
       } catch (error) {
         setStatus(`Save failed: ${error.message}`);
@@ -385,6 +405,7 @@
       a.download = currentFileName || 'TASKS.md';
       a.click();
       URL.revokeObjectURL(url);
+      markClean();
       setStatus(`Downloaded ${a.download}.`);
     });
 
@@ -396,12 +417,22 @@
       }
     });
 
-    editor.addEventListener('input', () => updateStats(editor.value));
+    editor.addEventListener('input', () => {
+      updateStats(editor.value);
+      markDirty();
+    });
 
     document.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
         document.getElementById('saveBtn').click();
+      }
+    });
+
+    window.addEventListener('beforeunload', (e) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
       }
     });
 

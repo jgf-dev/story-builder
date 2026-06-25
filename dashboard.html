@@ -313,6 +313,17 @@
 
     let currentFileName = 'TASKS.md';
     let currentHandle = null;
+    let isDirty = false;
+
+    function setDirty(dirty) {
+      if (isDirty === dirty) return;
+      isDirty = dirty;
+      if (isDirty) {
+        document.title = '* ' + document.title.replace(/^\*\s*/, '');
+      } else {
+        document.title = document.title.replace(/^\*\s*/, '');
+      }
+    }
 
     function setStatus(message) {
       status.textContent = message;
@@ -340,12 +351,14 @@
       currentFileName = fileName;
       updateStats(text);
       setStatus(`Loaded ${fileName}.`);
+      setDirty(false);
     }
 
     async function saveViaHandle(handle, text) {
       const writable = await handle.createWritable();
       await writable.write(text);
       await writable.close();
+      setDirty(false);
     }
 
     fileInput.addEventListener('change', async () => {
@@ -372,6 +385,7 @@
         a.click();
         URL.revokeObjectURL(url);
         setStatus(`Downloaded ${a.download}.`);
+        setDirty(false);
       } catch (error) {
         setStatus(`Save failed: ${error.message}`);
       }
@@ -386,6 +400,7 @@
       a.click();
       URL.revokeObjectURL(url);
       setStatus(`Downloaded ${a.download}.`);
+      setDirty(false);
     });
 
     document.getElementById('resetBtn').addEventListener('click', () => {
@@ -396,7 +411,17 @@
       }
     });
 
-    editor.addEventListener('input', () => updateStats(editor.value));
+    editor.addEventListener('input', () => {
+      updateStats(editor.value);
+      setDirty(true);
+    });
+
+    window.addEventListener('beforeunload', (e) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
 
     document.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {

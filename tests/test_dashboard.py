@@ -52,7 +52,6 @@ class TestDashboard(unittest.TestCase):
         self, year, category, title, author, date, word_count, path, content
     ):
         from storybuilder.downloader.db import SCHEMA, INDEXES
-        from storybuilder.downloader.db import optimize_fts
         db_path = os.path.join(self.db_dir, f"{year}.db")
         conn = sqlite3.connect(db_path)
         conn.executescript(SCHEMA)
@@ -107,6 +106,7 @@ class TestDashboard(unittest.TestCase):
             )
             """
         )
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_entities_label ON entities(label)")
         conn.execute(
             "INSERT OR REPLACE INTO stories (filepath) VALUES (?)", (filepath,)
         )

@@ -47,6 +47,8 @@ def init_db(db_path):
         )
     """)
 
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_entities_label ON entities(label)")
+
     conn.commit()
     return conn
 

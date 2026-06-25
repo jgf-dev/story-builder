@@ -1,40 +1,28 @@
 # SYSTEM PREAMBLE: Synthesize speech ONLY for the transcripts under the #### TRANSCRIPT headers. Do NOT read aloud the section titles, scene descriptions, actor names, or director notes.
 
-# AUDIO PROFILE: Levi & Ewan
+# AUDIO PROFILE: Levi, Ewan, Jace, Kerry
 
-## "The Secret Intimacy"
+## "Dinner and Deceptive Calm"
 
-### THE SCENE: The main bedroom of the Smoky Mountains cabin.
+### THE SCENE: The cabin kitchen and dining table
 
-The air in the bedroom is thick with recent passion, a faint smell of industrial cleaner from the pillows mixes with the lingering scent of sex and sweat. It's a hurried, intimate moment before family arrives, making every sound and breath feel amplified in the enclosed space. The light is dim, indicating either early morning or a drawn curtain. Body heat is still radiating from the bed.
+The cozy cabin kitchen, filled with the aroma of grilled burgers and seasoned potatoes. The dining table is set, card games are being played. The lighting is warm and domestic, but the atmosphere eventually grows tense and stifling as marital discord between Jace and Kerry erupts. The acoustics are initially open and conversational, becoming sharp and constrained as the argument escalates.
 
 ### DIRECTOR'S NOTES
 
 Style:
 
-- Levi (Voice: Enceladus): Breathy, yielding, intimate, slightly nervous. High breathiness and glottal flow. Raised soft palate. Close proximity. Fluent in the given voice identity, but allows for nuanced emotional range and subtle non-verbal cues.
-- Ewan (Voice: Algenib): Deep, intimate, dominant, protective. Extreme microphone proximity (proximity effect). Low projection for intimacy. Measured, deliberate, with a deep resonance. Maintains 85% voice identity polish, 15% emotional range.
+- Levi (Voice: en-US-Journey-F): Warm, conversational, proud of his cooking, later stunned and quiet.
+- Jace (Voice: en-US-Studio-O): Boisterous and proud, transitioning to irritated, defensive, and then somewhat pleading.
 
-Pace: Slow, measured, ASMR-like pacing (around 0.7x to 0.8x normal conversational speed). Use pauses to emphasize intimacy and urgency.
+Pace: Conversational and relaxed initially, becoming abruptly fast and sharp during the argument, then settling into a stunned quiet.
 Accent: Standard American
 
 ### SAMPLE CONTEXT
 
-Levi and Ewan are having a final, passionate, and hurried sexual encounter in their bedroom before Levi's brother Jace and sister-in-law Kerry arrive. The sense of urgency and secrecy adds a layer of forbidden excitement to their intimacy, forcing them to quickly clean up and prepare for the impending arrival.
+The group enjoys a relaxed dinner and card games, with Levi receiving compliments on his cooking. The evening takes a sharp turn when Kerry, tired from travel, wants to go to bed, but Jace resists. A heated argument breaks out, revealing underlying marital issues, leaving Levi and Ewan shocked.
 
 #### TRANSCRIPT
-Levi: [adoration] He was tearing up my insides, and I was loving every minute of it!
-Levi: My boyfriend, Ewan, was not taking any mercy on me.
-Levi: I was ass-up on the bed with my head buried in a strange set of pillows that smelled of industrial cleaner.
-Ewan: [pant] "Don't fucking move, Levi. I'm so close. We've got to finish before they arrive."
-Levi: [gasp] "Oh God, yes!"
-Ewan: [chuckles] "God is not here, baby," [short pause] "but I'll make you see Heaven."
-Levi: [gasp] "Fuck. Fuck. Fuck."
-Levi: [trembling] "Babe, you're hurting me."
-Ewan: [chuckles] "Oh, sorry." [medium pause] "That's beautiful."
-Levi: [teasing] "You're disgusting."
-Ewan: "Levi, you better open the window. It smells like you just got fucked in here, and you don't want that to be obvious." [short pause] "Do you?"
-Levi: [nervousness] "Shut up."
-Levi: [long pause] However, he was right.
-Levi: This wasn't a private vacation between lovers so I didn't need to bring extra attention to the fact that we had made use of the bed before the others arrived.
-Levi: I flung the window open and pulled on some underwear making sure to wipe a warm rag carefully so there wouldn't be any other evidence.
+Levi: We grilled burgers for dinner, and I made some homemade seasoned potatoes that everyone raved about.
+Levi: Oil, plenty of salt, rosemary, and garlic powder were all added to the oil where I chopped and mixed the potatoes before frying them off in a cast-iron skillet.
+Jace: [proudly] Damn, culinary school is paying off, little brother!

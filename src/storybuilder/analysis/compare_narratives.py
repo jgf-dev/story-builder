@@ -15,7 +15,6 @@ def parse_args():
     parser.add_argument("--clusters", type=int, default=4, help="Number of narrative archetypes to find")
     return parser.parse_args()
 
-
 def load_and_normalize_trajectories(conn, df_stories):
     print(f"Loaded {len(df_stories)} processed stories. Normalizing trajectories...")
 
@@ -25,12 +24,16 @@ def load_and_normalize_trajectories(conn, df_stories):
     for _, row in df_stories.iterrows():
         story_id = row["id"]
 
-        df_sentences = pd.read_sql_query("""
+        df_sentences = pd.read_sql_query(
+            """
             SELECT sentiment_score
             FROM sentences
             WHERE story_id = ?
             ORDER BY chapter_index, sentence_index
-        """, conn, params=(int(story_id),))
+        """,
+            conn,
+            params=(int(story_id),),
+        )
 
         scores = df_sentences["sentiment_score"].values
         n_sentences = len(scores)
@@ -40,7 +43,12 @@ def load_and_normalize_trajectories(conn, df_stories):
             continue
 
         window = max(5, n_sentences // 20)
-        smoothed = pd.Series(scores).rolling(window=window, center=True, min_periods=1).mean().values
+        smoothed = (
+            pd.Series(scores)
+            .rolling(window=window, center=True, min_periods=1)
+            .mean()
+            .values
+        )
 
         x_orig = np.linspace(0, 1, n_sentences)
         x_new = np.linspace(0, 1, 100)
@@ -61,7 +69,7 @@ def cluster_and_plot(X, story_metadata, clusters, out_file):
 
     fig = go.Figure()
 
-    cluster_names = [f"Archetype {i+1}" for i in range(clusters)]
+    cluster_names = [f"Archetype {i + 1}" for i in range(clusters)]
 
     for i in range(clusters):
         cluster_arcs = X[labels == i]
@@ -70,13 +78,15 @@ def cluster_and_plot(X, story_metadata, clusters, out_file):
 
         x_vals = np.arange(100)
 
-        fig.add_trace(go.Scatter(
-            x=x_vals,
-            y=mean_arc,
-            mode="lines",
-            name=cluster_names[i],
-            line=dict(width=4)
-        ))
+        fig.add_trace(
+            go.Scatter(
+                x=x_vals,
+                y=mean_arc,
+                mode="lines",
+                name=cluster_names[i],
+                line=dict(width=4),
+            )
+        )
 
         print(f"\n=== {cluster_names[i]} (N={len(cluster_arcs)}) ===")
         subcats = defaultdict(int)
@@ -84,7 +94,9 @@ def cluster_and_plot(X, story_metadata, clusters, out_file):
             if lbl == i:
                 subcats[story_metadata[j]["subcategory"]] += 1
 
-        for subcat, count in sorted(subcats.items(), key=lambda item: item[1], reverse=True):
+        for subcat, count in sorted(
+            subcats.items(), key=lambda item: item[1], reverse=True
+        ):
             print(f"  - {subcat}: {count} stories")
 
     fig.update_layout(
@@ -92,7 +104,7 @@ def cluster_and_plot(X, story_metadata, clusters, out_file):
         xaxis_title="Story Progress (%)",
         yaxis_title="Average Sentiment",
         template="plotly_dark",
-        hovermode="x unified"
+        hovermode="x unified",
     )
 
     fig.write_html(out_file)

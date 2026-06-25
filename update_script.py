@@ -1,4 +1,7 @@
-import argparse
+with open('src/storybuilder/analysis/visualize_tsne.py', 'r') as f:
+    code = f.read()
+
+new_code = """import argparse
 from typing import List, Tuple
 
 import chromadb
@@ -39,13 +42,7 @@ def fetch_embeddings(db_path: str) -> Tuple[List[str], np.ndarray, List[dict]]:
 def run_tsne(embeddings: np.ndarray, perplexity_arg: float) -> np.ndarray:
     perplexity = min(perplexity_arg, max(5.0, len(embeddings) - 1))
     print(f"Running t-SNE dimensionality reduction (perplexity={perplexity})...")
-    tsne = TSNE(
-        n_components=2,
-        perplexity=perplexity,
-        random_state=42,
-        init="pca",
-        learning_rate="auto",
-    )
+    tsne = TSNE(n_components=2, perplexity=perplexity, random_state=42, init="pca", learning_rate="auto")
     embeddings_2d = tsne.fit_transform(embeddings)
     return embeddings_2d
 
@@ -54,7 +51,7 @@ def extract_labels(ids: List[str]) -> Tuple[List[str], List[str]]:
     short_names = []
     subcategories = []
     for filepath in ids:
-        parts = filepath.replace("\\", "/").split("/")
+        parts = filepath.replace("\\\\", "/").split("/")
         short_names.append(parts[-1])
         if len(parts) >= 3:
             subcategories.append(parts[2])
@@ -72,11 +69,7 @@ def create_and_save_plot(embeddings_2d: np.ndarray, ids: List[str], short_names:
         hover_name=short_names,
         hover_data={"filepath": ids, "subcategory": subcategories},
         title="t-SNE Projection of Story Plots by Subcategory",
-        labels={
-            "x": "t-SNE Dimension 1",
-            "y": "t-SNE Dimension 2",
-            "color": "Subcategory",
-        },
+        labels={"x": "t-SNE Dimension 1", "y": "t-SNE Dimension 2", "color": "Subcategory"},
         opacity=0.7,
         template="plotly_dark",
     )
@@ -124,3 +117,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+"""
+
+with open('src/storybuilder/analysis/visualize_tsne.py', 'w') as f:
+    f.write(new_code)

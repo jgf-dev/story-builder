@@ -12,7 +12,7 @@ SCHEMA = """
 CREATE TABLE IF NOT EXISTS stories (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     path TEXT UNIQUE NOT NULL,
-    orientation TEXT,
+    orientation TEXT NOT NULL DEFAULT 'gay',
     category TEXT,
     story_slug TEXT,
     chapter_num INTEGER,

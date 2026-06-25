@@ -26,9 +26,13 @@ def parse_args():
 def setup_collections(db_path):
     chroma_client = chromadb.PersistentClient(path=db_path)
 
-    collection_chunks = chroma_client.get_or_create_collection(name="story_chunks", metadata={"hnsw:space": "cosine"})
+    collection_chunks = chroma_client.get_or_create_collection(
+        name="story_chunks", metadata={"hnsw:space": "cosine"}
+    )
 
-    collection_averages = chroma_client.get_or_create_collection(name="story_averages", metadata={"hnsw:space": "cosine"})
+    collection_averages = chroma_client.get_or_create_collection(
+        name="story_averages", metadata={"hnsw:space": "cosine"}
+    )
 
     return chroma_client, collection_chunks, collection_averages
 
@@ -65,43 +69,6 @@ def process_story(filepath_str, collection_chunks, collection_averages, model):
             documents=[""],
             metadatas=[{"filepath": filepath_str}],
         )
-
-        return True
-
-    except Exception as e:
-        print(f"\nError processing {filepath_str}: {e}")
-        return False
-
-
-def main():
-    args = parse_args()
-    chroma_client, collection_chunks, collection_averages = setup_collections(args.db_path)
-
-    return chroma_client, collection_chunks, collection_averages
-
-
-def process_story(filepath_str, collection_chunks, collection_averages, model):
-    existing = collection_averages.get(ids=[filepath_str])
-    if existing and existing["ids"]:
-        return False
-
-    try:
-        with open(filepath_str, "r", encoding="utf-8") as f:
-            text = f.read()
-
-        chunks = get_chunks(text, chunk_size=250)
-        if not chunks:
-            return False
-
-        chunk_embeddings = model.encode(chunks, convert_to_numpy=True, show_progress_bar=False)
-        chunk_ids = [f"{filepath_str}_chunk_{i}" for i in range(len(chunks))]
-        chunk_metadatas = [{"story_id": filepath_str, "chunk_index": i} for i in range(len(chunks))]
-
-        collection_chunks.add(ids=chunk_ids, embeddings=chunk_embeddings.tolist(), documents=chunks, metadatas=chunk_metadatas)
-
-        avg_embedding = np.mean(chunk_embeddings, axis=0)
-
-        collection_averages.add(ids=[filepath_str], embeddings=[avg_embedding.tolist()], documents=[""], metadatas=[{"filepath": filepath_str}])
 
         return True
 

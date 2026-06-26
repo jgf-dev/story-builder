@@ -199,11 +199,21 @@ def get_conn() -> "sqlite3.Connection | None":
 
 
 def get_all_partition_paths() -> list[str]:
-    """Return paths of all partition databases."""
+    """Return paths of all partition databases.
+
+    Includes year partitions (e.g. ``2023.db``) as well as the ``unknown.db``
+    partition used for stories without a valid date (see get_partition_path).
+    Non-partition databases that may live in the same directory -- the
+    monolithic ``stories.db`` and the dashboard's ``dashboard_metadata.db``
+    (favorites/tags) -- are excluded since they lack the ``stories`` table
+    and partition queries should only touch partition files.
+    """
     if not _db_dir or not _is_partitioned:
         return []
     import glob
-    return sorted(glob.glob(os.path.join(_db_dir, "[0-9][0-9][0-9][0-9].db")))
+    excluded = {"stories.db", "dashboard_metadata.db"}
+    db_files = glob.glob(os.path.join(_db_dir, "*.db"))
+    return sorted(p for p in db_files if os.path.basename(p) not in excluded)
 
 def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
     """Execute a SELECT query across all database partitions sequentially
@@ -558,6 +568,30 @@ def optimize_fts_all(db_dir: str) -> None:
                 conn.close()
 
 
+def optimize_fts_all(db_dir: str) -> None:
+    """Scan the given directory and rebuild FTS on all .db files."""
+    if not os.path.isdir(db_dir):
+        return
+
+    for filename in os.listdir(db_dir):
+        if not filename.endswith(".db"):
+            continue
+
+        db_path = os.path.join(db_dir, filename)
+        conn = None
+        try:
+            conn = sqlite3.connect(db_path, check_same_thread=False)
+            conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
+            conn.commit()
+        except sqlite3.OperationalError:
+            # Best-effort optimization: skip databases that do not support FTS optimize.
+            continue
+        finally:
+            if conn:
+                conn.close()
+
+
+def optimize_fts() -> None:
     """Rebuild the FTS index for optimal search performance across all databases."""
     import concurrent.futures
 

@@ -120,9 +120,6 @@ with open("src/storybuilder/analysis/visualize_tsne.py", "w") as f:
     f.write(new_code)
 import re
 
-with open("src/storybuilder/analysis/visualize_tsne.py", "r") as f:
-    code = f.read()
-
 new_code = """import argparse
 from typing import List, Tuple
 

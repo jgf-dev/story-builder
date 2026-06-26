@@ -29,6 +29,8 @@ import sys
 from collections import Counter
 from pathlib import Path
 
+from storybuilder.downloader.db import search_all_partitions
+
 
 def connect(db_path: str) -> sqlite3.Connection:
     if not os.path.exists(db_path):
@@ -66,6 +68,7 @@ def _query_all(*args, **kwargs):
 
 
 
+
 def _resolve_connection(args) -> "tuple[sqlite3.Connection, list[str] | None]":
     """Resolve connection from args, supporting both --db and --db-dir.
 
@@ -88,23 +91,6 @@ def _resolve_connection(args) -> "tuple[sqlite3.Connection, list[str] | None]":
 
 def cmd_search(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None):
     """Full-text search across titles, authors, and content."""
-    conditions = ["stories_fts MATCH ?"]
-    params = [args.query]
-
-    if args.author:
-        conditions.append("s.author_name LIKE ?")
-        params.append(f"%{args.author}%")
-    if args.category:
-        conditions.append("s.category = ?")
-        params.append(args.category)
-    if args.date_from:
-        conditions.append("s.publication_date >= ?")
-        params.append(args.date_from)
-    if args.date_to:
-        conditions.append("s.publication_date <= ?")
-        params.append(args.date_to)
-
-    where = " AND ".join(conditions)
 
     if db_paths:
         # Multi-DB: attach each database sequentially and merge results
@@ -145,6 +131,24 @@ def cmd_search(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = No
         )
         rows = all_rows[: args.limit]
     else:
+        conditions = ["stories_fts MATCH ?"]
+        params = [args.query]
+
+        if args.author:
+            conditions.append("s.author_name LIKE ?")
+            params.append(f"%{args.author}%")
+        if args.category:
+            conditions.append("s.category = ?")
+            params.append(args.category)
+        if args.date_from:
+            conditions.append("s.publication_date >= ?")
+            params.append(args.date_from)
+        if args.date_to:
+            conditions.append("s.publication_date <= ?")
+            params.append(args.date_to)
+
+        where = " AND ".join(conditions)
+
         sql = f"""
             SELECT s.id, s.path, s.category, s.story_slug, s.chapter_num,
                    s.title, s.author_name, s.publication_date,

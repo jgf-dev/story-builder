@@ -2,6 +2,16 @@
 
 ## Active
 
+### Priority
+
+- [ ] **Reduce the number of audio files generated during tests** Not more than 2-3 files generated, if absolutely necessary.  - #ISSUE
+
+### Testability and Agent Benchmarks
+
+- [ ] **Improve test coverage** Currently at 50%. Need to get to at least 80%. #TASK
+- [ ] **Add TTS validation pipeline** - implement a comprehensive validation system for TTS output. #TASK
+- [ ] **Add benchmarks for all agents** - implement benchmarks for all agents. #TASK
+
 ### Phase 1: Unified Streamlit Dashboard
 
 - [x] **Create interactive Streamlit dashboard** (`scripts/dashboard.py`) to search and view stories. (2026-06-19)
@@ -10,7 +20,11 @@
 - [x] **Add a dynamic statistics tab** with interactive Plotly distribution charts. (2026-06-19)
 - [x] **Add a persistent Favorites & Tagging system** saving to `stories/db/dashboard_metadata.db`. (2026-06-19)
 - [x] **Add a Markdown export function** to download selected stories/search results. (2026-06-19)
+
+### Phase 1.1: Story Discovery Enhancements
+
 - [ ] **Refine named entity recognition** - improve extraction of relationships and higher-quality entities.
+- [ ] **Add an interactive visualization** to the dashboard to visualize the relationships between entities.
 
 ### Phase 2: TTS & Audio Enhancements
 

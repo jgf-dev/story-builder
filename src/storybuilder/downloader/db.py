@@ -1,8 +1,8 @@
+import logging
 import os
 import re
-import threading
 import sqlite3
-import logging
+import threading
 from pathlib import Path
 
 # -- Schema -------------------------------------------------------------
@@ -27,7 +27,7 @@ STORY_COLUMNS = (
 )
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS stories (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY,
     path TEXT UNIQUE NOT NULL,
     orientation TEXT NOT NULL DEFAULT 'gay',
     category TEXT,
@@ -129,10 +129,9 @@ def migrate_legacy_schema(conn: sqlite3.Connection) -> bool:
         conn.executescript(SCHEMA)
 
         cols_sql = ", ".join(copy_columns)
-        conn.execute(
-            f"INSERT INTO stories ({cols_sql}) SELECT {cols_sql} FROM stories_legacy"
-        )
+        conn.execute(f"INSERT INTO stories ({cols_sql}) SELECT {cols_sql} FROM stories_legacy")
         conn.execute("DROP TABLE stories_legacy")
+        conn.execute("DELETE FROM sqlite_sequence WHERE name = 'stories'")
         conn.executescript(INDEXES)
 
     return True
@@ -199,9 +198,7 @@ def init_db(db_path: str) -> "sqlite3.Connection":
     """Initialize the database (idempotent). Returns the connection."""
     global _conn, _is_partitioned, _db_dir
 
-    is_dir = os.path.isdir(db_path) or (
-        not db_path.endswith(".db") and not Path(db_path).suffix
-    )
+    is_dir = os.path.isdir(db_path) or (not db_path.endswith(".db") and not Path(db_path).suffix)
 
     if is_dir:
         os.makedirs(db_path, exist_ok=True)
@@ -300,12 +297,25 @@ def insert_story(
     word_count = len(content.split())
 
     sql = """
-        INSERT OR REPLACE INTO stories
+        INSERT INTO stories
             (path, orientation, category, story_slug, chapter_num,
              title, author_name, author_email,
              publication_date, url,
              char_count, word_count, content)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(path) DO UPDATE SET
+            orientation = excluded.orientation,
+            category = excluded.category,
+            story_slug = excluded.story_slug,
+            chapter_num = excluded.chapter_num,
+            title = excluded.title,
+            author_name = excluded.author_name,
+            author_email = excluded.author_email,
+            publication_date = excluded.publication_date,
+            url = excluded.url,
+            char_count = excluded.char_count,
+            word_count = excluded.word_count,
+            content = excluded.content
     """
     params = (
         output_path,
@@ -340,9 +350,7 @@ def story_exists(output_path: str, story_date: str) -> bool:
         return False
     with _lock:
         try:
-            cursor = conn.execute(
-                "SELECT 1 FROM stories WHERE path = ?", (output_path,)
-            )
+            cursor = conn.execute("SELECT 1 FROM stories WHERE path = ?", (output_path,))
             return cursor.fetchone() is not None
         except Exception:
             return False
@@ -377,7 +385,6 @@ def get_story(output_path: str, story_date: str) -> "dict | None":
             return None
         except Exception:
             return None
-
 
 
 def search_all_partitions(
@@ -430,8 +437,8 @@ def search_all_partitions(
 
     all_rows = []
     for db_path in db_files:
-        conn.execute("ATTACH DATABASE ? AS curr_db", (str(db_path),))
         try:
+            conn.execute("ATTACH DATABASE ? AS curr_db", (str(db_path),))
             curs = conn.cursor()
             table_ref = "curr_db.stories"
             fts_ref = "curr_db.stories_fts"
@@ -450,11 +457,14 @@ def search_all_partitions(
             all_rows.extend([dict(r) for r in rows])
             curs.close()
         except sqlite3.OperationalError:
-            # Some partitions may not have the expected FTS objects/schema;
+            # ATTACH or SELECT may fail (corrupted file, missing FTS schema);
             # skip those partitions and continue searching the rest.
-            continue
+            pass
         finally:
-            conn.execute("DETACH DATABASE curr_db")
+            try:
+                conn.execute("DETACH DATABASE curr_db")
+            except sqlite3.OperationalError:
+                pass
 
     conn.close()
 

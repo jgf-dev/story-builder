@@ -564,10 +564,10 @@ elif page == "⭐ Favorites & Tags":
                 st.markdown(
                     f"""
                     <div class='story-card'>
-                        <h4>{f["title"]}</h4>
-                        <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 4px;'><b>Author:</b> {f["author"] or "Unknown"}</p>
-                        <p style='font-size: 0.9rem;'><span class='highlight'>Tags:</span> {f["tags"] or "None"}</p>
-                        <p style='font-size: 0.9rem; color: #cbd5e1;'><i>Notes:</i> {f["notes"] or "None"}</p>
+                        <h4>{safe_fav_title}</h4>
+                        <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 4px;'><b>Author:</b> {safe_fav_author}</p>
+                        <p style='font-size: 0.9rem;'><span class='highlight'>Tags:</span> {safe_fav_tags}</p>
+                        <p style='font-size: 0.9rem; color: #cbd5e1;'><i>Notes:</i> {safe_fav_notes}</p>
                     </div>
                     """,
                     unsafe_allow_html=True,

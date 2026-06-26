@@ -2,7 +2,6 @@ import streamlit as st
 import sqlite3
 import os
 import glob
-import html
 import pandas as pd
 import plotly.express as px
 from pathlib import Path
@@ -122,7 +121,12 @@ def get_filter_options():
     # Significantly improves the startup time of the dashboard when building the sidebar filters.
     categories = set()
     authors = set()
-    db_files = get_db_files()
+
+    # Get unique categories
+    cat_results = storybuilder_db.execute_all_partitions("SELECT DISTINCT category FROM {table}")
+    for r in cat_results:
+        if r.get("category"):
+            categories.add(r["category"])
 
     for db in db_files:
         try:
@@ -219,7 +223,7 @@ def query_stories(
     entity_label="PERSON",
     limit=100,
 ):
-    """Perform queries across databases, combining FTS, standard metadata, and entity filters."""
+    results = []
     # 1. Filter by entity first if specified
     entity_suffixes = None
     if entity_text:
@@ -269,8 +273,7 @@ def query_stories(
             try:
                 db_year = int(str(pub_date)[:4])
             except ValueError:
-                # Malformed publication_date: keep the default fallback year.
-                db_year = 2026
+                pass
 
         # Check entity suffixes match if filter active
         if entity_suffixes is not None:
@@ -390,7 +393,10 @@ if db_files:
         st.sidebar.write(f"Publication Year: {min_year}")
     else:
         year_range = st.sidebar.slider(
-            "Publication Year Range", min_year, max_year, (min_year, max_year)
+            "Publication Year Range",
+            min_year,
+            max_year,
+            (min_year, max_year),
         )
 else:
     year_range = (1990, 2026)
@@ -441,18 +447,22 @@ if page == "🔍 Search & Explorer":
         # Create a container for the card styling
         card_html = f"""
         <div class="story-card">
-            <h4>{res['title']}</h4>
+            <h4>{res["title"]}</h4>
             <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 8px;'>
-                <b>Author:</b> {res['author_name'] or 'Unknown'} |
-                <b>Category:</b> {res['category']} |
-                <b>Published:</b> {res['publication_date'] or 'Unknown'} |
-                <b>Words:</b> {res['word_count']:,}
+                <b>Author:</b> {res["author_name"] or "Unknown"} |
+                <b>Category:</b> {res["category"]} |
+                <b>Published:</b> {res["publication_date"] or "Unknown"} |
+                <b>Words:</b> {res["word_count"]:,}
             </p>
         """
 
         # Display highlighted snippets if any
         if res.get("snippet"):
-            snippet_cleaned = res["snippet"].replace("___HIGHLIGHT_START___", "<span class='highlight'>").replace("___HIGHLIGHT_END___", "</span>")
+            snippet_cleaned = (
+                res["snippet"]
+                .replace("___HIGHLIGHT_START___", "<span class='highlight'>")
+                .replace("___HIGHLIGHT_END___", "</span>")
+            )
             card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
 
         card_html += "</div>"
@@ -600,7 +610,6 @@ elif page == "⭐ Favorites & Tags":
         )
 
         st.write("---")
-        # Pre-resolve database years for all displayed favorites to avoid N+1 query problem
         # Expected optimization impact: Resolving N favorite stories in M year partitions
         # O(N * M) individual DB queries -> O(M) queries with IN clauses.
         # Significantly improves load time of the Favorites tab, reducing it from seconds to milliseconds.
@@ -647,10 +656,10 @@ elif page == "⭐ Favorites & Tags":
                 st.markdown(
                      f"""
                     <div class='story-card'>
-                        <h4>{f['title']}</h4>
-                        <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 4px;'><b>Author:</b> {f['author'] or 'Unknown'}</p>
-                        <p style='font-size: 0.9rem;'><span class='highlight'>Tags:</span> {f['tags'] or 'None'}</p>
-                        <p style='font-size: 0.9rem; color: #cbd5e1;'><i>Notes:</i> {f['notes'] or 'None'}</p>
+                        <h4>{f["title"]}</h4>
+                        <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 4px;'><b>Author:</b> {f["author"] or "Unknown"}</p>
+                        <p style='font-size: 0.9rem;'><span class='highlight'>Tags:</span> {f["tags"] or "None"}</p>
+                        <p style='font-size: 0.9rem; color: #cbd5e1;'><i>Notes:</i> {f["notes"] or "None"}</p>
                     </div>
                     """,
                     unsafe_allow_html=True,

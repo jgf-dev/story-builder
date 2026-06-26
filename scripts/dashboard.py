@@ -434,7 +434,7 @@ if page == "🔍 Search & Explorer":
         # Create a container for the card styling
         card_html = f"""
         <div class="story-card">
-            <h4>{res["title"]}</h4>
+            <h4>{safe_title}</h4>
             <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 8px;'>
                 <b>Author:</b> {safe_author} |
                 <b>Category:</b> {safe_category} |

@@ -1,7 +1,0 @@
-🎯 **What:** Split the `parse_speech_config` function in `src/storybuilder/genai/client.py` into smaller, more focused helper functions (`_parse_voice_mappings`, `_extract_active_speakers`, and `_build_speech_config`).
-
-💡 **Why:** The original function was roughly 55 lines long, parsing the markdown, extracting active speakers, and building the configuration all in one go. Extracting these steps into well-named helper functions greatly improves maintainability, unit testability, and overall code readability.
-
-✅ **Verification:** Verified by visually inspecting the changes and running the full test suite (`uv run pytest tests/`). All 102 tests passed, confirming the behavior is functionally identical. Also applied standard code formatting via Black.
-
-✨ **Result:** A much cleaner `parse_speech_config` that delegates execution to easy-to-read helpers, resulting in a cleaner GenAI Client.

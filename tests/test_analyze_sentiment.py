@@ -102,6 +102,7 @@ class TestAnalyzeSentiment(unittest.TestCase):
         # Setup fake paths
         from pathlib import Path
 
+
         fake_files = [
             Path("fake_dir/cat1/story1/story1-1.txt"),
             Path("fake_dir/cat1/story1/story1-2.txt"),
@@ -142,6 +143,7 @@ class TestAnalyzeSentiment(unittest.TestCase):
         self.assertTrue(mock_cursor.execute.called)
         self.assertTrue(mock_conn.commit.called)
         mock_conn.close.assert_called_once()
+
 
 
 if __name__ == "__main__":

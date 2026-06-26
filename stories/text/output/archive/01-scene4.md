@@ -18,7 +18,7 @@ Style:
 Pace: Conversational, with moments of intimacy and slight hesitation. Measured during the more serious discussion about Jace.
 Accent: Standard American
 
-### SAMPLE CONTEXT
+### SAMPLE CONCONTEXT
 
 After witnessing Jace and Kerry's fight, Levi and Ewan clean up, discussing the marital problems. Back in their bedroom, Levi playfully attempts to rekindle intimacy but is interrupted by a mysterious noise. They discover Jace alone on the porch by the hot tub. Ewan encourages Levi to go talk to his troubled brother, emphasizing the importance of family support.
 
@@ -26,7 +26,7 @@ After witnessing Jace and Kerry's fight, Levi and Ewan clean up, discussing the 
 
 Ewan: Did you know they were having trouble?
 
-Levi: My had no idea.
+Levi: I had no idea.
 Levi: I gathered up the plates as he tossed all the empty bottles into the trash. Jace had consumed more alcohol than food, and that might have been part of the problem. Or, maybe he needed the alcohol to deal with Kerry? I really had no idea.
 Levi: After we got everything cleaned up, and I washed the dishes, Ewan and I locked the cabin up and made our way to our own room.
 Levi: We had chosen the larger bedroom on the main floor giving Jace and Kerry the entire second floor to themselves.

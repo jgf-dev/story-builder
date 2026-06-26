@@ -209,6 +209,84 @@ class TestDatabaseInit(unittest.TestCase):
         finally:
             close_db()
 
+    def test_init_db_migrates_email_date_column(self):
+        from storybuilder.downloader.db import close_db, init_db
+
+        legacy_conn = sqlite3.connect(self.db_path)
+        legacy_conn.execute(
+            """
+            CREATE TABLE stories (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                path TEXT UNIQUE NOT NULL,
+                orientation TEXT,
+                category TEXT,
+                story_slug TEXT,
+                chapter_num INTEGER,
+                title TEXT,
+                author_name TEXT,
+                author_email TEXT,
+                publication_date TEXT,
+                url TEXT,
+                email_date TEXT,
+                char_count INTEGER,
+                word_count INTEGER,
+                content TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+        legacy_conn.execute(
+            """
+            INSERT INTO stories (
+                path, orientation, category, story_slug, chapter_num,
+                title, author_name, author_email,
+                publication_date, url, email_date,
+                char_count, word_count, content, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                "nifty_stories/gay/test/legacy.txt",
+                "gay",
+                "test",
+                "legacy",
+                1,
+                "Legacy Story",
+                "Legacy Author",
+                "legacy@example.com",
+                "2024-01-15",
+                "https://example.com/legacy",
+                "2024-01-14",
+                123,
+                20,
+                "Legacy content here.",
+                "2024-01-16 12:34:56",
+            ),
+        )
+        legacy_conn.commit()
+        legacy_conn.close()
+
+        conn = init_db(self.db_path)
+        conn.row_factory = sqlite3.Row
+        try:
+            cols = conn.execute("PRAGMA table_info(stories)").fetchall()
+            col_names = [c[1] for c in cols]
+            self.assertNotIn("email_date", col_names)
+            self.assertIn("created_at", col_names)
+
+            row = conn.execute("SELECT * FROM stories").fetchone()
+            self.assertIsNotNone(row)
+            self.assertEqual(row["path"], "nifty_stories/gay/test/legacy.txt")
+            self.assertEqual(row["title"], "Legacy Story")
+            self.assertEqual(row["publication_date"], "2024-01-15")
+            self.assertEqual(row["created_at"], "2024-01-16 12:34:56")
+
+            fts_count = conn.execute(
+                "SELECT COUNT(*) FROM stories_fts WHERE stories_fts MATCH 'legacy'"
+            ).fetchone()[0]
+            self.assertEqual(fts_count, 1)
+        finally:
+            close_db()
+
 
 class TestInsertStory(unittest.TestCase):
     """Tests for insert_story function."""

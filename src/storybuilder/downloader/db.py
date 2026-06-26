@@ -8,6 +8,23 @@ from pathlib import Path
 # -- Schema -------------------------------------------------------------
 
 logger = logging.getLogger(__name__)
+STORY_COLUMNS = (
+    "id",
+    "path",
+    "orientation",
+    "category",
+    "story_slug",
+    "chapter_num",
+    "title",
+    "author_name",
+    "author_email",
+    "publication_date",
+    "url",
+    "char_count",
+    "word_count",
+    "content",
+    "created_at",
+)
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS stories (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -73,6 +90,52 @@ _lock = threading.Lock()
 
 _EMAIL_AUTHOR_RE = re.compile(r"^(.+?)\s*<([^>]+)>\s*$")
 _CHAPTER_SUFFIX_RE = re.compile(r"^(.+?)-(\d+)\.(txt|html)$")
+
+
+# -- Schema migration ---------------------------------------------------
+
+
+def _table_columns(conn: sqlite3.Connection, table_name: str) -> list[str]:
+    """Return the column names for a table, or an empty list if missing."""
+
+    try:
+        rows = conn.execute(f"PRAGMA table_info({table_name})").fetchall()
+    except sqlite3.Error:
+        return []
+    return [row[1] for row in rows]
+
+
+def migrate_legacy_schema(conn: sqlite3.Connection) -> bool:
+    """Rebuild legacy story databases that still include the email_date column."""
+
+    legacy_columns = _table_columns(conn, "stories")
+    if not legacy_columns or "email_date" not in legacy_columns:
+        return False
+
+    copy_columns = [col for col in STORY_COLUMNS if col in legacy_columns and col != "email_date"]
+    if not copy_columns:
+        return False
+
+    with conn:
+        conn.executescript(
+            """
+            DROP TRIGGER IF EXISTS stories_ai;
+            DROP TRIGGER IF EXISTS stories_ad;
+            DROP TRIGGER IF EXISTS stories_au;
+            DROP TABLE IF EXISTS stories_fts;
+            """
+        )
+        conn.execute("ALTER TABLE stories RENAME TO stories_legacy")
+        conn.executescript(SCHEMA)
+
+        cols_sql = ", ".join(copy_columns)
+        conn.execute(
+            f"INSERT INTO stories ({cols_sql}) SELECT {cols_sql} FROM stories_legacy"
+        )
+        conn.execute("DROP TABLE stories_legacy")
+        conn.executescript(INDEXES)
+
+    return True
 
 
 # -- Author parsing -----------------------------------------------------
@@ -155,6 +218,7 @@ def init_db(db_path: str) -> "sqlite3.Connection":
         _conn.execute("PRAGMA journal_mode=WAL")
         _conn.execute("PRAGMA synchronous=NORMAL")
         _conn.execute("PRAGMA cache_size=-64000")
+        migrate_legacy_schema(_conn)
         _conn.executescript(SCHEMA)
         _conn.executescript(INDEXES)
         return _conn
@@ -206,6 +270,7 @@ def _get_write_conn(story_date) -> "sqlite3.Connection | None":
             conn.execute("PRAGMA journal_mode=WAL")
             conn.execute("PRAGMA synchronous=NORMAL")
             conn.execute("PRAGMA cache_size=-64000")
+            migrate_legacy_schema(conn)
             conn.executescript(SCHEMA)
             conn.executescript(INDEXES)
             _connections[partition_path] = conn

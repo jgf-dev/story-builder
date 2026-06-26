@@ -1,33 +1,13 @@
-from . import agents, analysis, downloader, genai
+"""Top-level package for StoryBuilder."""
+
+from importlib import import_module
+
+__all__ = ["downloader", "genai", "agents", "analysis", "cartesia", "utils"]
 
 
-__all__ = ["downloader", "genai", "agents", "analysis"]
-
-"""
 def __getattr__(name):
-    if name == "cartesia":
-        from . import cartesia as _cartesia
-
-        return _cartesia
-    if name == "downloader":
-        from . import downloader as _downloader
-
-        return _downloader
-    if name == "utils":
-        from . import utils as _utils
-
-        return _utils
-    if name == "genai":
-        from . import genai as _genai
-
-        return _genai
-    if name == "agents":
-        from . import agents as _agents
-
-        return _agents
-    if name == "analysis":
-        from . import analysis as _analysis
-
-        return _analysis
+    if name in __all__:
+        module = import_module(f".{name}", __name__)
+        globals()[name] = module
+        return module
     raise AttributeError(f"module 'storybuilder' has no attribute '{name}'")
-"""

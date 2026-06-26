@@ -14,6 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from storybuilder.analysis.compare_narratives import main
 
 
+
 class TestCompareNarratives(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
@@ -130,7 +131,5 @@ class TestCompareNarratives(unittest.TestCase):
             "Saved archetype visualization to narrative_archetypes.html", output
         )
         mock_write_html.assert_called_once_with("narrative_archetypes.html")
-
-
 if __name__ == "__main__":
     unittest.main()

@@ -63,8 +63,8 @@ def process_source_database(src_path: str, temp_dir: Path, new_conns: dict) -> i
         src_conn.close()
         return 0
 
-    cols = "path, orientation, category, story_slug, chapter_num, title, author_name, author_email, publication_date, url, email_date, char_count, word_count, content"
-    placeholders = ", ".join(["?"] * 14)
+    cols = "path, orientation, category, story_slug, chapter_num, title, author_name, author_email, publication_date, url, char_count, word_count, content"
+    placeholders = ", ".join(["?"] * 13)
     insert_sql = f"INSERT OR REPLACE INTO stories ({cols}) VALUES ({placeholders})"
 
     row_count = 0
@@ -83,7 +83,6 @@ def process_source_database(src_path: str, temp_dir: Path, new_conns: dict) -> i
             row["author_email"],
             row["publication_date"],
             row["url"],
-            row["email_date"],
             row["char_count"],
             row["word_count"],
             row["content"],

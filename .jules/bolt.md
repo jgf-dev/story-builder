@@ -7,3 +7,6 @@
 ## 2026-06-25 - [Combining DISTINCT queries returns unique pairs]
 **Learning:** Combining two `SELECT DISTINCT col1` and `SELECT DISTINCT col2` queries into a single `SELECT DISTINCT col1, col2` returns unique pairs, which can dramatically increase row count and memory usage compared to two separate queries.
 **Action:** Do not combine `DISTINCT` queries for unrelated columns into a single pass if the goal is to get separate lists of unique values.
+## 2026-06-26 - [Batching Stats Aggregation in Partitioned DB]
+**Learning:** Performing multiple independent aggregations (like COUNT, SUM) sequentially using the multi-partition execution helper `storybuilder_db.execute_all_partitions` is O(N * M) where N is the number of aggregations and M is the number of partition DBs. This causes severe overhead since the helper has to repeatedly ATTACH and DETACH all databases for each query.
+**Action:** Always combine related cross-partition aggregations into a single SQL pass (e.g. `SELECT COUNT(*), SUM(a), SUM(b) FROM {table}`) to minimize the number of partition traversals.

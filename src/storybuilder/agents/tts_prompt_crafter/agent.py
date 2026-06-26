@@ -356,8 +356,12 @@ runner = Runner(
     artifact_service=artifact_service,
 )
 
-logging.getLogger(__name__).info(f"Runner created for agent '{runner.agent.name}'.")
-logging.getLogger(__name__).info(f"  Sub-agents: {story_analyzer.name}, {scene_writer.name}")
-logging.getLogger(__name__).info(
-    f"  Function tools: {read_story.__name__}, {list_stories.__name__}, {write_scene_file.__name__}, {split_scene_files.__name__}"
+logger.info("Runner created for agent '%s'.", runner.agent.name)
+logger.info("  Sub-agents: %s, %s", story_analyzer.name, scene_writer.name)
+logger.info(
+    "  Function tools: %s, %s, %s, %s",
+    read_story.__name__,
+    list_stories.__name__,
+    write_scene_file.__name__,
+    split_scene_files.__name__,
 )

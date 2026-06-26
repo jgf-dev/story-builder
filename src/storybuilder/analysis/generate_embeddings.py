@@ -170,7 +170,9 @@ def main():
     pbar = tqdm(total=min(len(all_files), args.limit), desc="Embedding stories")
 
     for filepath in all_files:
-        if process_story(str(filepath), collection_chunks, collection_averages, model):
+        if process_story(
+            str(filepath), collection_chunks, collection_averages, model
+        ):
             processed_count += 1
             pbar.update(1)
 

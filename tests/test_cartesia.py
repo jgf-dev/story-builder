@@ -3,9 +3,8 @@ from storybuilder.genai.cartesia_client import (
     parse_speech_config_cartesia,
     parse_transcript_segments,
     VOICE_MAP,
-    NAME_FALLBACK_MAP,
+    NAME_FALLBACK_MAP
 )
-
 
 class TestCartesiaClient(unittest.TestCase):
     def test_parse_speech_config_cartesia(self):
@@ -36,12 +35,14 @@ class TestCartesiaClient(unittest.TestCase):
         """
         speaker_to_voice_id = {
             "Jace": "jace-voice-uuid",
-            "Narrator": "narrator-voice-uuid",
+            "Narrator": "narrator-voice-uuid"
         }
 
         # Levi has no explicit definition in speaker_to_voice_id, should fallback to NAME_FALLBACK_MAP or default_voice_id
         segments = parse_transcript_segments(
-            markdown_content, speaker_to_voice_id, default_voice_id="default-voice-uuid"
+            markdown_content,
+            speaker_to_voice_id,
+            default_voice_id="default-voice-uuid"
         )
 
         # Check segment grouping (the two Jace lines are adjacent and should be grouped together!)
@@ -49,9 +50,7 @@ class TestCartesiaClient(unittest.TestCase):
 
         # Segment 1: Jace lines grouped
         self.assertEqual(segments[0][0], "jace-voice-uuid")
-        self.assertEqual(
-            segments[0][1], "Hello, my name is Jace. And this is my second line."
-        )
+        self.assertEqual(segments[0][1], "Hello, my name is Jace. And this is my second line.")
 
         # Segment 2: Narrator
         self.assertEqual(segments[1][0], "narrator-voice-uuid")
@@ -64,7 +63,6 @@ class TestCartesiaClient(unittest.TestCase):
         # Segment 4: Jace
         self.assertEqual(segments[3][0], "jace-voice-uuid")
         self.assertEqual(segments[3][1], "Back to Jace.")
-
 
 if __name__ == "__main__":
     unittest.main()

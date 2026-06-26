@@ -18,14 +18,14 @@ Style:
 Pace: Slow, measured, ASMR-like pacing (around 0.7x to 0.8x normal conversational speed). Use pauses to emphasize intimacy and urgency.
 Accent: Standard American
 
-### SAMPLE CONCONTEXT
+### SAMPLE CONTEXT
 
 Levi and Ewan are having a final, passionate, and hurried sexual encounter in their bedroom before Levi's brother Jace and sister-in-law Kerry arrive. The sense of urgency and secrecy adds a layer of forbidden excitement to their intimacy, forcing them to quickly clean up and prepare for the impending arrival.
 
 #### TRANSCRIPT
 Levi: [adoration] He was tearing up my insides, and I was loving every minute of it!
 Levi: My boyfriend, Ewan, was not taking any mercy on me.
-Levi: My ass-up on the bed with my head buried in a strange set of pillows that smelled of industrial cleaner.
+Levi: I was ass-up on the bed with my head buried in a strange set of pillows that smelled of industrial cleaner.
 Ewan: [pant] "Don't fucking move, Levi. I'm so close. We've got to finish before they arrive."
 Levi: [gasp] "Oh God, yes!"
 Ewan: [chuckles] "God is not here, baby," [short pause] "but I'll make you see Heaven."

@@ -11,11 +11,14 @@ class TestReadStory(unittest.TestCase):
 
     def setUp(self):
         import unittest.mock
+
         self.tmpdir = tempfile.mkdtemp()
         self.story_path = os.path.join(self.tmpdir, "test_story.md")
         with open(self.story_path, "w") as f:
             f.write("# Test Story\n\nOnce upon a time...\n")
-        self.patcher = unittest.mock.patch("storybuilder.agents.tts_prompt_crafter.tools._STORIES_DIR", self.tmpdir)
+        self.patcher = unittest.mock.patch(
+            "storybuilder.agents.tts_prompt_crafter.tools._STORIES_DIR", self.tmpdir
+        )
         self.patcher.start()
 
     def tearDown(self):
@@ -55,12 +58,15 @@ class TestListStories(unittest.TestCase):
 
     def setUp(self):
         import unittest.mock
+
         self.tmpdir = tempfile.mkdtemp()
         # Create some test .md files
         for name in ["story_a.md", "story_b.md", "not_a_story.txt"]:
             with open(os.path.join(self.tmpdir, name), "w") as f:
                 f.write("content")
-        self.patcher = unittest.mock.patch("storybuilder.agents.tts_prompt_crafter.tools._STORIES_DIR", self.tmpdir)
+        self.patcher = unittest.mock.patch(
+            "storybuilder.agents.tts_prompt_crafter.tools._STORIES_DIR", self.tmpdir
+        )
         self.patcher.start()
 
     def tearDown(self):

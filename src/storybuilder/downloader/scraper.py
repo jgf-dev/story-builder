@@ -389,6 +389,13 @@ def scrape_multi_chapter_folder(folder_url, folder_date, start_date, end_date, d
     chapters, scraped_chapters, has_matching = _fetch_and_parse_chapters(folder_url, start_date, end_date, delay)
 
     if not chapters and not scraped_chapters:
+        # Still save to cache so we don't re-fetch empty folders
+        with cache_lock:
+            metadata_cache[folder_url] = {
+                "last_updated": datetime.datetime.now().isoformat(),
+                "folder_date": folder_date.isoformat(),
+                "chapters": scraped_chapters,
+            }
         return []
 
     # Save to cache

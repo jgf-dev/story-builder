@@ -66,7 +66,6 @@ def _query_all(*args, **kwargs):
 
 
 
-
 def _resolve_connection(args) -> "tuple[sqlite3.Connection, list[str] | None]":
     """Resolve connection from args, supporting both --db and --db-dir.
 

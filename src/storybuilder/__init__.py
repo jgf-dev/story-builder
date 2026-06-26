@@ -2,7 +2,7 @@
 
 from importlib import import_module
 
-__all__ = ["downloader", "genai", "agents", "analysis", "cartesia", "utils"]
+__all__ = ["downloader", "genai", "agents", "analysis", "utils"]
 
 
 def __getattr__(name):

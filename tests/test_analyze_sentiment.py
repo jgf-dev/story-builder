@@ -10,8 +10,6 @@ from storybuilder.analysis.analyze_sentiment import (
     init_db,
     main,
 )
-
-
 class TestAnalyzeSentiment(unittest.TestCase):
     def test_get_sentiment_value(self):
         # Positive sentiment

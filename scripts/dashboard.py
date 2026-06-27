@@ -2,7 +2,6 @@ import streamlit as st
 import sqlite3
 import os
 import glob
-import html
 import pandas as pd
 import plotly.express as px
 from pathlib import Path

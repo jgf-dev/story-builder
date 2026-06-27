@@ -29,8 +29,6 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-from storybuilder.downloader.db import search_all_partitions
-
 
 def connect(db_path: str) -> sqlite3.Connection:
     if not os.path.exists(db_path):

@@ -19,6 +19,7 @@ jobs:
       genai: ${{ steps.filter.outputs.genai }}
       analysis: ${{ steps.filter.outputs.analysis }}
       agents: ${{ steps.filter.outputs.agents }}
+      misc: ${{ steps.filter.outputs.misc }}
       common: ${{ steps.filter.outputs.common }}
     steps:
       - uses: actions/checkout@v4
@@ -69,11 +70,12 @@ jobs:
               - 'tests/test_agent_smoke.py'
               - 'tests/test_agent_tools.py'
               - 'tests/test_subagent.py'
+            misc:
+              - 'tests/test_keys.py'
             common:
               - 'pyproject.toml'
               - 'uv.lock'
               - '.github/workflows/test.yml'
-              - 'tests/test_keys.py'
 
   test-downloader:
     needs: changes
@@ -209,7 +211,7 @@ jobs:
 
   test-misc:
     needs: changes
-    if: needs.changes.outputs.common == 'true'
+    if: needs.changes.outputs.misc == 'true' || needs.changes.outputs.common == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read

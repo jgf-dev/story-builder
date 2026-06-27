@@ -211,3 +211,23 @@ jobs:
         with:
           coverageFile: coverage-misc.xml
           token: ${{ secrets.GITHUB_TOKEN }}
+
+  test-results:
+    needs:
+      - test-downloader
+      - test-genai
+      - test-analysis
+      - test-agents
+      - test-misc
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify test jobs succeeded
+        run: |
+          results="${{ join(needs.*.result, ' ') }}"
+          for r in $results; do
+            if [ "$r" != "success" ] && [ "$r" != "skipped" ]; then
+              echo "A required test job did not succeed: $r"
+              exit 1
+            fi
+          done

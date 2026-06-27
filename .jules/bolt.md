@@ -4,3 +4,6 @@
 ## 2026-06-25 - [Batching Dashboard Aggregations]
 **Learning:** Initializing the Streamlit dashboard involves resolving global filter options (like all distinct authors and categories). Iterating over multi-partition database files using Python loops generates significant DB overhead.
 **Action:** When aggregating data or executing queries across all partitioned SQLite databases, prefer using `storybuilder.downloader.db.execute_all_partitions` which leverages `ATTACH DATABASE` to batch operations, rather than manually iterating and opening connections per database file.
+## 2026-06-25 - [Combining DISTINCT queries returns unique pairs]
+**Learning:** Combining two `SELECT DISTINCT col1` and `SELECT DISTINCT col2` queries into a single `SELECT DISTINCT col1, col2` returns unique pairs, which can dramatically increase row count and memory usage compared to two separate queries.
+**Action:** Do not combine `DISTINCT` queries for unrelated columns into a single pass if the goal is to get separate lists of unique values.

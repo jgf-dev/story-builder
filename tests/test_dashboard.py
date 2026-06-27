@@ -35,6 +35,7 @@ class TestDashboard(unittest.TestCase):
 
         # Patch db.py globals used by dashboard's new refactored code
         import storybuilder.downloader.db as sb_db
+
         sb_db._db_dir = self.db_dir
         sb_db._is_partitioned = True
 
@@ -52,7 +53,6 @@ class TestDashboard(unittest.TestCase):
         self, year, category, title, author, date, word_count, path, content
     ):
         from storybuilder.downloader.db import SCHEMA, INDEXES
-        from storybuilder.downloader.db import optimize_fts
         db_path = os.path.join(self.db_dir, f"{year}.db")
         conn = sqlite3.connect(db_path)
         conn.executescript(SCHEMA)
@@ -67,17 +67,7 @@ class TestDashboard(unittest.TestCase):
             )
             VALUES (?, 'gay', ?, ?, 1, ?, ?, 'test@email.com', ?, 'http://test', ?, ?, ?)
             """,
-            (
-                path,
-                category,
-                Path(path).stem,
-                title,
-                author,
-                date,
-                len(content),
-                word_count,
-                content,
-            ),
+            (path, category, Path(path).stem, title, author, date, len(content), word_count, content),
         )
         conn.commit()
         conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
@@ -107,6 +97,7 @@ class TestDashboard(unittest.TestCase):
             )
             """
         )
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_entities_label ON entities(label)")
         conn.execute(
             "INSERT OR REPLACE INTO stories (filepath) VALUES (?)", (filepath,)
         )
@@ -133,15 +124,13 @@ class TestDashboard(unittest.TestCase):
         self.assertEqual(files, ["2025.db", "2026.db"])
 
     def test_favorites_crud(self):
-        from dashboard import add_favorite, remove_favorite, get_favorites
+        from dashboard import add_favorite, get_favorites, remove_favorite
 
         # Initial empty
         self.assertEqual(get_favorites(), [])
 
         # Add favorite
-        success = add_favorite(
-            "test_path.txt", "Test Story", "Test Author", "tag1,tag2", "Some notes"
-        )
+        success = add_favorite("test_path.txt", "Test Story", "Test Author", "tag1,tag2", "Some notes")
         self.assertTrue(success)
 
         favs = get_favorites()
@@ -152,13 +141,7 @@ class TestDashboard(unittest.TestCase):
         self.assertEqual(favs[0]["notes"], "Some notes")
 
         # Update favorite
-        success_update = add_favorite(
-            "test_path.txt",
-            "Test Story",
-            "Test Author",
-            "tag1,tag2,tag3",
-            "Updated notes",
-        )
+        success_update = add_favorite("test_path.txt", "Test Story", "Test Author", "tag1,tag2,tag3", "Updated notes")
         self.assertTrue(success_update)
         favs = get_favorites()
         self.assertEqual(favs[0]["tags"], "tag1,tag2,tag3")
@@ -257,11 +240,7 @@ class TestDashboard(unittest.TestCase):
 
         # Create NLP entries
         # Path inside NLP db starts with test_stories, but we normalize
-        self._create_mock_nlp_db(
-            filepath="test_stories/gay/college/story1.txt",
-            text="Jordi Santos",
-            label="PERSON",
-        )
+        self._create_mock_nlp_db(filepath="test_stories/gay/college/story1.txt", text="Jordi Santos", label="PERSON")
 
         # Filter by entity text & label
         res_ent = query_stories(entity_text="Jordi", entity_label="PERSON")

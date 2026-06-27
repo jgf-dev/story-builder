@@ -84,13 +84,16 @@ jobs:
       - name: Install the project
         run: uv sync --all-extras --dev
       - name: Run Downloader Tests
-        run: uv run pytest --cov=src --cov-report=xml:coverage-downloader.xml tests/test_downloader.py tests/test_database.py tests/test_dashboard.py
-      - name: Post Coverage Comment
-        if: github.event_name == 'pull_request'
-        uses: orgoro/coverage@v3.2
+        env:
+          COVERAGE_FILE: .coverage.downloader
+        run: uv run pytest --cov=src tests/test_downloader.py tests/test_database.py tests/test_dashboard.py
+      - name: Upload coverage data
+        uses: actions/upload-artifact@v4
         with:
-          coverageFile: coverage-downloader.xml
-          token: ${{ secrets.GITHUB_TOKEN }}
+          name: coverage-downloader
+          path: .coverage.downloader
+          include-hidden-files: true
+          if-no-files-found: error
 
   test-genai:
     needs: changes
@@ -114,13 +117,16 @@ jobs:
       - name: Install the project
         run: uv sync --all-extras --dev
       - name: Run GenAI Tests
-        run: uv run pytest --cov=src --cov-report=xml:coverage-genai.xml tests/test_genai.py tests/test_cartesia.py tests/test_parse_speech_config.py tests/test_parse_speech_config_split.py tests/test_split_prompts.py
-      - name: Post Coverage Comment
-        if: github.event_name == 'pull_request'
-        uses: orgoro/coverage@v3.2
+        env:
+          COVERAGE_FILE: .coverage.genai
+        run: uv run pytest --cov=src tests/test_genai.py tests/test_cartesia.py tests/test_parse_speech_config.py tests/test_parse_speech_config_split.py tests/test_split_prompts.py
+      - name: Upload coverage data
+        uses: actions/upload-artifact@v4
         with:
-          coverageFile: coverage-genai.xml
-          token: ${{ secrets.GITHUB_TOKEN }}
+          name: coverage-genai
+          path: .coverage.genai
+          include-hidden-files: true
+          if-no-files-found: error
 
   test-analysis:
     needs: changes
@@ -144,13 +150,16 @@ jobs:
       - name: Install the project
         run: uv sync --all-extras --dev
       - name: Run Analysis Tests
-        run: uv run pytest --cov=src --cov-report=xml:coverage-analysis.xml tests/test_analyze_sentiment.py tests/test_compare_narratives.py tests/test_find_similar.py tests/test_generate_diagrams.py tests/test_generate_embeddings.py tests/test_visualize_arcs.py
-      - name: Post Coverage Comment
-        if: github.event_name == 'pull_request'
-        uses: orgoro/coverage@v3.2
+        env:
+          COVERAGE_FILE: .coverage.analysis
+        run: uv run pytest --cov=src tests/test_analyze_sentiment.py tests/test_compare_narratives.py tests/test_find_similar.py tests/test_generate_diagrams.py tests/test_generate_embeddings.py tests/test_visualize_arcs.py
+      - name: Upload coverage data
+        uses: actions/upload-artifact@v4
         with:
-          coverageFile: coverage-analysis.xml
-          token: ${{ secrets.GITHUB_TOKEN }}
+          name: coverage-analysis
+          path: .coverage.analysis
+          include-hidden-files: true
+          if-no-files-found: error
 
   test-agents:
     needs: changes
@@ -174,13 +183,16 @@ jobs:
       - name: Install the project
         run: uv sync --all-extras --dev
       - name: Run Agent Tests
-        run: uv run pytest --cov=src --cov-report=xml:coverage-agents.xml tests/test_agent_smoke.py tests/test_agent_tools.py tests/test_subagent.py
-      - name: Post Coverage Comment
-        if: github.event_name == 'pull_request'
-        uses: orgoro/coverage@v3.2
+        env:
+          COVERAGE_FILE: .coverage.agents
+        run: uv run pytest --cov=src tests/test_agent_smoke.py tests/test_agent_tools.py tests/test_subagent.py
+      - name: Upload coverage data
+        uses: actions/upload-artifact@v4
         with:
-          coverageFile: coverage-agents.xml
-          token: ${{ secrets.GITHUB_TOKEN }}
+          name: coverage-agents
+          path: .coverage.agents
+          include-hidden-files: true
+          if-no-files-found: error
 
   test-misc:
     needs: changes
@@ -204,13 +216,16 @@ jobs:
       - name: Install the project
         run: uv sync --all-extras --dev
       - name: Run Misc Tests
-        run: uv run pytest --cov=src --cov-report=xml:coverage-misc.xml tests/test_keys.py
-      - name: Post Coverage Comment
-        if: github.event_name == 'pull_request'
-        uses: orgoro/coverage@v3.2
+        env:
+          COVERAGE_FILE: .coverage.misc
+        run: uv run pytest --cov=src tests/test_keys.py
+      - name: Upload coverage data
+        uses: actions/upload-artifact@v4
         with:
-          coverageFile: coverage-misc.xml
-          token: ${{ secrets.GITHUB_TOKEN }}
+          name: coverage-misc
+          path: .coverage.misc
+          include-hidden-files: true
+          if-no-files-found: error
 
   test-results:
     needs:
@@ -221,6 +236,9 @@ jobs:
       - test-misc
     if: always()
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - name: Verify test jobs succeeded
         run: |
@@ -231,3 +249,37 @@ jobs:
               exit 1
             fi
           done
+      - name: Check out repository
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v4
+      - name: Install uv
+        if: github.event_name == 'pull_request'
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+      - name: Set up Python
+        if: github.event_name == 'pull_request'
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: ".python-version"
+      - name: Install the project
+        if: github.event_name == 'pull_request'
+        run: uv sync --all-extras --dev
+      - name: Download coverage data
+        if: github.event_name == 'pull_request'
+        uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-*
+          merge-multiple: true
+      - name: Combine coverage
+        if: github.event_name == 'pull_request'
+        run: |
+          uv run coverage combine .coverage.*
+          uv run coverage xml -o coverage.xml
+      - name: Post Coverage Comment
+        if: github.event_name == 'pull_request'
+        uses: orgoro/coverage@v3.2
+        with:
+          coverageFile: coverage.xml
+          token: ${{ secrets.GITHUB_TOKEN }}

@@ -1,6 +1,6 @@
 import unittest
 
-from src.storybuilder.genai.client import parse_speech_config
+from storybuilder.genai.client import parse_speech_config
 
 
 class TestParseSpeechConfig(unittest.TestCase):

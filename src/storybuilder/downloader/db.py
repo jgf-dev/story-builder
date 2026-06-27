@@ -229,9 +229,15 @@ def search_all_partitions(
     date_from: "str | None" = None,
     date_to: "str | None" = None,
     limit: int = 100,
-    snippets: bool = True
+    snippets: bool = True,
+    db_dir: "str | None" = None,
+    db_paths: "list[str] | None" = None,
+    query: "str | None" = None,
 ) -> list[dict]:
     """Search across all partitions using FTS or fallback to standard filtering."""
+    if query is not None:
+        fts_query = query
+
     conditions = ["1=1"]
     params = []
 
@@ -251,10 +257,16 @@ def search_all_partitions(
     where_clause = " AND ".join(conditions)
     all_results = []
 
-    if not _is_partitioned:
+    if db_paths is not None:
+        pass
+    elif not _is_partitioned:
         db_paths = [None]
     else:
-        db_paths = get_all_partition_paths()
+        partition_dir = db_dir or _db_dir
+        if not partition_dir:
+            return []
+        import glob
+        db_paths = sorted(glob.glob(os.path.join(partition_dir, "[0-9][0-9][0-9][0-9].db")))
         if not db_paths:
             return []
 
@@ -495,6 +507,7 @@ def optimize_fts_all(db_dir: str) -> None:
             pass
         finally:
             conn.close()
+
 
 def optimize_fts() -> None:
     """Rebuild the FTS index for optimal search performance across all databases."""

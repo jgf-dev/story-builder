@@ -9,36 +9,203 @@ on:
       - main
 
 jobs:
-  test:
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      downloader: ${{ steps.filter.outputs.downloader }}
+      genai: ${{ steps.filter.outputs.genai }}
+      analysis: ${{ steps.filter.outputs.analysis }}
+      agents: ${{ steps.filter.outputs.agents }}
+      common: ${{ steps.filter.outputs.common }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            downloader:
+              - 'src/storybuilder/downloader/**'
+              - 'scripts/import_to_sqlite.py'
+              - 'scripts/story_db.py'
+              - 'tests/test_downloader.py'
+              - 'tests/test_database.py'
+              - 'tests/test_dashboard.py'
+            genai:
+              - 'src/storybuilder/genai/**'
+              - 'src/storybuilder/agents/cartesia_tts_prompt_crafter/**'
+              - '.agent/skills/tts-prompt-crafter/**'
+              - 'tests/test_genai.py'
+              - 'tests/test_cartesia.py'
+              - 'tests/test_parse_speech_config.py'
+              - 'tests/test_parse_speech_config_split.py'
+              - 'tests/test_split_prompts.py'
+            analysis:
+              - 'src/storybuilder/analysis/**'
+              - 'tests/test_analyze_sentiment.py'
+              - 'tests/test_compare_narratives.py'
+              - 'tests/test_find_similar.py'
+              - 'tests/test_generate_diagrams.py'
+              - 'tests/test_generate_embeddings.py'
+              - 'tests/test_visualize_arcs.py'
+            agents:
+              - 'src/storybuilder/agents/**'
+              - 'tests/test_agent_smoke.py'
+              - 'tests/test_agent_tools.py'
+              - 'tests/test_subagent.py'
+            common:
+              - 'pyproject.toml'
+              - 'uv.lock'
+              - '.github/workflows/test.yml'
+              - 'tests/test_keys.py'
+
+  test-downloader:
+    needs: changes
+    if: needs.changes.outputs.downloader == 'true' || needs.changes.outputs.common == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
-
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version-file: ".python-version"
-
       - name: Install the project
         run: uv sync --all-extras --dev
-
-      - name: Run Pytest with Coverage
-        run: uv run pytest --cov=src --cov-report=xml tests/
-
+      - name: Run Downloader Tests
+        run: uv run pytest --cov=src --cov-report=xml:coverage-downloader.xml tests/test_downloader.py tests/test_database.py tests/test_dashboard.py
       - name: Post Coverage Comment
         if: github.event_name == 'pull_request'
         uses: orgoro/coverage@v3.2
         with:
-          coverageFile: coverage.xml
+          coverageFile: coverage-downloader.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  test-genai:
+    needs: changes
+    if: needs.changes.outputs.genai == 'true' || needs.changes.outputs.common == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: ".python-version"
+      - name: Install the project
+        run: uv sync --all-extras --dev
+      - name: Run GenAI Tests
+        run: uv run pytest --cov=src --cov-report=xml:coverage-genai.xml tests/test_genai.py tests/test_cartesia.py tests/test_parse_speech_config.py tests/test_parse_speech_config_split.py tests/test_split_prompts.py
+      - name: Post Coverage Comment
+        if: github.event_name == 'pull_request'
+        uses: orgoro/coverage@v3.2
+        with:
+          coverageFile: coverage-genai.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  test-analysis:
+    needs: changes
+    if: needs.changes.outputs.analysis == 'true' || needs.changes.outputs.common == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: ".python-version"
+      - name: Install the project
+        run: uv sync --all-extras --dev
+      - name: Run Analysis Tests
+        run: uv run pytest --cov=src --cov-report=xml:coverage-analysis.xml tests/test_analyze_sentiment.py tests/test_compare_narratives.py tests/test_find_similar.py tests/test_generate_diagrams.py tests/test_generate_embeddings.py tests/test_visualize_arcs.py
+      - name: Post Coverage Comment
+        if: github.event_name == 'pull_request'
+        uses: orgoro/coverage@v3.2
+        with:
+          coverageFile: coverage-analysis.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  test-agents:
+    needs: changes
+    if: needs.changes.outputs.agents == 'true' || needs.changes.outputs.common == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: ".python-version"
+      - name: Install the project
+        run: uv sync --all-extras --dev
+      - name: Run Agent Tests
+        run: uv run pytest --cov=src --cov-report=xml:coverage-agents.xml tests/test_agent_smoke.py tests/test_agent_tools.py tests/test_subagent.py
+      - name: Post Coverage Comment
+        if: github.event_name == 'pull_request'
+        uses: orgoro/coverage@v3.2
+        with:
+          coverageFile: coverage-agents.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  test-misc:
+    needs: changes
+    if: needs.changes.outputs.common == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: ".python-version"
+      - name: Install the project
+        run: uv sync --all-extras --dev
+      - name: Run Misc Tests
+        run: uv run pytest --cov=src --cov-report=xml:coverage-misc.xml tests/test_keys.py
+      - name: Post Coverage Comment
+        if: github.event_name == 'pull_request'
+        uses: orgoro/coverage@v3.2
+        with:
+          coverageFile: coverage-misc.xml
           token: ${{ secrets.GITHUB_TOKEN }}

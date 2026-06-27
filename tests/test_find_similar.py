@@ -50,6 +50,8 @@ class TestFindSimilar(unittest.TestCase):
         mock_collection.get.return_value = None
 
         # Capture print output
+        import io
+        import sys
         captured_output = io.StringIO()
         sys.stdout = captured_output
 
@@ -83,6 +85,8 @@ class TestFindSimilar(unittest.TestCase):
         mock_collection.get.return_value = {"embeddings": None}
 
         # Capture print output
+        import io
+        import sys
         captured_output = io.StringIO()
         sys.stdout = captured_output
 
@@ -116,6 +120,8 @@ class TestFindSimilar(unittest.TestCase):
         mock_collection.get.return_value = {"embeddings": []}
 
         # Capture print output
+        import io
+        import sys
         captured_output = io.StringIO()
         sys.stdout = captured_output
 

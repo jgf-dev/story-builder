@@ -405,7 +405,7 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
             FROM stories {where or "WHERE 1=1"}
             GROUP BY category ORDER BY cnt DESC LIMIT 15
             """,
-            params[1:] if where else [],
+            params if where else [],
         ).fetchall()
     for c in cats:
         print(f"    {c['category']:<25} {c['cnt']:>6,}")
@@ -438,7 +438,7 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
             FROM stories {where or "WHERE 1=1"}
             GROUP BY author_name ORDER BY cnt DESC LIMIT 15
             """,
-            params[1:] if where else [],
+            params if where else [],
         ).fetchall()
     for a in authors:
         name = (a["author_name"] or "Unknown")[:30]

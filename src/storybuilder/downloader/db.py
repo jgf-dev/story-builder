@@ -504,29 +504,42 @@ def search_all_partitions(
 
 def optimize_fts() -> None:
     """Rebuild the FTS index for optimal search performance."""
+    # Snapshot the state we need under the lock, but perform the (potentially
+    # slow) connection-opening and optimize work outside of it so concurrent
+    # insert_story() callers are not blocked for the whole optimization.
     with _lock:
-        conns_to_optimize = []
-        if _is_partitioned and _db_dir:
-            for db_file in Path(_db_dir).glob("*.db"):
-                try:
-                    conn = sqlite3.connect(str(db_file), check_same_thread=False)
-                    conns_to_optimize.append(conn)
-                except sqlite3.Error as exc:
-                    logger.warning("Skipping FTS optimize for database %s: %s", db_file, exc)
+        is_partitioned = _is_partitioned
+        db_dir = _db_dir
+        if is_partitioned and db_dir:
+            db_files = list(Path(db_dir).glob("*.db"))
+            session_conns: list[sqlite3.Connection] = []
         else:
-            conns_to_optimize = list(_connections.values())
+            db_files = []
+            session_conns = list(_connections.values())
             if _conn is not None and not _is_partitioned:
-                conns_to_optimize.append(_conn)
+                session_conns.append(_conn)
 
-        for conn in conns_to_optimize:
+    if is_partitioned and db_dir:
+        for db_file in db_files:
+            try:
+                conn = sqlite3.connect(str(db_file), check_same_thread=False)
+            except sqlite3.Error as exc:
+                logger.warning("Skipping FTS optimize for database %s: %s", db_file, exc)
+                continue
             try:
                 conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
                 conn.commit()
             except sqlite3.OperationalError:
                 pass
             finally:
-                if _is_partitioned and _db_dir:
-                    conn.close()
+                conn.close()
+    else:
+        for conn in session_conns:
+            try:
+                conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
+                conn.commit()
+            except sqlite3.OperationalError:
+                pass
 
 
 def close_db() -> None:

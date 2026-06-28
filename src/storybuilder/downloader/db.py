@@ -225,26 +225,28 @@ def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
     conn.row_factory = sqlite3.Row
     all_rows = []
 
-    for db_path in db_paths:
-        try:
-            conn.execute("ATTACH DATABASE ? AS curr_db", (db_path,))
-            curs = conn.cursor()
-            formatted_sql = sql.format(table="curr_db.stories")
-            curs.execute(formatted_sql, params)
-            all_rows.extend([dict(r) for r in curs.fetchall()])
-            curs.close()
-        except sqlite3.Error as e:
-            print(f"Error querying {db_path}: {e}")
-        finally:
+    try:
+        for db_path in db_paths:
             try:
-                conn.execute("DETACH DATABASE curr_db")
-            except sqlite3.Error:
-                # Non-fatal cleanup: the ATTACH may have failed or the alias
-                # may already be detached. The in-memory connection is closed
-                # right after the loop, which releases any remaining attachments.
-                pass
+                conn.execute("ATTACH DATABASE ? AS curr_db", (db_path,))
+                curs = conn.cursor()
+                formatted_sql = sql.format(table="curr_db.stories")
+                curs.execute(formatted_sql, params)
+                all_rows.extend([dict(r) for r in curs.fetchall()])
+                curs.close()
+            except sqlite3.Error as e:
+                print(f"Error querying {db_path}: {e}")
+            finally:
+                try:
+                    conn.execute("DETACH DATABASE curr_db")
+                except sqlite3.Error:
+                    # Non-fatal cleanup: the ATTACH may have failed or the alias
+                    # may already be detached. The in-memory connection is closed
+                    # right after the loop, which releases any remaining attachments.
+                    pass
+    finally:
+        conn.close()
 
-    conn.close()
     return all_rows
 
 def search_all_partitions(
@@ -313,32 +315,28 @@ def search_all_partitions(
 
             query_params = list(params)
 
+            # Build the snippet expression once, reuse for both branches
+            snippet_expr = (
+                "snippet(stories_fts, 2, '___HIGHLIGHT_START___', '___HIGHLIGHT_END___', '…', 40)"
+                if (fts_query and snippets)
+                else "NULL"
+            )
+
             if fts_query:
-                # Use stories_fts explicitly unaliased for the snippet function
-                if snippets:
-                    sql = f"""
-                        SELECT s.id, s.path, s.category, s.story_slug, s.title, s.author_name,
-                               s.publication_date, s.char_count, s.word_count,
-                               snippet(stories_fts, 2, '___HIGHLIGHT_START___', '___HIGHLIGHT_END___', '…', 40) AS snippet
-                        FROM stories s
-                        JOIN stories_fts ON s.id = stories_fts.rowid
-                        WHERE {where_clause} AND stories_fts MATCH ?
-                        ORDER BY rank
-                        LIMIT ?
-                    """
-                else:
-                    sql = f"""
-                        SELECT s.id, s.path, s.category, s.story_slug, s.title, s.author_name,
-                               s.publication_date, s.char_count, s.word_count,
-                               NULL AS snippet
-                        FROM stories s
-                        JOIN stories_fts ON s.id = stories_fts.rowid
-                        WHERE {where_clause} AND stories_fts MATCH ?
-                        ORDER BY rank
-                        LIMIT ?
-                    """
+                # FTS query with optional snippets
+                sql = f"""
+                    SELECT s.id, s.path, s.category, s.story_slug, s.title, s.author_name,
+                           s.publication_date, s.char_count, s.word_count,
+                           {snippet_expr} AS snippet
+                    FROM stories s
+                    JOIN stories_fts ON s.id = stories_fts.rowid
+                    WHERE {where_clause} AND stories_fts MATCH ?
+                    ORDER BY rank
+                    LIMIT ?
+                """
                 query_params.extend([fts_query, limit])
             else:
+                # Non-FTS query: standard filtering and sorting by date
                 sql = f"""
                     SELECT s.id, s.path, s.category, s.story_slug, s.title, s.author_name,
                            s.publication_date, s.char_count, s.word_count,
@@ -467,8 +465,17 @@ def insert_story(
             conn.execute(sql, params)
             conn.commit()
             return True
-        except Exception:
+        except sqlite3.IntegrityError as e:
             conn.rollback()
+            print(f"Integrity error inserting story at {output_path}: {e}")
+            return False
+        except sqlite3.OperationalError as e:
+            conn.rollback()
+            print(f"Operational error inserting story at {output_path}: {e}")
+            return False
+        except Exception as e:
+            conn.rollback()
+            print(f"Unexpected error inserting story at {output_path}: {e}")
             return False
 
 
@@ -483,7 +490,11 @@ def story_exists(output_path: str, story_date: str) -> bool:
                 "SELECT 1 FROM stories WHERE path = ?", (output_path,)
             )
             return cursor.fetchone() is not None
-        except Exception:
+        except sqlite3.OperationalError as e:
+            print(f"Error checking story existence at {output_path}: {e}")
+            return False
+        except Exception as e:
+            print(f"Unexpected error checking story existence at {output_path}: {e}")
             return False
 
 
@@ -514,25 +525,12 @@ def get_story(output_path: str, story_date: str) -> "dict | None":
                     "content": row[5],
                 }
             return None
-        except Exception:
+        except sqlite3.OperationalError as e:
+            print(f"Error retrieving story at {output_path}: {e}")
             return None
-
-
-def optimize_fts_all(db_dir: str) -> None:
-    """Rebuild the FTS index for all partitions in a directory."""
-    import glob
-    db_files = glob.glob(os.path.join(db_dir, "*.db"))
-    for db_file in db_files:
-        conn = sqlite3.connect(db_file)
-        try:
-            conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
-            conn.commit()
-        except sqlite3.OperationalError:
-            # Best-effort optimization: some DB files may not have the FTS table
-            # (or may otherwise not support this command), so ignore and continue.
-            pass
-        finally:
-            conn.close()
+        except Exception as e:
+            print(f"Unexpected error retrieving story at {output_path}: {e}")
+            return None
 
 
 def optimize_fts() -> None:

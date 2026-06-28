@@ -7,3 +7,6 @@
 ## 2026-06-25 - [Combining DISTINCT queries returns unique pairs]
 **Learning:** Combining two `SELECT DISTINCT col1` and `SELECT DISTINCT col2` queries into a single `SELECT DISTINCT col1, col2` returns unique pairs, which can dramatically increase row count and memory usage compared to two separate queries.
 **Action:** Do not combine `DISTINCT` queries for unrelated columns into a single pass if the goal is to get separate lists of unique values.
+## 2026-06-27 - [SQL-Level Aggregation for Distributions]
+**Learning:** Pulling large columns (like tens of thousands of `word_count` integers) into Python memory simply to generate distribution brackets using `pandas.cut` is a severe memory and performance bottleneck in the Streamlit dashboard.
+**Action:** Push binning and aggregation logic down to the SQLite database using `CASE WHEN ... THEN ... GROUP BY`. This reduces data transfer and memory footprint from O(N) to O(1) bracket sizes while maintaining the exact same dashboard visualization output.

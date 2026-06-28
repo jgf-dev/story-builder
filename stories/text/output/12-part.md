@@ -17,7 +17,7 @@ Style:
 Pace: Conversational and relaxed initially, becoming abruptly fast and sharp during the argument, then settling into a stunned quiet.
 Accent: Standard American
 
-### SAMPLE CONTEXT
+### SAMPLE CONCONTEXT
 
 The group enjoys a relaxed dinner and card games, with Levi receiving compliments on his cooking. The evening takes a sharp turn when Kerry, tired from travel, wants to go to bed, but Jace resists. A heated argument breaks out, revealing underlying marital issues, leaving Levi and Ewan shocked.
 

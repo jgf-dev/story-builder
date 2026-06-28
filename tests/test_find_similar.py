@@ -1,8 +1,7 @@
 import io
 import sys
 import unittest
-from unittest.mock import patch, MagicMock
-from io import StringIO
+from unittest.mock import MagicMock, patch
 
 from storybuilder.analysis.find_similar import main
 

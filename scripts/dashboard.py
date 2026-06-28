@@ -491,6 +491,7 @@ if page == "🔍 Search & Explorer":
                 .replace("___HIGHLIGHT_START___", "<span class='highlight'>")
                 .replace("___HIGHLIGHT_END___", "</span>")
             )
+            card_html += f"<p>{snippet_cleaned}</p>"
 
         card_html += "</div>"
         st.markdown(card_html, unsafe_allow_html=True)

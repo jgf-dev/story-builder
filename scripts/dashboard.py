@@ -144,7 +144,14 @@ def load_archive_stats():
     year_stats = []
     category_counts = {}
     author_counts = {}
-    word_counts = []
+    bracket_counts = {
+        "Short (<1K)": 0,
+        "Medium-Short (1K-5K)": 0,
+        "Medium (5K-10K)": 0,
+        "Medium-Long (10K-20K)": 0,
+        "Long (20K-50K)": 0,
+        "Epic (>50K)": 0,
+    }
 
     for db in db_files:
         year_name = Path(db).stem
@@ -178,9 +185,27 @@ def load_archive_stats():
                 if auth:
                     author_counts[auth] = author_counts.get(auth, 0) + count
 
-            # Word counts sample for distribution
-            cursor.execute("SELECT word_count FROM stories")
-            word_counts.extend([r[0] for r in cursor.fetchall()])
+            # Word count bracket distribution (binned at SQL level; NULLs excluded)
+            cursor.execute(
+                """
+                SELECT
+                    CASE
+                        WHEN word_count < 1000 THEN 'Short (<1K)'
+                        WHEN word_count < 5000 THEN 'Medium-Short (1K-5K)'
+                        WHEN word_count < 10000 THEN 'Medium (5K-10K)'
+                        WHEN word_count < 20000 THEN 'Medium-Long (10K-20K)'
+                        WHEN word_count < 50000 THEN 'Long (20K-50K)'
+                        ELSE 'Epic (>50K)'
+                    END AS bracket,
+                    COUNT(*)
+                FROM stories
+                WHERE word_count IS NOT NULL
+                GROUP BY bracket
+                """
+            )
+            for bracket, count in cursor.fetchall():
+                if bracket in bracket_counts:
+                    bracket_counts[bracket] += count
 
             conn.close()
         except sqlite3.Error:
@@ -194,7 +219,19 @@ def load_archive_stats():
         list(author_counts.items()), columns=["Author", "Count"]
     ).sort_values("Count", ascending=False)
 
-    return df_years, df_cats, df_auths, word_counts
+    order = [
+        "Short (<1K)",
+        "Medium-Short (1K-5K)",
+        "Medium (5K-10K)",
+        "Medium-Long (10K-20K)",
+        "Long (20K-50K)",
+        "Epic (>50K)",
+    ]
+    df_words = pd.DataFrame(
+        [{"Bracket": b, "Stories": bracket_counts[b]} for b in order]
+    )
+
+    return df_years, df_cats, df_auths, df_words
 
 
 # ------------------------------------------------------------------------------
@@ -670,7 +707,7 @@ elif page == "📊 Archive Stats":
     st.write("Detailed statistics and distributions for the entire story archive.")
 
     with st.spinner("Compiling database metrics..."):
-        df_years, df_cats, df_auths, word_counts = load_archive_stats()
+        df_years, df_cats, df_auths, df_words = load_archive_stats()
 
     st.markdown("---")
 
@@ -738,21 +775,6 @@ elif page == "📊 Archive Stats":
 
     # 3. Word Count Bracket Distribution
     st.subheader("📐 Story Length Distribution")
-    word_bins = pd.cut(
-        word_counts,
-        bins=[0, 1000, 5000, 10000, 20000, 50000, 1000000],
-        labels=[
-            "Short (<1K)",
-            "Medium-Short (1K-5K)",
-            "Medium (5K-10K)",
-            "Medium-Long (10K-20K)",
-            "Long (20K-50K)",
-            "Epic (>50K)",
-        ],
-    )
-    df_words = (
-        pd.DataFrame({"Bracket": word_bins}).value_counts().reset_index(name="Stories")
-    )
     fig_words = px.bar(
         df_words,
         x="Bracket",

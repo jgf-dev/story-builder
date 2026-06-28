@@ -228,12 +228,24 @@ def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
     try:
         for db_path in db_paths:
             try:
-                conn.execute("DETACH DATABASE curr_db")
-            except sqlite3.Error:
-                # Non-fatal cleanup: the ATTACH may have failed or the alias
-                # may already be detached. The in-memory connection is closed
-                # right after the loop, which releases any remaining attachments.
-                pass
+                conn.execute("ATTACH DATABASE ? AS curr_db", (db_path,))
+                curs = conn.cursor()
+                formatted_sql = sql.format(table="curr_db.stories")
+                curs.execute(formatted_sql, params)
+                all_rows.extend([dict(r) for r in curs.fetchall()])
+                curs.close()
+            except sqlite3.Error as e:
+                print(f"Error querying {db_path}: {e}")
+            finally:
+                try:
+                    conn.execute("DETACH DATABASE curr_db")
+                except sqlite3.Error:
+                    # Non-fatal cleanup: the ATTACH may have failed or the alias
+                    # may already be detached. The in-memory connection is closed
+                    # right after the loop, which releases any remaining attachments.
+                    pass
+    finally:
+        conn.close()
 
     return all_rows
 
@@ -519,23 +531,6 @@ def get_story(output_path: str, story_date: str) -> "dict | None":
         except Exception as e:
             print(f"Unexpected error retrieving story at {output_path}: {e}")
             return None
-
-
-def optimize_fts_all(db_dir: str) -> None:
-    """Rebuild the FTS index for all partitions in a directory."""
-    import glob
-    db_files = glob.glob(os.path.join(db_dir, "*.db"))
-    for db_file in db_files:
-        conn = sqlite3.connect(db_file)
-        try:
-            conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
-            conn.commit()
-        except sqlite3.OperationalError:
-            # Best-effort optimization: some DB files may not have the FTS table
-            # (or may otherwise not support this command), so ignore and continue.
-            pass
-        finally:
-            conn.close()
 
 
 def optimize_fts() -> None:

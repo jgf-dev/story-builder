@@ -50,6 +50,7 @@ jobs:
               - 'tests/test_generate_diagrams.py'
               - 'tests/test_generate_embeddings.py'
               - 'tests/test_visualize_arcs.py'
+              - 'tests/test_visualize_tsne.py'
             agents:
               - 'src/storybuilder/agents/**'
               - 'tests/test_agent_smoke.py'
@@ -143,7 +144,7 @@ jobs:
       - name: Install the project
         run: uv sync --all-extras --dev
       - name: Run Analysis Tests
-        run: uv run pytest --cov=src --cov-report=xml:coverage-analysis.xml tests/test_analyze_sentiment.py tests/test_compare_narratives.py tests/test_find_similar.py tests/test_generate_diagrams.py tests/test_generate_embeddings.py tests/test_visualize_arcs.py
+        run: uv run pytest --cov=src --cov-report=xml:coverage-analysis.xml tests/test_analyze_sentiment.py tests/test_compare_narratives.py tests/test_find_similar.py tests/test_generate_diagrams.py tests/test_generate_embeddings.py tests/test_visualize_arcs.py tests/test_visualize_tsne.py
       - name: Post Coverage Comment
         if: github.event_name == 'pull_request'
         uses: orgoro/coverage@v3.2

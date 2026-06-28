@@ -158,7 +158,7 @@ def main():
     print(f"Loading spaCy model ({args.model})...")
     nlp = load_spacy_model(args.model, args.gpu)
     if nlp is None:
-        raise SystemExit(1)
+        return
 
     all_files = list(Path(args.stories_dir).rglob("*.txt"))
     print(f"Found {len(all_files)} total text files.")

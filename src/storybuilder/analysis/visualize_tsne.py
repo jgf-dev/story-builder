@@ -110,7 +110,7 @@ def main():
     ids, embeddings, metadatas = fetch_embeddings(args.db_path)
 
     if len(embeddings) < 2:
-        if len(embeddings) > 0 or len(ids) == 0:  # If fetch failed or less than 2
+        if len(embeddings) > 0:
             print("Error: Need at least 2 stories in the database to run t-SNE.")
         return
 

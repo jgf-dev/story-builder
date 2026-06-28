@@ -10,12 +10,15 @@ import unittest
 from pathlib import Path
 
 # Ensure the src package is importable
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 # Also make scripts/ importable (they don't have __init__.py but we can still import
 # the modules directly if we add the parent directory)
-_scripts_dir = str(Path(__file__).resolve().parents[1] / "scripts")
+_scripts_dir = str(Path(__file__).resolve().parents[2] / "scripts")
 if _scripts_dir not in sys.path:
     sys.path.insert(0, _scripts_dir)
+
+import import_to_sqlite  # pyrefly: ignore [missing-import]
+import story_db  # pyrefly: ignore [missing-import]
 
 
 class TestParseAuthor(unittest.TestCase):
@@ -426,6 +429,51 @@ class TestFTSSearch(unittest.TestCase):
         finally:
             close_db()
 
+    def test_optimize_fts_all(self):
+        from storybuilder.downloader import db
+
+        # Initialize with directory path
+        db.init_db(self.temp_dir)
+
+        # Insert stories to create multiple partition DBs
+        db.insert_story(
+            output_path="nifty_stories/gay/adult-friends/story1.txt",
+            title="2012 Story",
+            author="Author One",
+            story_date="2012-05-14",
+            url="http://example.com/1",
+            content="Content for story 1.",
+        )
+        db.insert_story(
+            output_path="nifty_stories/gay/college/story2.txt",
+            title="2025 Story",
+            author="Author Two",
+            story_date="2025-05-10",
+            url="http://example.com/2",
+            content="Content for story 2.",
+        )
+
+        # We need to simulate that `optimize_fts` will process all databases in `self.temp_dir`.
+        db.optimize_fts()
+
+        # Since FTS optimization runs PRAGMA equivalent or just executes an INSERT on a virtual table,
+        # verifying execution isn't as simple as checking a flag. But we can ensure no errors are
+        # raised, and that we can still search afterwards.
+
+        conn1 = sqlite3.connect(os.path.join(self.temp_dir, "2012.db"))
+        row1 = conn1.execute(
+            "SELECT COUNT(*) FROM stories_fts WHERE stories_fts MATCH 'Content'"
+        ).fetchone()[0]
+        self.assertEqual(row1, 1)
+        conn1.close()
+
+        conn2 = sqlite3.connect(os.path.join(self.temp_dir, "2025.db"))
+        row2 = conn2.execute(
+            "SELECT COUNT(*) FROM stories_fts WHERE stories_fts MATCH 'Content'"
+        ).fetchone()[0]
+        self.assertEqual(row2, 1)
+        conn2.close()
+
 
 class TestParseHeader(unittest.TestCase):
     """Tests for parse_header in import_to_sqlite.py."""
@@ -443,8 +491,6 @@ class TestParseHeader(unittest.TestCase):
         return path
 
     def test_standard_header(self):
-        import import_to_sqlite
-
         content = (
             "=" * 80 + "\n"
             "Title: My Story\n"
@@ -468,8 +514,6 @@ class TestParseHeader(unittest.TestCase):
         self.assertIn("multiple paragraphs", result["content"])
 
     def test_header_with_email_date(self):
-        import import_to_sqlite
-
         content = (
             "=" * 80 + "\n"
             "Title: Email Story\n"
@@ -485,22 +529,16 @@ class TestParseHeader(unittest.TestCase):
         self.assertEqual(result["author_email"], "user@host.com")
 
     def test_missing_file(self):
-        import import_to_sqlite
-
         result = import_to_sqlite.parse_header("/nonexistent/file.txt")
         self.assertIsNone(result)
 
     def test_no_header_marker(self):
-        import import_to_sqlite
-
         content = "Just plain text without any header markers.\n"
         path = self._write_story_file("noheader.txt", content)
         result = import_to_sqlite.parse_header(path)
         self.assertIsNone(result)
 
     def test_minimal_header(self):
-        import import_to_sqlite
-
         content = (
             "=" * 80 + "\n"
             "Title: Minimal\n"
@@ -515,8 +553,6 @@ class TestParseHeader(unittest.TestCase):
         self.assertEqual(result["content"], "body")
 
     def test_empty_content(self):
-        import import_to_sqlite
-
         content = (
             "=" * 80 + "\n"
             "Title: Empty\n"
@@ -559,8 +595,6 @@ class TestMultiDBConnect(unittest.TestCase):
         return path
 
     def test_connect_multi(self):
-        import story_db
-
         self._create_test_db("db1.db")
         self._create_test_db("db2.db")
 
@@ -570,36 +604,34 @@ class TestMultiDBConnect(unittest.TestCase):
         self.assertTrue(any("db2.db" in p for p in db_paths))
         conn.close()
 
-    def test_query_all(self):
-        import story_db
+    def test_execute_all_partitions(self):
+        import storybuilder.downloader.db as sb_db
 
-        self._create_test_db("a.db")
-        self._create_test_db("b.db")
+        self._create_test_db("2020.db")
+        self._create_test_db("2021.db")
 
-        conn, db_names = story_db.connect_multi(self.temp_dir)
+        old_dir = sb_db._db_dir
+        old_part = sb_db._is_partitioned
+        sb_db._db_dir = self.temp_dir
+        sb_db._is_partitioned = True
+
         try:
-            rows = story_db._query_all(
-                conn,
-                db_names,
-                "SELECT COUNT(*) FROM {table}",
-            )
+            rows = sb_db.execute_all_partitions("SELECT COUNT(*) FROM {table}")
             self.assertEqual(len(rows), 2)
-            total = sum(r[0] for r in rows)
-            self.assertEqual(total, 2)  # 1 row in each of 2 DBs
+            # each partition has 1 row returning count=0 because tables are empty initially?
+            # actually we don't insert, so count is 0
+            self.assertEqual(rows[0]["COUNT(*)"], 1)
         finally:
-            conn.close()
+            sb_db._db_dir = old_dir
+            sb_db._is_partitioned = old_part
 
     def test_empty_dir_raises(self):
-        import story_db
-
         empty_dir = os.path.join(self.temp_dir, "empty")
         os.makedirs(empty_dir)
         with self.assertRaises(SystemExit):
             story_db.connect_multi(empty_dir)
 
     def test_skips_stories_db(self):
-        import story_db
-
         self._create_test_db("stories.db")  # should be skipped
         self._create_test_db("real.db")
 

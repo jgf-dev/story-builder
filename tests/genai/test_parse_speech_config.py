@@ -1,5 +1,7 @@
 import unittest
-from src.storybuilder.genai.client import parse_speech_config
+
+from storybuilder.genai.client import parse_speech_config
+
 
 class TestParseSpeechConfig(unittest.TestCase):
     def test_parse_speech_config(self):
@@ -12,7 +14,14 @@ John: Hello!
 Jane: Hi!
 """
         config = parse_speech_config(markdown_content)
-        self.assertEqual(config, [{'speaker': 'John', 'voice': 'VoiceA'}, {'speaker': 'Jane', 'voice': 'VoiceB'}])
+        self.assertEqual(
+            config,
+            [
+                {"speaker": "John", "voice": "VoiceA"},
+                {"speaker": "Jane", "voice": "VoiceB"},
+            ],
+        )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

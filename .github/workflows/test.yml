@@ -30,6 +30,7 @@ jobs:
               - 'src/storybuilder/downloader/**'
               - 'scripts/import_to_sqlite.py'
               - 'scripts/story_db.py'
+              - 'scripts/dashboard.py'
               - 'tests/downloader/**'
             genai:
               - 'src/storybuilder/genai/**'

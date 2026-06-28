@@ -16,6 +16,7 @@ dist/
 .mypy_cache
 stories/db/*.db-wal
 stories/db/*.db-shm
+stories/db/*.db-journal
 stories/db/*.db
 ibm-credentials.env
 2025.db

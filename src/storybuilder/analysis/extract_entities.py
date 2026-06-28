@@ -9,7 +9,7 @@ import spacy
 from thinc.api import require_gpu, set_gpu_allocator
 from tqdm import tqdm
 
-DB_PATH = "nlp_analysis.db"
+DB_PATH = "stories/db/nlp_analysis.db"
 ALLOWED_LABELS = {
     "PERSON",
     "NORP",
@@ -106,7 +106,9 @@ def load_spacy_model(model_name, use_gpu):
         nlp.max_length = 5000000
         return nlp
     except OSError:
-        print(f"Model '{model_name}' not found. Please run: python -m spacy download {model_name}")
+        print(
+            f"Model '{model_name}' not found. Please run: python -m spacy download {model_name}"
+        )
         return None
 
 

@@ -313,15 +313,24 @@
 
     let currentFileName = 'TASKS.md';
     let currentHandle = null;
-    let isDirty = false;
+    let isDirty = null;
 
     function setDirty(dirty) {
       if (isDirty === dirty) return;
       isDirty = dirty;
+      const saveBtn = document.getElementById('saveBtn');
       if (isDirty) {
         document.title = '* ' + document.title.replace(/^\*\s*/, '');
+        saveBtn.disabled = false;
+        saveBtn.style.opacity = '1';
+        saveBtn.style.cursor = 'pointer';
+        saveBtn.title = 'Save (Ctrl+S / Cmd+S)';
       } else {
         document.title = document.title.replace(/^\*\s*/, '');
+        saveBtn.disabled = true;
+        saveBtn.style.opacity = '0.5';
+        saveBtn.style.cursor = 'not-allowed';
+        saveBtn.title = 'No unsaved changes';
       }
     }
 
@@ -370,10 +379,18 @@
     });
 
     document.getElementById('saveBtn').addEventListener('click', async () => {
+      const saveBtn = document.getElementById('saveBtn');
+      const originalText = saveBtn.textContent;
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving...';
+      saveBtn.style.cursor = 'wait';
+
       try {
         if (currentHandle && window.showSaveFilePicker) {
           await saveViaHandle(currentHandle, editor.value);
           setStatus(`Saved ${currentFileName}.`);
+          saveBtn.textContent = originalText;
           return;
         }
 
@@ -388,6 +405,14 @@
         setDirty(false);
       } catch (error) {
         setStatus(`Save failed: ${error.message}`);
+      } finally {
+        saveBtn.textContent = originalText;
+        if (isDirty) {
+          saveBtn.disabled = false;
+          saveBtn.style.cursor = 'pointer';
+        } else {
+          saveBtn.style.cursor = 'not-allowed';
+        }
       }
     });
 
@@ -426,7 +451,9 @@
     document.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        document.getElementById('saveBtn').click();
+        if (isDirty) {
+          document.getElementById('saveBtn').click();
+        }
       }
     });
 

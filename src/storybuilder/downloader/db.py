@@ -1,38 +1,44 @@
+"""
+Database layer for story storage -- shared by the downloader (live insert) and
+the batch import script.
+
+Thread-safe: uses WAL mode + a write lock.  Call init_db() once at startup,
+then insert_story() from any thread.
+"""
+
 import os
 import re
-import threading
 import sqlite3
-import logging
+import threading
 from pathlib import Path
 
 # -- Schema -------------------------------------------------------------
 
-logger = logging.getLogger(__name__)
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS stories (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    path TEXT UNIQUE NOT NULL,
-    orientation TEXT NOT NULL DEFAULT 'gay',
-    category TEXT,
-    story_slug TEXT,
-    chapter_num INTEGER,
-    title TEXT,
-    author_name TEXT,
-    author_email TEXT,
+    id              INTEGER PRIMARY KEY,
+    path            TEXT UNIQUE NOT NULL,
+    orientation     TEXT NOT NULL DEFAULT 'gay',
+    category        TEXT NOT NULL,
+    story_slug      TEXT NOT NULL,
+    chapter_num     INTEGER,
+    title           TEXT NOT NULL,
+    author_name     TEXT,
+    author_email    TEXT,
     publication_date TEXT,
-    url TEXT,
-    char_count INTEGER,
-    word_count INTEGER,
-    content TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    url             TEXT,
+    email_date      TEXT,
+    char_count      INTEGER NOT NULL,
+    word_count      INTEGER NOT NULL,
+    content         TEXT NOT NULL
 );
 
 CREATE VIRTUAL TABLE IF NOT EXISTS stories_fts USING fts5(
     title,
     author_name,
     content,
-    content='stories',
-    content_rowid='id'
+    content=stories,
+    content_rowid=id
 );
 
 CREATE TRIGGER IF NOT EXISTS stories_ai AFTER INSERT ON stories BEGIN
@@ -129,6 +135,27 @@ def _parse_output_path(output_path: str) -> "tuple[str, str, str, int | None]":
     return orientation, category, story_slug, chapter_num
 
 
+# -- Schema migrations --------------------------------------------------
+
+
+def _migrate_schema(conn: "sqlite3.Connection") -> None:
+    """Apply additive schema migrations to an existing partition/db.
+
+    SQLite's CREATE TABLE IF NOT EXISTS is a no-op on tables that already
+    exist, so columns added to SCHEMA after a partition file was first
+    created never appear. Add them here with ALTER TABLE so older partition
+    databases stay compatible. Only additive (nullable) columns can be
+    backfilled this way.
+    """
+    cols = {row[1] for row in conn.execute("PRAGMA table_info(stories)")}
+    if not cols:
+        # Table does not exist yet (fresh db); SCHEMA already created it.
+        return
+    if "email_date" not in cols:
+        conn.execute("ALTER TABLE stories ADD COLUMN email_date TEXT")
+        conn.commit()
+
+
 # -- DB init ------------------------------------------------------------
 
 
@@ -157,6 +184,7 @@ def init_db(db_path: str) -> "sqlite3.Connection":
         _conn.execute("PRAGMA cache_size=-64000")
         _conn.executescript(SCHEMA)
         _conn.executescript(INDEXES)
+        _migrate_schema(_conn)
         return _conn
 
 
@@ -210,10 +238,11 @@ def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
         finally:
             try:
                 conn.execute("DETACH DATABASE curr_db")
-            except sqlite3.Error as e:
-                # Non-fatal: failing to detach one partition should not stop the
-                # remaining queries. Report it so the failure is observable.
-                print(f"Error detaching {db_path}: {e}")
+            except sqlite3.Error:
+                # Non-fatal cleanup: the ATTACH may have failed or the alias
+                # may already be detached. The in-memory connection is closed
+                # right after the loop, which releases any remaining attachments.
+                pass
 
     conn.close()
     return all_rows
@@ -382,6 +411,7 @@ def _get_write_conn(story_date) -> "sqlite3.Connection | None":
             conn.execute("PRAGMA cache_size=-64000")
             conn.executescript(SCHEMA)
             conn.executescript(INDEXES)
+            _migrate_schema(conn)
             _connections[partition_path] = conn
         return _connections[partition_path]
 

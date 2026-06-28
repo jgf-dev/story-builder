@@ -108,7 +108,8 @@ def load_spacy_model(model_name, use_gpu):
         nlp.max_length = 5000000
         return nlp
     except OSError:
-        print(f"Model '{model_name}' not found. Please run: python -m spacy download {model_name}")
+        print(f"Model '{model_name}' not found.")
+        print(f"Please run: python -m spacy download {model_name}")
         return None
 
 
@@ -157,6 +158,8 @@ def main():
     print(f"Loading spaCy model ({args.model})...")
     nlp = load_spacy_model(args.model, args.gpu)
     if nlp is None:
+        # Signal failure so CI pipelines and scripts that check the exit code
+        # treat a missing/unloadable model as an error rather than success.
         raise SystemExit(1)
 
     all_files = list(Path(args.stories_dir).rglob("*.txt"))

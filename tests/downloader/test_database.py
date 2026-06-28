@@ -429,6 +429,51 @@ class TestFTSSearch(unittest.TestCase):
         finally:
             close_db()
 
+    def test_optimize_fts_all(self):
+        from storybuilder.downloader import db
+
+        # Initialize with directory path
+        db.init_db(self.temp_dir)
+
+        # Insert stories to create multiple partition DBs
+        db.insert_story(
+            output_path="nifty_stories/gay/adult-friends/story1.txt",
+            title="2012 Story",
+            author="Author One",
+            story_date="2012-05-14",
+            url="http://example.com/1",
+            content="Content for story 1.",
+        )
+        db.insert_story(
+            output_path="nifty_stories/gay/college/story2.txt",
+            title="2025 Story",
+            author="Author Two",
+            story_date="2025-05-10",
+            url="http://example.com/2",
+            content="Content for story 2.",
+        )
+
+        # We need to simulate that `optimize_fts` will process all databases in `self.temp_dir`.
+        db.optimize_fts()
+
+        # Since FTS optimization runs PRAGMA equivalent or just executes an INSERT on a virtual table,
+        # verifying execution isn't as simple as checking a flag. But we can ensure no errors are
+        # raised, and that we can still search afterwards.
+
+        conn1 = sqlite3.connect(os.path.join(self.temp_dir, "2012.db"))
+        row1 = conn1.execute(
+            "SELECT COUNT(*) FROM stories_fts WHERE stories_fts MATCH 'Content'"
+        ).fetchone()[0]
+        self.assertEqual(row1, 1)
+        conn1.close()
+
+        conn2 = sqlite3.connect(os.path.join(self.temp_dir, "2025.db"))
+        row2 = conn2.execute(
+            "SELECT COUNT(*) FROM stories_fts WHERE stories_fts MATCH 'Content'"
+        ).fetchone()[0]
+        self.assertEqual(row2, 1)
+        conn2.close()
+
 
 class TestParseHeader(unittest.TestCase):
     """Tests for parse_header in import_to_sqlite.py."""

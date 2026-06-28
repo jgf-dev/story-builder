@@ -131,7 +131,11 @@ def migrate_legacy_schema(conn: sqlite3.Connection) -> bool:
         cols_sql = ", ".join(copy_columns)
         conn.execute(f"INSERT INTO stories ({cols_sql}) SELECT {cols_sql} FROM stories_legacy")
         conn.execute("DROP TABLE stories_legacy")
-        conn.execute("DELETE FROM sqlite_sequence WHERE name = 'stories'")
+        try:
+            conn.execute("DELETE FROM sqlite_sequence WHERE name = 'stories'")
+        except sqlite3.OperationalError:
+            pass  # sqlite_sequence only exists if AUTOINCREMENT was used
+
         conn.executescript(INDEXES)
 
     return True

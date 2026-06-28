@@ -19,8 +19,8 @@
 
 ## Waiting On
 
-- [ ] **Optimize FTS across year partitions** - scan all year databases and batch-run `optimize_fts()` or the equivalent PRAGMA optimization path. #ISSUE
-- [ ] **Support cross-partition search** - dynamically attach partition files with `ATTACH DATABASE` when performing global queries. #ISSUE
+- [x] **Optimize FTS across year partitions** - scan all year databases and batch-run `optimize_fts()` or the equivalent PRAGMA optimization path. #ISSUE
+- [x] **Support cross-partition search** - dynamically attach partition files with `ATTACH DATABASE` when performing global queries. #ISSUE
 
 ## Someday
 

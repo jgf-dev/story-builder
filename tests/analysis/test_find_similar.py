@@ -1,13 +1,35 @@
-import unittest
-from unittest.mock import patch, MagicMock
-import io
 import sys
+import unittest
+from io import StringIO
+from unittest.mock import MagicMock, patch
 
-# Import the main function we want to test
 from storybuilder.analysis.find_similar import main
 
 
 class TestFindSimilar(unittest.TestCase):
+    @patch("sys.stdout", new_callable=StringIO)
+    @patch("storybuilder.analysis.find_similar.chromadb.PersistentClient")
+    @patch("sys.argv", ["find_similar.py", "test_story.txt"])
+    def test_missing_collection_error(self, mock_client_class, mock_stdout):
+        # Setup mock client
+        mock_client = MagicMock()
+        mock_client_class.return_value = mock_client
+
+        # Simulate getting collection throwing an exception
+        mock_client.get_collection.side_effect = Exception("Collection not found")
+
+        # Run main
+        main()
+
+        # Assertions
+        mock_client.get_collection.assert_called_once_with(name="story_averages")
+
+        output = mock_stdout.getvalue()
+        self.assertIn(
+            "Error: Could not find 'story_averages' collection. Run generate_embeddings.py first.",
+            output,
+        )
+
     @patch("storybuilder.analysis.find_similar.chromadb.PersistentClient")
     @patch("storybuilder.analysis.find_similar.argparse.ArgumentParser.parse_args")
     def test_missing_story_result_none(self, mock_parse_args, mock_chroma_client):
@@ -29,7 +51,7 @@ class TestFindSimilar(unittest.TestCase):
         mock_collection.get.return_value = None
 
         # Capture print output
-        captured_output = io.StringIO()
+        captured_output = StringIO()
         sys.stdout = captured_output
 
         try:
@@ -39,9 +61,7 @@ class TestFindSimilar(unittest.TestCase):
 
         # Assert output contains the expected error message
         output = captured_output.getvalue()
-        self.assertIn(
-            "Error: Story 'nonexistent_story.txt' not found in the database.", output
-        )
+        self.assertIn("Error: Story 'nonexistent_story.txt' not found in the database.", output)
 
     @patch("storybuilder.analysis.find_similar.chromadb.PersistentClient")
     @patch("storybuilder.analysis.find_similar.argparse.ArgumentParser.parse_args")
@@ -64,7 +84,7 @@ class TestFindSimilar(unittest.TestCase):
         mock_collection.get.return_value = {"embeddings": None}
 
         # Capture print output
-        captured_output = io.StringIO()
+        captured_output = StringIO()
         sys.stdout = captured_output
 
         try:
@@ -74,15 +94,11 @@ class TestFindSimilar(unittest.TestCase):
 
         # Assert output contains the expected error message
         output = captured_output.getvalue()
-        self.assertIn(
-            "Error: Story 'nonexistent_story.txt' not found in the database.", output
-        )
+        self.assertIn("Error: Story 'nonexistent_story.txt' not found in the database.", output)
 
     @patch("storybuilder.analysis.find_similar.chromadb.PersistentClient")
     @patch("storybuilder.analysis.find_similar.argparse.ArgumentParser.parse_args")
-    def test_missing_story_embeddings_empty_list(
-        self, mock_parse_args, mock_chroma_client
-    ):
+    def test_missing_story_embeddings_empty_list(self, mock_parse_args, mock_chroma_client):
         # Setup mock args
         mock_args = MagicMock()
         mock_args.target_story = "nonexistent_story.txt"
@@ -101,7 +117,7 @@ class TestFindSimilar(unittest.TestCase):
         mock_collection.get.return_value = {"embeddings": []}
 
         # Capture print output
-        captured_output = io.StringIO()
+        captured_output = StringIO()
         sys.stdout = captured_output
 
         try:
@@ -111,9 +127,30 @@ class TestFindSimilar(unittest.TestCase):
 
         # Assert output contains the expected error message
         output = captured_output.getvalue()
-        self.assertIn(
-            "Error: Story 'nonexistent_story.txt' not found in the database.", output
-        )
+        self.assertIn("Error: Story 'nonexistent_story.txt' not found in the database.", output)
+
+    @patch("sys.argv", ["find_similar.py", "target.md", "--n-results", "2"])
+    @patch("storybuilder.analysis.find_similar.chromadb.PersistentClient")
+    @patch("sys.stdout", new_callable=StringIO)
+    def test_success_find_similar(self, mock_stdout, mock_chroma_client):
+        mock_instance = MagicMock()
+        mock_chroma_client.return_value = mock_instance
+        mock_collection = MagicMock()
+        mock_instance.get_collection.return_value = mock_collection
+
+        # return embeddings for target
+        mock_collection.get.return_value = {"embeddings": [[0.1, 0.2, 0.3]]}
+
+        # return query results
+        mock_collection.query.return_value = {"ids": [["target.md", "sim1.md", "sim2.md"]], "distances": [[0.0, 0.5, 0.6]]}
+
+        main()
+
+        output = mock_stdout.getvalue()
+        self.assertIn("Finding top 2 stories similar to: target.md", output)
+        self.assertNotIn("0. target.md", output)  # Should skip itself
+        self.assertIn("1. sim1.md", output)
+        self.assertIn("2. sim2.md", output)
 
 
 if __name__ == "__main__":

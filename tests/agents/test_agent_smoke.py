@@ -7,7 +7,7 @@ from google.genai import types
 
 class TestAgentSmoke(unittest.IsolatedAsyncioTestCase):
     async def test_agent_smoke(self):
-        project_root = Path(__file__).resolve().parents[1]
+        project_root = Path(__file__).resolve().parents[2]
         load_dotenv(project_root / ".env")
 
         if not os.getenv("GEMINI_API_KEY") and not os.getenv(

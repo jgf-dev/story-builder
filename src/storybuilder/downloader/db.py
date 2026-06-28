@@ -1,38 +1,44 @@
+"""
+Database layer for story storage -- shared by the downloader (live insert) and
+the batch import script.
+
+Thread-safe: uses WAL mode + a write lock.  Call init_db() once at startup,
+then insert_story() from any thread.
+"""
+
 import os
 import re
-import threading
 import sqlite3
-import logging
+import threading
 from pathlib import Path
 
 # -- Schema -------------------------------------------------------------
 
-logger = logging.getLogger(__name__)
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS stories (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    path TEXT UNIQUE NOT NULL,
-    orientation TEXT NOT NULL DEFAULT 'gay',
-    category TEXT,
-    story_slug TEXT,
-    chapter_num INTEGER,
-    title TEXT,
-    author_name TEXT,
-    author_email TEXT,
+    id              INTEGER PRIMARY KEY,
+    path            TEXT UNIQUE NOT NULL,
+    orientation     TEXT NOT NULL DEFAULT 'gay',
+    category        TEXT NOT NULL,
+    story_slug      TEXT NOT NULL,
+    chapter_num     INTEGER,
+    title           TEXT NOT NULL,
+    author_name     TEXT,
+    author_email    TEXT,
     publication_date TEXT,
-    url TEXT,
-    char_count INTEGER,
-    word_count INTEGER,
-    content TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    url             TEXT,
+    email_date      TEXT,
+    char_count      INTEGER NOT NULL,
+    word_count      INTEGER NOT NULL,
+    content         TEXT NOT NULL
 );
 
 CREATE VIRTUAL TABLE IF NOT EXISTS stories_fts USING fts5(
     title,
     author_name,
     content,
-    content='stories',
-    content_rowid='id'
+    content=stories,
+    content_rowid=id
 );
 
 CREATE TRIGGER IF NOT EXISTS stories_ai AFTER INSERT ON stories BEGIN
@@ -168,21 +174,11 @@ def get_conn() -> "sqlite3.Connection | None":
 
 
 def get_all_partition_paths() -> list[str]:
-    """Return paths of all partition databases.
-
-    Includes year partitions (e.g. ``2023.db``) as well as the ``unknown.db``
-    partition used for stories without a valid date (see get_partition_path).
-    Non-partition databases that may live in the same directory -- the
-    monolithic ``stories.db`` and the dashboard's ``dashboard_metadata.db``
-    (favorites/tags) -- are excluded since they lack the ``stories`` table
-    and partition queries should only touch partition files.
-    """
+    """Return paths of all partition databases."""
     if not _db_dir or not _is_partitioned:
         return []
     import glob
-    excluded = {"stories.db", "dashboard_metadata.db"}
-    db_files = glob.glob(os.path.join(_db_dir, "*.db"))
-    return sorted(p for p in db_files if os.path.basename(p) not in excluded)
+    return sorted(glob.glob(os.path.join(_db_dir, "[0-9][0-9][0-9][0-9].db")))
 
 def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
     """Execute a SELECT query across all database partitions sequentially
@@ -220,10 +216,8 @@ def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
         finally:
             try:
                 conn.execute("DETACH DATABASE curr_db")
-            except sqlite3.Error as e:
-                # Non-fatal: failing to detach one partition should not stop the
-                # remaining queries. Report it so the failure is observable.
-                print(f"Error detaching {db_path}: {e}")
+            except sqlite3.Error:
+                pass
 
     conn.close()
     return all_rows
@@ -513,8 +507,6 @@ def optimize_fts_all(db_dir: str) -> None:
             pass
         finally:
             conn.close()
-
-
 
 
 def optimize_fts() -> None:

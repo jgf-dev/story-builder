@@ -185,26 +185,26 @@ def load_archive_stats():
                 if auth:
                     author_counts[auth] = author_counts.get(auth, 0) + count
 
-            # Word counts sample for distribution
-            # ⚡ Bolt Optimization: Replace O(N) memory allocation with SQL-level aggregation
-            # Expected impact: Reduced dashboard loading time by ~30% and significantly lower peak memory usage.
-            cursor.execute("""
+            # Word count bracket distribution (binned at SQL level; NULLs excluded)
+            cursor.execute(
+                """
                 SELECT
                     CASE
-                        WHEN word_count IS NULL THEN NULL
                         WHEN word_count < 1000 THEN 'Short (<1K)'
                         WHEN word_count < 5000 THEN 'Medium-Short (1K-5K)'
                         WHEN word_count < 10000 THEN 'Medium (5K-10K)'
                         WHEN word_count < 20000 THEN 'Medium-Long (10K-20K)'
                         WHEN word_count < 50000 THEN 'Long (20K-50K)'
                         ELSE 'Epic (>50K)'
-                    END AS Bracket,
+                    END AS bracket,
                     COUNT(*)
                 FROM stories
-                GROUP BY Bracket
-            """)
+                WHERE word_count IS NOT NULL
+                GROUP BY bracket
+                """
+            )
             for bracket, count in cursor.fetchall():
-                if bracket:
+                if bracket in bracket_counts:
                     bracket_counts[bracket] += count
 
             conn.close()
@@ -227,7 +227,9 @@ def load_archive_stats():
         "Long (20K-50K)",
         "Epic (>50K)",
     ]
-    df_words = pd.DataFrame([{"Bracket": b, "Stories": bracket_counts[b]} for b in order])
+    df_words = pd.DataFrame(
+        [{"Bracket": b, "Stories": bracket_counts[b]} for b in order]
+    )
 
     return df_years, df_cats, df_auths, df_words
 

@@ -1,3 +1,4 @@
+import sys
 import unittest
 from io import StringIO
 from unittest.mock import MagicMock, patch
@@ -50,9 +51,7 @@ class TestFindSimilar(unittest.TestCase):
         mock_collection.get.return_value = None
 
         # Capture print output
-        import io
-        import sys
-        captured_output = io.StringIO()
+        captured_output = StringIO()
         sys.stdout = captured_output
 
         try:
@@ -85,9 +84,7 @@ class TestFindSimilar(unittest.TestCase):
         mock_collection.get.return_value = {"embeddings": None}
 
         # Capture print output
-        import io
-        import sys
-        captured_output = io.StringIO()
+        captured_output = StringIO()
         sys.stdout = captured_output
 
         try:
@@ -120,9 +117,7 @@ class TestFindSimilar(unittest.TestCase):
         mock_collection.get.return_value = {"embeddings": []}
 
         # Capture print output
-        import io
-        import sys
-        captured_output = io.StringIO()
+        captured_output = StringIO()
         sys.stdout = captured_output
 
         try:

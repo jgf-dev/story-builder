@@ -156,7 +156,14 @@ def load_archive_stats():
     year_stats = []
     category_counts = {}
     author_counts = {}
-    word_counts = []
+    bracket_counts = {
+        "Short (<1K)": 0,
+        "Medium-Short (1K-5K)": 0,
+        "Medium (5K-10K)": 0,
+        "Medium-Long (10K-20K)": 0,
+        "Long (20K-50K)": 0,
+        "Epic (>50K)": 0,
+    }
 
     for db in db_files:
         year_name = Path(db).stem
@@ -713,7 +720,7 @@ elif page == "📊 Archive Stats":
     st.write("Detailed statistics and distributions for the entire story archive.")
 
     with st.spinner("Compiling database metrics..."):
-        df_years, df_cats, df_auths, word_counts = load_archive_stats()
+        df_years, df_cats, df_auths, df_words = load_archive_stats()
 
     st.markdown("---")
 
@@ -781,21 +788,6 @@ elif page == "📊 Archive Stats":
 
     # 3. Word Count Bracket Distribution
     st.subheader("📐 Story Length Distribution")
-    word_bins = pd.cut(
-        word_counts,
-        bins=[0, 1000, 5000, 10000, 20000, 50000, 1000000],
-        labels=[
-            "Short (<1K)",
-            "Medium-Short (1K-5K)",
-            "Medium (5K-10K)",
-            "Medium-Long (10K-20K)",
-            "Long (20K-50K)",
-            "Epic (>50K)",
-        ],
-    )
-    df_words = (
-        pd.DataFrame({"Bracket": word_bins}).value_counts().reset_index(name="Stories")
-    )
     fig_words = px.bar(
         df_words,
         x="Bracket",

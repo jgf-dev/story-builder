@@ -68,10 +68,6 @@ class TestAgentSmoke(unittest.IsolatedAsyncioTestCase):
                 "quota" in str(e).lower()
                 or "permission" in str(e).lower()
                 or "unauthenticated" in str(e).lower()
-                or "exhausted" in str(e).lower()
-                or "429" in str(e).lower()
-                or "limit" in str(e).lower()
-                or "resource" in str(e).lower()
             ):
                 self.skipTest(f"Skipped due to API/auth issue: {e}")
             else:

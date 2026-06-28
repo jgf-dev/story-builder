@@ -27,14 +27,14 @@ st.markdown(
         .reportview-container {
             background: #0b1020;
         }
-        
+
         /* Heading styles */
         h1, h2, h3 {
             font-family: 'Outfit', 'Inter', sans-serif;
             font-weight: 700;
             color: #e8eefc;
         }
-        
+
         /* Card styling */
         .story-card {
             background-color: rgba(22, 34, 64, 0.6);
@@ -50,7 +50,7 @@ st.markdown(
             background-color: rgba(22, 34, 64, 0.85);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
         }
-        
+
         /* Snippet highlight styling */
         .highlight {
             background-color: rgba(251, 191, 36, 0.25);
@@ -59,7 +59,7 @@ st.markdown(
             border-radius: 4px;
             font-weight: bold;
         }
-        
+
         /* Sidebar styling custom overrides */
         .css-1d391kg {
             background-color: #09101f;

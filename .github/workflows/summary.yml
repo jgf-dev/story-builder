@@ -21,9 +21,9 @@ jobs:
         uses: actions/ai-inference@v1
         with:
           prompt: |
-            You are refining the description (body) of a draft issue; title/body are included below along with the workspace path and repositiry url. 
+            You are refining the description (body) of a draft issue; title/body are included below along with the workspace path and repositiry url.
             Expand the discription of the issue and improve it's clarity. Return only the description and nothing else.
-            
+
             Title: ${{ github.event.issue.title }}
             Body: ${{ github.event.issue.body }}
 

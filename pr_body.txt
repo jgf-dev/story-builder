@@ -1,0 +1,7 @@
+🎯 **What:** Added tests for the previously untested `get_subcategories` function in `src/storybuilder/downloader/scraper.py`.
+📊 **Coverage:** Covered the following scenarios:
+- Successful extraction using the modern `list-group-item` layout.
+- Successful extraction using the fallback `a` tag layout.
+- Filtering of parent directory, external links, and non-folder paths.
+- Handling of empty/failed responses from `fetch_page`.
+✨ **Result:** Improved test coverage and reliability for the core scraper navigation logic.

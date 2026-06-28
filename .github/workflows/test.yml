@@ -34,6 +34,7 @@ jobs:
             genai:
               - 'src/storybuilder/genai/**'
               - 'src/storybuilder/agents/cartesia_tts_prompt_crafter/**'
+              - 'src/storybuilder/downloader/**'
               - '.agent/skills/tts-prompt-crafter/**'
               - 'tests/genai/**'
             analysis:

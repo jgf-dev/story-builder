@@ -106,6 +106,24 @@ def cmd_search(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = No
 
     where = " AND ".join(conditions)
 
+    conditions = ["stories_fts MATCH ?"]
+    params = [args.query]
+
+    if args.author:
+        conditions.append("s.author_name LIKE ?")
+        params.append(f"%{args.author}%")
+    if args.category:
+        conditions.append("s.category = ?")
+        params.append(args.category)
+    if args.date_from:
+        conditions.append("s.publication_date >= ?")
+        params.append(args.date_from)
+    if args.date_to:
+        conditions.append("s.publication_date <= ?")
+        params.append(args.date_to)
+
+    where = " AND ".join(conditions)
+
     if db_paths:
         # Multi-DB: attach each database sequentially and merge results
         all_rows = []

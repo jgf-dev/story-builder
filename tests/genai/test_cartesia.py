@@ -1,5 +1,5 @@
-from unittest.mock import patch
 import unittest
+import unittest.mock
 from storybuilder.genai.cartesia_client import (
     parse_speech_config_cartesia,
     parse_transcript_segments,
@@ -66,55 +66,55 @@ class TestCartesiaClient(unittest.TestCase):
         self.assertEqual(segments[3][0], "jace-voice-uuid")
         self.assertEqual(segments[3][1], "Back to Jace.")
 
-    @patch("os.getenv")
-    @patch("builtins.print")
-    def test_process_directory_cartesia_no_api_key(self, mock_print, mock_getenv):
-        from storybuilder.genai.cartesia_client import process_directory_cartesia
+    @unittest.mock.patch("storybuilder.genai.cartesia_client.wave_file")
+    @unittest.mock.patch("storybuilder.genai.cartesia_client.time.sleep")
+    @unittest.mock.patch("storybuilder.genai.cartesia_client.generate_segment_audio")
+    def test_process_file_cartesia_success(self, mock_generate, mock_sleep, mock_wave):
+        from storybuilder.genai.cartesia_client import process_file_cartesia
 
-        mock_getenv.return_value = None
-        process_directory_cartesia("dummy_dir")
-        mock_getenv.assert_called_once_with("CARTESIA_API_KEY")
-        mock_print.assert_called_with(
-            "Error: CARTESIA_API_KEY not found in environment."
-        )
+        markdown_content = """# AUDIO PROFILE
+        ### DIRECTOR'S NOTES
+        - Jace (Voice: Algenib)
 
-    @patch("os.getenv")
-    @patch("glob.glob")
-    @patch("builtins.print")
-    def test_process_directory_cartesia_no_files(
-        self, mock_print, mock_glob, mock_getenv
-    ):
-        from storybuilder.genai.cartesia_client import process_directory_cartesia
+        #### TRANSCRIPT
+        Jace: Hello, my name is Jace.
+        Narrator: This is the narrator speaking here.
+        """
+        mock_generate.side_effect = [b"audio1", b"audio2"]
 
-        mock_getenv.return_value = "fake_key"
-        mock_glob.return_value = []
-        process_directory_cartesia("dummy_dir")
-        mock_glob.assert_called_once_with("dummy_dir/*-part.md")
-        mock_print.assert_called_with("No prompt files found in dummy_dir")
+        with unittest.mock.patch(
+            "builtins.open", unittest.mock.mock_open(read_data=markdown_content)
+        ):
+            process_file_cartesia("test.md", "out.wav", "fake-key")
 
-    @patch("os.getenv")
-    @patch("glob.glob")
-    @patch("os.path.exists")
-    @patch("storybuilder.genai.cartesia_client.process_file_cartesia")
-    @patch("time.sleep")
-    @patch("builtins.print")
-    def test_process_directory_cartesia_success_and_skip(
-        self, mock_print, mock_sleep, mock_process, mock_exists, mock_glob, mock_getenv
-    ):
-        from storybuilder.genai.cartesia_client import process_directory_cartesia
+        self.assertEqual(mock_generate.call_count, 2)
+        mock_wave.assert_called_once_with("out.wav", b"audio1audio2", rate=24000)
 
-        mock_getenv.return_value = "fake_key"
-        # Two files found
-        mock_glob.return_value = ["dummy_dir/1-part.md", "dummy_dir/2-part.md"]
-        # 1-part.md already has a wav, 2-part.md does not
-        mock_exists.side_effect = lambda x: x == "dummy_dir/1-part.wav"
+    @unittest.mock.patch("storybuilder.genai.cartesia_client.wave_file")
+    @unittest.mock.patch("storybuilder.genai.cartesia_client.time.sleep")
+    @unittest.mock.patch("storybuilder.genai.cartesia_client.generate_segment_audio")
+    def test_process_file_cartesia_failure(self, mock_generate, mock_sleep, mock_wave):
+        from storybuilder.genai.cartesia_client import process_file_cartesia
 
-        process_directory_cartesia("dummy_dir", rate=22050)
+        markdown_content = """# AUDIO PROFILE
+        ### DIRECTOR'S NOTES
+        - Jace (Voice: Algenib)
 
-        # Verify process_file_cartesia is only called for the second file
-        mock_process.assert_called_once_with(
-            "dummy_dir/2-part.md", "dummy_dir/2-part.wav", "fake_key", rate=22050
-        )
-        # Verify sleep is called once
-        mock_sleep.assert_called_once_with(1)
-        mock_print.assert_any_call("Skipping 1-part.md, 1-part.wav already exists.")
+        #### TRANSCRIPT
+        Jace: Hello, my name is Jace.
+        Narrator: This is the narrator speaking here.
+        """
+        # First call succeeds, second fails
+        mock_generate.side_effect = [b"audio1", Exception("API Error")]
+
+        with unittest.mock.patch(
+            "builtins.open", unittest.mock.mock_open(read_data=markdown_content)
+        ):
+            process_file_cartesia("test.md", "out.wav", "fake-key")
+
+        self.assertEqual(mock_generate.call_count, 2)
+        mock_wave.assert_not_called()
+
+
+if __name__ == "__main__":
+    unittest.main()

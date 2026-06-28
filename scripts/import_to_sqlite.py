@@ -27,16 +27,18 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 # Import shared database functions
 from storybuilder.downloader.db import (
-    SCHEMA, INDEXES, init_db as _db_init_db, insert_story,
-    _parse_output_path, _parse_author,
+    init_db as _db_init_db,
+    _parse_output_path,
+    _parse_author,
+    optimize_fts,
 )
 
 BATCH_SIZE = 1000
 
+
 def init_db(db_path: str) -> sqlite3.Connection:
     """Initialize database via shared module."""
     return _db_init_db(db_path)
-
 
 
 # ——— Header parsing ————————————————————————————————————————————————————————————
@@ -46,7 +48,7 @@ def parse_header(filepath: str) -> "dict | None":
     """Parse the ===== metadata header at the top of a story .txt file.
 
     Returns a dict with keys: title, author_name, author_email,
-    publication_date, url, email_date, content.
+    publication_date, url, content.
     Returns None if the file cannot be read or has no valid header.
     """
     try:
@@ -67,7 +69,6 @@ def parse_header(filepath: str) -> "dict | None":
     author_raw = ""
     pub_date = ""
     url = ""
-    email_date = ""
 
     in_header = True
     content_start = 0
@@ -83,15 +84,13 @@ def parse_header(filepath: str) -> "dict | None":
             continue
         if in_header:
             if line.startswith("Title:"):
-                title = line[len("Title:"):].strip()
+                title = line[len("Title:") :].strip()
             elif line.startswith("Author:"):
-                author_raw = line[len("Author:"):].strip()
+                author_raw = line[len("Author:") :].strip()
             elif line.startswith("Publication Date:"):
-                pub_date = line[len("Publication Date:"):].strip()
+                pub_date = line[len("Publication Date:") :].strip()
             elif line.startswith("URL:"):
-                url = line[len("URL:"):].strip()
-            elif line.startswith("Email-Date:"):
-                email_date = line[len("Email-Date:"):].strip()
+                url = line[len("URL:") :].strip()
 
     if not found_second_marker:
         return None
@@ -108,7 +107,6 @@ def parse_header(filepath: str) -> "dict | None":
         "author_email": author_email,
         "publication_date": pub_date,
         "url": url,
-        "email_date": email_date,
         "content": content,
     }
 
@@ -143,29 +141,34 @@ def import_files(
         char_count = len(content)
         word_count = len(content.split())
 
-        batch.append((
-            rel_path,
-            orientation,
-            category,
-            story_slug,
-            chapter_num,
-            parsed["title"],
-            parsed["author_name"],
-            parsed["author_email"],
-            parsed["publication_date"],
-            parsed["url"],
-            parsed["email_date"],
-            char_count,
-            word_count,
-            content,
-        ))
+        batch.append(
+            (
+                rel_path,
+                orientation,
+                category,
+                story_slug,
+                chapter_num,
+                parsed["title"],
+                parsed["author_name"],
+                parsed["author_email"],
+                parsed["publication_date"],
+                parsed["url"],
+                char_count,
+                word_count,
+                content,
+            )
+        )
 
         if len(batch) >= BATCH_SIZE:
             imported += _flush_batch(conn, batch, force)
             batch = []
             elapsed = time.time() - _start_time
             rate = imported / elapsed if elapsed > 0 else 0
-            print(f"\r  Imported {imported:,}/{len(files)} files ({rate:.0f}/s) — skipped {skipped}", end="", flush=True)
+            print(
+                f"\r  Imported {imported:,}/{len(files)} files ({rate:.0f}/s) — skipped {skipped}",
+                end="",
+                flush=True,
+            )
 
     if batch:
         imported += _flush_batch(conn, batch, force)
@@ -177,13 +180,55 @@ _start_time = 0.0
 
 
 def _flush_batch(conn: sqlite3.Connection, batch: list, force: bool) -> int:
+    try:
+        from storybuilder.downloader.db import _is_partitioned
+    except ImportError:
+        _is_partitioned = False
+
+    if _is_partitioned:
+        from storybuilder.downloader.db import _get_write_conn
+        conns = {}
+        for row in batch:
+            story_date = row[8]
+            c = _get_write_conn(story_date)
+            if c not in conns:
+                conns[c] = []
+            conns[c].append(row)
+        imported = 0
+        for c, rows in conns.items():
+            sql = """
+                INSERT OR REPLACE INTO stories
+                    (path, orientation, category, story_slug, chapter_num,
+                     title, author_name, author_email,
+                     publication_date, url,
+                     char_count, word_count, content)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """
+            try:
+                c.executemany(sql, rows)
+                c.commit()
+                imported += len(rows)
+            except sqlite3.IntegrityError:
+                c.rollback()
+                if force:
+                    count = 0
+                    for r in rows:
+                        try:
+                            c.execute(sql, r)
+                            c.commit()
+                            count += 1
+                        except Exception as e:
+                            print(f"[WARN] Skipping row during forced import (path={r[0]!r}): {e}", file=sys.stderr)
+                    imported += count
+        return imported
+
     sql = """
         INSERT OR REPLACE INTO stories
             (path, orientation, category, story_slug, chapter_num,
              title, author_name, author_email,
-             publication_date, url, email_date,
+             publication_date, url,
              char_count, word_count, content)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
     try:
         conn.executemany(sql, batch)
@@ -211,16 +256,32 @@ def _flush_batch(conn: sqlite3.Connection, batch: list, force: bool) -> int:
 def main():
     global _start_time
 
-    parser = argparse.ArgumentParser(description="Import Nifty story .txt files into SQLite + FTS5")
-    parser.add_argument("--db", default="stories/stories.db", help="SQLite database path (default: stories/stories.db)")
-    parser.add_argument("--limit", type=int, default=0, help="Import only N files (for testing, default: all)")
-    parser.add_argument("--force", action="store_true", help="Force insert even on integrity errors")
+    parser = argparse.ArgumentParser(
+        description="Import Nifty story .txt files into SQLite + FTS5"
+    )
+    parser.add_argument(
+        "--db",
+        default="stories/stories.db",
+        help="SQLite database path (default: stories/stories.db)",
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=0,
+        help="Import only N files (for testing, default: all)",
+    )
+    parser.add_argument(
+        "--force", action="store_true", help="Force insert even on integrity errors"
+    )
     args = parser.parse_args()
 
     # Collect all .txt files from nifty_stories/
     base_dir = Path("nifty_stories")
     if not base_dir.is_dir():
-        print("Error: nifty_stories/ directory not found. Run from repo root.", file=sys.stderr)
+        print(
+            "Error: nifty_stories/ directory not found. Run from repo root.",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     print("Collecting files...")
@@ -246,15 +307,26 @@ def main():
     rate = imported / elapsed if elapsed > 0 else 0
 
     # Build FTS index (should already be built via triggers, but optimize)
-    print(f"\n  Optimizing FTS index...")
-    conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
-    conn.commit()
+    print("\n  Optimizing FTS index...")
+    try:
+        from storybuilder.downloader.db import _is_partitioned
+    except ImportError:
+        _is_partitioned = False
+    if not _is_partitioned:
+        conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
+        conn.commit()
+    else:
+        optimize_fts()
 
     # Print stats
-    row = conn.execute("SELECT COUNT(*), SUM(char_count), SUM(word_count) FROM stories").fetchone()
+    row = conn.execute(
+        "SELECT COUNT(*), SUM(char_count), SUM(word_count) FROM stories"
+    ).fetchone()
     conn.close()
 
-    print(f"\nDone! Imported {imported:,} stories ({skipped} skipped) in {elapsed:.1f}s ({rate:.0f}/s)")
+    print(
+        f"\nDone! Imported {imported:,} stories ({skipped} skipped) in {elapsed:.1f}s ({rate:.0f}/s)"
+    )
     print(f"  Total stories:  {row[0]:,}")
     if row[1]:
         print(f"  Total chars:    {row[1]:,}")

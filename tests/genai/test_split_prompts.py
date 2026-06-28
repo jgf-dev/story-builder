@@ -1,10 +1,10 @@
-import unittest
-import unittest.mock
 import datetime
 import os
+import shutil
 import sys
 import tempfile
-import shutil
+import unittest
+import unittest.mock
 from pathlib import Path
 
 # Add project root to sys.path to enable absolute imports when run directly as a script
@@ -12,14 +12,21 @@ if __name__ == "__main__" and __package__ is None:
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 # Add tts-prompt-crafter scripts directory to import split_prompts
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / ".agent/skills/tts-prompt-crafter/scripts"))
-import split_prompts
+sys.path.insert(
+    0,
+    str(Path(__file__).resolve().parents[2] / ".agent/skills/tts-prompt-crafter/scripts"),
+)
+import split_prompts  # pyrefly: ignore [missing-import]
 
-from storybuilder.downloader.date_parser import parse_nifty_date
-from storybuilder.downloader.scraper import parse_listing_rows
 from storybuilder.downloader import cache
-from storybuilder.downloader.writer import save_story, download_single_target
-from storybuilder.downloader.db import init_db, insert_story, optimize_fts, close_db, get_conn, SCHEMA, INDEXES
+from storybuilder.downloader.date_parser import parse_nifty_date
+from storybuilder.downloader.db import (
+    close_db,
+    get_conn,
+    init_db,
+    insert_story,
+)
+from storybuilder.downloader.scraper import parse_listing_rows
 from storybuilder.genai.client import parse_speech_config
 
 
@@ -45,6 +52,7 @@ class TestDateParser(unittest.TestCase):
 class TestScraper(unittest.TestCase):
     def test_parse_listing_rows_ftr(self):
         from bs4 import BeautifulSoup
+
         html = """
         <div class="ftr">
             <div>13K</div>
@@ -62,6 +70,7 @@ class TestScraper(unittest.TestCase):
 
     def test_parse_listing_rows_table(self):
         from bs4 import BeautifulSoup
+
         html = """
         <table>
             <tr><th>Size</th><th>Date</th><th>Title</th></tr>
@@ -102,6 +111,7 @@ class TestNetwork(unittest.TestCase):
     @unittest.mock.patch("requests.get")
     def test_fetch_page_success(self, mock_get):
         from storybuilder.downloader.network import fetch_page
+
         mock_response = unittest.mock.Mock()
         mock_response.status_code = 200
         mock_get.return_value = mock_response
@@ -113,6 +123,7 @@ class TestNetwork(unittest.TestCase):
     @unittest.mock.patch("requests.get")
     def test_fetch_page_404(self, mock_get):
         from storybuilder.downloader.network import fetch_page
+
         mock_response = unittest.mock.Mock()
         mock_response.status_code = 404
         mock_get.return_value = mock_response
@@ -124,6 +135,7 @@ class TestNetwork(unittest.TestCase):
     @unittest.mock.patch("requests.get")
     def test_fetch_page_retry_and_rotate(self, mock_get, mock_rotate):
         from storybuilder.downloader import network
+
         old_rot = network.ENABLE_ROTATION
         network.ENABLE_ROTATION = True
         try:
@@ -137,8 +149,10 @@ class TestNetwork(unittest.TestCase):
         finally:
             network.ENABLE_ROTATION = old_rot
 
+
 class TestDBIntegration(unittest.TestCase):
     """Tests for the new DB layer, specifically around downloader integration."""
+
     def setUp(self):
         # Use a temporary database for tests
         self.db_path = "/tmp/test_downloader_integration.db"
@@ -149,38 +163,46 @@ class TestDBIntegration(unittest.TestCase):
         self.original_db_path = None
         try:
             # Monkey patch cli.parse_args to return our test DB path
-            self.patcher = unittest.mock.patch('storybuilder.downloader.cli.argparse.ArgumentParser.parse_args')
+            self.patcher = unittest.mock.patch("storybuilder.downloader.cli.argparse.ArgumentParser.parse_args")
             self.mock_parse_args = self.patcher.start()
             self.mock_parse_args.return_value = unittest.mock.Mock(
-                db='/tmp/test_downloader_integration.db',
-                category='gay', start_date='2010-01-01',
-                end_date='2015-12-31', output_dir='nifty_stories',
-                delay=0.01, socks5_proxy="", rotate_on_refusal=True,
-                max_workers=1, max_scraping=1, force=False
+                db="/tmp/test_downloader_integration.db",
+                category="gay",
+                start_date="2010-01-01",
+                end_date="2015-12-31",
+                output_dir="nifty_stories",
+                delay=0.01,
+                socks5_proxy="",
+                rotate_on_refusal=True,
+                max_workers=1,
+                max_scraping=1,
+                force=False,
             )
             # Monkey patch the writer's save_story to bypass network fetch
-            self.patcher_writer = unittest.mock.patch('storybuilder.downloader.writer.save_story')
+            self.patcher_writer = unittest.mock.patch("storybuilder.downloader.writer.save_story")
             self.mock_save_story = self.patcher_writer.start()
             # Monkey patch db.init_db to ensure it uses the test DB path
-            self.patcher_db = unittest.mock.patch('storybuilder.downloader.db.init_db', return_value=get_conn())
+            self.patcher_db = unittest.mock.patch("storybuilder.downloader.db.init_db", return_value=get_conn())
             self.mock_init_db = self.patcher_db.start()
 
             # Monkey patch scraper functions to avoid hitting network/Nifty site during tests
-            self.patcher_get_subcats = unittest.mock.patch('storybuilder.downloader.cli.get_subcategories')
+            self.patcher_get_subcats = unittest.mock.patch("storybuilder.downloader.cli.get_subcategories")
             self.mock_get_subcategories = self.patcher_get_subcats.start()
-            self.mock_get_subcategories.return_value = ['mock-subcat']
+            self.mock_get_subcategories.return_value = ["mock-subcat"]
 
-            self.patcher_proc_subcat = unittest.mock.patch('storybuilder.downloader.cli.process_subcategory')
+            self.patcher_proc_subcat = unittest.mock.patch("storybuilder.downloader.cli.process_subcategory")
             self.mock_process_subcategory = self.patcher_proc_subcat.start()
-            self.mock_process_subcategory.return_value = [{
-                'key': 'test-story',
-                'url': 'https://example.com/test-story.html',
-                'output_path': '/tmp/test_downloader_integration/gay/mock-subcat/test-story.txt',
-                'date': datetime.date(2026, 6, 12)
-            }]
+            self.mock_process_subcategory.return_value = [
+                {
+                    "key": "test-story",
+                    "url": "https://example.com/test-story.html",
+                    "output_path": "/tmp/test_downloader_integration/gay/mock-subcat/test-story.txt",
+                    "date": datetime.date(2026, 6, 12),
+                }
+            ]
 
             # Monkey patch upload_many to avoid hitting GCS during unit test
-            self.patcher_upload = unittest.mock.patch('storybuilder.downloader.cli.upload_many')
+            self.patcher_upload = unittest.mock.patch("storybuilder.downloader.cli.upload_many")
             self.mock_upload = self.patcher_upload.start()
         except Exception as e:
             self.fail(f"Error setting up mocks: {e}")
@@ -200,7 +222,6 @@ class TestDBIntegration(unittest.TestCase):
     def test_downloader_integration_saves_to_db(self):
         """Verify that downloader saves stories to the specified DB."""
         from storybuilder.downloader import cli
-        from storybuilder.downloader.writer import save_story # Import necessary for side effect
 
         # Mock save_story to simulate successful download and return metadata
         def mock_save(url, output_path, story_date, delay):
@@ -211,13 +232,13 @@ class TestDBIntegration(unittest.TestCase):
             if get_conn() is not None:
                 insert_story(
                     output_path=output_path,
-                    title='Test Story',
-                    author='Test Author',
+                    title="Test Story",
+                    author="Test Author",
                     story_date=story_date,
                     url=url,
-                    content='Mock content',
+                    content="Mock content",
                 )
-            return True # Simulate success
+            return True  # Simulate success
 
         self.mock_save_story.side_effect = mock_save
 
@@ -231,6 +252,7 @@ class TestDBIntegration(unittest.TestCase):
 
         # Verify that stories were inserted into the DB
         import sqlite3
+
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         self.assertIsNotNone(conn)
@@ -238,12 +260,13 @@ class TestDBIntegration(unittest.TestCase):
         self.assertGreater(count, 0, "No stories were inserted into the database.")
 
         # Check a specific inserted record
-        row = conn.execute("SELECT * FROM stories WHERE path LIKE ?", ('%test-story.txt',)).fetchone()
+        row = conn.execute("SELECT * FROM stories WHERE path LIKE ?", ("%test-story.txt",)).fetchone()
         self.assertIsNotNone(row)
-        self.assertEqual(row['title'], 'Test Story')
-        self.assertEqual(row['author_name'], 'Test Author')
-        self.assertEqual(row['publication_date'], '2026-06-12')
+        self.assertEqual(row["title"], "Test Story")
+        self.assertEqual(row["author_name"], "Test Author")
+        self.assertEqual(row["publication_date"], "2026-06-12")
         conn.close()
+
 
 class TestGenAIClient(unittest.TestCase):
     def test_parse_speech_config_max_two_voices(self):
@@ -316,7 +339,10 @@ class TestSplitPrompts(unittest.TestCase):
         sentences = split_prompts.split_line_to_sentences(line, "Jace")
         # Should split on the period after bracket, not inside bracket
         self.assertEqual(len(sentences), 2)
-        self.assertEqual(sentences[0], "Jace: [sighs, whispering closely. soft pace] I remember everything.")
+        self.assertEqual(
+            sentences[0],
+            "Jace: [sighs, whispering closely. soft pace] I remember everything.",
+        )
         self.assertEqual(sentences[1], "Jace: And I want you.")
 
     def test_filter_preamble_speakers(self):

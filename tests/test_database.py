@@ -197,10 +197,14 @@ class TestDatabaseInit(unittest.TestCase):
         from storybuilder.downloader.db import close_db, init_db
 
         legacy_conn = sqlite3.connect(self.db_path)
+        # Use a plain INTEGER PRIMARY KEY (no AUTOINCREMENT) to match the real
+        # legacy production schema. AUTOINCREMENT would create an internal
+        # sqlite_sequence table that production databases never had, masking
+        # bugs in the migration's sqlite_sequence handling.
         legacy_conn.execute(
             """
             CREATE TABLE stories (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id INTEGER PRIMARY KEY,
                 path TEXT UNIQUE NOT NULL,
                 orientation TEXT,
                 category TEXT,
@@ -267,11 +271,14 @@ class TestDatabaseInit(unittest.TestCase):
             fts_count = conn.execute("SELECT COUNT(*) FROM stories_fts WHERE stories_fts MATCH 'legacy'").fetchone()[0]
             self.assertEqual(fts_count, 1)
 
-            # Migration should remove sqlite_sequence entry for stories
-            # (legacy AUTOINCREMENT tracking), so new plain INTEGER PRIMARY KEY
-            # IDs reuse deleted rowids instead of inflating
-            seq_rows = conn.execute("SELECT COUNT(*) FROM sqlite_sequence WHERE name = 'stories'").fetchone()[0]
-            self.assertEqual(seq_rows, 0)
+            # The legacy table used a plain INTEGER PRIMARY KEY (no
+            # AUTOINCREMENT), so sqlite_sequence never existed; the rebuilt
+            # table also uses a plain INTEGER PRIMARY KEY, so it must not exist
+            # afterwards either.
+            seq_exists = conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='sqlite_sequence'"
+            ).fetchone()
+            self.assertIsNone(seq_exists)
         finally:
             close_db()
 

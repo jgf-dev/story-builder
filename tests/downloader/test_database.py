@@ -10,10 +10,10 @@ import unittest
 from pathlib import Path
 
 # Ensure the src package is importable
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 # Also make scripts/ importable (they don't have __init__.py but we can still import
 # the modules directly if we add the parent directory)
-_scripts_dir = str(Path(__file__).resolve().parents[1] / "scripts")
+_scripts_dir = str(Path(__file__).resolve().parents[2] / "scripts")
 if _scripts_dir not in sys.path:
     sys.path.insert(0, _scripts_dir)
 

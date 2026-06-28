@@ -78,7 +78,7 @@ def extract_labels(ids: List[str]) -> Tuple[List[str], List[str]]:
         if len(parts) >= 3:
             subcategories.append(parts[2])
         else:
-            subcategories.append("unknown")
+            subcategories.append("Unknown")
     return short_names, subcategories
 
 
@@ -141,7 +141,7 @@ def main():
     ids, embeddings, metadatas = fetch_embeddings(args.db_path)
 
     if len(embeddings) < 2:
-        if len(embeddings) > 0 or len(ids) == 0:  # If fetch failed or less than 2
+        if len(embeddings) > 0:
             print("Error: Need at least 2 stories in the database to run t-SNE.")
         return
 

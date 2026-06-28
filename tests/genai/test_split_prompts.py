@@ -14,7 +14,7 @@ if __name__ == "__main__" and __package__ is None:
 # Add tts-prompt-crafter scripts directory to import split_prompts
 sys.path.insert(
     0,
-    str(Path(__file__).resolve().parents[1] / ".agent/skills/tts-prompt-crafter/scripts"),
+    str(Path(__file__).resolve().parents[2] / ".agent/skills/tts-prompt-crafter/scripts"),
 )
 import split_prompts  # pyrefly: ignore [missing-import]
 

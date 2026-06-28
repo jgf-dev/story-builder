@@ -239,11 +239,9 @@ def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
             finally:
                 try:
                     conn.execute("DETACH DATABASE curr_db")
-                except sqlite3.Error:
-                    # Non-fatal cleanup: the ATTACH may have failed or the alias
-                    # may already be detached. The in-memory connection is closed
-                    # right after the loop, which releases any remaining attachments.
-                    pass
+                except sqlite3.Error as e:
+                    # Best-effort cleanup: if detach fails, continue processing other partitions.
+                    print(f"Warning: failed to detach database {db_path}: {e}")
     finally:
         conn.close()
 
@@ -533,6 +531,8 @@ def get_story(output_path: str, story_date: str) -> "dict | None":
             return None
 
 
+
+
 def optimize_fts() -> None:
     """Rebuild the FTS index for optimal search performance across all databases."""
     import concurrent.futures
@@ -563,7 +563,7 @@ def optimize_fts() -> None:
                 need_close = True
                 conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
                 conn.commit()
-        except sqlite3.OperationalError:
+        except sqlite3.DatabaseError:
             # Best-effort maintenance operation: ignore per-connection optimize
             # failures so search optimization does not interrupt normal writes.
             pass

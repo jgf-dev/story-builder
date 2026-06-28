@@ -174,11 +174,18 @@ def get_conn() -> "sqlite3.Connection | None":
 
 
 def get_all_partition_paths() -> list[str]:
-    """Return paths of all partition databases."""
+    """Return paths of all partition databases.
+
+    Includes year partitions (e.g. ``2023.db``) as well as the ``unknown.db``
+    partition used for stories without a valid date (see get_partition_path).
+    The monolithic ``stories.db`` is excluded since partition queries should
+    only touch partition files.
+    """
     if not _db_dir or not _is_partitioned:
         return []
     import glob
-    return sorted(glob.glob(os.path.join(_db_dir, "[0-9][0-9][0-9][0-9].db")))
+    db_files = glob.glob(os.path.join(_db_dir, "*.db"))
+    return sorted(p for p in db_files if os.path.basename(p) != "stories.db")
 
 def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
     """Execute a SELECT query across all database partitions sequentially

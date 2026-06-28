@@ -1,4 +1,3 @@
-import re
 
 new_code = """import argparse
 from typing import List, Tuple

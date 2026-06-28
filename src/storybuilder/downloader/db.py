@@ -464,6 +464,7 @@ def search_all_partitions(
             try:
                 conn.execute("DETACH DATABASE curr_db")
             except sqlite3.OperationalError:
+                # Best-effort cleanup: DETACH can fail if ATTACH did not succeed.
                 pass
 
     conn.close()

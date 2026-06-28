@@ -349,24 +349,18 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
     if db_paths:
         from storybuilder.downloader import db as storybuilder_db
 
-        total = sum(
-            row["COUNT(*)"]
-            for row in storybuilder_db.execute_all_partitions(
-                f"SELECT COUNT(*) FROM {{table}} {where}", tuple(params)
-            )
+        # ⚡ Bolt Optimization: Combine related aggregations into a single query pass
+        # to avoid repeatedly executing ATTACH/DETACH across partitioned databases.
+        agg_rows = storybuilder_db.execute_all_partitions(
+            f"SELECT COUNT(*), SUM(char_count), SUM(word_count) FROM {{table}} {where}", tuple(params)
         )
-        total_chars = sum(
-            (row["SUM(char_count)"] or 0)
-            for row in storybuilder_db.execute_all_partitions(
-                f"SELECT SUM(char_count) FROM {{table}} {where}", tuple(params)
-            )
-        )
-        total_words = sum(
-            (row["SUM(word_count)"] or 0)
-            for row in storybuilder_db.execute_all_partitions(
-                f"SELECT SUM(word_count) FROM {{table}} {where}", tuple(params)
-            )
-        )
+        total = 0
+        total_chars = 0
+        total_words = 0
+        for row in agg_rows:
+            total += row["COUNT(*)"] or 0
+            total_chars += row["SUM(char_count)"] or 0
+            total_words += row["SUM(word_count)"] or 0
     else:
         total = conn.execute(
             f"SELECT COUNT(*) FROM stories {where}", params

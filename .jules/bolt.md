@@ -10,3 +10,6 @@
 ## 2026-06-27 - [SQL-Level Aggregation for Distributions]
 **Learning:** Pulling large columns (like tens of thousands of `word_count` integers) into Python memory simply to generate distribution brackets using `pandas.cut` is a severe memory and performance bottleneck in the Streamlit dashboard.
 **Action:** Push binning and aggregation logic down to the SQLite database using `CASE WHEN ... THEN ... GROUP BY`. This reduces data transfer and memory footprint from O(N) to O(1) bracket sizes while maintaining the exact same dashboard visualization output.
+## 2026-06-28 - [Consolidating Cross-Partition Queries]
+**Learning:** Making multiple `execute_all_partitions` calls for separate aggregations (like COUNT, SUM) is inefficient because it repeatedly opens connections and performs `ATTACH`/`DETACH` commands across partitioned databases. This leads to O(N * M) query overhead.
+**Action:** Always combine related cross-partition aggregations into a single SQL pass (e.g., `SELECT COUNT(*), SUM(char_count), SUM(word_count) FROM {table}`) to minimize database operations and improve query performance.

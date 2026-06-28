@@ -51,6 +51,7 @@ jobs:
               - 'tests/test_generate_embeddings.py'
               - 'tests/test_visualize_arcs.py'
               - 'tests/test_visualize_tsne.py'
+              - 'tests/test_visualize_tsne.py'
             agents:
               - 'src/storybuilder/agents/**'
               - 'tests/test_agent_smoke.py'

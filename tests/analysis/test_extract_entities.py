@@ -150,6 +150,180 @@ class TestExtractEntities(unittest.TestCase):
         # nlp should not have been called because the file was skipped
         mock_nlp.assert_not_called()
 
+    @patch("argparse.ArgumentParser.parse_args")
+    @patch("spacy.load")
+    def test_main_force_reprocess(self, mock_spacy_load, mock_parse_args):
+        # Pre-populate db with the file and an old entity
+        test_file_path = str(Path(self.stories_dir.name) / "test1.txt")
+        conn = init_db(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO stories (id, filepath) VALUES (1, ?)", (test_file_path,)
+        )
+        cursor.execute(
+            "INSERT INTO entities (story_id, text, label, frequency) VALUES (1, 'OldEntity', 'PERSON', 5)"
+        )
+        conn.commit()
+        conn.close()
+
+        # Setup mocks
+        mock_args = MagicMock()
+        mock_args.db_path = self.db_path
+        mock_args.stories_dir = self.stories_dir.name
+        mock_args.limit = 10
+        mock_args.force = True  # force is True
+        mock_args.model = "en_core_web_sm"
+        mock_args.gpu = False
+        mock_parse_args.return_value = mock_args
+
+        mock_nlp = MagicMock()
+        mock_spacy_load.return_value = mock_nlp
+
+        mock_doc = MagicMock()
+        mock_ent1 = MagicMock()
+        mock_ent1.text = "NewEntity"
+        mock_ent1.label_ = "PERSON"
+        mock_doc.ents = [mock_ent1]
+        mock_nlp.return_value = mock_doc
+
+        # Create a dummy text file
+        with open(test_file_path, "w") as f:
+            f.write("NewEntity is here.")
+
+        # Run main
+        main()
+
+        # Check database contents - Old entity should be gone, new one should be present
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT count(*) FROM stories")
+        self.assertEqual(cursor.fetchone()[0], 1)
+
+        cursor.execute("SELECT text, label, frequency FROM entities")
+        entities = cursor.fetchall()
+        self.assertEqual(len(entities), 1)
+        self.assertEqual(entities[0], ("NewEntity", "PERSON", 1))
+
+        conn.close()
+
+    @patch("argparse.ArgumentParser.parse_args")
+    @patch("spacy.load")
+    def test_main_model_not_found(self, mock_spacy_load, mock_parse_args):
+        # Setup mocks to raise OSError
+        mock_args = MagicMock()
+        mock_args.db_path = self.db_path
+        mock_args.model = "en_core_web_sm"
+        mock_args.force = False
+        mock_args.gpu = False
+        mock_parse_args.return_value = mock_args
+
+        mock_spacy_load.side_effect = OSError("Model not found")
+
+        # Capture print output
+        with patch("builtins.print") as mock_print:
+            with self.assertRaises(SystemExit) as cm:
+                main()
+            self.assertEqual(cm.exception.code, 1)
+
+        mock_print.assert_any_call("Model 'en_core_web_sm' not found.")
+        mock_print.assert_any_call(
+            "Please run: python -m spacy download en_core_web_sm"
+        )
+
+    @patch("argparse.ArgumentParser.parse_args")
+    @patch("spacy.load")
+    @patch("storybuilder.analysis.extract_entities.require_gpu")
+    @patch("storybuilder.analysis.extract_entities.set_gpu_allocator")
+    @patch("spacy.require_gpu")
+    def test_main_with_gpu(
+        self,
+        mock_spacy_require_gpu,
+        mock_set_gpu,
+        mock_require_gpu,
+        mock_spacy_load,
+        mock_parse_args,
+    ):
+        # Setup mocks
+        mock_args = MagicMock()
+        mock_args.db_path = self.db_path
+        mock_args.stories_dir = self.stories_dir.name
+        mock_args.limit = 10
+        mock_args.force = False
+        mock_args.model = "en_core_web_sm"
+        mock_args.gpu = True  # GPU enabled
+        mock_parse_args.return_value = mock_args
+
+        mock_nlp = MagicMock()
+        mock_spacy_load.return_value = mock_nlp
+
+        # Mock the document returned by spaCy
+        mock_doc = MagicMock()
+        mock_ent1 = MagicMock()
+        mock_ent1.text = "Alice"
+        mock_ent1.label_ = "PERSON"
+        mock_doc.ents = [mock_ent1]
+        mock_nlp.return_value = mock_doc
+
+        # Create a dummy text file
+        test_file = Path(self.stories_dir.name) / "test1.txt"
+        with open(test_file, "w") as f:
+            f.write("Alice went to Wonderland.")
+
+        # Run main
+        main()
+
+        # Verify GPU functions were called
+        mock_set_gpu.assert_called_with("pytorch")
+        mock_require_gpu.assert_called_with(0)
+        mock_spacy_require_gpu.assert_called()
+
+    @patch("argparse.ArgumentParser.parse_args")
+    @patch("spacy.load")
+    def test_main_error_processing_file(self, mock_spacy_load, mock_parse_args):
+        # Setup mocks
+        mock_args = MagicMock()
+        mock_args.db_path = self.db_path
+        mock_args.stories_dir = self.stories_dir.name
+        mock_args.limit = 10
+        mock_args.force = False
+        mock_args.model = "en_core_web_sm"
+        mock_args.gpu = False
+        mock_parse_args.return_value = mock_args
+
+        mock_nlp = MagicMock()
+        # Have nlp raise an exception
+        mock_nlp.side_effect = Exception("Simulated error processing file")
+        mock_spacy_load.return_value = mock_nlp
+
+        # Create a dummy text file
+        test_file = Path(self.stories_dir.name) / "test_error.txt"
+        with open(test_file, "w") as f:
+            f.write("Text that causes an error.")
+
+        # Capture print output
+        with patch("builtins.print") as mock_print:
+            main()
+
+        # The file processing should fail gracefully and print an error message
+        # Let's check if there is an error message printed
+        found_error = False
+        for call in mock_print.call_args_list:
+            if "Error processing" in str(call):
+                found_error = True
+                break
+
+        self.assertTrue(found_error)
+
+        # Check database contents - No file should be processed
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT count(*) FROM stories")
+        self.assertEqual(cursor.fetchone()[0], 0)
+
+        conn.close()
+
 
 if __name__ == "__main__":
     unittest.main()

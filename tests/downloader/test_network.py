@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock
 from storybuilder.downloader.network import rotate_windscribe_ip
 
 
-class TestNetwork(unittest.TestCase):
+class TestRotateWindscribeIp(unittest.TestCase):
     @patch("storybuilder.downloader.network.safe_print")
     @patch("storybuilder.downloader.network.time.sleep")
     @patch("subprocess.run")

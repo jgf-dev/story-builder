@@ -210,8 +210,11 @@ class TestExtractEntities(unittest.TestCase):
         mock_spacy_load.side_effect = OSError("Model not found")
 
         # Capture print output
+        # Capture print output
         with patch('builtins.print') as mock_print:
-            main()
+            with self.assertRaises(SystemExit) as cm:
+                main()
+            self.assertEqual(cm.exception.code, 1)
 
         mock_print.assert_any_call("Model 'en_core_web_sm' not found. Please run: python -m spacy download en_core_web_sm")
 

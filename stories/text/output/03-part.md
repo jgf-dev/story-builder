@@ -2,34 +2,34 @@
 
 # AUDIO PROFILE: Levi, Ewan, Jace, Kerry
 
-## "The Arrival of Jace and Kerry"
+## "Dinner and Deceptive Calm"
 
-### THE SCENE: The cabin driveway and porch
+### THE SCENE: The cabin kitchen and dining table
 
-The cabin is nestled in the Smoky Mountains, with a breathtaking view of pine trees. The air is fresh and crisp. Levi and Ewan are on the porch as a car pulls into the gravel driveway, indicating the arrival of Jace and Kerry. The atmosphere shifts from quiet intimacy to a more public, familial interaction, filled with warmth and slight apprehension.
+The cozy cabin kitchen, filled with the aroma of grilled burgers and seasoned potatoes. The dining table is set, card games are being played. The lighting is warm and domestic, but the atmosphere eventually grows tense and stifling as marital discord between Jace and Kerry erupts. The acoustics are initially open and conversational, becoming sharp and constrained as the argument escalates.
 
 ### DIRECTOR'S NOTES
 
 Style:
 
-- Levi (Voice: en-US-Journey-F): Youthful, expressive, warm, and slightly breathless during moments of surprise or awe. Conversational and friendly.
-- Jace (Voice: en-US-Studio-O): Husky, deep, masculine, and boisterous. Confident and warm, with an underlying sense of fraternal affection.
+- Jace (Voice: en-US-Studio-O): Boisterous and proud, transitioning to irritated, defensive, and then somewhat pleading.
+- Kerry (Voice: en-US-Journey-F): Friendly and tired, transitioning to sharp, passive-aggressive, and angry.
 
-Pace: Conversational, picking up slightly during Jace's playful interactions. Use short pauses for Levi's internal reactions.
+Pace: Conversational and relaxed initially, becoming abruptly fast and sharp during the argument, then settling into a stunned quiet.
 Accent: Standard American
 
 ### SAMPLE CONCONTEXT
 
-Jace and Kerry arrive at the cabin. Levi, having just been intimate with Ewan, is still adjusting to the shift in atmosphere. He's surprised by Jace's changed appearance and unexpected warmth. A brief moment of jealousy arises as Kerry interacts with Ewan, but Levi quickly dismisses it. The scene establishes the initial dynamics between the four characters.
+The group enjoys a relaxed dinner and card games, with Levi receiving compliments on his cooking. The evening takes a sharp turn when Kerry, tired from travel, wants to go to bed, but Jace resists. A heated argument breaks out, revealing underlying marital issues, leaving Levi and Ewan shocked.
 
 #### TRANSCRIPT
-Jace: [warmly] Hey little brother.
-Levi: Um, hey.
-Levi: Jace was seven years older than me, and we had never been exactly close.
-Levi: For a long time I thought it was because I am gay, but then I realized when I went off to college, we're just different. Nothing nefarious behind his distance.
-Levi: Just two guys raised by the same parents nearly a generation apart.
-Levi: Now we were going to be spending a week together in a cabin at his insistence.
-Jace: It's so good to see you, Levi.
-Jace: I'm glad you agreed to do this with us.
-Levi: I'm glad you invited us.
-Levi: So, where is that sister-in-law of mine?
+Kerry: [yawning] I'm getting sleepy, babe. Let's go to bed.
+Jace: Bed? It's barely ten o'clock. I'm not ready for bed yet.
+Kerry: Come on, babe. We had a long day of travel. I'm tired.
+Jace: Okay, you go on to bed. I'll be there afterwhile.
+Jace: You're embarrassing me.
+Kerry: [anger] I'm embarrassing you?
+Kerry: Fine. I'm going to bed. I knew this was a bad idea.
+Kerry: [anger, raising voice] Don't even bother coming to bed. You can sleep on the sofa!
+Jace: [pleading] Babe, don't do this.
+Jace: Come on, don't be like that.

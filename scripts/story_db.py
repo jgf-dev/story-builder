@@ -60,10 +60,10 @@ def connect_multi(db_dir: str) -> "tuple[sqlite3.Connection, list[str]]":
     conn.row_factory = sqlite3.Row
     return conn, db_files
 
+
 def _query_all(*args, **kwargs):
     # Deprecated
     pass
-
 
 
 def _resolve_connection(args) -> "tuple[sqlite3.Connection, list[str] | None]":
@@ -110,7 +110,7 @@ def cmd_search(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = No
         # Multi-DB: attach each database sequentially and merge results
         all_rows = []
         for db_path in db_paths:
-            conn.execute('ATTACH DATABASE ? AS curr_db', (db_path,))
+            conn.execute("ATTACH DATABASE ? AS curr_db", (db_path,))
             table_ref = "curr_db.stories"
             fts_ref = "curr_db.stories_fts"
             sql = f"""
@@ -138,7 +138,7 @@ def cmd_search(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = No
 
         # Sort by a simple heuristic: prefer those with snippets, then by id
         all_rows.sort(key=lambda r: (0 if r["snippet"] and "<b>" in (r["snippet"] or "") else 1, r["id"]))
-        rows = all_rows[:args.limit]
+        rows = all_rows[: args.limit]
     else:
         sql = f"""
             SELECT s.id, s.path, s.category, s.story_slug, s.chapter_num,
@@ -180,8 +180,8 @@ def cmd_get(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None)
 
     rows = []
     if db_paths:
-
         from storybuilder.downloader import db as storybuilder_db
+
         sql = "SELECT * FROM {table} WHERE path = ? OR story_slug = ?"
         # We fetch all rows that match, then optionally break if we were just doing single?
         # execute_all_partitions gets all rows from all attached DBs
@@ -222,10 +222,7 @@ def cmd_get(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None)
     for row in rows:
         print(f"\n{'=' * 70}")
         print(f"Title:    {row['title']}")
-        print(
-            f"Author:   {row['author_name'] or 'Unknown'}"
-            + (f" <{row['author_email']}>" if row["author_email"] else "")
-        )
+        print(f"Author:   {row['author_name'] or 'Unknown'}" + (f" <{row['author_email']}>" if row["author_email"] else ""))
         print(f"Date:     {row['publication_date'] or 'Unknown'}")
         print(f"URL:      {row['url'] or 'N/A'}")
         print(f"Category: {row['category']}")
@@ -236,10 +233,7 @@ def cmd_get(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None)
         if not args.no_content:
             content = row["content"]
             if args.max_chars and len(content) > args.max_chars:
-                content = (
-                    content[: args.max_chars]
-                    + f"\n\n… (truncated, {row['char_count']:,} total chars)"
-                )
+                content = content[: args.max_chars] + f"\n\n… (truncated, {row['char_count']:,} total chars)"
             print(content)
 
 
@@ -286,20 +280,28 @@ def cmd_list(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None
         )
 
         if args.sort == "title":
+
             def key_func(r):
                 return r["title"] or ""
+
             rev = False
         elif args.sort == "words":
+
             def key_func(r):
                 return r["word_count"] or 0
+
             rev = True
         elif args.sort == "chars":
+
             def key_func(r):
                 return r["char_count"] or 0
+
             rev = True
         else:
+
             def key_func(r):
                 return r["publication_date"] or ""
+
             rev = True
 
         raw_rows.sort(key=key_func, reverse=rev)
@@ -321,16 +323,12 @@ def cmd_list(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None
         return
 
     # Column widths
-    print(
-        f"{'ID':>6}  {'Title':<45}  {'Author':<25}  {'Date':>10}  {'Words':>8}  Category"
-    )
+    print(f"{'ID':>6}  {'Title':<45}  {'Author':<25}  {'Date':>10}  {'Words':>8}  Category")
     print("-" * 120)
     for row in rows:
         title = row["title"][:44] if row["title"] else ""
         author = (row["author_name"] or "")[:24]
-        print(
-            f"{row['id']:>6}  {title:<45}  {author:<25}  {row['publication_date'] or '':>10}  {row['word_count']:>8,}  {row['category']}"
-        )
+        print(f"{row['id']:>6}  {title:<45}  {author:<25}  {row['publication_date'] or '':>10}  {row['word_count']:>8,}  {row['category']}")
 
 
 # ——— Stats ——————————————————————————————————————————————————————————————————————
@@ -347,22 +345,21 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
     if db_paths:
         from storybuilder.downloader import db as storybuilder_db
 
-<<<<<<< HEAD
         # Expected optimization impact: Resolving stats across M year partitions
         # O(3 * M) individual DB queries -> O(1 * M) using ATTACH DATABASE.
         # Significantly improves the stats query time by combining COUNT and SUMs into a single pass.
-        rows = list(storybuilder_db.execute_all_partitions(
-            f"SELECT COUNT(*) as cnt, SUM(char_count) as chars, SUM(word_count) as words FROM {{table}} {where}", tuple(params)
-        ))
+        rows = list(
+            storybuilder_db.execute_all_partitions(
+                f"SELECT COUNT(*) as cnt, SUM(char_count) as chars, SUM(word_count) as words FROM {{table}} {where}", tuple(params)
+            )
+        )
         total = sum(r["cnt"] or 0 for r in rows)
         total_chars = sum(r["chars"] or 0 for r in rows)
         total_words = sum(r["words"] or 0 for r in rows)
-=======
+
         # ⚡ Bolt Optimization: Combine related aggregations into a single query pass
         # to avoid repeatedly executing ATTACH/DETACH across partitioned databases.
-        agg_rows = storybuilder_db.execute_all_partitions(
-            f"SELECT COUNT(*), SUM(char_count), SUM(word_count) FROM {{table}} {where}", tuple(params)
-        )
+        agg_rows = storybuilder_db.execute_all_partitions(f"SELECT COUNT(*), SUM(char_count), SUM(word_count) FROM {{table}} {where}", tuple(params))
         total = 0
         total_chars = 0
         total_words = 0
@@ -370,27 +367,13 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
             total += row["COUNT(*)"] or 0
             total_chars += row["SUM(char_count)"] or 0
             total_words += row["SUM(word_count)"] or 0
->>>>>>> refs/remotes/origin/fix-issue-126-combine-execute-all-partitions-2114268234137489406
-    else:
-        total = conn.execute(
-            f"SELECT COUNT(*) FROM stories {where}", params
-        ).fetchone()[0]
-        total_chars = (
-            conn.execute(
-                f"SELECT SUM(char_count) FROM stories {where}", params
-            ).fetchone()[0]
-            or 0
-        )
-        total_words = (
-            conn.execute(
-                f"SELECT SUM(word_count) FROM stories {where}", params
-            ).fetchone()[0]
-            or 0
-        )
 
-    print(
-        f"\n=== Database Stats{' for ' + args.category if args.category else ''} ===\n"
-    )
+    else:
+        total = conn.execute(f"SELECT COUNT(*) FROM stories {where}", params).fetchone()[0]
+        total_chars = conn.execute(f"SELECT SUM(char_count) FROM stories {where}", params).fetchone()[0] or 0
+        total_words = conn.execute(f"SELECT SUM(word_count) FROM stories {where}", params).fetchone()[0] or 0
+
+    print(f"\n=== Database Stats{' for ' + args.category if args.category else ''} ===\n")
     print(f"  Stories:     {total:,}")
     print(f"  Total chars: {total_chars:,}")
     print(f"  Total words: {total_words:,}")
@@ -442,10 +425,7 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
             name = row["author_name"] or "Unknown"
             auth_counter[name] += row["cnt"]
             auth_words[name] += row["total_words"] or 0
-        authors = [
-            {"author_name": k, "cnt": v, "total_words": auth_words[k]}
-            for k, v in auth_counter.most_common(15)
-        ]
+        authors = [{"author_name": k, "cnt": v, "total_words": auth_words[k]} for k, v in auth_counter.most_common(15)]
     else:
         authors = conn.execute(
             f"""
@@ -494,9 +474,7 @@ def main():
         default="stories/db",
         help="Database directory or file. Searches all .db files if a directory.",
     )
-    parser.add_argument(
-        "--db-dir", default=None, help="Directory with split .db files (overrides --db)"
-    )
+    parser.add_argument("--db-dir", default=None, help="Directory with split .db files (overrides --db)")
 
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -530,9 +508,7 @@ def main():
         default="exported_stories",
         help="Export directory (default: exported_stories/)",
     )
-    p.add_argument(
-        "--no-content", action="store_true", help="Show metadata only, not story text"
-    )
+    p.add_argument("--no-content", action="store_true", help="Show metadata only, not story text")
     p.add_argument(
         "--max-chars",
         type=int,

@@ -30,36 +30,23 @@ jobs:
               - 'src/storybuilder/downloader/**'
               - 'scripts/import_to_sqlite.py'
               - 'scripts/story_db.py'
-              - 'tests/downloader/test_downloader.py'
-              - 'tests/downloader/test_database.py'
-              - 'tests/downloader/test_dashboard.py'
+              - 'tests/downloader/**'
             genai:
               - 'src/storybuilder/genai/**'
               - 'src/storybuilder/agents/cartesia_tts_prompt_crafter/**'
               - '.agent/skills/tts-prompt-crafter/**'
-              - 'tests/genai/test_genai.py'
-              - 'tests/genai/test_cartesia.py'
-              - 'tests/genai/test_parse_speech_config.py'
-              - 'tests/genai/test_parse_speech_config_split.py'
-              - 'tests/genai/test_split_prompts.py'
+              - 'tests/genai/**'
             analysis:
               - 'src/storybuilder/analysis/**'
-              - 'tests/analysis/test_analyze_sentiment.py'
-              - 'tests/analysis/test_compare_narratives.py'
-              - 'tests/analysis/test_find_similar.py'
-              - 'tests/analysis/test_generate_diagrams.py'
-              - 'tests/analysis/test_generate_embeddings.py'
-              - 'tests/analysis/test_visualize_arcs.py'
+              - 'tests/analysis/**'
             agents:
               - 'src/storybuilder/agents/**'
-              - 'tests/agents/test_agent_smoke.py'
-              - 'tests/agents/test_agent_tools.py'
-              - 'tests/agents/test_subagent.py'
+              - 'tests/agents/**'
             common:
               - 'pyproject.toml'
               - 'uv.lock'
               - '.github/workflows/test.yml'
-              - 'tests/misc/test_keys.py'
+              - 'tests/misc/**'
 
   test-downloader:
     needs: changes
@@ -83,7 +70,7 @@ jobs:
       - name: Install the project
         run: uv sync --all-extras --dev
       - name: Run Downloader Tests
-        run: uv run pytest --cov=src --cov-report=xml:coverage-downloader.xml tests/downloader/test_downloader.py tests/downloader/test_database.py tests/downloader/test_dashboard.py
+        run: uv run pytest --cov=src --cov-report=xml:coverage-downloader.xml tests/downloader/
       - name: Post Coverage Comment
         if: github.event_name == 'pull_request'
         uses: orgoro/coverage@v3.2
@@ -113,7 +100,7 @@ jobs:
       - name: Install the project
         run: uv sync --all-extras --dev
       - name: Run GenAI Tests
-        run: uv run pytest --cov=src --cov-report=xml:coverage-genai.xml tests/genai/test_genai.py tests/genai/test_cartesia.py tests/genai/test_parse_speech_config.py tests/genai/test_parse_speech_config_split.py tests/genai/test_split_prompts.py
+        run: uv run pytest --cov=src --cov-report=xml:coverage-genai.xml tests/genai/
       - name: Post Coverage Comment
         if: github.event_name == 'pull_request'
         uses: orgoro/coverage@v3.2
@@ -143,7 +130,7 @@ jobs:
       - name: Install the project
         run: uv sync --all-extras --dev
       - name: Run Analysis Tests
-        run: uv run pytest --cov=src --cov-report=xml:coverage-analysis.xml tests/analysis/test_analyze_sentiment.py tests/analysis/test_compare_narratives.py tests/analysis/test_find_similar.py tests/analysis/test_generate_diagrams.py tests/analysis/test_generate_embeddings.py tests/analysis/test_visualize_arcs.py
+        run: uv run pytest --cov=src --cov-report=xml:coverage-analysis.xml tests/analysis/
       - name: Post Coverage Comment
         if: github.event_name == 'pull_request'
         uses: orgoro/coverage@v3.2
@@ -173,7 +160,7 @@ jobs:
       - name: Install the project
         run: uv sync --all-extras --dev
       - name: Run Agent Tests
-        run: uv run pytest --cov=src --cov-report=xml:coverage-agents.xml tests/agents/test_agent_smoke.py tests/agents/test_agent_tools.py tests/agents/test_subagent.py
+        run: uv run pytest --cov=src --cov-report=xml:coverage-agents.xml tests/agents/
       - name: Post Coverage Comment
         if: github.event_name == 'pull_request'
         uses: orgoro/coverage@v3.2
@@ -203,7 +190,7 @@ jobs:
       - name: Install the project
         run: uv sync --all-extras --dev
       - name: Run Misc Tests
-        run: uv run pytest --cov=src --cov-report=xml:coverage-misc.xml tests/misc/test_keys.py
+        run: uv run pytest --cov=src --cov-report=xml:coverage-misc.xml tests/misc/
       - name: Post Coverage Comment
         if: github.event_name == 'pull_request'
         uses: orgoro/coverage@v3.2

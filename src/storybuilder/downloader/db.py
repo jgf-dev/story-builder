@@ -239,11 +239,9 @@ def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
             finally:
                 try:
                     conn.execute("DETACH DATABASE curr_db")
-                except sqlite3.Error:
-                    # Non-fatal cleanup: the ATTACH may have failed or the alias
-                    # may already be detached. The in-memory connection is closed
-                    # right after the loop, which releases any remaining attachments.
-                    pass
+                except sqlite3.Error as e:
+                    # Best-effort cleanup: if detach fails, continue processing other partitions.
+                    print(f"Warning: failed to detach database {db_path}: {e}")
     finally:
         conn.close()
 

@@ -30,37 +30,36 @@ jobs:
               - 'src/storybuilder/downloader/**'
               - 'scripts/import_to_sqlite.py'
               - 'scripts/story_db.py'
-              - 'tests/test_downloader.py'
-              - 'tests/test_database.py'
-              - 'tests/test_dashboard.py'
+              - 'tests/downloader/test_downloader.py'
+              - 'tests/downloader/test_database.py'
+              - 'tests/downloader/test_dashboard.py'
             genai:
               - 'src/storybuilder/genai/**'
               - 'src/storybuilder/agents/cartesia_tts_prompt_crafter/**'
               - '.agent/skills/tts-prompt-crafter/**'
-              - 'tests/test_genai.py'
-              - 'tests/test_cartesia.py'
-              - 'tests/test_parse_speech_config.py'
-              - 'tests/test_parse_speech_config_split.py'
-              - 'tests/test_split_prompts.py'
+              - 'tests/genai/test_genai.py'
+              - 'tests/genai/test_cartesia.py'
+              - 'tests/genai/test_parse_speech_config.py'
+              - 'tests/genai/test_parse_speech_config_split.py'
+              - 'tests/genai/test_split_prompts.py'
             analysis:
               - 'src/storybuilder/analysis/**'
-              - 'tests/test_analyze_sentiment.py'
-              - 'tests/test_compare_narratives.py'
-              - 'tests/test_find_similar.py'
-              - 'tests/test_generate_diagrams.py'
-              - 'tests/test_generate_embeddings.py'
-              - 'tests/test_visualize_arcs.py'
-              - 'tests/test_visualize_tsne.py'
+              - 'tests/analysis/test_analyze_sentiment.py'
+              - 'tests/analysis/test_compare_narratives.py'
+              - 'tests/analysis/test_find_similar.py'
+              - 'tests/analysis/test_generate_diagrams.py'
+              - 'tests/analysis/test_generate_embeddings.py'
+              - 'tests/analysis/test_visualize_arcs.py'
             agents:
               - 'src/storybuilder/agents/**'
-              - 'tests/test_agent_smoke.py'
-              - 'tests/test_agent_tools.py'
-              - 'tests/test_subagent.py'
+              - 'tests/agents/test_agent_smoke.py'
+              - 'tests/agents/test_agent_tools.py'
+              - 'tests/agents/test_subagent.py'
             common:
               - 'pyproject.toml'
               - 'uv.lock'
               - '.github/workflows/test.yml'
-              - 'tests/test_keys.py'
+              - 'tests/misc/test_keys.py'
 
   test-downloader:
     needs: changes
@@ -84,7 +83,7 @@ jobs:
       - name: Install the project
         run: uv sync --all-extras --dev
       - name: Run Downloader Tests
-        run: uv run pytest --cov=src --cov-report=xml:coverage-downloader.xml tests/test_downloader.py tests/test_database.py tests/test_dashboard.py
+        run: uv run pytest --cov=src --cov-report=xml:coverage-downloader.xml tests/downloader/test_downloader.py tests/downloader/test_database.py tests/downloader/test_dashboard.py
       - name: Post Coverage Comment
         if: github.event_name == 'pull_request'
         uses: orgoro/coverage@v3.2
@@ -114,7 +113,7 @@ jobs:
       - name: Install the project
         run: uv sync --all-extras --dev
       - name: Run GenAI Tests
-        run: uv run pytest --cov=src --cov-report=xml:coverage-genai.xml tests/test_genai.py tests/test_cartesia.py tests/test_parse_speech_config.py tests/test_parse_speech_config_split.py tests/test_split_prompts.py
+        run: uv run pytest --cov=src --cov-report=xml:coverage-genai.xml tests/genai/test_genai.py tests/genai/test_cartesia.py tests/genai/test_parse_speech_config.py tests/genai/test_parse_speech_config_split.py tests/genai/test_split_prompts.py
       - name: Post Coverage Comment
         if: github.event_name == 'pull_request'
         uses: orgoro/coverage@v3.2
@@ -144,7 +143,7 @@ jobs:
       - name: Install the project
         run: uv sync --all-extras --dev
       - name: Run Analysis Tests
-        run: uv run pytest --cov=src --cov-report=xml:coverage-analysis.xml tests/test_analyze_sentiment.py tests/test_compare_narratives.py tests/test_find_similar.py tests/test_generate_diagrams.py tests/test_generate_embeddings.py tests/test_visualize_arcs.py tests/test_visualize_tsne.py
+        run: uv run pytest --cov=src --cov-report=xml:coverage-analysis.xml tests/analysis/test_analyze_sentiment.py tests/analysis/test_compare_narratives.py tests/analysis/test_find_similar.py tests/analysis/test_generate_diagrams.py tests/analysis/test_generate_embeddings.py tests/analysis/test_visualize_arcs.py
       - name: Post Coverage Comment
         if: github.event_name == 'pull_request'
         uses: orgoro/coverage@v3.2
@@ -174,7 +173,7 @@ jobs:
       - name: Install the project
         run: uv sync --all-extras --dev
       - name: Run Agent Tests
-        run: uv run pytest --cov=src --cov-report=xml:coverage-agents.xml tests/test_agent_smoke.py tests/test_agent_tools.py tests/test_subagent.py
+        run: uv run pytest --cov=src --cov-report=xml:coverage-agents.xml tests/agents/test_agent_smoke.py tests/agents/test_agent_tools.py tests/agents/test_subagent.py
       - name: Post Coverage Comment
         if: github.event_name == 'pull_request'
         uses: orgoro/coverage@v3.2
@@ -204,7 +203,7 @@ jobs:
       - name: Install the project
         run: uv sync --all-extras --dev
       - name: Run Misc Tests
-        run: uv run pytest --cov=src --cov-report=xml:coverage-misc.xml tests/test_keys.py
+        run: uv run pytest --cov=src --cov-report=xml:coverage-misc.xml tests/misc/test_keys.py
       - name: Post Coverage Comment
         if: github.event_name == 'pull_request'
         uses: orgoro/coverage@v3.2

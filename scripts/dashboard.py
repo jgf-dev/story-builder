@@ -487,11 +487,10 @@ if page == "🔍 Search & Explorer":
         # Display highlighted snippets if any
         if res.get("snippet"):
             snippet_cleaned = (
-                res["snippet"]
+                html.escape(str(res["snippet"]))
                 .replace("___HIGHLIGHT_START___", "<span class='highlight'>")
                 .replace("___HIGHLIGHT_END___", "</span>")
             )
-            card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
 
         card_html += "</div>"
         st.markdown(card_html, unsafe_allow_html=True)

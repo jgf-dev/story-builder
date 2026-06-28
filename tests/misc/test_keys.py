@@ -31,13 +31,3 @@ class TestKeys(unittest.TestCase):
                 or "permission" in str(e).lower()
                 or "unauthenticated" in str(e).lower()
             if "quota" in str(e).lower() or "permission" in str(e).lower() or "unauthenticated" in str(e).lower():
-=======
-            ):
->>>>>>> cf92371 (ci: refactor test suite into subdirectories and fix CI failures)
-                self.skipTest(f"Skipped due to API/auth issue: {e}")
-            else:
-                self.fail(f"Vertex AI Client test failed: {e}")
-
-
-if __name__ == "__main__":
-    unittest.main()

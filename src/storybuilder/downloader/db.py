@@ -135,6 +135,27 @@ def _parse_output_path(output_path: str) -> "tuple[str, str, str, int | None]":
     return orientation, category, story_slug, chapter_num
 
 
+# -- Schema migrations --------------------------------------------------
+
+
+def _migrate_schema(conn: "sqlite3.Connection") -> None:
+    """Apply additive schema migrations to an existing partition/db.
+
+    SQLite's CREATE TABLE IF NOT EXISTS is a no-op on tables that already
+    exist, so columns added to SCHEMA after a partition file was first
+    created never appear. Add them here with ALTER TABLE so older partition
+    databases stay compatible. Only additive (nullable) columns can be
+    backfilled this way.
+    """
+    cols = {row[1] for row in conn.execute("PRAGMA table_info(stories)")}
+    if not cols:
+        # Table does not exist yet (fresh db); SCHEMA already created it.
+        return
+    if "email_date" not in cols:
+        conn.execute("ALTER TABLE stories ADD COLUMN email_date TEXT")
+        conn.commit()
+
+
 # -- DB init ------------------------------------------------------------
 
 
@@ -163,6 +184,7 @@ def init_db(db_path: str) -> "sqlite3.Connection":
         _conn.execute("PRAGMA cache_size=-64000")
         _conn.executescript(SCHEMA)
         _conn.executescript(INDEXES)
+        _migrate_schema(_conn)
         return _conn
 
 
@@ -387,6 +409,7 @@ def _get_write_conn(story_date) -> "sqlite3.Connection | None":
             conn.execute("PRAGMA cache_size=-64000")
             conn.executescript(SCHEMA)
             conn.executescript(INDEXES)
+            _migrate_schema(conn)
             _connections[partition_path] = conn
         return _connections[partition_path]
 

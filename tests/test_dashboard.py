@@ -49,9 +49,10 @@ class TestDashboard(unittest.TestCase):
         self.patch_meta.stop()
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def _create_mock_partition(self, year, category, title, author, date, word_count, path, content):
-        from storybuilder.downloader.db import INDEXES, SCHEMA
-
+    def _create_mock_partition(
+        self, year, category, title, author, date, word_count, path, content
+    ):
+        from storybuilder.downloader.db import SCHEMA, INDEXES
         db_path = os.path.join(self.db_dir, f"{year}.db")
         conn = sqlite3.connect(db_path)
         conn.executescript(SCHEMA)
@@ -96,9 +97,17 @@ class TestDashboard(unittest.TestCase):
             )
             """
         )
-        conn.execute("INSERT OR REPLACE INTO stories (filepath) VALUES (?)", (filepath,))
-        story_id = conn.execute("SELECT id FROM stories WHERE filepath = ?", (filepath,)).fetchone()[0]
-        conn.execute("INSERT INTO entities (story_id, text, label, frequency) VALUES (?, ?, ?, 1)", (story_id, text, label))
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_entities_label ON entities(label)")
+        conn.execute(
+            "INSERT OR REPLACE INTO stories (filepath) VALUES (?)", (filepath,)
+        )
+        story_id = conn.execute(
+            "SELECT id FROM stories WHERE filepath = ?", (filepath,)
+        ).fetchone()[0]
+        conn.execute(
+            "INSERT INTO entities (story_id, text, label, frequency) VALUES (?, ?, ?, 1)",
+            (story_id, text, label),
+        )
         conn.commit()
         conn.close()
 

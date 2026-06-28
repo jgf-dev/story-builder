@@ -5,16 +5,9 @@ import shutil
 from pathlib import Path
 
 # Add the script directory to Python path
-sys.path.insert(
-    0,
-    str(
-        Path(__file__).resolve().parents[1]
-        / ".agent/skills/codebase-diagrammer/scripts"
-    ),
-)
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / ".agent/skills/codebase-diagrammer/scripts"))
 
 from generate_diagrams import clean_id, clean_label, CodebaseAnalyzer
-
 
 class TestGenerateDiagrams(unittest.TestCase):
     def setUp(self):
@@ -31,18 +24,17 @@ class TestGenerateDiagrams(unittest.TestCase):
 
     def test_clean_label(self):
         self.assertEqual(clean_label('Label with "quotes"'), 'Label with \\"quotes\\"')
-        self.assertEqual(clean_label("Label with [brackets]"), "Label with (brackets)")
+        self.assertEqual(clean_label('Label with [brackets]'), 'Label with (brackets)')
 
     def test_analyzer_scan_and_analyze(self):
         # Create a mock directory structure
         (self.root / "sub1").mkdir()
         (self.root / "sub2").mkdir()
-        (self.root / ".git").mkdir()  # should be excluded
+        (self.root / ".git").mkdir() # should be excluded
 
         # Create Python files
         py1 = self.root / "sub1" / "module_a.py"
-        py1.write_text(
-            """
+        py1.write_text("""
 import sqlite3
 import streamlit as st
 from sub2.module_b import Helper
@@ -58,31 +50,24 @@ class Processor:
 def main():
     p = Processor()
     p.process_data()
-""",
-            encoding="utf-8",
-        )
+""", encoding='utf-8')
 
         py2 = self.root / "sub2" / "module_b.py"
-        py2.write_text(
-            """
+        py2.write_text("""
 import chromadb
 
 class Helper:
     def do_something(self):
         client = chromadb.Client()
-""",
-            encoding="utf-8",
-        )
+""", encoding='utf-8')
 
         # Create SQL file
         sql_file = self.root / "schema.sql"
-        sql_file.write_text(
-            "CREATE TABLE users (id INTEGER PRIMARY KEY);", encoding="utf-8"
-        )
+        sql_file.write_text("CREATE TABLE users (id INTEGER PRIMARY KEY);", encoding='utf-8')
 
         # Create Shell file
         sh_file = self.root / "run.sh"
-        sh_file.write_text("python sub1/module_a.py", encoding="utf-8")
+        sh_file.write_text("python sub1/module_a.py", encoding='utf-8')
 
         # Run analyzer
         analyzer = CodebaseAnalyzer(self.temp_dir)
@@ -140,7 +125,6 @@ class Helper:
         # Check class fields are printed
         self.assertIn("+str name", md)
         self.assertIn("+int value", md)
-
 
 if __name__ == "__main__":
     unittest.main()

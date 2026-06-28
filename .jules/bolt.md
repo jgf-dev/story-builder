@@ -10,3 +10,6 @@
 ## 2026-06-26 - [Batching Stats Aggregation in Partitioned DB]
 **Learning:** Performing multiple independent aggregations (like COUNT, SUM) sequentially using the multi-partition execution helper `storybuilder_db.execute_all_partitions` is O(N * M) where N is the number of aggregations and M is the number of partition DBs. This causes severe overhead since the helper has to repeatedly ATTACH and DETACH all databases for each query.
 **Action:** Always combine related cross-partition aggregations into a single SQL pass (e.g. `SELECT COUNT(*), SUM(a), SUM(b) FROM {table}`) to minimize the number of partition traversals.
+## 2026-06-27 - [SQL-Level Aggregation for Distributions]
+**Learning:** Pulling large columns (like tens of thousands of `word_count` integers) into Python memory simply to generate distribution brackets using `pandas.cut` is a severe memory and performance bottleneck in the Streamlit dashboard.
+**Action:** Push binning and aggregation logic down to the SQLite database using `CASE WHEN ... THEN ... GROUP BY`. This reduces data transfer and memory footprint from O(N) to O(1) bracket sizes while maintaining the exact same dashboard visualization output.

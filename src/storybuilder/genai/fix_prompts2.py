@@ -5,14 +5,6 @@ from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 
-load_dotenv()
-api_key = os.getenv("GEMINI_API_KEY")
-if not api_key:
-    print("Error: GEMINI_API_KEY not found in environment.")
-    exit(1)
-
-client = genai.Client(api_key=api_key)
-
 PROMPT_INSTRUCTION = """
 You are an expert audio director. Rewrite the provided TTS prompt text to fix the following issues:
 1) Add quotation marks (`"`) around all spoken dialogue to help the TTS model's inflection.
@@ -47,6 +39,13 @@ def extract_markdown_block(content: str) -> str:
 
 
 def fix_prompts(directory):
+    load_dotenv()
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        print("Error: GEMINI_API_KEY not found in environment.")
+        exit(1)
+
+    client = genai.Client(api_key=api_key)
     files = sorted(glob.glob(os.path.join(directory, "*-part.md")))
     if not files:
         print(f"No prompt files found in {directory}")

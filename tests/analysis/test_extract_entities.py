@@ -214,7 +214,8 @@ class TestExtractEntities(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 main()
 
-        mock_print.assert_any_call("Model 'en_core_web_sm' not found. Please run: python -m spacy download en_core_web_sm")
+        mock_print.assert_any_call("Model 'en_core_web_sm' not found.")
+        mock_print.assert_any_call("Please run: python -m spacy download en_core_web_sm")
 
     @patch('argparse.ArgumentParser.parse_args')
     @patch('spacy.load')

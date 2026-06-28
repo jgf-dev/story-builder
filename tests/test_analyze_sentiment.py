@@ -5,11 +5,12 @@ import sqlite3
 from unittest.mock import patch, MagicMock
 
 from storybuilder.analysis.analyze_sentiment import (
-    get_sentiment_value,
     extract_chapter_number,
+    get_sentiment_value,
     init_db,
-    main
+    main,
 )
+
 
 class TestAnalyzeSentiment(unittest.TestCase):
     def test_get_sentiment_value(self):
@@ -65,7 +66,17 @@ class TestAnalyzeSentiment(unittest.TestCase):
     @patch("storybuilder.analysis.analyze_sentiment.spacy.load")
     @patch("storybuilder.analysis.analyze_sentiment.pipeline")
     @patch("storybuilder.analysis.analyze_sentiment.init_db")
-    @patch("sys.argv", ["analyze_sentiment.py", "--stories-dir", "fake_dir", "--limit-stories", "1", "--gpu"])
+    @patch(
+        "sys.argv",
+        [
+            "analyze_sentiment.py",
+            "--stories-dir",
+            "fake_dir",
+            "--limit-stories",
+            "1",
+            "--gpu",
+        ],
+    )
     def test_main_no_stories(self, mock_init_db, mock_pipeline, mock_spacy_load):
         # When no stories exist, main should just return early.
         with patch("pathlib.Path.rglob", return_value=[]):
@@ -75,7 +86,10 @@ class TestAnalyzeSentiment(unittest.TestCase):
     @patch("storybuilder.analysis.analyze_sentiment.spacy.load")
     @patch("storybuilder.analysis.analyze_sentiment.pipeline")
     @patch("storybuilder.analysis.analyze_sentiment.init_db")
-    @patch("sys.argv", ["analyze_sentiment.py", "--stories-dir", "fake_dir", "--limit-stories", "1"])
+    @patch(
+        "sys.argv",
+        ["analyze_sentiment.py", "--stories-dir", "fake_dir", "--limit-stories", "1"],
+    )
     def test_main_with_stories(self, mock_init_db, mock_pipeline, mock_spacy_load):
         # Create a mock database connection
         mock_conn = MagicMock()
@@ -89,6 +103,7 @@ class TestAnalyzeSentiment(unittest.TestCase):
 
         # Setup fake paths
         from pathlib import Path
+
         fake_files = [
             Path("fake_dir/cat1/story1/story1-1.txt"),
             Path("fake_dir/cat1/story1/story1-2.txt"),
@@ -117,16 +132,20 @@ class TestAnalyzeSentiment(unittest.TestCase):
 
         # Mock the open() function for reading files
         from unittest.mock import mock_open
+
         m = mock_open(read_data="This is a sentence.")
 
-        with patch("pathlib.Path.rglob", return_value=fake_files), \
-             patch("builtins.open", m):
+        with (
+            patch("pathlib.Path.rglob", return_value=fake_files),
+            patch("builtins.open", m),
+        ):
             main()
 
         mock_init_db.assert_called_once()
         self.assertTrue(mock_cursor.execute.called)
         self.assertTrue(mock_conn.commit.called)
         mock_conn.close.assert_called_once()
+
 
 if __name__ == "__main__":
     unittest.main()

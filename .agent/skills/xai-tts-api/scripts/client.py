@@ -6,7 +6,7 @@ from xai_sdk.sync.chat import Chat
 
 load_dotenv()
 
-client:Client = Client(
+client: Client = Client(
     api_key=os.getenv("XAI_API_KEY"),
     management_api_key=os.getenv("XAI_MANAGEMENT_API_KEY"),
     timeout=3600,

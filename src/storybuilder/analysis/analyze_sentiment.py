@@ -163,7 +163,7 @@ def load_models(spacy_model_name, sentiment_model_name, use_gpu):
     nlp = spacy.load(spacy_model_name)
     nlp.add_pipe("sentencizer")
 
-    sentiment_pipe = pipeline(
+    sentiment_pipe = pipeline(  # pyrefly: ignore [no-matching-overload]
         "sentiment-analysis",
         model=sentiment_model_name,
         device=device,
@@ -274,10 +274,10 @@ def main():
     nlp, sentiment_pipe = load_models(args.spacy_model, args.sentiment_model, args.gpu)
 
     processed_stories = 0
-
     for story_dir, filepaths in multi_stories.items():
-        if processed_stories >= args.limit_stories:
+        if args.limit_stories and processed_stories >= args.limit_stories:
             break
+
 
         was_processed = process_story(
             story_dir, filepaths, cursor, conn, nlp, sentiment_pipe

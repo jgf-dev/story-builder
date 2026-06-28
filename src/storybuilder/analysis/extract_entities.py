@@ -47,6 +47,8 @@ def init_db(db_path):
         )
     """)
 
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_entities_label ON entities(label)")
+
     conn.commit()
     return conn
 
@@ -156,7 +158,9 @@ def main():
     print(f"Loading spaCy model ({args.model})...")
     nlp = load_spacy_model(args.model, args.gpu)
     if nlp is None:
-        return
+        # Signal failure so CI pipelines and scripts that check the exit code
+        # treat a missing/unloadable model as an error rather than success.
+        raise SystemExit(1)
 
     all_files = list(Path(args.stories_dir).rglob("*.txt"))
     print(f"Found {len(all_files)} total text files.")

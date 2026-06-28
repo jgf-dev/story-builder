@@ -105,8 +105,50 @@ def _table_columns(conn: sqlite3.Connection, table_name: str) -> list[str]:
     return [row[1] for row in rows]
 
 
+def _resume_interrupted_migration(conn: sqlite3.Connection) -> bool:
+    """Finish a migration that was interrupted after stories was renamed.
+
+    Phase 1 commits the rename to stories_legacy and the creation of an empty
+    new stories table. If the process crashed before Phase 2 committed, the new
+    stories table exists (without email_date) so the normal entry check would
+    return False and the data in stories_legacy would be orphaned. Detect that
+    leftover table here and finish the copy so the data is recovered.
+    """
+
+    legacy_columns = _table_columns(conn, "stories_legacy")
+    if not legacy_columns:
+        return False
+
+    copy_columns = [
+        col for col in STORY_COLUMNS if col in legacy_columns and col != "email_date"
+    ]
+    cols_sql = ", ".join(copy_columns)
+    try:
+        conn.execute("BEGIN")
+        if copy_columns:
+            conn.execute(
+                f"INSERT OR IGNORE INTO stories ({cols_sql}) SELECT {cols_sql} FROM stories_legacy"
+            )
+        conn.execute("DROP TABLE stories_legacy")
+        try:
+            conn.execute("DELETE FROM sqlite_sequence WHERE name = 'stories'")
+        except sqlite3.OperationalError:
+            pass  # sqlite_sequence only exists if AUTOINCREMENT was used
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+
+    conn.executescript(INDEXES)
+    return True
+
+
 def migrate_legacy_schema(conn: sqlite3.Connection) -> bool:
     """Rebuild legacy story databases that still include the email_date column."""
+
+    # Recover from a migration that was interrupted after Phase 1 committed.
+    if _resume_interrupted_migration(conn):
+        return True
 
     legacy_columns = _table_columns(conn, "stories")
     if not legacy_columns or "email_date" not in legacy_columns:

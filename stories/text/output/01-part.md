@@ -20,6 +20,7 @@ Accent: Standard American
 
 ### SAMPLE CONTEXT
 
+
 Levi and Ewan are having a final, passionate, and hurried sexual encounter in their bedroom before Levi's brother Jace and sister-in-law Kerry arrive. The sense of urgency and secrecy adds a layer of forbidden excitement to their intimacy, forcing them to quickly clean up and prepare for the impending arrival.
 
 #### TRANSCRIPT

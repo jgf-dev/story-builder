@@ -1,44 +1,38 @@
-"""
-Database layer for story storage -- shared by the downloader (live insert) and
-the batch import script.
-
-Thread-safe: uses WAL mode + a write lock.  Call init_db() once at startup,
-then insert_story() from any thread.
-"""
-
 import os
 import re
-import sqlite3
 import threading
+import sqlite3
+import logging
 from pathlib import Path
 
 # -- Schema -------------------------------------------------------------
 
+logger = logging.getLogger(__name__)
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS stories (
-    id              INTEGER PRIMARY KEY,
-    path            TEXT UNIQUE NOT NULL,
-    orientation     TEXT NOT NULL DEFAULT 'gay',
-    category        TEXT NOT NULL,
-    story_slug      TEXT NOT NULL,
-    chapter_num     INTEGER,
-    title           TEXT NOT NULL,
-    author_name     TEXT,
-    author_email    TEXT,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    path TEXT UNIQUE NOT NULL,
+    orientation TEXT NOT NULL DEFAULT 'gay',
+    category TEXT,
+    story_slug TEXT,
+    chapter_num INTEGER,
+    title TEXT,
+    author_name TEXT,
+    author_email TEXT,
     publication_date TEXT,
-    url             TEXT,
-    email_date      TEXT,
-    char_count      INTEGER NOT NULL,
-    word_count      INTEGER NOT NULL,
-    content         TEXT NOT NULL
+    url TEXT,
+    char_count INTEGER,
+    word_count INTEGER,
+    content TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE VIRTUAL TABLE IF NOT EXISTS stories_fts USING fts5(
     title,
     author_name,
     content,
-    content=stories,
-    content_rowid=id
+    content='stories',
+    content_rowid='id'
 );
 
 CREATE TRIGGER IF NOT EXISTS stories_ai AFTER INSERT ON stories BEGIN
@@ -505,9 +499,8 @@ def optimize_fts_all(db_dir: str) -> None:
             conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
             conn.commit()
         except sqlite3.OperationalError:
-            # Best-effort optimization: some DB files may not have the FTS table
-            # (or may otherwise not support this command), so ignore and continue.
-            pass
+            # Best-effort optimization: skip databases that do not support FTS optimize.
+            continue
         finally:
             conn.close()
 

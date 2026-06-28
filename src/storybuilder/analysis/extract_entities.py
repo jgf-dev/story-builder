@@ -126,6 +126,7 @@ def main():
                 break
 
         except Exception as e:
+            conn.rollback()
             print(f"\nError processing {filepath_str}: {e}")
 
     pbar.close()

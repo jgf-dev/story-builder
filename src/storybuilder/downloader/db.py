@@ -196,21 +196,11 @@ def get_conn() -> "sqlite3.Connection | None":
 
 
 def get_all_partition_paths() -> list[str]:
-    """Return paths of all partition databases.
-
-    Includes year partitions (e.g. ``2023.db``) as well as the ``unknown.db``
-    partition used for stories without a valid date (see get_partition_path).
-    Non-partition databases that may live in the same directory -- the
-    monolithic ``stories.db`` and the dashboard's ``dashboard_metadata.db``
-    (favorites/tags) -- are excluded since they lack the ``stories`` table
-    and partition queries should only touch partition files.
-    """
+    """Return paths of all partition databases."""
     if not _db_dir or not _is_partitioned:
         return []
     import glob
-    excluded = {"stories.db", "dashboard_metadata.db"}
-    db_files = glob.glob(os.path.join(_db_dir, "*.db"))
-    return sorted(p for p in db_files if os.path.basename(p) not in excluded)
+    return sorted(glob.glob(os.path.join(_db_dir, "[0-9][0-9][0-9][0-9].db")))
 
 def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
     """Execute a SELECT query across all database partitions sequentially
@@ -558,8 +548,6 @@ def optimize_fts_all(db_dir: str) -> None:
             pass
         finally:
             conn.close()
-
-
 
 
 def optimize_fts() -> None:

@@ -287,13 +287,23 @@ jobs:
         with:
           pattern: coverage-*
           merge-multiple: true
-      - name: Combine coverage
+      - name: Check for coverage data
+        id: coverage_data
         if: github.event_name == 'pull_request'
+        run: |
+          if ls .coverage.* >/dev/null 2>&1; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            echo "No coverage data found; all test jobs were skipped."
+          fi
+      - name: Combine coverage
+        if: github.event_name == 'pull_request' && steps.coverage_data.outputs.found == 'true'
         run: |
           uv run coverage combine .coverage.*
           uv run coverage xml -o coverage.xml
       - name: Post Coverage Comment
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && steps.coverage_data.outputs.found == 'true'
         uses: orgoro/coverage@v3.2
         with:
           coverageFile: coverage.xml

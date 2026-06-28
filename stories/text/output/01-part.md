@@ -25,7 +25,7 @@ Levi and Ewan are having a final, passionate, and hurried sexual encounter in th
 #### TRANSCRIPT
 Levi: [adoration] He was tearing up my insides, and I was loving every minute of it!
 Levi: My boyfriend, Ewan, was not taking any mercy on me.
-Levi: My ass-up on the bed with my head buried in a strange set of pillows that smelled of industrial cleaner.
+Levi: I was ass-up on the bed with my head buried in a strange set of pillows that smelled of industrial cleaner.
 Ewan: [pant] "Don't fucking move, Levi. I'm so close. We've got to finish before they arrive."
 Levi: [gasp] "Oh God, yes!"
 Ewan: [chuckles] "God is not here, baby," [short pause] "but I'll make you see Heaven."

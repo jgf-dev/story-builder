@@ -22,13 +22,10 @@ You are an expert audio director. Rewrite the provided TTS prompt text to fix th
 5) Output the exact same markdown structure, only fixing the text. Do not add any conversational text or markdown code block markers around the output (like ```markdown), just output the raw markdown text.
 """
 
-
 def extract_markdown_block(content: str) -> str:
     content = content.strip()
     # Match ```markdown ... ``` or ``` ... ```
-    match = re.match(
-        r"^```(?:markdown)?\s*\n(.*?)\n```$", content, re.DOTALL | re.IGNORECASE
-    )
+    match = re.match(r"^```(?:markdown)?\s*\n(.*?)\n```$", content, re.DOTALL | re.IGNORECASE)
     if match:
         return match.group(1).strip()
     # Match any generic block at start and end
@@ -44,7 +41,6 @@ def extract_markdown_block(content: str) -> str:
             lines = lines[:-1]
         return "\n".join(lines).strip()
     return content
-
 
 def fix_prompts(directory):
     files = sorted(glob.glob(os.path.join(directory, "*-part.md")))
@@ -86,26 +82,20 @@ def fix_prompts(directory):
                             threshold=types.HarmBlockThreshold.BLOCK_NONE,
                         ),
                     ]
-                ),
+                )
             )
             fixed_content = extract_markdown_block(response.text)
 
             with open(md_file, "w") as f:
                 f.write(fixed_content)
 
-            print("  Fixed and saved.")
+            print(f"  Fixed and saved.")
         except Exception as e:
             print(f"  Error processing {os.path.basename(md_file)}: {e}")
 
-
 if __name__ == "__main__":
     import argparse
-
     parser = argparse.ArgumentParser(description="Fix TTS prompt files.")
-    parser.add_argument(
-        "--dir",
-        default="stories/the_secret_vacation_prompts",
-        help="Directory containing the *-part.md files",
-    )
+    parser.add_argument("--dir", default="stories/the_secret_vacation_prompts", help="Directory containing the *-part.md files")
     args = parser.parse_args()
     fix_prompts(args.dir)

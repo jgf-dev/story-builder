@@ -1,0 +1,33 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+name: Linear sync or create
+on: pull_request
+
+permissions:
+  pull-requests: write
+  issues: write
+
+jobs:
+  dependabot:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Find or Create Linear Issue and Prefix PR
+        # You may pin to the exact commit or the version.
+        # uses: ctriolo/action-find-or-create-linear-issue@77a2fd8d3b1bedc97fe8c91144b421baba91f4c2
+        uses: ctriolo/action-find-or-create-linear-issue@v0.60
+        with:
+          # Linear API key generated from https://linear.app/settings/api
+          linear-api-key: ${{secrets.LINEAR_API_KEY}}
+          # Team key (e.g. ENG) for the Linear issue to create.
+          linear-team-key: PRO
+          # Team state ID for the created Linear issue.
+          #linear-created-issue-state-id: # optional
+          # Title prefix for the created Linear issue.
+          linear-created-issue-title-prefix: GIT-
+          # Comma deliminated label ids
+          #linear-issue-label-ids: # optional
+          # GitHub token required to modify the PR title.
+          github-token: "${{ secrets.GITHUB_TOKEN }}"

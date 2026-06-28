@@ -66,6 +66,7 @@ def _query_all(*args, **kwargs):
 
 
 
+
 def _resolve_connection(args) -> "tuple[sqlite3.Connection, list[str] | None]":
     """Resolve connection from args, supporting both --db and --db-dir.
 
@@ -88,6 +89,7 @@ def _resolve_connection(args) -> "tuple[sqlite3.Connection, list[str] | None]":
 
 def cmd_search(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None):
     """Full-text search across titles, authors, and content."""
+
     conditions = ["stories_fts MATCH ?"]
     params = [args.query]
 

@@ -28,4 +28,4 @@ Levi: Okay, I guess.
 Levi: You want to come with me?
 Ewan: No, this feels like a brother thing.
 Ewan: Just be there for him, babe.
-Ewan: [affectionate] Ewan gave me a quick kiss and then turned and disappeared into our bedroom before closing the door.
+Levi: Ewan gave me a quick kiss and then turned and disappeared into our bedroom before closing the door.

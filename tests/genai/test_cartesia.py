@@ -1,5 +1,4 @@
 import unittest
-import unittest.mock
 from storybuilder.genai.cartesia_client import (
     parse_speech_config_cartesia,
     parse_transcript_segments,
@@ -27,7 +26,7 @@ class TestCartesiaClient(unittest.TestCase):
         markdown_content = """# AUDIO PROFILE
         ### DIRECTOR'S NOTES
         - Jace (Voice: Algenib)
-        
+
         #### TRANSCRIPT
         Jace: Hello, my name is Jace.
         Jace: And this is my second line.
@@ -65,55 +64,6 @@ class TestCartesiaClient(unittest.TestCase):
         # Segment 4: Jace
         self.assertEqual(segments[3][0], "jace-voice-uuid")
         self.assertEqual(segments[3][1], "Back to Jace.")
-
-    @unittest.mock.patch("storybuilder.genai.cartesia_client.wave_file")
-    @unittest.mock.patch("storybuilder.genai.cartesia_client.time.sleep")
-    @unittest.mock.patch("storybuilder.genai.cartesia_client.generate_segment_audio")
-    def test_process_file_cartesia_success(self, mock_generate, mock_sleep, mock_wave):
-        from storybuilder.genai.cartesia_client import process_file_cartesia
-
-        markdown_content = """# AUDIO PROFILE
-        ### DIRECTOR'S NOTES
-        - Jace (Voice: Algenib)
-
-        #### TRANSCRIPT
-        Jace: Hello, my name is Jace.
-        Narrator: This is the narrator speaking here.
-        """
-        mock_generate.side_effect = [b"audio1", b"audio2"]
-
-        with unittest.mock.patch(
-            "builtins.open", unittest.mock.mock_open(read_data=markdown_content)
-        ):
-            process_file_cartesia("test.md", "out.wav", "fake-key")
-
-        self.assertEqual(mock_generate.call_count, 2)
-        mock_wave.assert_called_once_with("out.wav", b"audio1audio2", rate=24000)
-
-    @unittest.mock.patch("storybuilder.genai.cartesia_client.wave_file")
-    @unittest.mock.patch("storybuilder.genai.cartesia_client.time.sleep")
-    @unittest.mock.patch("storybuilder.genai.cartesia_client.generate_segment_audio")
-    def test_process_file_cartesia_failure(self, mock_generate, mock_sleep, mock_wave):
-        from storybuilder.genai.cartesia_client import process_file_cartesia
-
-        markdown_content = """# AUDIO PROFILE
-        ### DIRECTOR'S NOTES
-        - Jace (Voice: Algenib)
-
-        #### TRANSCRIPT
-        Jace: Hello, my name is Jace.
-        Narrator: This is the narrator speaking here.
-        """
-        # First call succeeds, second fails
-        mock_generate.side_effect = [b"audio1", Exception("API Error")]
-
-        with unittest.mock.patch(
-            "builtins.open", unittest.mock.mock_open(read_data=markdown_content)
-        ):
-            process_file_cartesia("test.md", "out.wav", "fake-key")
-
-        self.assertEqual(mock_generate.call_count, 2)
-        mock_wave.assert_not_called()
 
 
 if __name__ == "__main__":

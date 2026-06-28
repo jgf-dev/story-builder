@@ -347,15 +347,18 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
     if db_paths:
         from storybuilder.downloader import db as storybuilder_db
 
-        # Expected optimization impact: Resolving stats across M year partitions
-        # O(3 * M) individual DB queries -> O(1 * M) using ATTACH DATABASE.
-        # Significantly improves the stats query time by combining COUNT and SUMs into a single pass.
-        rows = list(storybuilder_db.execute_all_partitions(
-            f"SELECT COUNT(*) as cnt, SUM(char_count) as chars, SUM(word_count) as words FROM {{table}} {where}", tuple(params)
-        ))
-        total = sum(r["cnt"] or 0 for r in rows)
-        total_chars = sum(r["chars"] or 0 for r in rows)
-        total_words = sum(r["words"] or 0 for r in rows)
+        # ⚡ Bolt Optimization: Combine related aggregations into a single query pass
+        # to avoid repeatedly executing ATTACH/DETACH across partitioned databases.
+        agg_rows = storybuilder_db.execute_all_partitions(
+            f"SELECT COUNT(*), SUM(char_count), SUM(word_count) FROM {{table}} {where}", tuple(params)
+        )
+        total = 0
+        total_chars = 0
+        total_words = 0
+        for row in agg_rows:
+            total += row["COUNT(*)"] or 0
+            total_chars += row["SUM(char_count)"] or 0
+            total_words += row["SUM(word_count)"] or 0
     else:
         total = conn.execute(
             f"SELECT COUNT(*) FROM stories {where}", params

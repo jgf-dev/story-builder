@@ -12,7 +12,7 @@ class TestParseSpeechConfigSplit(unittest.TestCase):
         * John (Voice: VoiceA)
         - Jane (Voice: VoiceB)
         """
-        mappings = _parse_voice_mappings(preamble)
+        mappings, _ = _parse_voice_mappings(preamble)
         self.assertEqual(mappings, {"John": "VoiceA", "Jane": "VoiceB"})
 
     def test_extract_active_speakers(self):

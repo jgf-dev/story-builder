@@ -172,9 +172,7 @@ def generate_segment_audio(api_key, text, voice_id, rate=24000):
                 return response.content
             elif response.status_code == 429:
                 wait_time = 10 * (attempt + 1)
-                print(
-                    f"  Cartesia Rate Limit (429). Retrying in {wait_time}s... ({attempt + 1}/{max_retries})"
-                )
+                print(f"  Cartesia Rate Limit (429). Retrying in {wait_time}s... ({attempt + 1}/{max_retries})")
                 time.sleep(wait_time)
             else:
                 print(f"  Cartesia error {response.status_code}: {response.text}")
@@ -214,9 +212,7 @@ def process_file_cartesia(md_file, wav_file, api_key, rate=24000):
     success = True
 
     for idx, (voice_id, text) in enumerate(segments):
-        print(
-            f"  Synthesizing segment {idx + 1}/{len(segments)} (Voice ID: {voice_id[:8]}...): {text[:40]}..."
-        )
+        print(f"  Synthesizing segment {idx + 1}/{len(segments)} (Voice ID: {voice_id[:8]}...): {text[:40]}...")
         try:
             segment_pcm = generate_segment_audio(api_key, text, voice_id, rate=rate)
             accumulated_pcm += segment_pcm
@@ -256,9 +252,7 @@ def process_directory_cartesia(directory, rate=24000):
 
         # Check if already generated
         if os.path.exists(wav_file):
-            print(
-                f"Skipping {os.path.basename(md_file)}, {os.path.basename(wav_file)} already exists."
-            )
+            print(f"Skipping {os.path.basename(md_file)}, {os.path.basename(wav_file)} already exists.")
             continue
 
         process_file_cartesia(md_file, wav_file, api_key, rate=rate)
@@ -267,20 +261,9 @@ def process_directory_cartesia(directory, rate=24000):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Process TTS prompt files using Cartesia API."
-    )
-    parser.add_argument(
-        "--dir",
-        default="stories/the_secret_vacation",
-        help="Directory containing the *-part.md files",
-    )
-    parser.add_argument(
-        "--rate",
-        type=int,
-        default=24000,
-        help="Audio output sample rate (default 24000)",
-    )
+    parser = argparse.ArgumentParser(description="Process TTS prompt files using Cartesia API.")
+    parser.add_argument("--dir", default="stories/the_secret_vacation", help="Directory containing the *-part.md files")
+    parser.add_argument("--rate", type=int, default=24000, help="Audio output sample rate (default 24000)")
     args = parser.parse_args()
 
     if os.path.isdir(args.dir):

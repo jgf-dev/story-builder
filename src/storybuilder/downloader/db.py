@@ -571,8 +571,8 @@ def optimize_fts() -> None:
             try:
                 conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
                 conn.commit()
-            except sqlite3.OperationalError:
-                pass
+            except sqlite3.OperationalError as exc:
+                logger.debug("FTS optimize skipped for database %s: %s", db_file, exc)
             finally:
                 conn.close()
     else:
@@ -580,8 +580,8 @@ def optimize_fts() -> None:
             try:
                 conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
                 conn.commit()
-            except sqlite3.OperationalError:
-                pass
+            except sqlite3.OperationalError as exc:
+                logger.debug("FTS optimize skipped for an active connection: %s", exc)
 
 
 def close_db() -> None:

@@ -211,7 +211,8 @@ class TestExtractEntities(unittest.TestCase):
 
         # Capture print output
         with patch('builtins.print') as mock_print:
-            main()
+            with self.assertRaises(SystemExit):
+                main()
 
         mock_print.assert_any_call("Model 'en_core_web_sm' not found. Please run: python -m spacy download en_core_web_sm")
 

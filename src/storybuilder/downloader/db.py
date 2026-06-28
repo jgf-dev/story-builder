@@ -546,8 +546,9 @@ def optimize_fts_all(db_dir: str) -> None:
             conn = sqlite3.connect(db_path, check_same_thread=False)
             conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
             conn.commit()
-        except sqlite3.OperationalError:
-            # Best-effort optimization: skip databases that do not support FTS optimize.
+        except sqlite3.DatabaseError:
+            # Best-effort optimization: skip databases that do not support FTS
+            # optimize or that are unreadable/corrupted.
             continue
         finally:
             if conn:

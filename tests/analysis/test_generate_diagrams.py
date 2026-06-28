@@ -50,7 +50,7 @@ from sub2.module_b import Helper
 class Processor:
     name: str = "processor"
     value: int
-
+    
     def process_data(self):
         helper = Helper()
         helper.do_something()

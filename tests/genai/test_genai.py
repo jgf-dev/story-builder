@@ -141,6 +141,41 @@ class TestGenAIClient(unittest.TestCase):
             content = "```\nfallback content\n```"
             self.assertEqual(extract_markdown_block(content), "fallback content")
 
+    def test_extract_markdown_block_v2(self):
+        from unittest.mock import patch
+
+        # We patch Client and sys.exit to allow importing fix_prompts safely
+        with (
+            patch("google.genai.Client"),
+            patch("os.getenv", return_value="fake_key"),
+            patch("sys.exit"),
+        ):
+            from storybuilder.genai.fix_prompts2 import extract_markdown_block
+
+            # 1. With markdown block
+            content = "```markdown\nhello world\n```"
+            self.assertEqual(extract_markdown_block(content), "hello world")
+
+            # 2. With generic code block
+            content = '```json\n{"a": 1}\n```'
+            self.assertEqual(extract_markdown_block(content), '{"a": 1}')
+
+            # 3. Without block
+            content = "just raw text"
+            self.assertEqual(extract_markdown_block(content), "just raw text")
+
+            # 4. Fallback code block cleanup
+            content = "```\nfallback content\n```"
+            self.assertEqual(extract_markdown_block(content), "fallback content")
+
+            # 5. Extract markdown block ignoring extra whitespaces around block markers
+            content = " ```markdown \nhello space\n ``` "
+            self.assertEqual(extract_markdown_block(content), "hello space")
+
+            # 6. Fallback code block cleanup with missing end marker but starting with ```
+            content = "```\nmissing end marker"
+            self.assertEqual(extract_markdown_block(content), "missing end marker")
+
 
 if __name__ == "__main__":
     unittest.main()

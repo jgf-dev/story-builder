@@ -116,27 +116,43 @@ def migrate_legacy_schema(conn: sqlite3.Connection) -> bool:
     if not copy_columns:
         return False
 
-    with conn:
-        conn.executescript(
-            """
-            DROP TRIGGER IF EXISTS stories_ai;
-            DROP TRIGGER IF EXISTS stories_ad;
-            DROP TRIGGER IF EXISTS stories_au;
-            DROP TABLE IF EXISTS stories_fts;
-            """
-        )
-        conn.execute("ALTER TABLE stories RENAME TO stories_legacy")
-        conn.executescript(SCHEMA)
+    # Rebuild the table in two phases. executescript() (used for the trigger
+    # DDL, which Python's sqlite3 cannot run via a single execute()) implicitly
+    # commits, so we cannot wrap the whole migration in one transaction. Instead
+    # we order the work so the legacy data is only destroyed after it has been
+    # safely copied: if any step fails before DROP TABLE stories_legacy, the
+    # original rows remain in stories_legacy and a re-run can recover them.
+    #
+    # Phase 1: drop the old triggers/FTS, rename the table out of the way, and
+    # recreate the table + triggers + FTS with the new schema.
+    conn.executescript(
+        """
+        DROP TRIGGER IF EXISTS stories_ai;
+        DROP TRIGGER IF EXISTS stories_ad;
+        DROP TRIGGER IF EXISTS stories_au;
+        DROP TABLE IF EXISTS stories_fts;
+        """
+    )
+    conn.execute("ALTER TABLE stories RENAME TO stories_legacy")
+    conn.executescript(SCHEMA)
 
-        cols_sql = ", ".join(copy_columns)
+    # Phase 2: copy the data and drop the legacy table atomically. If the copy
+    # fails, the rollback leaves stories_legacy intact for a retry.
+    cols_sql = ", ".join(copy_columns)
+    try:
+        conn.execute("BEGIN")
         conn.execute(f"INSERT INTO stories ({cols_sql}) SELECT {cols_sql} FROM stories_legacy")
         conn.execute("DROP TABLE stories_legacy")
         try:
             conn.execute("DELETE FROM sqlite_sequence WHERE name = 'stories'")
         except sqlite3.OperationalError:
             pass  # sqlite_sequence only exists if AUTOINCREMENT was used
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
 
-        conn.executescript(INDEXES)
+    conn.executescript(INDEXES)
 
     return True
 

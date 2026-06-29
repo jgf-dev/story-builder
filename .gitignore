@@ -36,6 +36,6 @@ benchmark.db
 .switchboard/airlock/20260626-1443-bundle-part-4.docx
 .switchboard/airlock/20260626-1443-how_to_plan.md
 .switchboard/airlock/20260626-1443-manifest.md
-.kanban.db
+.switchboard/kanban.db
 .switchboard/state.json
 .switchboard/workspace-id

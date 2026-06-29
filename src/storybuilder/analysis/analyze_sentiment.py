@@ -1,7 +1,9 @@
 import argparse
 import sqlite3
+import re
 from collections import defaultdict
 from pathlib import Path
+
 
 import spacy
 from thinc.api import require_gpu, set_gpu_allocator

@@ -1,5 +1,3 @@
-import concurrent.futures
-
 """
 Database layer for story storage -- shared by the downloader (live insert) and
 the batch import script.
@@ -8,6 +6,7 @@ Thread-safe: uses WAL mode + a write lock.  Call init_db() once at startup,
 then insert_story() from any thread.
 """
 
+import concurrent.futures
 import os
 import re
 import sqlite3
@@ -297,9 +296,10 @@ def search_all_partitions(
         if not db_paths:
             return []
 
-    for db_path in db_paths:
+    def _search_single_db(db_path: "str | None") -> list[dict]:
         conn = None
         need_close = False
+        results = []
         try:
             if db_path is None:
                 conn = get_conn()
@@ -308,7 +308,7 @@ def search_all_partitions(
                 need_close = True
 
             if not conn:
-                continue
+                return results
 
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
@@ -349,13 +349,23 @@ def search_all_partitions(
                 query_params.append(limit)
 
             cursor.execute(sql, query_params)
-            all_results.extend([dict(r) for r in cursor.fetchall()])
+            results = [dict(r) for r in cursor.fetchall()]
 
         except sqlite3.Error as e:
             print(f"Error querying {db_path or 'monolithic db'}: {e}")
         finally:
             if need_close and conn:
                 conn.close()
+        return results
+
+    if db_paths:
+        if len(db_paths) == 1 and db_paths[0] is None:
+             # Monolithic DB: no need for thread pool
+             all_results.extend(_search_single_db(None))
+        else:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(db_paths), 10)) as executor:
+                for res in executor.map(_search_single_db, db_paths):
+                    all_results.extend(res)
 
     # Sort aggregated results
     if fts_query:

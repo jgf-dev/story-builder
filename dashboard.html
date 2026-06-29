@@ -135,6 +135,23 @@
       border-color: rgba(125, 211, 252, 0.35);
     }
 
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    button:disabled:hover {
+      transform: none;
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--border);
+    }
+
+    button.primary:disabled:hover {
+      background: linear-gradient(180deg, rgba(125, 211, 252, 0.18), rgba(125, 211, 252, 0.08));
+      border-color: rgba(125, 211, 252, 0.35);
+    }
+
     button.warn {
       background: linear-gradient(180deg, rgba(251, 191, 36, 0.16), rgba(251, 191, 36, 0.08));
       border-color: rgba(251, 191, 36, 0.32);
@@ -251,7 +268,7 @@
         <div class="toolbar">
           <input id="fileInput" class="sr-only" type="file" accept=".md,text/markdown,text/plain">
           <label class="file-label" for="fileInput">Load TASKS.md</label>
-          <button class="primary" id="saveBtn" title="Save (Ctrl+S / Cmd+S)" aria-keyshortcuts="Control+S Meta+S">Save</button>
+          <button class="primary" id="saveBtn" title="Save (Ctrl+S / Cmd+S)" aria-keyshortcuts="Control+S Meta+S" disabled>Save</button>
           <button id="downloadBtn">Download Copy</button>
           <button class="warn" id="resetBtn">Reset Template</button>
         </div>
@@ -310,6 +327,7 @@
     const waitingCount = document.getElementById('waitingCount');
     const somedayCount = document.getElementById('somedayCount');
     const doneCount = document.getElementById('doneCount');
+    const saveBtn = document.getElementById('saveBtn');
 
     let currentFileName = 'TASKS.md';
     let currentHandle = null;
@@ -318,6 +336,7 @@
     function setDirty(dirty) {
       if (isDirty === dirty) return;
       isDirty = dirty;
+      saveBtn.disabled = !isDirty;
       if (isDirty) {
         document.title = '* ' + document.title.replace(/^\*\s*/, '');
       } else {
@@ -369,7 +388,14 @@
       loadText(await file.text(), currentFileName);
     });
 
-    document.getElementById('saveBtn').addEventListener('click', async () => {
+    saveBtn.addEventListener('click', async () => {
+      if (!isDirty || saveBtn.disabled) return;
+
+      const originalText = saveBtn.textContent;
+      saveBtn.textContent = 'Saving...';
+      saveBtn.disabled = true;
+      document.body.style.cursor = 'wait';
+
       try {
         if (currentHandle && window.showSaveFilePicker) {
           await saveViaHandle(currentHandle, editor.value);
@@ -388,6 +414,10 @@
         setDirty(false);
       } catch (error) {
         setStatus(`Save failed: ${error.message}`);
+      } finally {
+        saveBtn.textContent = originalText;
+        saveBtn.disabled = !isDirty;
+        document.body.style.cursor = '';
       }
     });
 
@@ -426,7 +456,9 @@
     document.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        document.getElementById('saveBtn').click();
+        if (isDirty) {
+          saveBtn.click();
+        }
       }
     });
 

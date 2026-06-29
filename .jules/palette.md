@@ -4,3 +4,6 @@
 ## 2026-06-23 - Keyboard Shortcuts in Web Editors
 **Learning:** Users instinctively press Ctrl+S/Cmd+S to save work in web-based text editors. Failing to intercept this triggers the browser's native "Save Page As" dialog, which breaks the UX flow.
 **Action:** When building web-based editors or forms where users spend significant time typing, always intercept standard save shortcuts (Ctrl+S/Cmd+S), prevent default behavior, and trigger the application's save function. Add `aria-keyshortcuts` to the corresponding button for screen reader visibility.
+## 2024-06-29 - Save Button UX States
+**Learning:** Users lack confidence when a save button is always enabled or when clicking it doesn't provide immediate feedback during a slow, asynchronous operation like writing to a local file system.
+**Action:** When implementing save functionality, disable the save button visually (e.g., opacity, cursor) and functionally (prevent click/keyboard shortcuts) when there are no unsaved changes. Provide explicit loading states (e.g., "Saving...", wait cursor) during asynchronous operations to improve UX feedback.

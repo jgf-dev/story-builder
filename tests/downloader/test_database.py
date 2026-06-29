@@ -230,7 +230,6 @@ class TestDatabaseInit(unittest.TestCase):
                 author_email TEXT,
                 publication_date TEXT,
                 url TEXT,
-                email_date TEXT,
                 char_count INTEGER,
                 word_count INTEGER,
                 content TEXT,
@@ -262,9 +261,9 @@ class TestDatabaseInit(unittest.TestCase):
             INSERT INTO stories (
                 path, orientation, category, story_slug, chapter_num,
                 title, author_name, author_email,
-                publication_date, url, email_date,
+                publication_date, url,
                 char_count, word_count, content, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 "nifty_stories/gay/test/legacy.txt",
@@ -277,7 +276,6 @@ class TestDatabaseInit(unittest.TestCase):
                 "legacy@example.com",
                 "2024-01-15",
                 "https://example.com/legacy",
-                "2024-01-14",
                 123,
                 20,
                 "Legacy content here.",

@@ -1,4 +1,7 @@
-That sounds like a powerful creative suite. I've researched current trends in AI-assisted writing and high-fidelity audio production to propose three distinct directions for your app.
+
+# Interface styles
+
+I've researched current trends in AI-assisted writing and high-fidelity audio production to propose three distinct directions for your app.
 
 Here are three visual and functional directions we can explore:
 

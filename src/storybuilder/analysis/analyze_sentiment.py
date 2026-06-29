@@ -1,4 +1,5 @@
 import argparse
+import os
 import re
 import sqlite3
 from collections import defaultdict
@@ -116,10 +117,8 @@ def parse_args():
         help="HF Sentiment Model.",
     )
     parser.add_argument("--gpu", action="store_true", default=True, help="Use GPU.")
-    return parser.parse_args()
+    args = parser.parse_args()
 
-
-def find_multi_chapter_stories(stories_dir, subcategory):
     search_pattern = "*.txt"
     if subcategory:
         base_path = Path(stories_dir) / subcategory
@@ -141,7 +140,7 @@ def load_models(spacy_model_name, sentiment_model_name, use_gpu):
     print(f"Loading models (spaCy: {spacy_model_name}, HF: {sentiment_model_name})...")
     device = 0 if use_gpu else -1
 
-    if use_gpu:
+    if args.gpu:
         try:
             set_gpu_allocator("pytorch")
             require_gpu(0)
@@ -149,22 +148,22 @@ def load_models(spacy_model_name, sentiment_model_name, use_gpu):
         except Exception as e:
             print(f"Could not enable spaCy GPU: {e}")
 
-    nlp = spacy.load(spacy_model_name)
+    nlp = spacy.load(args.spacy_model)
     nlp.add_pipe("sentencizer")
 
     sentiment_pipe = pipeline(  # pyrefly: ignore [no-matching-overload]
         "sentiment-analysis",
-        model=sentiment_model_name,
+        model=args.sentiment_model,
         device=device,
         truncation=True,
         max_length=512,
     )
-    return nlp, sentiment_pipe
 
+    processed_stories = 0
 
-def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe):
-    with open(filepath, "r", encoding="utf-8") as f:
-        text = f.read()
+    for story_dir, filepaths in multi_stories.items():
+        if processed_stories >= args.limit_stories:
+            break
 
     text = re.sub(r"\s+", " ", text).strip()
     if not text:
@@ -224,15 +223,12 @@ def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe
                     INSERT INTO sentence_entities (sentence_id, entity_text, entity_label)
                     VALUES (?, ?, ?)
                 """,
-                    (sentence_id, ent.text, ent.label_),
+                    entity_batch,
                 )
 
+            conn.commit()
 
-def process_story(story_dir, filepaths, cursor, conn, nlp, sentiment_pipe):
-    cursor.execute("SELECT id FROM stories WHERE story_dir = ?", (story_dir,))
-    if cursor.fetchone():
-        print(f"Skipping already processed story: {story_dir}")
-        return False
+        processed_stories += 1
 
     print(f"\nProcessing Story: {story_dir} ({len(filepaths)} chapters)")
 
@@ -281,7 +277,6 @@ def main():
         was_processed = process_story(story_dir, filepaths, cursor, conn, nlp, sentiment_pipe)
         if was_processed:
             processed_stories += 1
-
     conn.close()
 
 

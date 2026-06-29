@@ -5,6 +5,7 @@ import glob
 import pandas as pd
 import plotly.express as px
 from pathlib import Path
+import html
 
 # Define paths
 DB_DIR = "stories/db"
@@ -465,20 +466,26 @@ if page == "🔍 Search & Explorer":
 
     for res in search_results:
         # Create a container for the card styling
+        safe_title = html.escape(res['title'] or '')
+        safe_author = html.escape(res['author_name'] or 'Unknown')
+        safe_category = html.escape(res['category'] or '')
+        safe_pub_date = html.escape(res['publication_date'] or 'Unknown')
+
         card_html = f"""
         <div class="story-card">
-            <h4>{html.escape(res["title"] or "Untitled")}</h4>
+            <h4>{safe_title}</h4>
             <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 8px;'>
-                <b>Author:</b> {html.escape(res["author_name"] or "Unknown")} |
-                <b>Category:</b> {html.escape(res["category"] or "Unknown")} |
-                <b>Published:</b> {html.escape(str(res["publication_date"] or "Unknown"))} |
-                <b>Words:</b> {res["word_count"]:,}
+                <b>Author:</b> {safe_author} |
+                <b>Category:</b> {safe_category} |
+                <b>Published:</b> {safe_pub_date} |
+                <b>Words:</b> {res['word_count']:,}
             </p>
         """
 
         # Display highlighted snippets if any
         if res.get("snippet"):
-            snippet_cleaned = res["snippet"].replace("___HIGHLIGHT_START___", "<span class='highlight'>").replace("___HIGHLIGHT_END___", "</span>")
+            snippet_escaped = html.escape(res["snippet"])
+            snippet_cleaned = snippet_escaped.replace("___HIGHLIGHT_START___", "<span class='highlight'>").replace("___HIGHLIGHT_END___", "</span>")
             card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
 
         card_html += "</div>"
@@ -668,13 +675,17 @@ elif page == "⭐ Favorites & Tags":
                 continue
 
             with st.container():
+                safe_fav_title = html.escape(f['title'] or '')
+                safe_fav_author = html.escape(f['author'] or 'Unknown')
+                safe_fav_tags = html.escape(f['tags'] or 'None')
+                safe_fav_notes = html.escape(f['notes'] or 'None')
                 st.markdown(
                      f"""
                     <div class='story-card'>
-                        <h4>{f['title']}</h4>
-                        <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 4px;'><b>Author:</b> {f['author'] or 'Unknown'}</p>
-                        <p style='font-size: 0.9rem;'><span class='highlight'>Tags:</span> {f['tags'] or 'None'}</p>
-                        <p style='font-size: 0.9rem; color: #cbd5e1;'><i>Notes:</i> {f['notes'] or 'None'}</p>
+                        <h4>{safe_fav_title}</h4>
+                        <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 4px;'><b>Author:</b> {safe_fav_author}</p>
+                        <p style='font-size: 0.9rem;'><span class='highlight'>Tags:</span> {safe_fav_tags}</p>
+                        <p style='font-size: 0.9rem; color: #cbd5e1;'><i>Notes:</i> {safe_fav_notes}</p>
                     </div>
                     """,
                     unsafe_allow_html=True,
@@ -708,7 +719,7 @@ elif page == "📊 Archive Stats":
     col_m1, col_m2, col_m3 = st.columns(3)
     col_m1.metric("Total Stories", f"{total_stories:,}")
     col_m2.metric("Total Archive Words", f"{total_words:,}")
-    col_m3.metric("Average Story Length", f"{total_words // total_stories:,} words")
+    col_m3.metric("Average Story Length", f"{total_words // total_stories if total_stories > 0 else 0:,} words")
 
     st.markdown("---")
 

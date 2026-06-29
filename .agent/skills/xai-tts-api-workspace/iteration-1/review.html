@@ -617,7 +617,7 @@
 
     <div class="nav" id="outputs-nav">
       <button class="nav-btn" id="prev-btn" onclick="navigate(-1)">&#8592; Previous</button>
-      <button class="done-btn" id="done-btn" onclick="showDoneDialog()" title="Submit All Reviews (Ctrl+S / Cmd+S)" aria-keyshortcuts="Control+S Meta+S">Submit All Reviews</button>
+      <button class="done-btn" id="done-btn" onclick="showDoneDialog()">Submit All Reviews</button>
       <button class="nav-btn" id="next-btn" onclick="navigate(1)">Next &#8594;</button>
     </div>
     </div><!-- end panel-outputs -->
@@ -1076,12 +1076,6 @@
 
     // ---- Keyboard nav ----
     document.addEventListener("keydown", (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
-        e.preventDefault();
-        showDoneDialog();
-        return;
-      }
-
       // Don't capture when typing in textarea
       if (e.target.tagName === "TEXTAREA") return;
 

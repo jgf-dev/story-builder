@@ -1,5 +1,3 @@
-"""Extract Named Entities from stories using spaCy."""
-
 import argparse
 import sqlite3
 import sys
@@ -49,8 +47,18 @@ def is_processed(cursor, filepath):
 def parse_args():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(description="Extract Named Entities from stories using spaCy.")
-    parser.add_argument("--limit", type=int, default=float("inf"), help="Maximum number of new files to process.")
-    parser.add_argument("--stories-dir", type=str, default="nifty_stories", help="Directory containing the text files.")
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=float("inf"),
+        help="Maximum number of new files to process.",
+    )
+    parser.add_argument(
+        "--stories-dir",
+        type=str,
+        default="nifty_stories",
+        help="Directory containing the text files.",
+    )
     parser.add_argument("--db-path", type=str, default=DB_PATH, help="Path to the SQLite database.")
     parser.add_argument("--force", action="store_true", help="Force reprocessing of all files.")
     parser.add_argument("--model", type=str, default="en_core_web_lg", help="spaCy model to use.")
@@ -145,10 +153,18 @@ def main():
     processed_count = 0
     pbar = tqdm(total=min(len(all_files), args.limit), desc="Processing files")
 
+    processed_filepaths = set()
+    if not args.force:
+        cursor.execute("SELECT filepath FROM stories")
+        processed_filepaths = set(row[0] for row in cursor.fetchall())
+
+    new_stories_to_insert = []
+    entities_by_filepath = {}
+
     for filepath in all_files:
         filepath_str = str(filepath)
 
-        if not args.force and is_processed(cursor, filepath_str):
+        if not args.force and filepath_str in processed_filepaths:
             continue
 
         try:
@@ -181,6 +197,42 @@ def main():
 
         except Exception as e:
             print(f"\nError processing {filepath_str}: {e}")
+
+    if new_stories_to_insert:
+        try:
+            cursor.executemany("INSERT INTO stories (filepath) VALUES (?)", new_stories_to_insert)
+
+            # Now we need to get the story IDs to insert entities.
+            # We can select the newly inserted stories.
+            # Since filepath is UNIQUE, we can query by filepath for all new stories.
+            filepaths_tuple = tuple(fp[0] for fp in new_stories_to_insert)
+
+            # Use chunks for sqlite limits
+            chunk_size = 900
+            story_id_map = {}
+            for i in range(0, len(filepaths_tuple), chunk_size):
+                chunk = filepaths_tuple[i : i + chunk_size]
+                placeholders = ",".join("?" for _ in chunk)
+                cursor.execute(f"SELECT id, filepath FROM stories WHERE filepath IN ({placeholders})", chunk)
+                for row in cursor.fetchall():
+                    story_id_map[row[1]] = row[0]
+
+            entity_records = []
+            for filepath_str, entities in entities_by_filepath.items():
+                story_id = story_id_map[filepath_str]
+                for (text, label), count in entities.items():
+                    entity_records.append((story_id, text, label, count))
+
+            cursor.executemany(
+                """
+                INSERT INTO entities (story_id, text, label, frequency)
+                VALUES (?, ?, ?, ?)
+                """,
+                entity_records,
+            )
+            conn.commit()
+        except Exception as e:
+            print(f"\nDatabase error during batch insert: {e}")
             conn.rollback()
 
     pbar.close()

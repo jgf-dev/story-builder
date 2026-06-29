@@ -471,22 +471,18 @@ if page == "🔍 Search & Explorer":
         # Create a container for the card styling
         card_html = f"""
         <div class="story-card">
-            <h4>{res["title"]}</h4>
+            <h4>{res['title']}</h4>
             <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 8px;'>
-                <b>Author:</b> {res["author_name"] or "Unknown"} |
-                <b>Category:</b> {res["category"]} |
-                <b>Published:</b> {res["publication_date"] or "Unknown"} |
-                <b>Words:</b> {res["word_count"]:,}
+                <b>Author:</b> {res['author_name'] or 'Unknown'} |
+                <b>Category:</b> {res['category']} |
+                <b>Published:</b> {res['publication_date'] or 'Unknown'} |
+                <b>Words:</b> {res['word_count']:,}
             </p>
         """
 
         # Display highlighted snippets if any
         if res.get("snippet"):
-            snippet_cleaned = (
-                res["snippet"]
-                .replace("___HIGHLIGHT_START___", "<span class='highlight'>")
-                .replace("___HIGHLIGHT_END___", "</span>")
-            )
+            snippet_cleaned = res["snippet"].replace("___HIGHLIGHT_START___", "<span class='highlight'>").replace("___HIGHLIGHT_END___", "</span>")
             card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
 
         card_html += "</div>"
@@ -680,10 +676,10 @@ elif page == "⭐ Favorites & Tags":
                 st.markdown(
                      f"""
                     <div class='story-card'>
-                        <h4>{f["title"]}</h4>
-                        <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 4px;'><b>Author:</b> {f["author"] or "Unknown"}</p>
-                        <p style='font-size: 0.9rem;'><span class='highlight'>Tags:</span> {f["tags"] or "None"}</p>
-                        <p style='font-size: 0.9rem; color: #cbd5e1;'><i>Notes:</i> {f["notes"] or "None"}</p>
+                        <h4>{f['title']}</h4>
+                        <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 4px;'><b>Author:</b> {f['author'] or 'Unknown'}</p>
+                        <p style='font-size: 0.9rem;'><span class='highlight'>Tags:</span> {f['tags'] or 'None'}</p>
+                        <p style='font-size: 0.9rem; color: #cbd5e1;'><i>Notes:</i> {f['notes'] or 'None'}</p>
                     </div>
                     """,
                     unsafe_allow_html=True,

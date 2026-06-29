@@ -1,15 +1,12 @@
-import unittest
-from unittest.mock import patch, MagicMock
+import os
 import sqlite3
 import tempfile
-import os
+import unittest
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
-from storybuilder.analysis.extract_entities import (
-    init_db,
-    is_processed,
-    main,
-)
+from storybuilder.analysis.extract_entities import init_db, is_processed, main
+
 
 class TestExtractEntities(unittest.TestCase):
     def setUp(self):
@@ -57,10 +54,10 @@ class TestExtractEntities(unittest.TestCase):
 
         conn.close()
 
-    @patch('argparse.ArgumentParser.parse_args')
-    @patch('spacy.load')
-    @patch('storybuilder.analysis.extract_entities.require_gpu')
-    @patch('storybuilder.analysis.extract_entities.set_gpu_allocator')
+    @patch("argparse.ArgumentParser.parse_args")
+    @patch("spacy.load")
+    @patch("storybuilder.analysis.extract_entities.require_gpu")
+    @patch("storybuilder.analysis.extract_entities.set_gpu_allocator")
     def test_main_happy_path(self, mock_set_gpu, mock_require_gpu, mock_spacy_load, mock_parse_args):
         # Setup mocks
         mock_args = MagicMock()
@@ -109,8 +106,8 @@ class TestExtractEntities(unittest.TestCase):
 
         conn.close()
 
-    @patch('argparse.ArgumentParser.parse_args')
-    @patch('spacy.load')
+    @patch("argparse.ArgumentParser.parse_args")
+    @patch("spacy.load")
     def test_main_skip_processed(self, mock_spacy_load, mock_parse_args):
         # Pre-populate db with the file
         test_file_path = str(Path(self.stories_dir.name) / "test1.txt")
@@ -143,8 +140,8 @@ class TestExtractEntities(unittest.TestCase):
         # nlp should not have been called because the file was skipped
         mock_nlp.assert_not_called()
 
-    @patch('argparse.ArgumentParser.parse_args')
-    @patch('spacy.load')
+    @patch("argparse.ArgumentParser.parse_args")
+    @patch("spacy.load")
     def test_main_force_reprocess(self, mock_spacy_load, mock_parse_args):
         # Pre-populate db with the file and an old entity
         test_file_path = str(Path(self.stories_dir.name) / "test1.txt")
@@ -196,8 +193,8 @@ class TestExtractEntities(unittest.TestCase):
 
         conn.close()
 
-    @patch('argparse.ArgumentParser.parse_args')
-    @patch('spacy.load')
+    @patch("argparse.ArgumentParser.parse_args")
+    @patch("spacy.load")
     def test_main_model_not_found(self, mock_spacy_load, mock_parse_args):
         # Setup mocks to raise OSError
         mock_args = MagicMock()
@@ -211,7 +208,7 @@ class TestExtractEntities(unittest.TestCase):
 
         # Capture print output
         # Capture print output
-        with patch('builtins.print') as mock_print:
+        with patch("builtins.print") as mock_print:
             with self.assertRaises(SystemExit) as cm:
                 main()
             self.assertEqual(cm.exception.code, 1)
@@ -219,11 +216,11 @@ class TestExtractEntities(unittest.TestCase):
         mock_print.assert_any_call("Model 'en_core_web_sm' not found.")
         mock_print.assert_any_call("Please run: python -m spacy download en_core_web_sm")
 
-    @patch('argparse.ArgumentParser.parse_args')
-    @patch('spacy.load')
-    @patch('storybuilder.analysis.extract_entities.require_gpu')
-    @patch('storybuilder.analysis.extract_entities.set_gpu_allocator')
-    @patch('spacy.require_gpu')
+    @patch("argparse.ArgumentParser.parse_args")
+    @patch("spacy.load")
+    @patch("storybuilder.analysis.extract_entities.require_gpu")
+    @patch("storybuilder.analysis.extract_entities.set_gpu_allocator")
+    @patch("spacy.require_gpu")
     def test_main_with_gpu(self, mock_spacy_require_gpu, mock_set_gpu, mock_require_gpu, mock_spacy_load, mock_parse_args):
         # Setup mocks
         mock_args = MagicMock()
@@ -232,7 +229,7 @@ class TestExtractEntities(unittest.TestCase):
         mock_args.limit = 10
         mock_args.force = False
         mock_args.model = "en_core_web_sm"
-        mock_args.gpu = True # GPU enabled
+        mock_args.gpu = True  # GPU enabled
         mock_parse_args.return_value = mock_args
 
         mock_nlp = MagicMock()
@@ -259,8 +256,8 @@ class TestExtractEntities(unittest.TestCase):
         mock_require_gpu.assert_called_with(0)
         mock_spacy_require_gpu.assert_called()
 
-    @patch('argparse.ArgumentParser.parse_args')
-    @patch('spacy.load')
+    @patch("argparse.ArgumentParser.parse_args")
+    @patch("spacy.load")
     def test_main_error_processing_file(self, mock_spacy_load, mock_parse_args):
         # Setup mocks
         mock_args = MagicMock()
@@ -283,7 +280,7 @@ class TestExtractEntities(unittest.TestCase):
             f.write("Text that causes an error.")
 
         # Capture print output
-        with patch('builtins.print') as mock_print:
+        with patch("builtins.print") as mock_print:
             main()
 
         # The file processing should fail gracefully and print an error message
@@ -305,5 +302,6 @@ class TestExtractEntities(unittest.TestCase):
 
         conn.close()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

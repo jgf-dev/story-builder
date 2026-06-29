@@ -212,6 +212,84 @@ class TestDatabaseInit(unittest.TestCase):
         finally:
             close_db()
 
+    def test_init_db_migrates_email_date_column(self):
+        from storybuilder.downloader.db import close_db, init_db
+
+        legacy_conn = sqlite3.connect(self.db_path)
+        legacy_conn.execute(
+            """
+            CREATE TABLE stories (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                path TEXT UNIQUE NOT NULL,
+                orientation TEXT,
+                category TEXT,
+                story_slug TEXT,
+                chapter_num INTEGER,
+                title TEXT,
+                author_name TEXT,
+                author_email TEXT,
+                publication_date TEXT,
+                url TEXT,
+                email_date TEXT,
+                char_count INTEGER,
+                word_count INTEGER,
+                content TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+        legacy_conn.execute(
+            """
+            INSERT INTO stories (
+                path, orientation, category, story_slug, chapter_num,
+                title, author_name, author_email,
+                publication_date, url, email_date,
+                char_count, word_count, content, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                "nifty_stories/gay/test/legacy.txt",
+                "gay",
+                "test",
+                "legacy",
+                1,
+                "Legacy Story",
+                "Legacy Author",
+                "legacy@example.com",
+                "2024-01-15",
+                "https://example.com/legacy",
+                "2024-01-14",
+                123,
+                20,
+                "Legacy content here.",
+                "2024-01-16 12:34:56",
+            ),
+        )
+        legacy_conn.commit()
+        legacy_conn.close()
+
+        conn = init_db(self.db_path)
+        conn.row_factory = sqlite3.Row
+        try:
+            cols = conn.execute("PRAGMA table_info(stories)").fetchall()
+            col_names = [c[1] for c in cols]
+            self.assertNotIn("email_date", col_names)
+            self.assertIn("created_at", col_names)
+
+            row = conn.execute("SELECT * FROM stories").fetchone()
+            self.assertIsNotNone(row)
+            self.assertEqual(row["path"], "nifty_stories/gay/test/legacy.txt")
+            self.assertEqual(row["title"], "Legacy Story")
+            self.assertEqual(row["publication_date"], "2024-01-15")
+            self.assertEqual(row["created_at"], "2024-01-16 12:34:56")
+
+            fts_count = conn.execute(
+                "SELECT COUNT(*) FROM stories_fts WHERE stories_fts MATCH 'legacy'"
+            ).fetchone()[0]
+            self.assertEqual(fts_count, 1)
+        finally:
+            close_db()
+
 
 class TestInsertStory(unittest.TestCase):
     """Tests for insert_story function."""
@@ -816,6 +894,108 @@ class TestDatabasePartitioning(unittest.TestCase):
         row2 = conn2.execute("SELECT COUNT(*) FROM stories_fts WHERE stories_fts MATCH 'Content'").fetchone()[0]
         self.assertEqual(row2, 1)
         conn2.close()
+
+class TestImportToSQLite(unittest.TestCase):
+    def _write_story_file(self, filename, content):
+        path = os.path.join(self.temp_dir, filename)
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(content)
+        return path
+
+    def setUp(self):
+        self.temp_dir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+    def test_parse_header_valid(self):
+        import import_to_sqlite
+        content = (
+            "================================================================================\n"
+            "Title: Test Story\n"
+            "Author: John Doe <john@example.com>\n"
+            "Publication Date: 2024-01-01\n"
+            "URL: http://example.com/story\n"
+            "================================================================================\n"
+            "\n"
+            "This is the body of the story.\n"
+            "It has multiple lines.\n"
+        )
+        path = self._write_story_file("valid.txt", content)
+        result = import_to_sqlite.parse_header(path)
+
+        self.assertIsNotNone(result)
+        self.assertEqual(result["title"], "Test Story")
+        self.assertEqual(result["author_name"], "John Doe")
+        self.assertEqual(result["author_email"], "john@example.com")
+        self.assertEqual(result["publication_date"], "2024-01-01")
+        self.assertEqual(result["url"], "http://example.com/story")
+        self.assertEqual(result["content"], "This is the body of the story.\nIt has multiple lines.")
+
+    def test_parse_header_missing_fields(self):
+        import import_to_sqlite
+        content = (
+            "================================================================================\n"
+            "Title: No Author Story\n"
+            "Publication Date: 2024-02-01\n"
+            "================================================================================\n"
+            "\n"
+            "Body content here."
+        )
+        path = self._write_story_file("missing.txt", content)
+        result = import_to_sqlite.parse_header(path)
+        self.assertIsNotNone(result)
+        self.assertEqual(result["title"], "No Author Story")
+        self.assertIsNone(result["author_name"])
+        self.assertIsNone(result["author_email"])
+        self.assertEqual(result["publication_date"], "2024-02-01")
+        self.assertEqual(result["content"], "Body content here.")
+
+    def test_parse_header_invalid_format(self):
+        import import_to_sqlite
+        # Missing the second divider
+        content = (
+            "================================================================================\n"
+            "Title: Bad Format\n"
+            "Author: Me\n"
+            "Some content that is not a header."
+        )
+        path = self._write_story_file("invalid.txt", content)
+        result = import_to_sqlite.parse_header(path)
+        self.assertIsNone(result)
+
+    def test_minimal_header(self):
+        import import_to_sqlite
+        content = (
+            "=" * 80 + "\n"
+            "Title: Minimal\n"
+            "Author: Min\n"
+            "Publication Date: 2024-01-01\n"
+            "URL: http://x.com\n"
+            + "=" * 80 + "\n\n"
+            + "body"
+        )
+        path = self._write_story_file("min.txt", content)
+        result = import_to_sqlite.parse_header(path)
+        self.assertIsNotNone(result)
+        self.assertEqual(result["title"], "Minimal")
+        self.assertEqual(result["content"], "body")
+
+    def test_empty_content(self):
+        import import_to_sqlite
+        content = (
+            "=" * 80 + "\n"
+            "Title: Empty\n"
+            "Author: Nobody\n"
+            "Publication Date: 2024-01-01\n"
+            "URL: http://x.com\n"
+            + "=" * 80 + "\n\n"
+        )
+        path = self._write_story_file("empty.txt", content)
+        result = import_to_sqlite.parse_header(path)
+        self.assertIsNotNone(result)
+        self.assertEqual(result["content"], "")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -118,7 +118,6 @@ if __name__ == "__main__":
 
 with open("src/storybuilder/analysis/visualize_tsne.py", "w") as f:
     f.write(new_code)
-import re
 
 new_code = """import argparse
 from typing import List, Tuple

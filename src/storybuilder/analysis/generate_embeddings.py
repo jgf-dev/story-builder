@@ -11,15 +11,39 @@ from tqdm import tqdm
 def get_chunks(text, chunk_size=200):
     """Splits text into chunks of approximately `chunk_size` words."""
     words = text.split()
-    return [" ".join(words[i: i + chunk_size]) for i in range(0, len(words), chunk_size)]
+    return [
+        " ".join(words[i : i + chunk_size]) for i in range(0, len(words), chunk_size)
+    ]
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Generate embeddings for stories and store in ChromaDB.")
-    parser.add_argument("--limit", type=int, default=float("inf"), help="Maximum number of files to process.")
-    parser.add_argument("--stories-dir", type=str, default="test_stories", help="Directory containing the text files.")
-    parser.add_argument("--db-path", type=str, default="./chroma_db", help="Path to the Chroma database.")
-    parser.add_argument("--model", type=str, default="all-MiniLM-L6-v2", help="SentenceTransformer model to use.")
+    parser = argparse.ArgumentParser(
+        description="Generate embeddings for stories and store in ChromaDB."
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=float("inf"),
+        help="Maximum number of files to process.",
+    )
+    parser.add_argument(
+        "--stories-dir",
+        type=str,
+        default="test_stories",
+        help="Directory containing the text files.",
+    )
+    parser.add_argument(
+        "--db-path",
+        type=str,
+        default="./chroma_db",
+        help="Path to the Chroma database.",
+    )
+    parser.add_argument(
+        "--model",
+        type=str,
+        default="all-MiniLM-L6-v2",
+        help="SentenceTransformer model to use.",
+    )
     return parser.parse_args()
 
 
@@ -27,13 +51,11 @@ def setup_collections(db_path):
     chroma_client = chromadb.PersistentClient(path=db_path)
 
     collection_chunks = chroma_client.get_or_create_collection(
-        name="story_chunks",
-        metadata={"hnsw:space": "cosine"}
+        name="story_chunks", metadata={"hnsw:space": "cosine"}
     )
 
     collection_averages = chroma_client.get_or_create_collection(
-        name="story_averages",
-        metadata={"hnsw:space": "cosine"}
+        name="story_averages", metadata={"hnsw:space": "cosine"}
     )
 
     return chroma_client, collection_chunks, collection_averages

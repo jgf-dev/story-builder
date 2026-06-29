@@ -25,6 +25,8 @@ from google.adk.telemetry.setup import maybe_set_otel_providers
 from google.genai import Client, types
 from pydantic import BaseModel, Field
 from pydantic.types import NonNegativeInt
+from opentelemetry import _logs, metrics, trace
+from opentelemetry._logs._internal import ProxyLoggerProvider
 
 from .prompts import get_prompt
 from .tools import list_stories, read_story, split_scene_files, write_scene_file
@@ -47,7 +49,25 @@ os.environ["OTEL_EXPORTER_OTLP_METRICS_ENDPOINT"] = "http://localhost:4318/v1/me
 os.environ["OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"] = "http://localhost:4318/v1/traces"
 os.environ["OTEL_SERVICE_NAME"] = "story-builder"
 
-maybe_set_otel_providers()
+
+def _otel_providers_are_default() -> bool:
+    """Avoid re-registering providers when another integration already did."""
+
+    return (
+        isinstance(trace.get_tracer_provider(), trace.ProxyTracerProvider)
+        and isinstance(metrics.get_meter_provider(), metrics._internal._ProxyMeterProvider)
+        and isinstance(_logs.get_logger_provider(), ProxyLoggerProvider)
+    )
+
+
+if _otel_providers_are_default():
+    maybe_set_otel_providers()
+
+logger = logging.getLogger(__name__)
+
+
+logger = logging.getLogger(__name__)
+
 
 logger = logging.getLogger(__name__)
 

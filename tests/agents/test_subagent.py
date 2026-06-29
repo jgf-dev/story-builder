@@ -8,7 +8,7 @@ from google.genai import types
 
 class TestSubagent(unittest.TestCase):
     def test_analyzer_direct(self):
-        project_root = Path(__file__).resolve().parents[1]
+        project_root = Path(__file__).resolve().parents[2]
         load_dotenv(project_root / ".env")
 
         if not os.getenv("GEMINI_API_KEY") and not os.getenv(

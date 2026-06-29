@@ -21,18 +21,11 @@ class TestKeys(unittest.TestCase):
             self.assertIsNotNone(response.text)
             self.assertGreater(len(response.text), 0)
         except Exception as e:
-<<<<<<< HEAD:tests/test_keys.py
             if (
                 "quota" in str(e).lower()
                 or "permission" in str(e).lower()
                 or "unauthenticated" in str(e).lower()
-                or "resource_exhausted" in str(e).lower()
-                or "resource exhausted" in str(e).lower()
-                or "429" in str(e).lower()
             ):
-=======
-            if "quota" in str(e).lower() or "permission" in str(e).lower() or "unauthenticated" in str(e).lower():
->>>>>>> main:tests/misc/test_keys.py
                 self.skipTest(f"Skipped due to API/auth issue: {e}")
             else:
                 self.fail(f"Vertex AI Client test failed: {e}")

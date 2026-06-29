@@ -1,5 +1,6 @@
 import concurrent.futures
 
+
 """
 Database layer for story storage -- shared by the downloader (live insert) and
 the batch import script.
@@ -587,10 +588,11 @@ def optimize_fts() -> None:
                 need_close = True
                 conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
                 conn.commit()
-        except sqlite3.OperationalError:
+        except sqlite3.OperationalError as e:
             # Best-effort maintenance operation: ignore per-connection optimize
             # failures so search optimization does not interrupt normal writes.
-            pass
+            # FTS may be unavailable or busy, so do not fail callers.
+            print(f"FTS optimize skipped due to OperationalError: {e}")
         finally:
             if need_close and conn:
                 conn.close()

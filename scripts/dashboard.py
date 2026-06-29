@@ -27,14 +27,14 @@ st.markdown(
         .reportview-container {
             background: #0b1020;
         }
-        
+
         /* Heading styles */
         h1, h2, h3 {
             font-family: 'Outfit', 'Inter', sans-serif;
             font-weight: 700;
             color: #e8eefc;
         }
-        
+
         /* Card styling */
         .story-card {
             background-color: rgba(22, 34, 64, 0.6);
@@ -50,7 +50,7 @@ st.markdown(
             background-color: rgba(22, 34, 64, 0.85);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
         }
-        
+
         /* Snippet highlight styling */
         .highlight {
             background-color: rgba(251, 191, 36, 0.25);
@@ -59,7 +59,7 @@ st.markdown(
             border-radius: 4px;
             font-weight: bold;
         }
-        
+
         /* Sidebar styling custom overrides */
         .css-1d391kg {
             background-color: #09101f;
@@ -133,7 +133,6 @@ def get_filter_options():
     for r in auth_results:
         if r.get("author_name"):
             authors.add(r["author_name"])
-
     return sorted(list(categories)), sorted(list(authors))
 
 
@@ -152,7 +151,6 @@ def load_archive_stats():
         "Long (20K-50K)": 0,
         "Epic (>50K)": 0,
     }
-
     for db in db_files:
         year_name = Path(db).stem
         try:
@@ -170,7 +168,6 @@ def load_archive_stats():
                         "Total Words": words or 0,
                     }
                 )
-
             # Categories summary
             cursor.execute("SELECT category, COUNT(*) FROM stories GROUP BY category")
             for cat, count in cursor.fetchall():
@@ -206,7 +203,6 @@ def load_archive_stats():
             for bracket, count in cursor.fetchall():
                 if bracket in bracket_counts:
                     bracket_counts[bracket] += count
-
             conn.close()
         except sqlite3.Error:
             pass
@@ -471,12 +467,12 @@ if page == "🔍 Search & Explorer":
         # Create a container for the card styling
         card_html = f"""
         <div class="story-card">
-            <h4>{res['title']}</h4>
+            <h4>{html.escape(res["title"] or "Untitled")}</h4>
             <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 8px;'>
-                <b>Author:</b> {res['author_name'] or 'Unknown'} |
-                <b>Category:</b> {res['category']} |
-                <b>Published:</b> {res['publication_date'] or 'Unknown'} |
-                <b>Words:</b> {res['word_count']:,}
+                <b>Author:</b> {html.escape(res["author_name"] or "Unknown")} |
+                <b>Category:</b> {html.escape(res["category"] or "Unknown")} |
+                <b>Published:</b> {html.escape(str(res["publication_date"] or "Unknown"))} |
+                <b>Words:</b> {res["word_count"]:,}
             </p>
         """
 
@@ -661,7 +657,6 @@ elif page == "⭐ Favorites & Tags":
                     )
                 finally:
                     conn.close()
-
         # Display favorites
         for f in favorites:
             # Filter by tag if needed
@@ -704,7 +699,6 @@ elif page == "📊 Archive Stats":
 
     with st.spinner("Compiling database metrics..."):
         df_years, df_cats, df_auths, df_words = load_archive_stats()
-
     st.markdown("---")
 
     # Overview metrics row

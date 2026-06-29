@@ -333,8 +333,9 @@ def optimize_fts() -> None:
         try:
             conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
             conn.commit()
-        except sqlite3.OperationalError:
-            pass
+        except sqlite3.OperationalError as e:
+            # Best-effort optimization: FTS may be unavailable or busy, so do not fail callers.
+            print(f"FTS optimize skipped due to OperationalError: {e}")
 
     if conns:
         # SQLite FTS optimize can be CPU/IO intensive.

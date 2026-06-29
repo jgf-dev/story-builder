@@ -6,6 +6,7 @@ import tempfile
 
 from storybuilder.analysis.generate_embeddings import get_chunks, main
 
+
 class TestGenerateEmbeddings(unittest.TestCase):
     def test_get_chunks(self):
         text = "This is a simple text that we want to split into smaller chunks"
@@ -19,18 +20,22 @@ class TestGenerateEmbeddings(unittest.TestCase):
         self.assertEqual(chunks[3], "split into smaller")
         self.assertEqual(chunks[4], "chunks")
 
-    @patch("storybuilder.analysis.generate_embeddings.argparse.ArgumentParser.parse_args")
+    @patch(
+        "storybuilder.analysis.generate_embeddings.argparse.ArgumentParser.parse_args"
+    )
     @patch("storybuilder.analysis.generate_embeddings.chromadb.PersistentClient")
     @patch("storybuilder.analysis.generate_embeddings.SentenceTransformer")
     @patch("storybuilder.analysis.generate_embeddings.Path.rglob")
-    def test_main(self, mock_rglob, mock_sentence_transformer, mock_chroma_client, mock_parse_args):
+    def test_main(
+        self, mock_rglob, mock_sentence_transformer, mock_chroma_client, mock_parse_args
+    ):
         # 1. Setup mocks
         # Mock CLI arguments
         args = argparse.Namespace(
             limit=2,
             stories_dir="test_stories",
             db_path="./test_chroma_db",
-            model="all-MiniLM-L6-v2"
+            model="all-MiniLM-L6-v2",
         )
         mock_parse_args.return_value = args
 
@@ -44,8 +49,10 @@ class TestGenerateEmbeddings(unittest.TestCase):
         def side_effect(name, metadata=None):
             if name == "story_chunks":
                 return mock_chunks_collection
-            elif name == "story_averages":
+            if name == "story_averages":
                 return mock_averages_collection
+            raise ValueError(f"Unexpected collection name requested: {name}")
+
         mock_client.get_or_create_collection.side_effect = side_effect
 
         # Mock that no existing averages are found to force processing
@@ -56,10 +63,13 @@ class TestGenerateEmbeddings(unittest.TestCase):
         mock_sentence_transformer.return_value = mock_model
         # Encode returns a dummy embedding vector for each chunk
         import numpy as np
+
         # Return a list of two dummy numpy array embeddings because our test file will be split into two chunks
         dummy_embedding_1 = np.array([0.1, 0.2, 0.3])
         dummy_embedding_2 = np.array([0.4, 0.5, 0.6])
-        mock_model.encode.return_value = np.array([dummy_embedding_1, dummy_embedding_2])
+        mock_model.encode.return_value = np.array(
+            [dummy_embedding_1, dummy_embedding_2]
+        )
 
         # Create a temporary test file to act as a story
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -81,8 +91,12 @@ class TestGenerateEmbeddings(unittest.TestCase):
             mock_sentence_transformer.assert_called_once()
 
             # Verify get_or_create_collection was called for both
-            mock_client.get_or_create_collection.assert_any_call(name="story_chunks", metadata={"hnsw:space": "cosine"})
-            mock_client.get_or_create_collection.assert_any_call(name="story_averages", metadata={"hnsw:space": "cosine"})
+            mock_client.get_or_create_collection.assert_any_call(
+                name="story_chunks", metadata={"hnsw:space": "cosine"}
+            )
+            mock_client.get_or_create_collection.assert_any_call(
+                name="story_averages", metadata={"hnsw:space": "cosine"}
+            )
 
             # Verify chunks collection add was called
             mock_chunks_collection.add.assert_called_once()
@@ -101,19 +115,25 @@ class TestGenerateEmbeddings(unittest.TestCase):
             kwargs_avg = mock_averages_collection.add.call_args[1]
             self.assertEqual(kwargs_avg["ids"], [str(temp_file_path)])
             self.assertEqual(kwargs_avg["documents"], [""])
-            self.assertEqual(kwargs_avg["metadatas"], [{"filepath": str(temp_file_path)}])
+            self.assertEqual(
+                kwargs_avg["metadatas"], [{"filepath": str(temp_file_path)}]
+            )
 
-    @patch("storybuilder.analysis.generate_embeddings.argparse.ArgumentParser.parse_args")
+    @patch(
+        "storybuilder.analysis.generate_embeddings.argparse.ArgumentParser.parse_args"
+    )
     @patch("storybuilder.analysis.generate_embeddings.chromadb.PersistentClient")
     @patch("storybuilder.analysis.generate_embeddings.SentenceTransformer")
     @patch("storybuilder.analysis.generate_embeddings.Path.rglob")
-    def test_main_skip_existing(self, mock_rglob, mock_sentence_transformer, mock_chroma_client, mock_parse_args):
+    def test_main_skip_existing(
+        self, mock_rglob, mock_sentence_transformer, mock_chroma_client, mock_parse_args
+    ):
         # Mock CLI arguments
         args = argparse.Namespace(
             limit=2,
             stories_dir="test_stories",
             db_path="./test_chroma_db",
-            model="all-MiniLM-L6-v2"
+            model="all-MiniLM-L6-v2",
         )
         mock_parse_args.return_value = args
 
@@ -128,6 +148,8 @@ class TestGenerateEmbeddings(unittest.TestCase):
                 return mock_chunks_collection
             elif name == "story_averages":
                 return mock_averages_collection
+            raise AssertionError(f"Unexpected collection name: {name}")
+
         mock_client.get_or_create_collection.side_effect = side_effect
 
         # Mock that an existing average is found
@@ -146,17 +168,21 @@ class TestGenerateEmbeddings(unittest.TestCase):
             mock_chunks_collection.add.assert_not_called()
             mock_averages_collection.add.assert_not_called()
 
-    @patch("storybuilder.analysis.generate_embeddings.argparse.ArgumentParser.parse_args")
+    @patch(
+        "storybuilder.analysis.generate_embeddings.argparse.ArgumentParser.parse_args"
+    )
     @patch("storybuilder.analysis.generate_embeddings.chromadb.PersistentClient")
     @patch("storybuilder.analysis.generate_embeddings.SentenceTransformer")
     @patch("storybuilder.analysis.generate_embeddings.Path.rglob")
-    def test_main_error_handling(self, mock_rglob, mock_sentence_transformer, mock_chroma_client, mock_parse_args):
+    def test_main_error_handling(
+        self, mock_rglob, mock_sentence_transformer, mock_chroma_client, mock_parse_args
+    ):
         # Mock CLI arguments
         args = argparse.Namespace(
             limit=2,
             stories_dir="test_stories",
             db_path="./test_chroma_db",
-            model="all-MiniLM-L6-v2"
+            model="all-MiniLM-L6-v2",
         )
         mock_parse_args.return_value = args
 
@@ -171,6 +197,8 @@ class TestGenerateEmbeddings(unittest.TestCase):
                 return mock_chunks_collection
             elif name == "story_averages":
                 return mock_averages_collection
+            return None
+
         mock_client.get_or_create_collection.side_effect = side_effect
 
         # no existing average
@@ -184,7 +212,9 @@ class TestGenerateEmbeddings(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_file_path = Path(temp_dir) / "test_story.txt"
             with open(temp_file_path, "w", encoding="utf-8") as f:
-                f.write("Some text that is long enough to be chunked into at least one chunk because chunk size is 250 in main, but actually we only need a single chunk")
+                f.write(
+                    "Some text that is long enough to be chunked into at least one chunk because chunk size is 250 in main, but actually we only need a single chunk"
+                )
 
             mock_rglob.return_value = [temp_file_path]
 
@@ -193,12 +223,15 @@ class TestGenerateEmbeddings(unittest.TestCase):
                 main()
 
                 # Verify error was caught and logged
-                error_logged = any("Error processing" in str(call) for call in mock_print.mock_calls)
+                error_logged = any(
+                    "Error processing" in str(call) for call in mock_print.mock_calls
+                )
                 self.assertTrue(error_logged)
 
             # verify no new embeddings are added due to the exception
             mock_chunks_collection.add.assert_not_called()
             mock_averages_collection.add.assert_not_called()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

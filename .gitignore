@@ -39,3 +39,5 @@ benchmark.db
 .switchboard/kanban.db
 .switchboard/state.json
 .switchboard/workspace-id
+test_dbs/
+.switchboard/

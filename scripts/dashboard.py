@@ -28,14 +28,14 @@ st.markdown(
         .reportview-container {
             background: #0b1020;
         }
-        
+
         /* Heading styles */
         h1, h2, h3 {
             font-family: 'Outfit', 'Inter', sans-serif;
             font-weight: 700;
             color: #e8eefc;
         }
-        
+
         /* Card styling */
         .story-card {
             background-color: rgba(22, 34, 64, 0.6);
@@ -51,7 +51,7 @@ st.markdown(
             background-color: rgba(22, 34, 64, 0.85);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
         }
-        
+
         /* Snippet highlight styling */
         .highlight {
             background-color: rgba(251, 191, 36, 0.25);
@@ -60,14 +60,14 @@ st.markdown(
             border-radius: 4px;
             font-weight: bold;
         }
-        
+
         /* Sidebar styling custom overrides */
         .css-1d391kg {
             background-color: #09101f;
         }
     </style>
     """,
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
 # ------------------------------------------------------------------------------
@@ -114,7 +114,7 @@ def get_filter_options():
     categories = set()
     authors = set()
     db_files = get_db_files()
-    
+
     for db in db_files:
         try:
             conn = sqlite3.connect(db)
@@ -122,15 +122,17 @@ def get_filter_options():
             # Get unique categories
             cursor.execute("SELECT DISTINCT category FROM stories")
             for r in cursor.fetchall():
-                if r[0]: categories.add(r[0])
+                if r[0]:
+                    categories.add(r[0])
             # Get unique authors
             cursor.execute("SELECT DISTINCT author_name FROM stories")
             for r in cursor.fetchall():
-                if r[0]: authors.add(r[0])
+                if r[0]:
+                    authors.add(r[0])
             conn.close()
         except sqlite3.Error:
             pass
-            
+
     return sorted(list(categories)), sorted(list(authors))
 
 @st.cache_data
@@ -141,13 +143,13 @@ def load_archive_stats():
     category_counts = {}
     author_counts = {}
     word_counts = []
-    
+
     for db in db_files:
         year_name = Path(db).stem
         try:
             conn = sqlite3.connect(db)
             cursor = conn.cursor()
-            
+
             # Year level summary
             cursor.execute("SELECT COUNT(*), SUM(word_count) FROM stories")
             cnt, words = cursor.fetchone()
@@ -157,31 +159,35 @@ def load_archive_stats():
                     "Stories Count": cnt,
                     "Total Words": words or 0
                 })
-                
+
             # Categories summary
             cursor.execute("SELECT category, COUNT(*) FROM stories GROUP BY category")
             for cat, count in cursor.fetchall():
                 if cat:
                     category_counts[cat] = category_counts.get(cat, 0) + count
-                    
+
             # Top authors
             cursor.execute("SELECT author_name, COUNT(*) FROM stories GROUP BY author_name")
             for auth, count in cursor.fetchall():
                 if auth:
                     author_counts[auth] = author_counts.get(auth, 0) + count
-                    
+
             # Word counts sample for distribution
             cursor.execute("SELECT word_count FROM stories")
             word_counts.extend([r[0] for r in cursor.fetchall()])
-            
+
             conn.close()
         except sqlite3.Error:
             pass
-            
+
     df_years = pd.DataFrame(year_stats)
-    df_cats = pd.DataFrame(list(category_counts.items()), columns=["Category", "Count"]).sort_values("Count", ascending=False)
-    df_auths = pd.DataFrame(list(author_counts.items()), columns=["Author", "Count"]).sort_values("Count", ascending=False)
-    
+    df_cats = pd.DataFrame(
+        list(category_counts.items()), columns=["Category", "Count"]
+    ).sort_values("Count", ascending=False)
+    df_auths = pd.DataFrame(
+        list(author_counts.items()), columns=["Author", "Count"]
+    ).sort_values("Count", ascending=False)
+
     return df_years, df_cats, df_auths, word_counts
 
 # ------------------------------------------------------------------------------
@@ -192,7 +198,7 @@ def query_stories(fts_query="", category="All", author="All", year_range=None, e
     """Perform queries across databases, combining FTS, standard metadata, and entity filters."""
     db_files = get_db_files()
     results = []
-    
+
     # 1. Filter by entity first if specified
     entity_suffixes = None
     if entity_text:
@@ -206,7 +212,7 @@ def query_stories(fts_query="", category="All", author="All", year_range=None, e
                 JOIN entities e ON s.id = e.story_id
                 WHERE e.text LIKE ? AND e.label = ?
                 """,
-                (f"%{entity_text}%", entity_label)
+                (f"%{entity_text}%", entity_label),
             )
             entity_suffixes = []
             for r in cursor.fetchall():
@@ -217,28 +223,28 @@ def query_stories(fts_query="", category="All", author="All", year_range=None, e
     # Process each partition database
     for db_path in db_files:
         db_year = int(Path(db_path).stem)
-        
+
         # Check year filter
         if year_range and not (year_range[0] <= db_year <= year_range[1]):
             continue
-            
+
         try:
             conn = sqlite3.connect(db_path)
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
-            
+
             conditions = ["1=1"]
             params = []
-            
+
             if category != "All":
                 conditions.append("s.category = ?")
                 params.append(category)
             if author != "All":
                 conditions.append("s.author_name = ?")
                 params.append(author)
-                
+
             where_clause = " AND ".join(conditions)
-            
+
             if fts_query:
                 # FTS Search query
                 sql = f"""
@@ -262,12 +268,12 @@ def query_stories(fts_query="", category="All", author="All", year_range=None, e
                     LIMIT ?
                 """
                 cursor.execute(sql, params + [limit])
-                
+
             rows = cursor.fetchall()
             for r in rows:
                 row_dict = dict(r)
                 row_dict["db_year"] = db_year
-                
+
                 # Check entity suffixes match if filter active
                 if entity_suffixes is not None:
                     matched_entity = False
@@ -277,28 +283,29 @@ def query_stories(fts_query="", category="All", author="All", year_range=None, e
                             break
                     if not matched_entity:
                         continue
-                        
+
                 results.append(row_dict)
-                
+
             conn.close()
         except sqlite3.Error:
             pass
-            
+
     # Sort final combined results
     if fts_query:
         # If FTS, we preserve ordering by partition rank or date desc
         results.sort(key=lambda x: (x.get("publication_date") or ""), reverse=True)
     else:
         results.sort(key=lambda x: (x.get("publication_date") or ""), reverse=True)
-        
+
     return results[:limit]
+
 
 def get_story_by_path(story_path, db_year):
     """Retrieve full text and details of a single story from its year partition db."""
     db_path = os.path.join(DB_DIR, f"{db_year}.db")
     if not os.path.exists(db_path):
         return None
-        
+
     try:
         conn = sqlite3.connect(db_path)
         conn.row_factory = sqlite3.Row
@@ -407,11 +414,13 @@ if "selected_story_year" not in st.session_state:
 if page == "🔍 Search & Explorer":
     st.title("🔍 Story Archive Explorer")
     st.write("Browse, search and filter the narrative archives.")
-    
-    fts_input = st.text_input("Full-Text Search (FTS5 syntax, e.g. vampire OR werewolf)", "")
-    
+
+    fts_input = st.text_input(
+        "Full-Text Search (FTS5 syntax, e.g. vampire OR werewolf)", ""
+    )
+
     st.markdown("---")
-    
+
     with st.spinner("Searching records..."):
         search_results = query_stories(
             fts_query=fts_input,
@@ -419,34 +428,34 @@ if page == "🔍 Search & Explorer":
             author=selected_author,
             year_range=year_range,
             entity_text=entity_text_input,
-            entity_label=entity_label_select
+            entity_label=entity_label_select,
         )
-        
+
     st.subheader(f"Found {len(search_results)} Result(s)")
-    
+
     for res in search_results:
         # Create a container for the card styling
         card_html = f"""
         <div class="story-card">
-            <h4>{html.escape(res['title'])}</h4>
+            <h4>{html.escape(res["title"] or "Untitled")}</h4>
             <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 8px;'>
-                <b>Author:</b> {html.escape(res['author_name'] or 'Unknown')} |
-                <b>Category:</b> {html.escape(res['category'] or 'Unknown')} |
-                <b>Published:</b> {html.escape(str(res['publication_date'] or 'Unknown'))} |
-                <b>Words:</b> {res['word_count']:,}
+                <b>Author:</b> {html.escape(res["author_name"] or "Unknown")} |
+                <b>Category:</b> {html.escape(res["category"] or "Unknown")} |
+                <b>Published:</b> {html.escape(str(res["publication_date"] or "Unknown"))} |
+                <b>Words:</b> {res["word_count"]:,}
             </p>
         """
-        
+
         # Display highlighted snippets if any
         if res.get("snippet"):
             # Escape the snippet first, then replace the placeholder highlight markers with actual HTML span tags
             snippet_escaped = html.escape(res["snippet"])
             snippet_cleaned = snippet_escaped.replace("___HIGHLIGHT_START___", "<span class='highlight'>").replace("___HIGHLIGHT_END___", "</span>")
             card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
-            
+
         card_html += "</div>"
         st.markdown(card_html, unsafe_allow_html=True)
-        
+
         # Action buttons on the card
         col1, col2 = st.columns([1, 8])
         with col1:
@@ -461,11 +470,15 @@ if page == "🔍 Search & Explorer":
 # -- PAGE 2: READ STORY --
 elif page == "📖 Read Story":
     st.title("📖 Story Reader")
-    
+
     if not st.session_state.selected_story_path:
-        st.warning("No story selected. Please go to 'Search & Explorer' first to pick a story.")
+        st.warning(
+            "No story selected. Please go to 'Search & Explorer' first to pick a story."
+        )
     else:
-        story = get_story_by_path(st.session_state.selected_story_path, st.session_state.selected_story_year)
+        story = get_story_by_path(
+            st.session_state.selected_story_path, st.session_state.selected_story_year
+        )
         if not story:
             st.error("Error loading story contents.")
         else:
@@ -474,17 +487,41 @@ elif page == "📖 Read Story":
             with col_title:
                 st.header(story["title"])
                 st.subheader(f"By {story['author_name'] or 'Unknown'}")
-            
+
             with col_actions:
                 # Check if already favorited
                 favorites = get_favorites()
                 is_fav = any(f["story_path"] == story["path"] for f in favorites)
-                
+
                 # Setup tag editor inside expanding drawer/expander
                 with st.expander("⭐ Favorites & Notes", expanded=is_fav):
-                    fav_tags = st.text_input("Tags (comma separated)", "favorite" if not is_fav else next((f["tags"] for f in favorites if f["story_path"] == story["path"]), ""))
-                    fav_notes = st.text_area("Notes", "" if not is_fav else next((f["notes"] or "" for f in favorites if f["story_path"] == story["path"]), ""))
-                    
+                    fav_tags = st.text_input(
+                        "Tags (comma separated)",
+                        "favorite"
+                        if not is_fav
+                        else next(
+                            (
+                                f["tags"]
+                                for f in favorites
+                                if f["story_path"] == story["path"]
+                            ),
+                            "",
+                        ),
+                    )
+                    fav_notes = st.text_area(
+                        "Notes",
+                        ""
+                        if not is_fav
+                        else next(
+                            (
+                                f["notes"] or ""
+                                for f in favorites
+                                if f["story_path"] == story["path"]
+                            ),
+                            "",
+                        ),
+                    )
+
                     if is_fav:
                         if st.button("Update Info"):
                             add_favorite(story["path"], story["title"], story["author_name"], fav_tags, fav_notes)
@@ -498,28 +535,28 @@ elif page == "📖 Read Story":
                             add_favorite(story["path"], story["title"], story["author_name"], fav_tags, fav_notes)
                             st.success("Added!")
                             st.rerun()
-                            
+
                 # Export to Markdown Button
-                md_content = f"""# {story['title']}
-**Author:** {story['author_name'] or 'Unknown'}
-**Category:** {story['category']}
-**Published:** {story['publication_date'] or 'Unknown'}
-**URL:** {story['url'] or 'N/A'}
+                md_content = f"""# {story["title"]}
+**Author:** {story["author_name"] or "Unknown"}
+**Category:** {story["category"]}
+**Published:** {story["publication_date"] or "Unknown"}
+**URL:** {story["url"] or "N/A"}
 
 ---
 
-{story['content']}
+{story["content"]}
 """
                 st.download_button(
                     label="📥 Export Markdown",
                     data=md_content,
                     file_name=f"{story['story_slug'] or 'story'}.md",
-                    mime="text/markdown"
+                    mime="text/markdown",
                 )
-                
+
             st.write(f"**Category:** `{story['category']}` | **Published:** `{story['publication_date'] or 'Unknown'}` | **Words:** `{story['word_count']:,}`")
             st.markdown("---")
-            
+
             # Story Content Display
             st.markdown(story["content"])
 
@@ -527,7 +564,7 @@ elif page == "📖 Read Story":
 elif page == "⭐ Favorites & Tags":
     st.title("⭐ Favorites & Tags")
     st.write("Browse and manage stories you have bookmarked.")
-    
+
     favorites = get_favorites()
     if not favorites:
         st.info("You haven't bookmarked any stories yet. Read a story and add it to favorites!")
@@ -538,12 +575,14 @@ elif page == "⭐ Favorites & Tags":
             if f["tags"]:
                 for t in f["tags"].split(","):
                     all_tags.add(t.strip())
-                    
+
         # Tag filter selector
-        filter_tag = st.selectbox("Filter Favorites by Tag", ["All"] + sorted(list(all_tags)))
-        
+        filter_tag = st.selectbox(
+            "Filter Favorites by Tag", ["All"] + sorted(list(all_tags))
+        )
+
         st.write("---")
-        
+
         # Display favorites
         for f in favorites:
             # Filter by tag if needed
@@ -553,7 +592,7 @@ elif page == "⭐ Favorites & Tags":
                     continue
             elif filter_tag != "All" and not f["tags"]:
                 continue
-                
+
             with st.container():
                 st.markdown(
                     f"""
@@ -580,7 +619,7 @@ elif page == "⭐ Favorites & Tags":
                             conn.close()
                             break
                         conn.close()
-                        
+
                     if st.button("Read", key=f"read_fav_{f['story_path']}"):
                         st.session_state.selected_story_path = f["story_path"]
                         st.session_state.selected_story_year = db_year
@@ -592,27 +631,35 @@ elif page == "⭐ Favorites & Tags":
 elif page == "📊 Archive Stats":
     st.title("📊 Archive Insights & Statistics")
     st.write("Detailed statistics and distributions for the entire story archive.")
-    
+
     with st.spinner("Compiling database metrics..."):
         df_years, df_cats, df_auths, word_counts = load_archive_stats()
-        
+
     st.markdown("---")
-    
+
     # Overview metrics row
     total_stories = df_years["Stories Count"].sum()
     total_words = df_years["Total Words"].sum()
-    
+
     col_m1, col_m2, col_m3 = st.columns(3)
     col_m1.metric("Total Stories", f"{total_stories:,}")
     col_m2.metric("Total Archive Words", f"{total_words:,}")
     col_m3.metric("Average Story Length", f"{total_words // total_stories:,} words")
-    
+
     st.markdown("---")
-    
+
     # 1. Timeline Chart
     st.subheader("📈 Publications Timeline (1990 - 2026)")
-    fig_line = px.line(df_years, x="Year", y="Stories Count", title="Story Publications Per Year", markers=True)
-    fig_line.update_layout(template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f")
+    fig_line = px.line(
+        df_years,
+        x="Year",
+        y="Stories Count",
+        title="Story Publications Per Year",
+        markers=True,
+    )
+    fig_line.update_layout(
+        template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f"
+    )
     st.plotly_chart(fig_line, use_container_width=True)
 
     # 2. Categories & Authors Charts
@@ -620,16 +667,27 @@ elif page == "📊 Archive Stats":
 
     with col_left:
         st.subheader("🏷️ Top 15 Categories")
-        fig_cat = px.bar(df_cats.head(15), x="Count", y="Category", orientation="h", title="Story Counts by Category")
-        fig_cat.update_layout(template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f", yaxis={'categoryorder':'total ascending'})
+        fig_cat = px.bar(
+            df_cats.head(15),
+            x="Count",
+            y="Category",
+            orientation="h",
+            title="Story Counts by Category",
+        )
+        fig_cat.update_layout(
+            template="plotly_dark",
+            plot_bgcolor="#09101f",
+            paper_bgcolor="#09101f",
+            yaxis={"categoryorder": "total ascending"},
+        )
         st.plotly_chart(fig_cat, use_container_width=True)
-        
+
     with col_right:
         st.subheader("✍️ Top 15 Authors")
         fig_auth = px.bar(df_auths.head(15), x="Count", y="Author", orientation="h", title="Story Counts by Author")
         fig_auth.update_layout(template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f", yaxis={'categoryorder':'total ascending'})
         st.plotly_chart(fig_auth, use_container_width=True)
-        
+
     # 3. Word Count Bracket Distribution
     st.subheader("📐 Story Length Distribution")
     word_bins = pd.cut(

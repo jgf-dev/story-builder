@@ -1,6 +1,7 @@
 with open("src/storybuilder/analysis/visualize_tsne.py", "r") as f:
     code = f.read()
 
+
 new_code = """import argparse
 from typing import List, Tuple
 

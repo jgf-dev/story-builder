@@ -1,6 +1,5 @@
 import argparse
 import os
-import re
 import sqlite3
 from collections import defaultdict
 from pathlib import Path
@@ -56,15 +55,9 @@ def init_db(db_path):
             FOREIGN KEY(sentence_id) REFERENCES sentences(id)
         )
     """)
-    cursor.execute(
-        "CREATE INDEX IF NOT EXISTS idx_sentences_story ON sentences(story_id)"
-    )
-    cursor.execute(
-        "CREATE INDEX IF NOT EXISTS idx_entities_sentence ON sentence_entities(sentence_id)"
-    )
-    cursor.execute(
-        "CREATE INDEX IF NOT EXISTS idx_entities_text ON sentence_entities(entity_text)"
-    )
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_sentences_story ON sentences(story_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_entities_sentence ON sentence_entities(sentence_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_entities_text ON sentence_entities(entity_text)")
 
     conn.commit()
     return conn
@@ -94,7 +87,39 @@ def extract_chapter_number(filename):
     return 0
 
 
-def find_multi_stories(stories_dir: str, subcategory: str) -> dict:
+def parse_args():
+    parser = argparse.ArgumentParser(description="Analyze narrative sentiment and entity interactions.")
+    parser.add_argument(
+        "--stories-dir",
+        type=str,
+        default="test_stories",
+        help="Directory containing stories.",
+    )
+    parser.add_argument(
+        "--subcategory",
+        type=str,
+        default=None,
+        help="Process only a specific subcategory (e.g. 'gay/incest').",
+    )
+    parser.add_argument(
+        "--limit-stories",
+        type=int,
+        default=1,
+        help="Max number of multi-chapter stories to process.",
+    )
+    parser.add_argument("--db-path", type=str, default=DB_PATH, help="Path to SQLite DB.")
+    parser.add_argument("--spacy-model", type=str, default="en_core_web_sm", help="spaCy model.")
+    parser.add_argument(
+        "--sentiment-model",
+        type=str,
+        default="cardiffnlp/twitter-roberta-base-sentiment-latest",
+        help="HF Sentiment Model.",
+    )
+    parser.add_argument("--gpu", action="store_true", default=True, help="Use GPU.")
+    return parser.parse_args()
+
+
+def find_multi_chapter_stories(stories_dir, subcategory):
     search_pattern = "*.txt"
     if subcategory:
         base_path = Path(stories_dir) / subcategory
@@ -112,11 +137,11 @@ def find_multi_stories(stories_dir: str, subcategory: str) -> dict:
     return multi_stories
 
 
-def load_models(gpu: bool, spacy_model: str, sentiment_model: str) -> tuple:
-    print(f"Loading models (spaCy: {spacy_model}, HF: {sentiment_model})...")
-    device = 0 if gpu else -1
+def load_models(spacy_model_name, sentiment_model_name, use_gpu):
+    print(f"Loading models (spaCy: {spacy_model_name}, HF: {sentiment_model_name})...")
+    device = 0 if use_gpu else -1
 
-    if gpu:
+    if use_gpu:
         try:
             set_gpu_allocator("pytorch")
             require_gpu(0)
@@ -124,12 +149,12 @@ def load_models(gpu: bool, spacy_model: str, sentiment_model: str) -> tuple:
         except Exception as e:
             print(f"Could not enable spaCy GPU: {e}")
 
-    nlp = spacy.load(spacy_model)
+    nlp = spacy.load(spacy_model_name)
     nlp.add_pipe("sentencizer")
 
     sentiment_pipe = pipeline(  # pyrefly: ignore [no-matching-overload]
         "sentiment-analysis",
-        model=sentiment_model,
+        model=sentiment_model_name,
         device=device,
         truncation=True,
         max_length=512,
@@ -137,9 +162,7 @@ def load_models(gpu: bool, spacy_model: str, sentiment_model: str) -> tuple:
     return nlp, sentiment_pipe
 
 
-def process_chapter(
-    filepath: Path, chapter_idx: int, story_id: int, nlp, sentiment_pipe, cursor
-):
+def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe):
     with open(filepath, "r", encoding="utf-8") as f:
         text = f.read()
 
@@ -171,22 +194,32 @@ def process_chapter(
             except Exception:
                 sentiments.append({"label": "neutral", "score": 0.0})
 
-    for sent_idx, (sent, sent_result) in enumerate(zip(sentences, sentiments)):
-        score = get_sentiment_value(sent_result)
+            cursor.execute("SELECT MAX(id) FROM sentences")
+            row = cursor.fetchone()
+            last_id_before = row[0] if row[0] is not None else 0
 
-        cursor.execute(
-            """
-            INSERT INTO sentences (story_id, chapter_filename, chapter_index, sentence_index, text, sentiment_score)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """,
-            (story_id, filepath.name, chapter_idx, sent_idx, sent.text, score),
-        )
+            sentence_batch = []
+            entity_batch = []
 
-        sentence_id = cursor.lastrowid
+            for sent_idx, (sent, sent_result) in enumerate(zip(sentences, sentiments)):
+                score = get_sentiment_value(sent_result)
+                sentence_batch.append((story_id, filepath.name, chapter_idx, sent_idx, sent.text, score))
 
-        for ent in sent.ents:
-            if ent.label_ in ALLOWED_LABELS:
-                cursor.execute(
+                sentence_id = last_id_before + 1 + sent_idx
+                for ent in sent.ents:
+                    if ent.label_ in ALLOWED_LABELS:
+                        entity_batch.append((sentence_id, ent.text, ent.label_))
+
+            cursor.executemany(
+                """
+                INSERT INTO sentences (story_id, chapter_filename, chapter_index, sentence_index, text, sentiment_score)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """,
+                sentence_batch,
+            )
+
+            if entity_batch:
+                cursor.executemany(
                     """
                     INSERT INTO sentence_entities (sentence_id, entity_text, entity_label)
                     VALUES (?, ?, ?)
@@ -219,50 +252,16 @@ def process_story(story_dir, filepaths, cursor, conn, nlp, sentiment_pipe):
     story_id = cursor.lastrowid
 
     for chapter_idx, filepath in enumerate(tqdm(filepaths, desc="Chapters")):
-        process_chapter(filepath, chapter_idx, story_id, nlp, sentiment_pipe, cursor)
+        process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe)
         conn.commit()
 
     return True
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Analyze narrative sentiment and entity interactions."
-    )
-    parser.add_argument(
-        "--stories-dir",
-        type=str,
-        default="test_stories",
-        help="Directory containing stories.",
-    )
-    parser.add_argument(
-        "--subcategory",
-        type=str,
-        default=None,
-        help="Process only a specific subcategory (e.g. 'gay/incest').",
-    )
-    parser.add_argument(
-        "--limit-stories",
-        type=int,
-        default=1,
-        help="Max number of multi-chapter stories to process.",
-    )
-    parser.add_argument(
-        "--db-path", type=str, default=DB_PATH, help="Path to SQLite DB."
-    )
-    parser.add_argument(
-        "--spacy-model", type=str, default="en_core_web_sm", help="spaCy model."
-    )
-    parser.add_argument(
-        "--sentiment-model",
-        type=str,
-        default="cardiffnlp/twitter-roberta-base-sentiment-latest",
-        help="HF Sentiment Model.",
-    )
-    parser.add_argument("--gpu", action="store_true", default=True, help="Use GPU.")
-    args = parser.parse_args()
+    args = parse_args()
 
-    multi_stories = find_multi_stories(args.stories_dir, args.subcategory)
+    multi_stories = find_multi_chapter_stories(args.stories_dir, args.subcategory)
 
     if not multi_stories:
         print("No multi-chapter stories found. Exiting.")
@@ -271,16 +270,15 @@ def main():
     conn = init_db(args.db_path)
     cursor = conn.cursor()
 
-    nlp, sentiment_pipe = load_models(args.gpu, args.spacy_model, args.sentiment_model)
+    nlp, sentiment_pipe = load_models(args.spacy_model, args.sentiment_model, args.gpu)
 
     processed_stories = 0
+
     for story_dir, filepaths in multi_stories.items():
-        if args.limit_stories and processed_stories >= args.limit_stories:
+        if processed_stories >= args.limit_stories:
             break
 
-        was_processed = process_story(
-            story_dir, filepaths, cursor, conn, nlp, sentiment_pipe
-        )
+        was_processed = process_story(story_dir, filepaths, cursor, conn, nlp, sentiment_pipe)
         if was_processed:
             processed_stories += 1
 

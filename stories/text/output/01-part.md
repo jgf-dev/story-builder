@@ -18,8 +18,7 @@ Style:
 Pace: Slow, measured, ASMR-like pacing (around 0.7x to 0.8x normal conversational speed). Use pauses to emphasize intimacy and urgency.
 Accent: Standard American
 
-### SAMPLE CONTEXT
-
+### SAMPLE CONCONTEXT
 
 Levi and Ewan are having a final, passionate, and hurried sexual encounter in their bedroom before Levi's brother Jace and sister-in-law Kerry arrive. The sense of urgency and secrecy adds a layer of forbidden excitement to their intimacy, forcing them to quickly clean up and prepare for the impending arrival.
 

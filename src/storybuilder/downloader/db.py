@@ -144,9 +144,7 @@ def init_db(db_path: str) -> "sqlite3.Connection":
     """Initialize the database (idempotent). Returns the connection."""
     global _conn, _is_partitioned, _db_dir
 
-    is_dir = os.path.isdir(db_path) or (
-        not db_path.endswith(".db") and not Path(db_path).suffix
-    )
+    is_dir = os.path.isdir(db_path) or (not db_path.endswith(".db") and not Path(db_path).suffix)
 
     if is_dir:
         os.makedirs(db_path, exist_ok=True)
@@ -283,9 +281,7 @@ def story_exists(output_path: str, story_date: str) -> bool:
         return False
     with _lock:
         try:
-            cursor = conn.execute(
-                "SELECT 1 FROM stories WHERE path = ?", (output_path,)
-            )
+            cursor = conn.execute("SELECT 1 FROM stories WHERE path = ?", (output_path,))
             return cursor.fetchone() is not None
         except Exception:
             return False
@@ -322,9 +318,36 @@ def get_story(output_path: str, story_date: str) -> "dict | None":
             return None
 
 
+def optimize_fts_all(db_dir: str) -> None:
+    """Scan the given directory and rebuild FTS on all .db files."""
+    if not os.path.isdir(db_dir):
+        return
+
+    for filename in os.listdir(db_dir):
+        if not filename.endswith(".db"):
+            continue
+
+        db_path = os.path.join(db_dir, filename)
+        conn = None
+        try:
+            conn = sqlite3.connect(db_path, check_same_thread=False)
+            conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
+            conn.commit()
+        except sqlite3.OperationalError:
+            # Best-effort optimization: skip databases that do not support FTS optimize.
+            continue
+        finally:
+            if conn:
+                conn.close()
+
+
 def optimize_fts() -> None:
     """Rebuild the FTS index for optimal search performance."""
     with _lock:
+        if _is_partitioned and _db_dir:
+            optimize_fts_all(_db_dir)
+            return
+
         conns = list(_connections.values())
         if _conn is not None and not _is_partitioned:
             conns.append(_conn)
@@ -334,15 +357,15 @@ def optimize_fts() -> None:
             conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
             conn.commit()
         except sqlite3.OperationalError:
+            # Best-effort maintenance operation: ignore per-connection optimize
+            # failures so search optimization does not interrupt normal writes.
             pass
 
     if conns:
         # SQLite FTS optimize can be CPU/IO intensive.
         # Using a ThreadPoolExecutor prevents holding the global _lock
         # and blocking other inserts during long optimize operations.
-        with concurrent.futures.ThreadPoolExecutor(
-            max_workers=min(len(conns), 10)
-        ) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(conns), 10)) as executor:
             list(executor.map(_opt, conns))
 
 

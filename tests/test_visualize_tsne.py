@@ -12,7 +12,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from storybuilder.analysis.visualize_tsne import main
 
-
 class TestVisualizeTsne(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
@@ -21,8 +20,8 @@ class TestVisualizeTsne(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
 
-    @patch("storybuilder.analysis.visualize_tsne.chromadb.PersistentClient")
-    @patch("sys.stdout", new_callable=StringIO)
+    @patch('storybuilder.analysis.visualize_tsne.chromadb.PersistentClient')
+    @patch('sys.stdout', new_callable=StringIO)
     def test_main_collection_not_found(self, mock_stdout, mock_client_class):
         # Setup mock to raise Exception when get_collection is called
         mock_client = MagicMock()
@@ -30,30 +29,22 @@ class TestVisualizeTsne(unittest.TestCase):
         mock_client_class.return_value = mock_client
 
         # Mock sys.argv
-        test_args = [
-            "visualize_tsne.py",
-            "--db-path",
-            self.temp_dir,
-            "--output",
-            self.output_file,
-        ]
-        with patch.object(sys, "argv", test_args):
+        test_args = ['visualize_tsne.py', '--db-path', self.temp_dir, '--output', self.output_file]
+        with patch.object(sys, 'argv', test_args):
             main()
 
         # Check output
-        self.assertIn(
-            "Error: Could not find 'story_averages' collection", mock_stdout.getvalue()
-        )
+        self.assertIn("Error: Could not find 'story_averages' collection", mock_stdout.getvalue())
 
-    @patch("storybuilder.analysis.visualize_tsne.chromadb.PersistentClient")
-    @patch("sys.stdout", new_callable=StringIO)
+    @patch('storybuilder.analysis.visualize_tsne.chromadb.PersistentClient')
+    @patch('sys.stdout', new_callable=StringIO)
     def test_main_insufficient_data(self, mock_stdout, mock_client_class):
         # Setup mock to return a collection with 1 item
         mock_collection = MagicMock()
         mock_collection.get.return_value = {
             "ids": ["file1.txt"],
             "embeddings": [[0.1, 0.2]],
-            "metadatas": [{"key": "value"}],
+            "metadatas": [{"key": "value"}]
         }
 
         mock_client = MagicMock()
@@ -61,44 +52,29 @@ class TestVisualizeTsne(unittest.TestCase):
         mock_client_class.return_value = mock_client
 
         # Mock sys.argv
-        test_args = [
-            "visualize_tsne.py",
-            "--db-path",
-            self.temp_dir,
-            "--output",
-            self.output_file,
-        ]
-        with patch.object(sys, "argv", test_args):
+        test_args = ['visualize_tsne.py', '--db-path', self.temp_dir, '--output', self.output_file]
+        with patch.object(sys, 'argv', test_args):
             main()
 
         # Check output
-        self.assertIn(
-            "Error: Need at least 2 stories in the database to run t-SNE",
-            mock_stdout.getvalue(),
-        )
+        self.assertIn("Error: Need at least 2 stories in the database to run t-SNE", mock_stdout.getvalue())
 
-    @patch("storybuilder.analysis.visualize_tsne.pio.write_html")
-    @patch("storybuilder.analysis.visualize_tsne.chromadb.PersistentClient")
-    @patch("sys.stdout", new_callable=StringIO)
+    @patch('storybuilder.analysis.visualize_tsne.pio.write_html')
+    @patch('storybuilder.analysis.visualize_tsne.chromadb.PersistentClient')
+    @patch('sys.stdout', new_callable=StringIO)
     def test_main_happy_path(self, mock_stdout, mock_client_class, mock_write_html):
         # Setup mock to return a collection with enough items
         mock_collection = MagicMock()
         mock_collection.get.return_value = {
-            "ids": [
-                "cat1/sub1/file1.txt",
-                "cat1/sub2/file2.txt",
-                "cat2/sub3/file3.txt",
-                "cat2/sub4/file4.txt",
-                "file5.txt",
-            ],
+            "ids": ["cat1/sub1/file1.txt", "cat1/sub2/file2.txt", "cat2/sub3/file3.txt", "cat2/sub4/file4.txt", "file5.txt"],
             "embeddings": [
                 [0.1, 0.2, 0.3],
                 [0.4, 0.5, 0.6],
                 [0.7, 0.8, 0.9],
                 [0.1, 0.9, 0.2],
-                [0.5, 0.1, 0.8],
+                [0.5, 0.1, 0.8]
             ],
-            "metadatas": [{"k": "v"} for _ in range(5)],
+            "metadatas": [{"k": "v"} for _ in range(5)]
         }
 
         mock_client = MagicMock()
@@ -106,16 +82,8 @@ class TestVisualizeTsne(unittest.TestCase):
         mock_client_class.return_value = mock_client
 
         # Mock sys.argv
-        test_args = [
-            "visualize_tsne.py",
-            "--db-path",
-            self.temp_dir,
-            "--output",
-            self.output_file,
-            "--perplexity",
-            "2",
-        ]
-        with patch.object(sys, "argv", test_args):
+        test_args = ['visualize_tsne.py', '--db-path', self.temp_dir, '--output', self.output_file, '--perplexity', '2']
+        with patch.object(sys, 'argv', test_args):
             main()
 
         # Check output
@@ -129,8 +97,7 @@ class TestVisualizeTsne(unittest.TestCase):
         # Verify write_html was called with the right filename
         self.assertTrue(mock_write_html.called)
         args, kwargs = mock_write_html.call_args
-        self.assertEqual(kwargs.get("file"), self.output_file)
+        self.assertEqual(kwargs.get('file'), self.output_file)
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()

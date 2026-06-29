@@ -1,7 +1,7 @@
-import os
+import unittest
 import sqlite3
 import tempfile
-import unittest
+import os
 from unittest.mock import patch
 
 from storybuilder.analysis.visualize_arcs import main

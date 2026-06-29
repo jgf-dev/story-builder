@@ -1,5 +1,3 @@
-import concurrent.futures
-
 """
 Database layer for story storage -- shared by the downloader (live insert) and
 the batch import script.
@@ -489,6 +487,14 @@ def optimize_fts() -> None:
 
     db_paths_to_optimize = []
 
+        for conn in conns:
+            try:
+                conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
+                conn.commit()
+            except sqlite3.OperationalError:
+                # Best-effort maintenance: some DBs may not have FTS enabled/table present.
+                # Ignore and continue optimizing remaining connections.
+                continue
     with _lock:
         if not _is_partitioned and _conn is not None:
             # Monolithic active

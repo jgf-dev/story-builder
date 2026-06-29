@@ -1,52 +1,46 @@
+import concurrent.futures
+
+"""
+Database layer for story storage -- shared by the downloader (live insert) and
+the batch import script.
+
+Thread-safe: uses WAL mode + a write lock.  Call init_db() once at startup,
+then insert_story() from any thread.
+"""
+
 import os
 import re
-import threading
 import sqlite3
+import threading
 from pathlib import Path
 
-STORY_COLUMNS = (
-    "id",
-    "path",
-    "orientation",
-    "category",
-    "story_slug",
-    "chapter_num",
-    "title",
-    "author_name",
-    "author_email",
-    "publication_date",
-    "url",
-    "char_count",
-    "word_count",
-    "content",
-    "created_at",
-)
+# -- Schema -------------------------------------------------------------
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS stories (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    path TEXT UNIQUE NOT NULL,
-    orientation TEXT NOT NULL DEFAULT 'gay',
-    category TEXT,
-    story_slug TEXT,
-    chapter_num INTEGER,
-    title TEXT,
-    author_name TEXT,
-    author_email TEXT,
+    id              INTEGER PRIMARY KEY,
+    path            TEXT UNIQUE NOT NULL,
+    orientation     TEXT NOT NULL DEFAULT 'gay',
+    category        TEXT NOT NULL,
+    story_slug      TEXT NOT NULL,
+    chapter_num     INTEGER,
+    title           TEXT NOT NULL,
+    author_name     TEXT,
+    author_email    TEXT,
     publication_date TEXT,
-    url TEXT,
-    char_count INTEGER,
-    word_count INTEGER,
-    content TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    url             TEXT,
+    email_date      TEXT,
+    char_count      INTEGER NOT NULL,
+    word_count      INTEGER NOT NULL,
+    content         TEXT NOT NULL
 );
 
 CREATE VIRTUAL TABLE IF NOT EXISTS stories_fts USING fts5(
     title,
     author_name,
     content,
-    content='stories',
-    content_rowid='id'
+    content=stories,
+    content_rowid=id
 );
 
 CREATE TRIGGER IF NOT EXISTS stories_ai AFTER INSERT ON stories BEGIN
@@ -146,109 +140,22 @@ def _parse_output_path(output_path: str) -> "tuple[str, str, str, int | None]":
 # -- Schema migrations --------------------------------------------------
 
 
-def _table_columns(conn: sqlite3.Connection, table_name: str) -> list[str]:
-    """Return the column names of the table, or empty list if table not exists."""
-    cursor = conn.execute(f"PRAGMA table_info({table_name})")
-    return [row[1] for row in cursor.fetchall()]
-
-
-def _resume_interrupted_migration(conn: sqlite3.Connection) -> bool:
-    """Recover legacy data from stories_legacy if the migration was interrupted.
-
-    Phase 1 commits the rename to stories_legacy and the creation of an empty
-    new stories table. If the process crashed before Phase 2 committed, the new
-    stories table exists (without email_date) so the normal entry check would
-    return False and the data in stories_legacy would be orphaned. Detect that
-    leftover table here and finish the copy so the data is recovered.
-    """
-
-    legacy_columns = _table_columns(conn, "stories_legacy")
-    if not legacy_columns:
-        return False
-
-    copy_columns = [
-        col for col in STORY_COLUMNS if col in legacy_columns and col != "email_date"
-    ]
-    cols_sql = ", ".join(copy_columns)
-    try:
-        conn.execute("BEGIN")
-        if copy_columns:
-            conn.execute(
-                f"INSERT OR IGNORE INTO stories ({cols_sql}) SELECT {cols_sql} FROM stories_legacy"
-            )
-        conn.execute("DROP TABLE stories_legacy")
-        try:
-            conn.execute("DELETE FROM sqlite_sequence WHERE name = 'stories'")
-        except sqlite3.OperationalError:
-            pass  # sqlite_sequence only exists if AUTOINCREMENT was used
-        conn.commit()
-    except Exception:
-        conn.rollback()
-        raise
-
-    conn.executescript(INDEXES)
-    return True
-
-
-def migrate_legacy_schema(conn: sqlite3.Connection) -> bool:
-    """Rebuild legacy story databases that still include the email_date column."""
-
-    # Recover from a migration that was interrupted after Phase 1 committed.
-    if _resume_interrupted_migration(conn):
-        return True
-
-    legacy_columns = _table_columns(conn, "stories")
-    if not legacy_columns or "email_date" not in legacy_columns:
-        return False
-
-    copy_columns = [col for col in STORY_COLUMNS if col in legacy_columns and col != "email_date"]
-    if not copy_columns:
-        return False
-
-    # Rebuild the table in two phases. executescript() (used for the trigger
-    # DDL, which Python's sqlite3 cannot run via a single execute()) implicitly
-    # commits, so we cannot wrap the whole migration in one transaction. Instead
-    # we order the work so the legacy data is only destroyed after it has been
-    # safely copied: if any step fails before DROP TABLE stories_legacy, the
-    # original rows remain in stories_legacy and a re-run can recover them.
-    #
-    # Phase 1: drop the old triggers/FTS, rename the table out of the way, and
-    # recreate the table + triggers + FTS with the new schema.
-    conn.executescript(
-        """
-        DROP TRIGGER IF EXISTS stories_ai;
-        DROP TRIGGER IF EXISTS stories_ad;
-        DROP TRIGGER IF EXISTS stories_au;
-        DROP TABLE IF EXISTS stories_fts;
-        """
-    )
-    conn.execute("ALTER TABLE stories RENAME TO stories_legacy")
-    conn.executescript(SCHEMA)
-
-    # Phase 2: copy the data and drop the legacy table atomically. If the copy
-    # fails, the rollback leaves stories_legacy intact for a retry.
-    cols_sql = ", ".join(copy_columns)
-    try:
-        conn.execute("BEGIN")
-        conn.execute(f"INSERT INTO stories ({cols_sql}) SELECT {cols_sql} FROM stories_legacy")
-        conn.execute("DROP TABLE stories_legacy")
-        try:
-            conn.execute("DELETE FROM sqlite_sequence WHERE name = 'stories'")
-        except sqlite3.OperationalError:
-            pass  # sqlite_sequence only exists if AUTOINCREMENT was used
-        conn.commit()
-    except Exception:
-        conn.rollback()
-        raise
-
-    conn.executescript(INDEXES)
-
-    return True
-
-
 def _migrate_schema(conn: "sqlite3.Connection") -> None:
-    """Apply additive schema migrations to an existing partition/db."""
-    pass
+    """Apply additive schema migrations to an existing partition/db.
+
+    SQLite's CREATE TABLE IF NOT EXISTS is a no-op on tables that already
+    exist, so columns added to SCHEMA after a partition file was first
+    created never appear. Add them here with ALTER TABLE so older partition
+    databases stay compatible. Only additive (nullable) columns can be
+    backfilled this way.
+    """
+    cols = {row[1] for row in conn.execute("PRAGMA table_info(stories)")}
+    if not cols:
+        # Table does not exist yet (fresh db); SCHEMA already created it.
+        return
+    if "email_date" not in cols:
+        conn.execute("ALTER TABLE stories ADD COLUMN email_date TEXT")
+        conn.commit()
 
 
 # -- DB init ------------------------------------------------------------
@@ -277,7 +184,6 @@ def init_db(db_path: str) -> "sqlite3.Connection":
         _conn.execute("PRAGMA journal_mode=WAL")
         _conn.execute("PRAGMA synchronous=NORMAL")
         _conn.execute("PRAGMA cache_size=-64000")
-        migrate_legacy_schema(_conn)
         _conn.executescript(SCHEMA)
         _conn.executescript(INDEXES)
         _migrate_schema(_conn)
@@ -501,7 +407,6 @@ def _get_write_conn(story_date) -> "sqlite3.Connection | None":
             conn.execute("PRAGMA journal_mode=WAL")
             conn.execute("PRAGMA synchronous=NORMAL")
             conn.execute("PRAGMA cache_size=-64000")
-            migrate_legacy_schema(conn)
             conn.executescript(SCHEMA)
             conn.executescript(INDEXES)
             _migrate_schema(conn)
@@ -646,52 +551,6 @@ def optimize_fts_all(db_dir: str) -> None:
         except sqlite3.DatabaseError:
             # Best-effort optimization: skip databases that do not support FTS
             # optimize or that are unreadable/corrupted.
-            continue
-        finally:
-            if conn:
-                conn.close()
-
-def optimize_fts_all(db_dir: str) -> None:
-    """Scan the given directory and rebuild FTS on all .db files."""
-    if not os.path.isdir(db_dir):
-        return
-
-    for filename in os.listdir(db_dir):
-        if not filename.endswith(".db"):
-            continue
-
-        db_path = os.path.join(db_dir, filename)
-        conn = None
-        try:
-            conn = sqlite3.connect(db_path, check_same_thread=False)
-            conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
-            conn.commit()
-        except sqlite3.OperationalError:
-            # Some partitions may not have the expected FTS objects/schema;
-            # skip those partitions and continue searching the rest.
-            continue
-        finally:
-            if conn:
-                conn.close()
-
-
-def optimize_fts_all(db_dir: str) -> None:
-    """Scan the given directory and rebuild FTS on all .db files."""
-    if not os.path.isdir(db_dir):
-        return
-
-    for filename in os.listdir(db_dir):
-        if not filename.endswith(".db"):
-            continue
-
-        db_path = os.path.join(db_dir, filename)
-        conn = None
-        try:
-            conn = sqlite3.connect(db_path, check_same_thread=False)
-            conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
-            conn.commit()
-        except sqlite3.OperationalError:
-            # Best-effort optimization: skip databases that do not support FTS optimize.
             continue
         finally:
             if conn:

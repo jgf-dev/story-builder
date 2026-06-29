@@ -7,6 +7,7 @@ readme      = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "beautifulsoup4>=4.14.3",
+    "braintrust>=0.25.0",
     "cartesia>=3.2.0",
     "chromadb>=1.5.9",
     "google-adk[a2a,all,db,eval]>=2.2.0",

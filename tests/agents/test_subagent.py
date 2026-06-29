@@ -1,6 +1,7 @@
 import os
 import unittest
 from pathlib import Path
+
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
@@ -79,4 +80,13 @@ class TestSubagent(unittest.TestCase):
                 "quota" in str(e).lower()
                 or "permission" in str(e).lower()
                 or "unauthenticated" in str(e).lower()
-            if "quota" in str(e).lower() or "permission" in str(e).lower() or "unauthenticated" in str(e).lower():
+                or "resource_exhausted" in str(e).lower()
+                or "resource exhausted" in str(e).lower()
+                or "429" in str(e).lower()
+            ):
+                self.skipTest(f"Skipped due to API/auth issue: {e}")
+            else:
+                self.fail(f"Subagent direct call failed: {e}")
+
+        if __name__ == "__main__":
+            unittest.main()

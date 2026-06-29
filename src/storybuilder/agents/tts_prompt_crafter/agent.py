@@ -23,10 +23,10 @@ from google.adk.runners import Runner
 from google.adk.sessions import DatabaseSessionService
 from google.adk.telemetry.setup import maybe_set_otel_providers
 from google.genai import Client, types
-from pydantic import BaseModel, Field
-from pydantic.types import NonNegativeInt
 from opentelemetry import _logs, metrics, trace
 from opentelemetry._logs._internal import ProxyLoggerProvider
+from pydantic import BaseModel, Field
+from pydantic.types import NonNegativeInt
 
 from .prompts import get_prompt
 from .tools import list_stories, read_story, split_scene_files, write_scene_file
@@ -55,13 +55,18 @@ def _otel_providers_are_default() -> bool:
 
     return (
         isinstance(trace.get_tracer_provider(), trace.ProxyTracerProvider)
-        and isinstance(metrics.get_meter_provider(), metrics._internal._ProxyMeterProvider)
+        and isinstance(
+            metrics.get_meter_provider(), metrics._internal._ProxyMeterProvider
+        )
         and isinstance(_logs.get_logger_provider(), ProxyLoggerProvider)
     )
 
 
 if _otel_providers_are_default():
     maybe_set_otel_providers()
+
+logger = logging.getLogger(__name__)
+
 
 logger = logging.getLogger(__name__)
 

@@ -1,4 +1,5 @@
 import argparse
+import os
 import re
 import sqlite3
 from collections import defaultdict
@@ -92,45 +93,7 @@ def extract_chapter_number(filename):
     return 0
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Analyze narrative sentiment and entity interactions."
-    )
-    parser.add_argument(
-        "--stories-dir",
-        type=str,
-        default="test_stories",
-        help="Directory containing stories.",
-    )
-    parser.add_argument(
-        "--subcategory",
-        type=str,
-        default=None,
-        help="Process only a specific subcategory (e.g. 'gay/incest').",
-    )
-    parser.add_argument(
-        "--limit-stories",
-        type=int,
-        default=1,
-        help="Max number of multi-chapter stories to process.",
-    )
-    parser.add_argument(
-        "--db-path", type=str, default=DB_PATH, help="Path to SQLite DB."
-    )
-    parser.add_argument(
-        "--spacy-model", type=str, default="en_core_web_sm", help="spaCy model."
-    )
-    parser.add_argument(
-        "--sentiment-model",
-        type=str,
-        default="cardiffnlp/twitter-roberta-base-sentiment-latest",
-        help="HF Sentiment Model.",
-    )
-    parser.add_argument("--gpu", action="store_true", default=True, help="Use GPU.")
-    return parser.parse_args()
-
-
-def find_multi_chapter_stories(stories_dir, subcategory):
+def find_multi_stories(stories_dir: str, subcategory: str) -> dict:
     search_pattern = "*.txt"
     if subcategory:
         base_path = Path(stories_dir) / subcategory
@@ -148,11 +111,11 @@ def find_multi_chapter_stories(stories_dir, subcategory):
     return multi_stories
 
 
-def load_models(spacy_model_name, sentiment_model_name, use_gpu):
-    print(f"Loading models (spaCy: {spacy_model_name}, HF: {sentiment_model_name})...")
-    device = 0 if use_gpu else -1
+def load_models(gpu: bool, spacy_model: str, sentiment_model: str) -> tuple:
+    print(f"Loading models (spaCy: {spacy_model}, HF: {sentiment_model})...")
+    device = 0 if gpu else -1
 
-    if use_gpu:
+    if gpu:
         try:
             set_gpu_allocator("pytorch")
             require_gpu(0)
@@ -160,12 +123,12 @@ def load_models(spacy_model_name, sentiment_model_name, use_gpu):
         except Exception as e:
             print(f"Could not enable spaCy GPU: {e}")
 
-    nlp = spacy.load(spacy_model_name)
+    nlp = spacy.load(spacy_model)
     nlp.add_pipe("sentencizer")
 
     sentiment_pipe = pipeline(  # pyrefly: ignore [no-matching-overload]
         "sentiment-analysis",
-        model=sentiment_model_name,
+        model=sentiment_model,
         device=device,
         truncation=True,
         max_length=512,
@@ -173,7 +136,9 @@ def load_models(spacy_model_name, sentiment_model_name, use_gpu):
     return nlp, sentiment_pipe
 
 
-def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe):
+def process_chapter(
+    filepath: Path, chapter_idx: int, story_id: int, nlp, sentiment_pipe, cursor
+):
     with open(filepath, "r", encoding="utf-8") as f:
         text = f.read()
 
@@ -229,40 +194,44 @@ def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe
                 )
 
 
-def process_story(story_dir, filepaths, cursor, conn, nlp, sentiment_pipe):
-    cursor.execute("SELECT id FROM stories WHERE story_dir = ?", (story_dir,))
-    if cursor.fetchone():
-        print(f"Skipping already processed story: {story_dir}")
-        return False
-
-    print(f"\nProcessing Story: {story_dir} ({len(filepaths)} chapters)")
-
-    filepaths.sort(key=lambda x: extract_chapter_number(x.name))
-
-    parts = Path(story_dir).parts
-    subcat = "unknown"
-    if "test_stories" in parts:
-        idx = parts.index("test_stories")
-        if len(parts) > idx + 2:
-            subcat = f"{parts[idx + 1]}/{parts[idx + 2]}"
-
-    cursor.execute(
-        "INSERT INTO stories (story_dir, subcategory) VALUES (?, ?)",
-        (story_dir, subcat),
-    )
-    story_id = cursor.lastrowid
-
-    for chapter_idx, filepath in enumerate(tqdm(filepaths, desc="Chapters")):
-        process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe)
-        conn.commit()
-
-    return True
-
-
 def main():
-    args = parse_args()
+    parser = argparse.ArgumentParser(
+        description="Analyze narrative sentiment and entity interactions."
+    )
+    parser.add_argument(
+        "--stories-dir",
+        type=str,
+        default="test_stories",
+        help="Directory containing stories.",
+    )
+    parser.add_argument(
+        "--subcategory",
+        type=str,
+        default=None,
+        help="Process only a specific subcategory (e.g. 'gay/incest').",
+    )
+    parser.add_argument(
+        "--limit-stories",
+        type=int,
+        default=1,
+        help="Max number of multi-chapter stories to process.",
+    )
+    parser.add_argument(
+        "--db-path", type=str, default=DB_PATH, help="Path to SQLite DB."
+    )
+    parser.add_argument(
+        "--spacy-model", type=str, default="en_core_web_sm", help="spaCy model."
+    )
+    parser.add_argument(
+        "--sentiment-model",
+        type=str,
+        default="cardiffnlp/twitter-roberta-base-sentiment-latest",
+        help="HF Sentiment Model.",
+    )
+    parser.add_argument("--gpu", action="store_true", default=True, help="Use GPU.")
+    args = parser.parse_args()
 
-    multi_stories = find_multi_chapter_stories(args.stories_dir, args.subcategory)
+    multi_stories = find_multi_stories(args.stories_dir, args.subcategory)
 
     if not multi_stories:
         print("No multi-chapter stories found. Exiting.")
@@ -271,13 +240,12 @@ def main():
     conn = init_db(args.db_path)
     cursor = conn.cursor()
 
-    nlp, sentiment_pipe = load_models(args.spacy_model, args.sentiment_model, args.gpu)
+    nlp, sentiment_pipe = load_models(args.gpu, args.spacy_model, args.sentiment_model)
 
     processed_stories = 0
     for story_dir, filepaths in multi_stories.items():
         if args.limit_stories and processed_stories >= args.limit_stories:
             break
-
 
         was_processed = process_story(
             story_dir, filepaths, cursor, conn, nlp, sentiment_pipe

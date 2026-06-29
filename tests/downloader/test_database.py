@@ -240,6 +240,25 @@ class TestDatabaseInit(unittest.TestCase):
         )
         legacy_conn.execute(
             """
+            CREATE VIRTUAL TABLE stories_fts USING fts5(
+                title,
+                author_name,
+                content,
+                content=stories,
+                content_rowid=id
+            )
+            """
+        )
+        legacy_conn.execute(
+            """
+            CREATE TRIGGER stories_ai AFTER INSERT ON stories BEGIN
+                INSERT INTO stories_fts(rowid, title, author_name, content)
+                VALUES (new.id, new.title, new.author_name, new.content);
+            END;
+            """
+        )
+        legacy_conn.execute(
+            """
             INSERT INTO stories (
                 path, orientation, category, story_slug, chapter_num,
                 title, author_name, author_email,
@@ -273,7 +292,7 @@ class TestDatabaseInit(unittest.TestCase):
         try:
             cols = conn.execute("PRAGMA table_info(stories)").fetchall()
             col_names = [c[1] for c in cols]
-            self.assertNotIn("email_date", col_names)
+            self.assertIn("email_date", col_names)
             self.assertIn("created_at", col_names)
 
             row = conn.execute("SELECT * FROM stories").fetchone()

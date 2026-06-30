@@ -22,6 +22,19 @@ jobs:
       common: ${{ steps.filter.outputs.common }}
     steps:
       - uses: actions/checkout@v4
+      - name: Ensure all test files are wired into CI
+        run: |
+          missing=0
+          for f in tests/test_*.py; do
+            if ! grep -q "$f" .github/workflows/test.yml; then
+              echo "Test file not referenced in .github/workflows/test.yml: $f"
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            echo "Add the file(s) above to the paths-filter and the matching pytest command."
+            exit 1
+          fi
       - uses: dorny/paths-filter@v3
         id: filter
         with:
@@ -199,3 +212,23 @@ jobs:
         with:
           coverageFile: coverage-misc.xml
           token: ${{ secrets.GITHUB_TOKEN }}
+
+  test-results:
+    needs:
+      - test-downloader
+      - test-genai
+      - test-analysis
+      - test-agents
+      - test-misc
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify test jobs succeeded
+        run: |
+          results="${{ join(needs.*.result, ' ') }}"
+          for r in $results; do
+            if [ "$r" != "success" ] && [ "$r" != "skipped" ]; then
+              echo "A required test job did not succeed: $r"
+              exit 1
+            fi
+          done

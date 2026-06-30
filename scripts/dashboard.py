@@ -122,7 +122,6 @@ def get_filter_options():
     # Significantly improves the startup time of the dashboard when building the sidebar filters.
     categories = set()
     authors = set()
-
     # Get unique categories
     cat_results = storybuilder_db.execute_all_partitions("SELECT DISTINCT category FROM {table}")
     for r in cat_results:
@@ -144,6 +143,7 @@ def load_archive_stats():
     year_stats = []
     category_counts = {}
     author_counts = {}
+    word_counts = []
     bracket_counts = {
         "Short (<1K)": 0,
         "Medium-Short (1K-5K)": 0,
@@ -183,6 +183,10 @@ def load_archive_stats():
                 if auth:
                     author_counts[auth] = author_counts.get(auth, 0) + count
 
+            # Word counts sample for distribution
+            cursor.execute("SELECT word_count FROM stories")
+            word_counts.extend([r[0] for r in cursor.fetchall()])
+
             # Word count bracket distribution (binned at SQL level; NULLs excluded)
             cursor.execute(
                 """
@@ -215,6 +219,7 @@ def load_archive_stats():
     df_auths = pd.DataFrame(
         list(author_counts.items()), columns=["Author", "Count"]
     ).sort_values("Count", ascending=False)
+    return df_years, df_cats, df_auths, df_words
 
     order = [
         "Short (<1K)",
@@ -246,6 +251,7 @@ def query_stories(
     limit=100,
 ):
     results = []
+
     # 1. Filter by entity first if specified
     entity_suffixes = None
     if entity_text:
@@ -295,7 +301,8 @@ def query_stories(
             try:
                 db_year = int(str(pub_date)[:4])
             except ValueError:
-                pass
+                # Malformed publication_date: keep the default fallback year.
+                db_year = 2026
 
         # Check entity suffixes match if filter active
         if entity_suffixes is not None:
@@ -473,11 +480,11 @@ if page == "🔍 Search & Explorer":
 
         card_html = f"""
         <div class="story-card">
-            <h4>{safe_title}</h4>
+            <h4>{html.escape(res["title"] or "Untitled")}</h4>
             <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 8px;'>
-                <b>Author:</b> {safe_author} |
-                <b>Category:</b> {safe_category} |
-                <b>Published:</b> {safe_pub_date} |
+                <b>Author:</b> {html.escape(res["author_name"] or "Unknown")} |
+                <b>Category:</b> {html.escape(res["category"] or "Unknown")} |
+                <b>Published:</b> {html.escape(str(res["publication_date"] or "Unknown"))} |
                 <b>Words:</b> {res["word_count"]:,}
             </p>
         """

@@ -1,8 +1,10 @@
 import argparse
 import re
 import sqlite3
+import re
 from collections import defaultdict
 from pathlib import Path
+
 
 import spacy
 from thinc.api import require_gpu, set_gpu_allocator
@@ -133,8 +135,7 @@ def parse_args():
         help="HF Sentiment Model.",
     )
     parser.add_argument("--gpu", action="store_true", default=True, help="Use GPU.")
-    return parser.parse_args()
-
+    args = parser.parse_args()
 
 def find_multi_chapter_stories(stories_dir, subcategory=None):
     search_pattern = "*.txt"
@@ -154,13 +155,16 @@ def find_multi_chapter_stories(stories_dir, subcategory=None):
     return multi_stories
 
 
+    conn = init_db(args.db_path)
+    cursor = conn.cursor()
+
 def load_models(spacy_model_name, sentiment_model_name, use_gpu):
     print(
         f"Loading models (spaCy: {spacy_model_name}, HF: {sentiment_model_name})..."
     )
     device = 0 if use_gpu else -1
 
-    if use_gpu:
+    if args.gpu:
         try:
             set_gpu_allocator("pytorch")
             require_gpu(0)
@@ -168,20 +172,26 @@ def load_models(spacy_model_name, sentiment_model_name, use_gpu):
         except Exception as e:
             print(f"Could not enable spaCy GPU: {e}")
 
-    nlp = spacy.load(spacy_model_name)
+    nlp = spacy.load(args.spacy_model)
     nlp.add_pipe("sentencizer")
 
     sentiment_pipe = pipeline(  # pyrefly: ignore [no-matching-overload]
         "sentiment-analysis",
-        model=sentiment_model_name,
+        model=args.sentiment_model,
         device=device,
         truncation=True,
         max_length=512,
     )
-    return nlp, sentiment_pipe
 
-    return nlp, sentiment_pipe
+    processed_stories = 0
 
+    for story_dir, filepaths in multi_stories.items():
+        if processed_stories >= args.limit_stories:
+            break
+
+            text = re.sub(r"\s+", " ", text).strip()
+            if not text:
+                return
 
 def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe):
     with open(filepath, "r", encoding="utf-8") as f:
@@ -250,13 +260,25 @@ def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe
             entity_batch,
         )
 
+            if entity_batch:
+                cursor.executemany(
+                    """
+                    INSERT INTO sentence_entities (sentence_id, entity_text, entity_label)
+                    VALUES (?, ?, ?)
+                """,
+                    entity_batch,
+                )
+
+            conn.commit()
+
+        processed_stories += 1
+
 def process_story(story_dir, filepaths, cursor, conn, nlp, sentiment_pipe):
     cursor.execute("SELECT id FROM stories WHERE story_dir = ?", (story_dir,))
     if cursor.fetchone():
         print(f"Skipping already processed story: {story_dir}")
         return False
     print(f"\nProcessing Story: {story_dir} ({len(filepaths)} chapters)")
-
     filepaths.sort(key=lambda x: extract_chapter_number(x.name))
 
     parts = Path(story_dir).parts
@@ -305,7 +327,6 @@ def main():
         )
         if was_processed:
             processed_stories += 1
-
     conn.close()
 
 

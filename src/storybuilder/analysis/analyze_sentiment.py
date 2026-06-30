@@ -1,9 +1,7 @@
 import argparse
 import os
 import re
-
 import sqlite3
-import re
 from collections import defaultdict
 from pathlib import Path
 
@@ -156,8 +154,6 @@ def load_models(spacy_model, sentiment_model, use_gpu):
 
     return nlp, sentiment_pipe
 
-    processed_stories = 0
-
 def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe):
     with open(filepath, "r", encoding="utf-8") as f:
         text = f.read()
@@ -225,17 +221,6 @@ def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe
             """,
             entity_batch,
         )
-
-            if entity_batch:
-                cursor.executemany(
-                    """
-                    INSERT INTO sentence_entities (sentence_id, entity_text, entity_label)
-                    VALUES (?, ?, ?)
-                """,
-                    entity_batch,
-                )
-
-            conn.commit()
 
 
 def process_story(story_dir, filepaths, cursor, conn, nlp, sentiment_pipe):

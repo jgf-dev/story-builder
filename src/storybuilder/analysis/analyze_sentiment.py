@@ -1,17 +1,14 @@
 import argparse
-import os
 import sqlite3
 import re
 from collections import defaultdict
 from pathlib import Path
-
 
 import spacy
 from thinc.api import require_gpu, set_gpu_allocator
 from tqdm import tqdm
 from transformers import pipeline
 
-DB_PATH = "sentiment_analysis.db"
 DB_PATH = "sentiment_analysis.db"
 ALLOWED_LABELS = {
     "PERSON",
@@ -57,9 +54,15 @@ def init_db(db_path):
             FOREIGN KEY(sentence_id) REFERENCES sentences(id)
         )
     """)
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_sentences_story ON sentences(story_id)")
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_entities_sentence ON sentence_entities(sentence_id)")
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_entities_text ON sentence_entities(entity_text)")
+    cursor.execute(
+        "CREATE INDEX IF NOT EXISTS idx_sentences_story ON sentences(story_id)"
+    )
+    cursor.execute(
+        "CREATE INDEX IF NOT EXISTS idx_entities_sentence ON sentence_entities(sentence_id)"
+    )
+    cursor.execute(
+        "CREATE INDEX IF NOT EXISTS idx_entities_text ON sentence_entities(entity_text)"
+    )
 
     conn.commit()
     return conn
@@ -90,7 +93,9 @@ def extract_chapter_number(filename):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Analyze narrative sentiment and entity interactions.")
+    parser = argparse.ArgumentParser(
+        description="Analyze narrative sentiment and entity interactions."
+    )
     parser.add_argument(
         "--stories-dir",
         type=str,
@@ -109,8 +114,12 @@ def parse_args():
         default=1,
         help="Max number of multi-chapter stories to process.",
     )
-    parser.add_argument("--db-path", type=str, default=DB_PATH, help="Path to SQLite DB.")
-    parser.add_argument("--spacy-model", type=str, default="en_core_web_sm", help="spaCy model.")
+    parser.add_argument(
+        "--db-path", type=str, default=DB_PATH, help="Path to SQLite DB."
+    )
+    parser.add_argument(
+        "--spacy-model", type=str, default="en_core_web_sm", help="spaCy model."
+    )
     parser.add_argument(
         "--sentiment-model",
         type=str,
@@ -118,8 +127,7 @@ def parse_args():
         help="HF Sentiment Model.",
     )
     parser.add_argument("--gpu", action="store_true", default=True, help="Use GPU.")
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def find_multi_chapter_stories(stories_dir, subcategory):
@@ -162,8 +170,8 @@ def load_models(spacy_model_name, sentiment_model_name, use_gpu):
         truncation=True,
         max_length=512,
     )
+    return nlp, sentiment_pipe
 
-    processed_stories = 0
 
 def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe):
     with open(filepath, "r", encoding="utf-8") as f:
@@ -197,42 +205,35 @@ def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe
             except Exception:
                 sentiments.append({"label": "neutral", "score": 0.0})
 
-            cursor.execute("SELECT MAX(id) FROM sentences")
-            row = cursor.fetchone()
-            last_id_before = row[0] if row[0] is not None else 0
+    for sent_idx, (sent, sent_result) in enumerate(zip(sentences, sentiments)):
+        score = get_sentiment_value(sent_result)
 
-            sentence_batch = []
-            entity_batch = []
+        cursor.execute(
+            """
+            INSERT INTO sentences (story_id, chapter_filename, chapter_index, sentence_index, text, sentiment_score)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """,
+            (story_id, filepath.name, chapter_idx, sent_idx, sent.text, score),
+        )
 
-            for sent_idx, (sent, sent_result) in enumerate(zip(sentences, sentiments)):
-                score = get_sentiment_value(sent_result)
-                sentence_batch.append((story_id, filepath.name, chapter_idx, sent_idx, sent.text, score))
+        sentence_id = cursor.lastrowid
 
-                sentence_id = last_id_before + 1 + sent_idx
-                for ent in sent.ents:
-                    if ent.label_ in ALLOWED_LABELS:
-                        entity_batch.append((sentence_id, ent.text, ent.label_))
-
-            cursor.executemany(
-                """
-                INSERT INTO sentences (story_id, chapter_filename, chapter_index, sentence_index, text, sentiment_score)
-                VALUES (?, ?, ?, ?, ?, ?)
-            """,
-                sentence_batch,
-            )
-
-            if entity_batch:
-                cursor.executemany(
+        for ent in sent.ents:
+            if ent.label_ in ALLOWED_LABELS:
+                cursor.execute(
                     """
                     INSERT INTO sentence_entities (sentence_id, entity_text, entity_label)
                     VALUES (?, ?, ?)
                 """,
-                    entity_batch,
+                    (sentence_id, ent.text, ent.label_),
                 )
 
-            conn.commit()
 
-        processed_stories += 1
+def process_story(story_dir, filepaths, cursor, conn, nlp, sentiment_pipe):
+    cursor.execute("SELECT id FROM stories WHERE story_dir = ?", (story_dir,))
+    if cursor.fetchone():
+        print(f"Skipping already processed story: {story_dir}")
+        return False
 
     print(f"\nProcessing Story: {story_dir} ({len(filepaths)} chapters)")
 
@@ -273,14 +274,16 @@ def main():
     nlp, sentiment_pipe = load_models(args.spacy_model, args.sentiment_model, args.gpu)
 
     processed_stories = 0
-
     for story_dir, filepaths in multi_stories.items():
-        if processed_stories >= args.limit_stories:
+        if args.limit_stories and processed_stories >= args.limit_stories:
             break
 
-        was_processed = process_story(story_dir, filepaths, cursor, conn, nlp, sentiment_pipe)
+        was_processed = process_story(
+            story_dir, filepaths, cursor, conn, nlp, sentiment_pipe
+        )
         if was_processed:
             processed_stories += 1
+
     conn.close()
 
 

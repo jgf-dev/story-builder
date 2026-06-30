@@ -1,6 +1,3 @@
-import concurrent.futures
-
-
 """
 Database layer for story storage -- shared by the downloader (live insert) and
 the batch import script.
@@ -17,31 +14,49 @@ from pathlib import Path
 
 # -- Schema -------------------------------------------------------------
 
+STORY_COLUMNS = (
+    "id",
+    "path",
+    "orientation",
+    "category",
+    "story_slug",
+    "chapter_num",
+    "title",
+    "author_name",
+    "author_email",
+    "publication_date",
+    "url",
+    "char_count",
+    "word_count",
+    "content",
+    "created_at",
+)
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS stories (
-    id              INTEGER PRIMARY KEY,
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
     path            TEXT UNIQUE NOT NULL,
     orientation     TEXT NOT NULL DEFAULT 'gay',
-    category        TEXT NOT NULL,
-    story_slug      TEXT NOT NULL,
+    category        TEXT,
+    story_slug      TEXT,
     chapter_num     INTEGER,
-    title           TEXT NOT NULL,
+    title           TEXT,
     author_name     TEXT,
     author_email    TEXT,
     publication_date TEXT,
     url             TEXT,
-    email_date      TEXT,
-    char_count      INTEGER NOT NULL,
-    word_count      INTEGER NOT NULL,
-    content         TEXT NOT NULL
+    char_count      INTEGER,
+    word_count      INTEGER,
+    content         TEXT,
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE VIRTUAL TABLE IF NOT EXISTS stories_fts USING fts5(
     title,
     author_name,
     content,
-    content=stories,
-    content_rowid=id
+    content='stories',
+    content_rowid='id'
 );
 
 CREATE TRIGGER IF NOT EXISTS stories_ai AFTER INSERT ON stories BEGIN
@@ -141,22 +156,92 @@ def _parse_output_path(output_path: str) -> "tuple[str, str, str, int | None]":
 # -- Schema migrations --------------------------------------------------
 
 
-def _migrate_schema(conn: "sqlite3.Connection") -> None:
-    """Apply additive schema migrations to an existing partition/db.
+def _table_columns(conn: sqlite3.Connection, table_name: str) -> list[str]:
+    """Return the column names of the table, or empty list if table not exists."""
+    cursor = conn.execute(f"PRAGMA table_info({table_name})")
+    return [row[1] for row in cursor.fetchall()]
 
-    SQLite's CREATE TABLE IF NOT EXISTS is a no-op on tables that already
-    exist, so columns added to SCHEMA after a partition file was first
-    created never appear. Add them here with ALTER TABLE so older partition
-    databases stay compatible. Only additive (nullable) columns can be
-    backfilled this way.
-    """
-    cols = {row[1] for row in conn.execute("PRAGMA table_info(stories)")}
-    if not cols:
-        # Table does not exist yet (fresh db); SCHEMA already created it.
-        return
-    if "email_date" not in cols:
-        conn.execute("ALTER TABLE stories ADD COLUMN email_date TEXT")
+
+def _resume_interrupted_migration(conn: sqlite3.Connection) -> bool:
+    """Recover legacy data if a prior schema rebuild stopped mid-flight."""
+    legacy_columns = _table_columns(conn, "stories_legacy")
+    if not legacy_columns:
+        return False
+
+    copy_columns = [
+        col for col in STORY_COLUMNS if col in legacy_columns and col != "email_date"
+    ]
+    cols_sql = ", ".join(copy_columns)
+
+    try:
+        conn.execute("BEGIN")
+        if copy_columns:
+            conn.execute(
+                f"INSERT OR IGNORE INTO stories ({cols_sql}) SELECT {cols_sql} FROM stories_legacy"
+            )
+        conn.execute("DROP TABLE stories_legacy")
+        try:
+            conn.execute("DELETE FROM sqlite_sequence WHERE name = 'stories'")
+        except sqlite3.OperationalError:
+            pass
         conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+
+    conn.executescript(INDEXES)
+    return True
+
+
+def migrate_legacy_schema(conn: sqlite3.Connection) -> bool:
+    """Rebuild legacy story databases that still include the removed email_date column."""
+    if _resume_interrupted_migration(conn):
+        return True
+
+    legacy_columns = _table_columns(conn, "stories")
+    if not legacy_columns or "email_date" not in legacy_columns:
+        return False
+
+    copy_columns = [
+        col for col in STORY_COLUMNS if col in legacy_columns and col != "email_date"
+    ]
+    if not copy_columns:
+        return False
+
+    conn.executescript(
+        """
+        DROP TRIGGER IF EXISTS stories_ai;
+        DROP TRIGGER IF EXISTS stories_ad;
+        DROP TRIGGER IF EXISTS stories_au;
+        DROP TABLE IF EXISTS stories_fts;
+        """
+    )
+    conn.execute("ALTER TABLE stories RENAME TO stories_legacy")
+    conn.executescript(SCHEMA)
+
+    cols_sql = ", ".join(copy_columns)
+    try:
+        conn.execute("BEGIN")
+        conn.execute(
+            f"INSERT INTO stories ({cols_sql}) SELECT {cols_sql} FROM stories_legacy"
+        )
+        conn.execute("DROP TABLE stories_legacy")
+        try:
+            conn.execute("DELETE FROM sqlite_sequence WHERE name = 'stories'")
+        except sqlite3.OperationalError:
+            pass
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+
+    conn.executescript(INDEXES)
+    return True
+
+
+def _migrate_schema(conn: "sqlite3.Connection") -> None:
+    """Apply schema migrations to an existing partition/db."""
+    migrate_legacy_schema(conn)
 
 
 # -- DB init ------------------------------------------------------------

@@ -175,12 +175,12 @@ def load_models(spacy_model_name, sentiment_model_name, use_gpu):
         except Exception as e:
             print(f"Could not enable spaCy GPU: {e}")
 
-    nlp = spacy.load(spacy_model)
+    nlp = spacy.load(spacy_model_name)
     nlp.add_pipe("sentencizer")
 
     sentiment_pipe = pipeline(
         "sentiment-analysis",
-        model=sentiment_model,
+        model=sentiment_model_name,
         device=device,
         truncation=True,
         max_length=512,
@@ -188,15 +188,6 @@ def load_models(spacy_model_name, sentiment_model_name, use_gpu):
 
     return nlp, sentiment_pipe
 
-    processed_stories = 0
-
-def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe):
-    with open(filepath, "r", encoding="utf-8") as f:
-        text = f.read()
-
-            text = re.sub(r"\s+", " ", text).strip()
-            if not text:
-                return
 def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe):
     with open(filepath, "r", encoding="utf-8") as f:
         text = f.read()
@@ -231,16 +222,8 @@ def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe
     cursor.execute("SELECT MAX(id) FROM sentences")
     row = cursor.fetchone() or (None,)
     last_id_before = row[0] if row[0] is not None else 0
-    for sent_idx, (sent, sent_result) in enumerate(zip(sentences, sentiments)):
-        score = get_sentiment_value(sent_result)
-
     sentence_batch = []
     entity_batch = []
-
-        score = get_sentiment_value(sent_result)
-        sentence_batch.append(
-            (story_id, filepath.name, chapter_idx, sent_idx, sent.text, score)
-        )
 
     for sent_idx, (sent, sent_result) in enumerate(zip(sentences, sentiments)):
         score = get_sentiment_value(sent_result)
@@ -260,14 +243,6 @@ def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe
         sentence_batch,
     )
 
-    cursor.executemany(
-        """
-        INSERT INTO sentences (story_id, chapter_filename, chapter_index, sentence_index, text, sentiment_score)
-        VALUES (?, ?, ?, ?, ?, ?)
-        """,
-        sentence_batch,
-    )
-
     if entity_batch:
         cursor.executemany(
             """
@@ -276,20 +251,6 @@ def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe
             """,
             entity_batch,
         )
-            """,
-            entity_batch,
-        )
-
-            if entity_batch:
-                cursor.executemany(
-                    """
-                    INSERT INTO sentence_entities (sentence_id, entity_text, entity_label)
-                    VALUES (?, ?, ?)
-                """,
-                    entity_batch,
-                )
-
-            conn.commit()
 
 
 def process_story(story_dir, filepaths, cursor, conn, nlp, sentiment_pipe):

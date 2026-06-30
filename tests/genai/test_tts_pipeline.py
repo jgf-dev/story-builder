@@ -73,6 +73,25 @@ class TestTTSPipeline(unittest.TestCase):
             generated = []
 
 
+                # Sanitize voice names to valid Gemini voices for the integration test
+                with open(md_file, "r", encoding="utf-8") as f:
+                    content = f.read()
+                content = (
+                    content.replace("en-US-Journey-F", "Aoede")
+                    .replace("en-US-Journey-D", "Charon")
+                    .replace("en-US-Journey-O", "Kore")
+                )
+                temp_md_file = os.path.join(tmp_dir, f"{base_name}.md")
+                with open(temp_md_file, "w", encoding="utf-8") as f:
+                    f.write(content)
+                print(f"\n[{i+1}/{len(self.prompt_files)}] Processing: {os.path.basename(md_file)}")
+                if previous_id:
+                    print(f"  Linking to previous_interaction_id={previous_id[:12]}... for voice continuity")
+
+                try:
+                    client, current_key_idx, previous_id = process_file(
+                        temp_md_file, wav_file, client, previous_id, api_keys, current_key_idx
+                    )
                 except Exception as e:
                     err = str(e).lower()
                     if any(k in err for k in ("quota", "429", "resource_exhausted", "unauthenticated", "permission")):

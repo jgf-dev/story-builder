@@ -6,7 +6,11 @@ import glob
 import pandas as pd
 import plotly.express as px
 from pathlib import Path
-import html
+import sys
+
+# Ensure src layout package is importable
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+from storybuilder.downloader import db as storybuilder_db
 
 # Define paths
 DB_DIR = "stories/db"

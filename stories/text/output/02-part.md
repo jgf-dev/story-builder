@@ -18,7 +18,7 @@ Style:
 Pace: Conversational, picking up slightly during Jace's playful interactions. Use short pauses for Levi's internal reactions.
 Accent: Standard American
 
-### SAMPLE CONCONTEXT
+### SAMPLE CONTEXT
 
 Jace and Kerry arrive at the cabin. Levi, having just been intimate with Ewan, is still adjusting to the shift in atmosphere. He's surprised by Jace's changed appearance and unexpected warmth. A brief moment of jealousy arises as Kerry interacts with Ewan, but Levi quickly dismisses it. The scene establishes the initial dynamics between the four characters.
 

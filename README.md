@@ -103,14 +103,6 @@ Parse and register the downloaded plain texts into the FTS5-indexed database:
 python3 scripts/import_to_sqlite.py --db stories/stories.db
 ```
 
-If you already have an older database that still contains the removed
-`email_date` column, it will be migrated automatically the next time the DB is
-opened through the shared SQLite layer. You can also migrate it manually with:
-
-```bash
-python3 scripts/migrate_email_date.py stories/stories.db
-```
-
 ### Step 3: Run NLP Analysis
 
 Compute sentence sentiment and extract named entities:

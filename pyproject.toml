@@ -43,17 +43,8 @@ build-backend = "uv_build"
 [tool.uv.extra-build-dependencies]
 cupy = ["pkg_resources"]
 
-[tool.pyrefly]
-project-includes = ["**/*.py*", "**/*.ipynb"]
-project-excludes = [
-    "**/.venv/**",
-    "**/.env/**",
-    "**/.venv/**",
-    "**/__pyrefly_virtual__/**",
-    "**/__pycache__/**",
-    "**/*.pyc/**",
-    "**/inmemory/**",
-]
-
 [dependency-groups]
-dev = ["pytest>=9.0.3", "pytest-cov>=7.1.0"]
+dev = [
+    "pytest>=9.0.3",
+    "pytest-cov>=7.1.0",
+]

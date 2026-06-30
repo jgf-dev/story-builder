@@ -14,7 +14,7 @@ def main():
     ]
 
     try:
-        client.interactions.create(
+        interaction = client.interactions.create(
             model="gemini-3.1-flash-tts-preview",
             input="Narrator: The sun set over the mountains.\nLevi: Hey Jace.\nJace: Hey Levi.",
             response_modalities=["audio"],

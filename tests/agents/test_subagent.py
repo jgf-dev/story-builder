@@ -63,7 +63,18 @@ class TestSubagent(unittest.TestCase):
             self.assertTrue(response.candidates)
             self.assertGreater(len(response.text), 0)
         except Exception as e:
+<<<<<<< HEAD:tests/test_subagent.py
+            if (
+                "quota" in str(e).lower()
+                or "permission" in str(e).lower()
+                or "unauthenticated" in str(e).lower()
+                or "resource_exhausted" in str(e).lower()
+                or "resource exhausted" in str(e).lower()
+                or "429" in str(e).lower()
+            ):
+=======
             if "quota" in str(e).lower() or "permission" in str(e).lower() or "unauthenticated" in str(e).lower():
+>>>>>>> main:tests/agents/test_subagent.py
                 self.skipTest(f"Skipped due to API/auth issue: {e}")
             else:
                 self.fail(f"Subagent direct call failed: {e}")

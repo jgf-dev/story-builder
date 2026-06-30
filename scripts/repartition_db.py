@@ -20,7 +20,7 @@ def get_db_filename_from_date(story_date) -> str:
     """Determine the partitioned database filename based on the story publication date."""
     if not story_date:
         return "unknown.db"
-    if hasattr(story_date, "year"):
+    if hasattr(story_date, 'year'):
         return f"{story_date.year}.db"
 
     story_date_str = str(story_date).strip()
@@ -34,9 +34,7 @@ def get_db_filename_from_date(story_date) -> str:
     return "unknown.db"
 
 
-def get_or_create_connection(
-    temp_dir: Path, filename: str, new_conns: dict
-) -> sqlite3.Connection:
+def get_or_create_connection(temp_dir: Path, filename: str, new_conns: dict) -> sqlite3.Connection:
     """Retrieve an existing connection or create and initialize a new database connection."""
     target_path = str(temp_dir / filename)
     if target_path not in new_conns:
@@ -63,8 +61,8 @@ def process_source_database(src_path: str, temp_dir: Path, new_conns: dict) -> i
         src_conn.close()
         return 0
 
-    cols = "path, orientation, category, story_slug, chapter_num, title, author_name, author_email, publication_date, url, char_count, word_count, content"
-    placeholders = ", ".join(["?"] * 13)
+    cols = "path, orientation, category, story_slug, chapter_num, title, author_name, author_email, publication_date, url, email_date, char_count, word_count, content"
+    placeholders = ", ".join(["?"] * 14)
     insert_sql = f"INSERT OR REPLACE INTO stories ({cols}) VALUES ({placeholders})"
 
     row_count = 0
@@ -73,19 +71,9 @@ def process_source_database(src_path: str, temp_dir: Path, new_conns: dict) -> i
         dst_conn = get_or_create_connection(temp_dir, filename, new_conns)
 
         params = (
-            row["path"],
-            row["orientation"],
-            row["category"],
-            row["story_slug"],
-            row["chapter_num"],
-            row["title"],
-            row["author_name"],
-            row["author_email"],
-            row["publication_date"],
-            row["url"],
-            row["char_count"],
-            row["word_count"],
-            row["content"],
+            row["path"], row["orientation"], row["category"], row["story_slug"], row["chapter_num"],
+            row["title"], row["author_name"], row["author_email"], row["publication_date"],
+            row["url"], row["email_date"], row["char_count"], row["word_count"], row["content"]
         )
         dst_conn.execute(insert_sql, params)
         row_count += 1
@@ -135,24 +123,24 @@ def repartition_dbs(db_dir: str):
         return
 
     print(f"Found {len(db_files)} database files to repartition.")
-
+    
     # Create temp directory for new partitions
     temp_dir = db_path.parent / "db_repartitioned"
     if temp_dir.exists():
         shutil.rmtree(temp_dir)
     temp_dir.mkdir(parents=True, exist_ok=True)
-
+    
     # Track connections to the new partitioned databases
     new_conns = {}
     total_moved = 0
-
+    
     for src_path in db_files:
         total_moved += process_source_database(src_path, temp_dir, new_conns)
 
     finalize_new_databases(new_conns)
-
+        
     print(f"Successfully repartitioned {total_moved:,} total stories.")
-
+    
     swap_db_directories(db_path, temp_dir)
 
 

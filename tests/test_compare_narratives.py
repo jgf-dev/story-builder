@@ -13,8 +13,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from storybuilder.analysis.compare_narratives import main
 
-
-
 class TestCompareNarratives(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
@@ -45,19 +43,13 @@ class TestCompareNarratives(unittest.TestCase):
 
     def test_insufficient_stories(self):
         # Only add 2 stories
-        self.conn.execute(
-            "INSERT INTO stories (id, story_dir, subcategory) VALUES (1, 'dir1', 'cat1')"
-        )
-        self.conn.execute(
-            "INSERT INTO stories (id, story_dir, subcategory) VALUES (2, 'dir2', 'cat2')"
-        )
+        self.conn.execute("INSERT INTO stories (id, story_dir, subcategory) VALUES (1, 'dir1', 'cat1')")
+        self.conn.execute("INSERT INTO stories (id, story_dir, subcategory) VALUES (2, 'dir2', 'cat2')")
         self.conn.commit()
 
         captured_output = io.StringIO()
-        with (
-            patch("sys.argv", ["compare_narratives.py", "--db-path", self.db_path]),
-            patch("sys.stdout", new=captured_output),
-        ):
+        with patch('sys.argv', ['compare_narratives.py', '--db-path', self.db_path]), \
+             patch('sys.stdout', new=captured_output):
             main()
 
         output = captured_output.getvalue()
@@ -66,26 +58,19 @@ class TestCompareNarratives(unittest.TestCase):
     def test_skip_short_stories(self):
         # Add 4 stories
         for i in range(1, 5):
-            self.conn.execute(
-                "INSERT INTO stories (id, story_dir, subcategory) VALUES (?, ?, ?)",
-                (i, f"dir{i}", f"cat{i}"),
-            )
+            self.conn.execute("INSERT INTO stories (id, story_dir, subcategory) VALUES (?, ?, ?)",
+                              (i, f'dir{i}', f'cat{i}'))
             # Add < 20 sentences for each story
             for j in range(10):
-                self.conn.execute(
-                    """
+                self.conn.execute("""
                     INSERT INTO sentences (story_id, chapter_index, sentence_index, sentiment_score)
                     VALUES (?, ?, ?, ?)
-                """,
-                    (i, 1, j, 0.5),
-                )
+                """, (i, 1, j, 0.5))
         self.conn.commit()
 
         captured_output = io.StringIO()
-        with (
-            patch("sys.argv", ["compare_narratives.py", "--db-path", self.db_path]),
-            patch("sys.stdout", new=captured_output),
-        ):
+        with patch('sys.argv', ['compare_narratives.py', '--db-path', self.db_path]), \
+             patch('sys.stdout', new=captured_output):
             main()
 
         output = captured_output.getvalue()
@@ -95,41 +80,30 @@ class TestCompareNarratives(unittest.TestCase):
     def test_successful_clustering(self):
         # Add 4 stories
         for i in range(1, 5):
-            self.conn.execute(
-                "INSERT INTO stories (id, story_dir, subcategory) VALUES (?, ?, ?)",
-                (i, f"dir{i}", f"cat{i}"),
-            )
+            self.conn.execute("INSERT INTO stories (id, story_dir, subcategory) VALUES (?, ?, ?)",
+                              (i, f'dir{i}', f'cat{i}'))
             # Add >= 20 sentences for each story
             # To avoid the ConvergenceWarning of 1 distinct cluster found, make the sentiment scores slightly different per story
             for j in range(25):
-                self.conn.execute(
-                    """
+                self.conn.execute("""
                     INSERT INTO sentences (story_id, chapter_index, sentence_index, sentiment_score)
                     VALUES (?, ?, ?, ?)
-                """,
-                    (i, 1, j, 0.1 * (j % 5) + (i * 0.05)),
-                )
+                """, (i, 1, j, 0.1 * (j % 5) + (i * 0.05)))
         self.conn.commit()
 
         captured_output = io.StringIO()
-        with (
-            patch(
-                "sys.argv",
-                ["compare_narratives.py", "--db-path", self.db_path, "--clusters", "2"],
-            ),
-            patch("plotly.graph_objects.Figure.write_html") as mock_write_html,
-            patch("sys.stdout", new=captured_output),
-            warnings.catch_warnings(),
-        ):
-            warnings.simplefilter("ignore")  # Ignore KMeans duplicate warning if any
+        with patch('sys.argv', ['compare_narratives.py', '--db-path', self.db_path, '--clusters', '2']), \
+             patch('plotly.graph_objects.Figure.write_html') as mock_write_html, \
+             patch('sys.stdout', new=captured_output), \
+             warnings.catch_warnings():
+            warnings.simplefilter("ignore") # Ignore KMeans duplicate warning if any
             main()
 
         output = captured_output.getvalue()
         self.assertIn("Loaded 4 processed stories. Normalizing trajectories...", output)
         self.assertIn("Clustering into 2 narrative archetypes...", output)
-        self.assertIn(
-            "Saved archetype visualization to narrative_archetypes.html", output
-        )
+        self.assertIn("Saved archetype visualization to narrative_archetypes.html", output)
         mock_write_html.assert_called_once_with("narrative_archetypes.html")
+
 if __name__ == "__main__":
     unittest.main()

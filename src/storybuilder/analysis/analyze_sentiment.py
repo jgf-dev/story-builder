@@ -1,4 +1,5 @@
 import argparse
+import os
 import sqlite3
 import re
 from collections import defaultdict
@@ -118,7 +119,10 @@ def parse_args():
     )
     parser.add_argument("--gpu", action="store_true", default=True, help="Use GPU.")
     args = parser.parse_args()
+    return args
 
+
+def find_multi_chapter_stories(stories_dir, subcategory):
     search_pattern = "*.txt"
     if subcategory:
         base_path = Path(stories_dir) / subcategory
@@ -140,7 +144,7 @@ def load_models(spacy_model_name, sentiment_model_name, use_gpu):
     print(f"Loading models (spaCy: {spacy_model_name}, HF: {sentiment_model_name})...")
     device = 0 if use_gpu else -1
 
-    if args.gpu:
+    if use_gpu:
         try:
             set_gpu_allocator("pytorch")
             require_gpu(0)
@@ -148,12 +152,12 @@ def load_models(spacy_model_name, sentiment_model_name, use_gpu):
         except Exception as e:
             print(f"Could not enable spaCy GPU: {e}")
 
-    nlp = spacy.load(args.spacy_model)
+    nlp = spacy.load(spacy_model_name)
     nlp.add_pipe("sentencizer")
 
     sentiment_pipe = pipeline(  # pyrefly: ignore [no-matching-overload]
         "sentiment-analysis",
-        model=args.sentiment_model,
+        model=sentiment_model_name,
         device=device,
         truncation=True,
         max_length=512,
@@ -161,9 +165,9 @@ def load_models(spacy_model_name, sentiment_model_name, use_gpu):
 
     processed_stories = 0
 
-    for story_dir, filepaths in multi_stories.items():
-        if processed_stories >= args.limit_stories:
-            break
+def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe):
+    with open(filepath, "r", encoding="utf-8") as f:
+        text = f.read()
 
     text = re.sub(r"\s+", " ", text).strip()
     if not text:

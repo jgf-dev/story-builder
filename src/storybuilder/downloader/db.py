@@ -6,6 +6,7 @@ Thread-safe: uses WAL mode + a write lock.  Call init_db() once at startup,
 then insert_story() from any thread.
 """
 
+import concurrent.futures
 import os
 import re
 import sqlite3
@@ -289,7 +290,9 @@ def get_all_partition_paths() -> list[str]:
     if not _db_dir or not _is_partitioned:
         return []
     import glob
+
     return sorted(glob.glob(os.path.join(_db_dir, "[0-9][0-9][0-9][0-9].db")))
+
 
 def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
     """Execute a SELECT query across all database partitions sequentially
@@ -336,6 +339,7 @@ def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
 
     return all_rows
 
+
 def search_all_partitions(
     fts_query: str = "",
     category: "str | None" = None,
@@ -380,13 +384,17 @@ def search_all_partitions(
         if not partition_dir:
             return []
         import glob
-        db_paths = sorted(glob.glob(os.path.join(partition_dir, "[0-9][0-9][0-9][0-9].db")))
+
+        db_paths = sorted(
+            glob.glob(os.path.join(partition_dir, "[0-9][0-9][0-9][0-9].db"))
+        )
         if not db_paths:
             return []
 
-    for db_path in db_paths:
+    def _search_single_db(db_path: "str | None") -> list[dict]:
         conn = None
         need_close = False
+        results = []
         try:
             if db_path is None:
                 conn = get_conn()
@@ -395,7 +403,7 @@ def search_all_partitions(
                 need_close = True
 
             if not conn:
-                continue
+                return results
 
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
@@ -436,23 +444,34 @@ def search_all_partitions(
                 query_params.append(limit)
 
             cursor.execute(sql, query_params)
-            all_results.extend([dict(r) for r in cursor.fetchall()])
+            results = [dict(r) for r in cursor.fetchall()]
 
         except sqlite3.Error as e:
             print(f"Error querying {db_path or 'monolithic db'}: {e}")
         finally:
             if need_close and conn:
                 conn.close()
+        return results
+
+    if db_paths:
+        if len(db_paths) == 1 and db_paths[0] is None:
+            # Monolithic DB: no need for thread pool
+            all_results.extend(_search_single_db(None))
+        else:
+            with concurrent.futures.ThreadPoolExecutor(
+                max_workers=min(len(db_paths), 10)
+            ) as executor:
+                for res in executor.map(_search_single_db, db_paths):
+                    all_results.extend(res)
 
     # Sort aggregated results
     if fts_query:
         # Sort by date desc (since rank order is lost when combined, or we could sort by a score if we fetched it)
-        all_results.sort(key=lambda x: (x.get("publication_date") or ""), reverse=True)
+        all_results.sort(key=lambda x: x.get("publication_date") or "", reverse=True)
     else:
-        all_results.sort(key=lambda x: (x.get("publication_date") or ""), reverse=True)
+        all_results.sort(key=lambda x: x.get("publication_date") or "", reverse=True)
 
     return all_results[:limit]
-
 
 
 def get_partition_path(story_date) -> str:
@@ -620,30 +639,6 @@ def get_story(output_path: str, story_date: str) -> "dict | None":
             return None
 
 
-def optimize_fts_all(db_dir: str) -> None:
-    """Scan the given directory and rebuild FTS on all .db files."""
-    if not os.path.isdir(db_dir):
-        return
-
-    for filename in os.listdir(db_dir):
-        if not filename.endswith(".db"):
-            continue
-
-        db_path = os.path.join(db_dir, filename)
-        conn = None
-        try:
-            conn = sqlite3.connect(db_path, check_same_thread=False)
-            conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
-            conn.commit()
-        except sqlite3.DatabaseError:
-            # Best-effort optimization: skip databases that do not support FTS
-            # optimize or that are unreadable/corrupted.
-            continue
-        finally:
-            if conn:
-                conn.close()
-
-
 def optimize_fts() -> None:
     """Rebuild the FTS index for optimal search performance across all databases."""
 
@@ -665,7 +660,9 @@ def optimize_fts() -> None:
                 if path is None:
                     # Monolithic
                     if _conn:
-                        _conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
+                        _conn.execute(
+                            "INSERT INTO stories_fts(stories_fts) VALUES ('optimize')"
+                        )
                         _conn.commit()
                 else:
                     # Partitions

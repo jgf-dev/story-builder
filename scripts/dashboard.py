@@ -128,23 +128,11 @@ def get_filter_options():
         if r.get("category"):
             categories.add(r["category"])
 
-    for db in db_files:
-        try:
-            conn = sqlite3.connect(db)
-            cursor = conn.cursor()
-            # Get unique categories
-            cursor.execute("SELECT DISTINCT category FROM stories")
-            for r in cursor.fetchall():
-                if r[0]:
-                    categories.add(r[0])
-            # Get unique authors
-            cursor.execute("SELECT DISTINCT author_name FROM stories")
-            for r in cursor.fetchall():
-                if r[0]:
-                    authors.add(r[0])
-            conn.close()
-        except sqlite3.Error:
-            pass
+    # Get unique authors
+    author_results = storybuilder_db.execute_all_partitions("SELECT DISTINCT author_name FROM {table}")
+    for r in author_results:
+        if r.get("author_name"):
+            authors.add(r["author_name"])
 
     return sorted(list(categories)), sorted(list(authors))
 

@@ -1,31 +1,22 @@
+import datetime
 import os
 import re
+import threading
 import time
 import urllib.parse
-import datetime
-import threading
+
 from bs4 import BeautifulSoup
-from .cache import safe_print, cache_lock, metadata_cache
-from .network import fetch_page, BASE_URL
+
+from .cache import cache_lock, metadata_cache, safe_print
 from .date_parser import parse_nifty_date
+from .network import BASE_URL, fetch_page
 
 # Thread synchronization structures for folder processing
 seen_folders = set()
 seen_folders_lock = threading.Lock()
 
 
-def get_subcategories(category, delay):
-    """
-    Scrapes the category index page to find all subcategory folders.
-    Returns a list of dicts: [{'name': 'Adult Friends', 'url': 'https://nifty.org/nifty/gay/adult-friends/'}]
-    """
-    url = urllib.parse.urljoin(BASE_URL, f"{category}/")
-    safe_print(f"Fetching subcategories from {url}...")
-    response = fetch_page(url, delay)
-    if not response:
-        return []
-
-    soup = BeautifulSoup(response.text, "html.parser")
+def _extract_subcategories_from_html(soup, url):
     subcategories = []
 
     # Nifty pages have lists of subcategories under list-group-item class
@@ -53,6 +44,10 @@ def get_subcategories(category, delay):
                 sub_name = a_tag.get_text(strip=True) or href.rstrip("/")
                 subcategories.append({"name": sub_name, "url": sub_url})
 
+    return subcategories
+
+
+def _filter_subcategories(subcategories, category):
     # Filter out external links or parent directories
     filtered = []
     seen_urls = set()
@@ -69,6 +64,24 @@ def get_subcategories(category, delay):
             if normalized_url not in seen_urls:
                 seen_urls.add(normalized_url)
                 filtered.append({"name": sub["name"], "url": normalized_url})
+
+    return filtered
+
+
+def get_subcategories(category, delay):
+    """
+    Scrapes the category index page to find all subcategory folders.
+    Returns a list of dicts: [{'name': 'Adult Friends', 'url': 'https://nifty.org/nifty/gay/adult-friends/'}]
+    """
+    url = urllib.parse.urljoin(BASE_URL, f"{category}/")
+    safe_print(f"Fetching subcategories from {url}...")
+    response = fetch_page(url, delay)
+    if not response:
+        return []
+
+    soup = BeautifulSoup(response.text, "html.parser")
+    subcategories = _extract_subcategories_from_html(soup, url)
+    filtered = _filter_subcategories(subcategories, category)
 
     safe_print(f"Found {len(filtered)} subcategories for category '{category}'")
     for sub in filtered:
@@ -130,8 +143,10 @@ def _get_cached_subcategory(sub_url):
         cached_stories = cached_entry.get("stories", [])
         is_complete = cached_entry.get("complete", False)
 
+    # We only use cache-hit early-stop if we are not forcing a scan and the cache is marked complete.
+    # This ensures that we do not stop traversing on a cache hit when the cache has gaps or is partial.
+    use_cache = not force_scan and is_complete
     return cached_stories, is_complete
-
 
 def _scrape_subcategory_pages(
     sub_url, start_date, delay, force_scan, use_cache, cached_lookup
@@ -183,9 +198,6 @@ def _scrape_subcategory_pages(
                     stop_pagination = True
                     break
 
-<<<<<<< HEAD
-            scraped_stories.append({"name": name, "url": story_url, "date": story_date.isoformat(), "is_dir": is_directory, "size": size})
-=======
             scraped_stories.append(
                 {
                     "name": name,
@@ -195,7 +207,6 @@ def _scrape_subcategory_pages(
                     "size": size,
                 }
             )
->>>>>>> ec27e05 (refactor: improve test reliability with timeout handling and expanded resource exhaustion error catching)
 
             # Early-stop optimization: if the story date is older than start_date,
             # and it is NOT a directory (as directories can have stale index dates),
@@ -246,7 +257,7 @@ def _merge_and_save_stories(
         metadata_cache[sub_url] = {
             "last_updated": datetime.datetime.now().isoformat(),
             "complete": is_complete or reached_end,
-            "stories": merged_stories
+            "stories": merged_stories,
         }
 
     return merged_stories
@@ -307,47 +318,22 @@ def scrape_subcategory(sub_url, start_date, end_date, delay, force_scan=False):
     return _filter_stories_by_date(merged_stories, start_date, end_date)
 
 
-def scrape_multi_chapter_folder(folder_url, folder_date, start_date, end_date, delay, force_scan=False):
+def _get_cached_chapters(folder_url, folder_date, start_date, end_date):
     """
-    Crawls a multi-chapter folder (represented by a 'Dir' entry).
-    Uses caching based on folder_date to avoid fetching unless the folder changed.
-    If at least one chapter falls within the date range [start_date, end_date],
-    returns all chapters from this folder. Otherwise, returns an empty list.
+    Checks the cache for a multi-chapter folder and returns the chapters if valid.
+    Returns (chapters, has_matching) if cached, else (None, False).
     """
-    # Check cache
     cached_entry = None
     with cache_lock:
         cached_entry = metadata_cache.get(folder_url)
 
-    use_cache = not force_scan
+    if not (cached_entry and isinstance(cached_entry, dict)):
+        return None, False
 
-    # Check if cached chapters exist and the folder date matches
-    if use_cache and cached_entry and isinstance(cached_entry, dict):
-        cached_folder_date = cached_entry.get("folder_date")
-        if cached_folder_date == folder_date.isoformat():
-            safe_print(f"Cache hit for multi-chapter folder: {folder_url} (date: {cached_folder_date}). Using cached chapters.")
-            cached_chapters = cached_entry.get("chapters", [])
-            chapters = []
-            has_matching_chapter = False
-            for ch in cached_chapters:
-                try:
-                    ch_date = datetime.datetime.strptime(ch["date"], "%Y-%m-%d").date()
-                except Exception:
-                    continue
-                chapters.append({"name": ch["name"], "url": ch["url"], "date": ch_date, "is_dir": False})
-                if start_date <= ch_date <= end_date:
-                    has_matching_chapter = True
+    cached_folder_date = cached_entry.get("folder_date")
+    if cached_folder_date != folder_date.isoformat():
+        return None, False
 
-<<<<<<< HEAD
-            if has_matching_chapter:
-                safe_print(f"Folder {folder_url} (cached) has at least one chapter in date range. Downloading all {len(chapters)} chapters.")
-                return chapters
-            else:
-                safe_print(f"Folder {folder_url} (cached) has no chapters in date range. Skipping all.")
-                return []
-
-    # If cache miss or outdated
-=======
     safe_print(
         f"Cache hit for multi-chapter folder: {folder_url} (date: {cached_folder_date}). Using cached chapters."
     )
@@ -374,11 +360,10 @@ def _fetch_and_parse_chapters(folder_url, start_date, end_date, delay):
     Fetches and parses chapters from a multi-chapter folder URL.
     Returns (chapters, scraped_chapters, has_matching_chapter).
     """
->>>>>>> ec27e05 (refactor: improve test reliability with timeout handling and expanded resource exhaustion error catching)
     safe_print(f"Scraping multi-chapter folder: {folder_url}")
     response = fetch_page(folder_url, delay=delay)
     if not response:
-        return []
+        return [], [], False
 
     soup = BeautifulSoup(response.text, "html.parser")
     rows = parse_listing_rows(soup)
@@ -416,8 +401,6 @@ def _fetch_and_parse_chapters(folder_url, start_date, end_date, delay):
         if start_date <= chapter_date <= end_date:
             has_matching_chapter = True
 
-<<<<<<< HEAD
-=======
     return chapters, scraped_chapters, has_matching_chapter
 
 
@@ -452,30 +435,33 @@ def scrape_multi_chapter_folder(
     )
 
     if not chapters and not scraped_chapters:
+        # Still save to cache so we don't re-fetch empty folders
+        with cache_lock:
+            metadata_cache[folder_url] = {
+                "last_updated": datetime.datetime.now().isoformat(),
+                "folder_date": folder_date.isoformat(),
+                "chapters": scraped_chapters,
+            }
         return []
 
->>>>>>> ec27e05 (refactor: improve test reliability with timeout handling and expanded resource exhaustion error catching)
     # Save to cache
     with cache_lock:
-        metadata_cache[folder_url] = {"last_updated": datetime.datetime.now().isoformat(), "folder_date": folder_date.isoformat(), "chapters": scraped_chapters}
+        metadata_cache[folder_url] = {
+            "last_updated": datetime.datetime.now().isoformat(),
+            "folder_date": folder_date.isoformat(),
+            "chapters": scraped_chapters,
+        }
 
-<<<<<<< HEAD
-    if has_matching_chapter:
-        safe_print(f"Folder {folder_url} has at least one chapter in date range. Downloading all {len(chapters)} chapters.")
-=======
     if has_matching:
         safe_print(
             f"Folder {folder_url} has at least one chapter in date range. Downloading all {len(chapters)} chapters."
         )
->>>>>>> ec27e05 (refactor: improve test reliability with timeout handling and expanded resource exhaustion error catching)
         return chapters
     else:
         safe_print(f"Folder {folder_url} has no chapters in date range. Skipping all.")
         return []
 
 
-<<<<<<< HEAD
-=======
 def _process_directory_story(s, start_date, end_date, args, sub_folder):
     folder_url = s["url"]
 
@@ -540,7 +526,6 @@ def _process_single_story(s, args, sub_folder):
     ]
 
 
->>>>>>> ec27e05 (refactor: improve test reliability with timeout handling and expanded resource exhaustion error catching)
 def process_subcategory(sub, start_date, end_date, args):
     """
     Crawls a single subcategory and all its multi-chapter folders,
@@ -564,46 +549,10 @@ def process_subcategory(sub, start_date, end_date, args):
 
     for s in stories:
         if s["is_dir"]:
-<<<<<<< HEAD
-            folder_url = s["url"]
-
-            # Thread-safe check of seen_folders
-            should_skip = False
-            with seen_folders_lock:
-                if folder_url in seen_folders:
-                    should_skip = True
-                else:
-                    seen_folders.add(folder_url)
-
-            if should_skip:
-                safe_print(f"Skipping already scraped folder: {folder_url}")
-                continue
-
-            # Fetch multi-chapter story chapters
-            chapters = scrape_multi_chapter_folder(folder_url, s["date"], start_date, end_date, delay=args.delay, force_scan=args.force)
-            for ch in chapters:
-                story_slug = s["name"].lower().replace(" ", "-")
-                story_slug = re.sub(r"[^\w\-]", "", story_slug)
-
-                filename = ch["name"]
-                if not filename.endswith(".txt") and not filename.endswith(".html"):
-                    filename += ".txt"
-
-                output_path = os.path.join(args.output_dir, args.category, sub_folder, story_slug, filename)
-                sub_targets.append({"key": (story_slug, filename), "url": ch["url"], "output_path": output_path, "date": ch["date"]})
-        else:
-            filename = s["name"]
-            if not filename.endswith(".txt") and not filename.endswith(".html"):
-                filename += ".txt"
-
-            output_path = os.path.join(args.output_dir, args.category, sub_folder, filename)
-            sub_targets.append({"key": (None, filename), "url": s["url"], "output_path": output_path, "date": s["date"]})
-=======
             sub_targets.extend(
                 _process_directory_story(s, start_date, end_date, args, sub_folder)
             )
         else:
             sub_targets.extend(_process_single_story(s, args, sub_folder))
->>>>>>> ec27e05 (refactor: improve test reliability with timeout handling and expanded resource exhaustion error catching)
 
     return sub_targets

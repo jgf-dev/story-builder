@@ -69,6 +69,7 @@ def parse_header(filepath: str) -> "dict | None":
     author_raw = ""
     pub_date = ""
     url = ""
+    email_date = ""
 
     in_header = True
     content_start = 0
@@ -91,6 +92,8 @@ def parse_header(filepath: str) -> "dict | None":
                 pub_date = line[len("Publication Date:") :].strip()
             elif line.startswith("URL:"):
                 url = line[len("URL:") :].strip()
+            elif line.startswith("Email-Date:"):
+                email_date = line[len("Email-Date:") :].strip()
 
     if not found_second_marker:
         return None
@@ -107,6 +110,7 @@ def parse_header(filepath: str) -> "dict | None":
         "author_email": author_email,
         "publication_date": pub_date,
         "url": url,
+        "email_date": email_date,
         "content": content,
     }
 
@@ -153,6 +157,7 @@ def import_files(
                 parsed["author_email"],
                 parsed["publication_date"],
                 parsed["url"],
+                parsed["email_date"],
                 char_count,
                 word_count,
                 content,
@@ -200,9 +205,9 @@ def _flush_batch(conn: sqlite3.Connection, batch: list, force: bool) -> int:
                 INSERT OR REPLACE INTO stories
                     (path, orientation, category, story_slug, chapter_num,
                      title, author_name, author_email,
-                     publication_date, url,
+                     publication_date, url, email_date,
                      char_count, word_count, content)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """
             try:
                 c.executemany(sql, rows)
@@ -226,9 +231,9 @@ def _flush_batch(conn: sqlite3.Connection, batch: list, force: bool) -> int:
         INSERT OR REPLACE INTO stories
             (path, orientation, category, story_slug, chapter_num,
              title, author_name, author_email,
-             publication_date, url,
+             publication_date, url, email_date,
              char_count, word_count, content)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
     try:
         conn.executemany(sql, batch)

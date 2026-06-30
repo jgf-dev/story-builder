@@ -188,15 +188,6 @@ def load_models(spacy_model_name, sentiment_model_name, use_gpu):
 
     return nlp, sentiment_pipe
 
-    processed_stories = 0
-
-def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe):
-    with open(filepath, "r", encoding="utf-8") as f:
-        text = f.read()
-
-            text = re.sub(r"\s+", " ", text).strip()
-            if not text:
-                return
 def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe):
     with open(filepath, "r", encoding="utf-8") as f:
         text = f.read()

@@ -3,8 +3,10 @@ import os
 import re
 
 import sqlite3
+import re
 from collections import defaultdict
 from pathlib import Path
+
 
 import spacy
 from thinc.api import require_gpu, set_gpu_allocator
@@ -107,7 +109,8 @@ def parse_args():
         help="HF Sentiment Model.",
     )
     parser.add_argument("--gpu", action="store_true", default=True, help="Use GPU.")
-    return parser.parse_args()
+    args = parser.parse_args()
+    return args
 
 
 def find_multi_chapter_stories(stories_dir, subcategory=None):
@@ -153,6 +156,7 @@ def load_models(spacy_model, sentiment_model, use_gpu):
 
     return nlp, sentiment_pipe
 
+    processed_stories = 0
 
 def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe):
     with open(filepath, "r", encoding="utf-8") as f:
@@ -222,8 +226,16 @@ def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe
             entity_batch,
         )
 
-    cursor.connection.commit()
+            if entity_batch:
+                cursor.executemany(
+                    """
+                    INSERT INTO sentence_entities (sentence_id, entity_text, entity_label)
+                    VALUES (?, ?, ?)
+                """,
+                    entity_batch,
+                )
 
+            conn.commit()
 
 
 def process_story(story_dir, filepaths, cursor, conn, nlp, sentiment_pipe):
@@ -279,7 +291,6 @@ def main():
         was_processed = process_story(story_dir, filepaths, cursor, conn, nlp, sentiment_pipe)
         if was_processed:
             processed_stories += 1
-
     conn.close()
 
 

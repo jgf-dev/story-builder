@@ -28,14 +28,14 @@ st.markdown(
         .reportview-container {
             background: #0b1020;
         }
-        
+
         /* Heading styles */
         h1, h2, h3 {
             font-family: 'Outfit', 'Inter', sans-serif;
             font-weight: 700;
             color: #e8eefc;
         }
-        
+
         /* Card styling */
         .story-card {
             background-color: rgba(22, 34, 64, 0.6);
@@ -51,7 +51,7 @@ st.markdown(
             background-color: rgba(22, 34, 64, 0.85);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
         }
-        
+
         /* Snippet highlight styling */
         .highlight {
             background-color: rgba(251, 191, 36, 0.25);
@@ -60,7 +60,7 @@ st.markdown(
             border-radius: 4px;
             font-weight: bold;
         }
-        
+
         /* Sidebar styling custom overrides */
         .css-1d391kg {
             background-color: #09101f;
@@ -113,24 +113,17 @@ def get_filter_options():
     """Compile distinct categories and authors across all partitions for filters."""
     categories = set()
     authors = set()
-    db_files = get_db_files()
-    
-    for db in db_files:
-        try:
-            conn = sqlite3.connect(db)
-            cursor = conn.cursor()
-            # Get unique categories
-            cursor.execute("SELECT DISTINCT category FROM stories")
-            for r in cursor.fetchall():
-                if r[0]: categories.add(r[0])
-            # Get unique authors
-            cursor.execute("SELECT DISTINCT author_name FROM stories")
-            for r in cursor.fetchall():
-                if r[0]: authors.add(r[0])
-            conn.close()
-        except sqlite3.Error:
-            pass
-            
+    # Get unique categories
+    cat_results = storybuilder_db.execute_all_partitions("SELECT DISTINCT category FROM {table}")
+    for r in cat_results:
+        if r.get("category"):
+            categories.add(r["category"])
+
+    # Get unique authors
+    auth_results = storybuilder_db.execute_all_partitions("SELECT DISTINCT author_name FROM {table}")
+    for r in auth_results:
+        if r.get("author_name"):
+            authors.add(r["author_name"])
     return sorted(list(categories)), sorted(list(authors))
 
 @st.cache_data
@@ -140,8 +133,14 @@ def load_archive_stats():
     year_stats = []
     category_counts = {}
     author_counts = {}
-    word_counts = []
-    
+    bracket_counts = {
+        "Short (<1K)": 0,
+        "Medium-Short (1K-5K)": 0,
+        "Medium (5K-10K)": 0,
+        "Medium-Long (10K-20K)": 0,
+        "Long (20K-50K)": 0,
+        "Epic (>50K)": 0,
+    }
     for db in db_files:
         year_name = Path(db).stem
         try:
@@ -152,12 +151,13 @@ def load_archive_stats():
             cursor.execute("SELECT COUNT(*), SUM(word_count) FROM stories")
             cnt, words = cursor.fetchone()
             if cnt:
-                year_stats.append({
-                    "Year": int(year_name),
-                    "Stories Count": cnt,
-                    "Total Words": words or 0
-                })
-                
+                year_stats.append(
+                    {
+                        "Year": int(year_name),
+                        "Stories Count": cnt,
+                        "Total Words": words or 0,
+                    }
+                )
             # Categories summary
             cursor.execute("SELECT category, COUNT(*) FROM stories GROUP BY category")
             for cat, count in cursor.fetchall():
@@ -169,11 +169,28 @@ def load_archive_stats():
             for auth, count in cursor.fetchall():
                 if auth:
                     author_counts[auth] = author_counts.get(auth, 0) + count
-                    
-            # Word counts sample for distribution
-            cursor.execute("SELECT word_count FROM stories")
-            word_counts.extend([r[0] for r in cursor.fetchall()])
-            
+
+            # Word count bracket distribution (binned at SQL level; NULLs excluded)
+            cursor.execute(
+                """
+                SELECT
+                    CASE
+                        WHEN word_count < 1000 THEN 'Short (<1K)'
+                        WHEN word_count < 5000 THEN 'Medium-Short (1K-5K)'
+                        WHEN word_count < 10000 THEN 'Medium (5K-10K)'
+                        WHEN word_count < 20000 THEN 'Medium-Long (10K-20K)'
+                        WHEN word_count < 50000 THEN 'Long (20K-50K)'
+                        ELSE 'Epic (>50K)'
+                    END AS bracket,
+                    COUNT(*)
+                FROM stories
+                WHERE word_count IS NOT NULL
+                GROUP BY bracket
+                """
+            )
+            for bracket, count in cursor.fetchall():
+                if bracket in bracket_counts:
+                    bracket_counts[bracket] += count
             conn.close()
         except sqlite3.Error:
             pass
@@ -428,13 +445,12 @@ if page == "🔍 Search & Explorer":
         # Create a container for the card styling
         card_html = f"""
         <div class="story-card">
-            <h4>{html.escape(res['title'])}</h4>
+            <h4>{html.escape(res["title"] or "Untitled")}</h4>
             <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 8px;'>
-                <b>Author:</b> {html.escape(res['author_name'] or 'Unknown')} |
-                <b>Category:</b> {html.escape(res['category'] or 'Unknown')} |
-                <b>Published:</b> {html.escape(str(res['publication_date'] or 'Unknown'))} |
-
-                <b>Words:</b> {res['word_count']:,}
+                <b>Author:</b> {html.escape(res["author_name"] or "Unknown")} |
+                <b>Category:</b> {html.escape(res["category"] or "Unknown")} |
+                <b>Published:</b> {html.escape(str(res["publication_date"] or "Unknown"))} |
+                <b>Words:</b> {res["word_count"]:,}
             </p>
         """
         
@@ -545,7 +561,37 @@ elif page == "⭐ Favorites & Tags":
         filter_tag = st.selectbox("Filter Favorites by Tag", ["All"] + sorted(list(all_tags)))
         
         st.write("---")
-        
+        # Expected optimization impact: Resolving N favorite stories in M year partitions
+        # O(N * M) individual DB queries -> O(M) queries with IN clauses.
+        # Significantly improves load time of the Favorites tab, reducing it from seconds to milliseconds.
+        fav_paths = [f["story_path"] for f in favorites]
+        path_to_db_year = {}
+        if fav_paths:
+            for y_db in get_db_files():
+                y = int(Path(y_db).stem)
+                conn = sqlite3.connect(y_db)
+                try:
+                    # chunking just in case of very large favorites lists
+                    chunk_size = 900
+                    for i in range(0, len(fav_paths), chunk_size):
+                        chunk = fav_paths[i : i + chunk_size]
+                        placeholders = ",".join("?" * len(chunk))
+                        res = (
+                            conn.cursor()
+                            .execute(
+                                f"SELECT path FROM stories WHERE path IN ({placeholders})",
+                                chunk,
+                            )
+                            .fetchall()
+                        )
+                        for (p,) in res:
+                            path_to_db_year[p] = y
+                except sqlite3.Error as e:
+                    st.warning(
+                        f"Could not resolve story paths from database '{y_db}': {e}"
+                    )
+                finally:
+                    conn.close()
         # Display favorites
         for f in favorites:
             # Filter by tag if needed
@@ -597,8 +643,7 @@ elif page == "📊 Archive Stats":
     st.write("Detailed statistics and distributions for the entire story archive.")
     
     with st.spinner("Compiling database metrics..."):
-        df_years, df_cats, df_auths, word_counts = load_archive_stats()
-        
+        df_years, df_cats, df_auths, df_words = load_archive_stats()
     st.markdown("---")
     
     # Overview metrics row

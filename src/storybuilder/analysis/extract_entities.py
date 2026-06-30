@@ -138,7 +138,6 @@ def main():
     except OSError:
         print(f"Model '{args.model}' not found. Please run: python -m spacy download {args.model}")
         sys.exit(1)
-
     all_files = list(Path(args.stories_dir).rglob("*.txt"))
     print(f"Found {len(all_files)} total text files.")
 

@@ -32,3 +32,7 @@
 
 **Learning:** Sequentially looping over multiple SQLite partition databases to execute individual queries introduces a significant O(N) latency bottleneck, especially for search queries across many years. Since read queries in WAL-mode SQLite do not block each other, reading from independent partition files concurrently is completely safe.
 **Action:** When querying separate SQLite partition databases (e.g. `search_all_partitions`), use `concurrent.futures.ThreadPoolExecutor` to map the read query across the database paths concurrently. This reduces execution latency from O(N) to O(1).
+
+## 2026-06-30 - [Streamlit Pandas Transformation Ordering]
+**Learning:** When removing a Pandas operation (like `pd.cut` binning) from a Streamlit script because the data is now pre-aggregated in SQL, you must ensure that the variable receiving the aggregated data (e.g. `df_words`) is still correctly unpacked and assigned from the upstream cached function. In this specific case, removing the binning logic without ensuring `df_words` was properly returned by `load_archive_stats` and mapped led to a `NameError` crash.
+**Action:** When removing intermediate Pandas processing steps in UI scripts, always verify that the expected final DataFrame variable is correctly populated and returned by the data loader function, and correctly mapped at the call site.

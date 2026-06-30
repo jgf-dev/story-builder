@@ -226,17 +226,6 @@ def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe
             entity_batch,
         )
 
-            if entity_batch:
-                cursor.executemany(
-                    """
-                    INSERT INTO sentence_entities (sentence_id, entity_text, entity_label)
-                    VALUES (?, ?, ?)
-                """,
-                    entity_batch,
-                )
-
-            conn.commit()
-
 
 def process_story(story_dir, filepaths, cursor, conn, nlp, sentiment_pipe):
     cursor.execute("SELECT id FROM stories WHERE story_dir = ?", (story_dir,))

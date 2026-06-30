@@ -6,6 +6,7 @@ import glob
 import pandas as pd
 import plotly.express as px
 from pathlib import Path
+from storybuilder.downloader import db as storybuilder_db
 
 # Define paths
 DB_DIR = "stories/db"

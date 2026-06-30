@@ -120,6 +120,14 @@
       border-color: rgba(125, 211, 252, 0.35);
     }
 
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--border);
+    }
+
     button:focus-visible,
     input[type="file"]:focus-visible + .file-label {
       outline: none;
@@ -251,7 +259,7 @@
         <div class="toolbar">
           <input id="fileInput" class="sr-only" type="file" accept=".md,text/markdown,text/plain">
           <label class="file-label" for="fileInput">Load TASKS.md</label>
-          <button class="primary" id="saveBtn" title="Save (Ctrl+S / Cmd+S)" aria-keyshortcuts="Control+S Meta+S">Save</button>
+          <button class="primary" id="saveBtn" title="Save (Ctrl+S / Cmd+S)" aria-keyshortcuts="Control+S Meta+S" disabled>Save</button>
           <button id="downloadBtn">Download Copy</button>
           <button class="warn" id="resetBtn">Reset Template</button>
         </div>
@@ -318,10 +326,13 @@
     function setDirty(dirty) {
       if (isDirty === dirty) return;
       isDirty = dirty;
+      const saveBtn = document.getElementById('saveBtn');
       if (isDirty) {
         document.title = '* ' + document.title.replace(/^\*\s*/, '');
+        saveBtn.disabled = false;
       } else {
         document.title = document.title.replace(/^\*\s*/, '');
+        saveBtn.disabled = true;
       }
     }
 
@@ -370,6 +381,13 @@
     });
 
     document.getElementById('saveBtn').addEventListener('click', async () => {
+      const saveBtn = document.getElementById('saveBtn');
+      const originalText = saveBtn.textContent;
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving...';
+      document.body.style.cursor = 'wait';
+
       try {
         if (currentHandle && window.showSaveFilePicker) {
           await saveViaHandle(currentHandle, editor.value);
@@ -388,6 +406,10 @@
         setDirty(false);
       } catch (error) {
         setStatus(`Save failed: ${error.message}`);
+      } finally {
+        saveBtn.textContent = originalText;
+        document.body.style.cursor = '';
+        if (isDirty) saveBtn.disabled = false;
       }
     });
 
@@ -425,8 +447,10 @@
 
     document.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
-        e.preventDefault();
-        document.getElementById('saveBtn').click();
+        e.preventDefault(); // Always prevent default "Save As" behavior
+        if (isDirty) {
+          document.getElementById('saveBtn').click();
+        }
       }
     });
 

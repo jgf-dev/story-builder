@@ -180,24 +180,25 @@ def process_directory_cartesia(directory, rate=24000):
     if not api_key:
         print("Error: CARTESIA_API_KEY not found in environment.")
         return
-        
+
     # Find all *-part.md files in the directory
     files = sorted(glob.glob(os.path.join(directory, "*-part.md")))
     if not files:
         print(f"No prompt files found in {directory}")
         return
-        
+
     print(f"Found {len(files)} prompt files to process using Cartesia API.")
-    
+
     for md_file in files:
         base_name = os.path.splitext(os.path.basename(md_file))[0]
         wav_file = os.path.join(directory, f"{base_name}.wav")
-        
+
         # Check if already generated
         if os.path.exists(wav_file):
             print(f"Skipping {os.path.basename(md_file)}, {os.path.basename(wav_file)} already exists.")
             continue
-            
+
+
         print(f"Processing {os.path.basename(md_file)} with Cartesia...")
         with open(md_file, 'r') as f:
             content = f.read()

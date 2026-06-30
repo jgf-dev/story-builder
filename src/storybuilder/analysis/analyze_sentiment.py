@@ -188,7 +188,8 @@ def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe
 
     cursor.execute("SELECT MAX(id) FROM sentences")
     row = cursor.fetchone()
-    last_id_before = row[0] if row[0] is not None else 0
+    last_id_before = row[0] if row and row[0] is not None else 0
+
 
     sentence_batch = []
     entity_batch = []

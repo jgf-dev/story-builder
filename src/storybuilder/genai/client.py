@@ -201,7 +201,7 @@ def process_directory(directory):
     key_name, api_key = api_keys[current_key_idx]
     client = genai.Client(api_key=api_key)
 
-    # Find all *-part.md files in the directory
+    # Find all *.md prompt files in the directory
     files = sorted(glob.glob(os.path.join(directory, "*.md")))
     if not files:
         print(f"No prompt files found in {directory}")
@@ -221,7 +221,6 @@ def process_directory(directory):
         client, current_key_idx, previous_id = process_file(
             md_file, wav_file, client, previous_id, api_keys, current_key_idx
         )
-
 
         # Slight delay to respect rate limits
         time.sleep(2)

@@ -98,6 +98,14 @@ def _resolve_connection(args) -> "tuple[sqlite3.Connection, list[str] | None]":
     db_path = getattr(args, "db_dir", None) or args.db
     if os.path.isdir(db_path):
         conn, db_paths = connect_multi(db_path)
+        # execute_all_partitions() relies on the db module's internal
+        # _is_partitioned / _db_dir globals, which are only set by init_db().
+        # Initialize it here so the multi-partition query paths in
+        # cmd_stats / cmd_list / cmd_get resolve partitions instead of
+        # falling through to an empty monolithic connection.
+        from storybuilder.downloader import db as storybuilder_db
+
+        storybuilder_db.init_db(db_path)
         print(f"Connected to {len(db_paths)} databases in {db_path}")
         return conn, db_paths
     else:
@@ -110,6 +118,24 @@ def _resolve_connection(args) -> "tuple[sqlite3.Connection, list[str] | None]":
 
 def cmd_search(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None):
     """Full-text search across titles, authors, and content."""
+    conditions = ["stories_fts MATCH ?"]
+    params = [args.query]
+
+    if args.author:
+        conditions.append("s.author_name LIKE ?")
+        params.append(f"%{args.author}%")
+    if args.category:
+        conditions.append("s.category = ?")
+        params.append(args.category)
+    if args.date_from:
+        conditions.append("s.publication_date >= ?")
+        params.append(args.date_from)
+    if args.date_to:
+        conditions.append("s.publication_date <= ?")
+        params.append(args.date_to)
+
+    where = " AND ".join(conditions)
+
     conditions = ["stories_fts MATCH ?"]
     params = [args.query]
 

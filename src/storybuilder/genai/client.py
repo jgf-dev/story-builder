@@ -159,7 +159,7 @@ def process_directory(directory):
                     input=content,
                     response_modalities=["audio"],
                     generation_config={"speech_config": speech_config},
-                    previous_interaction_id=previous_id,
+                    previous_interaction_id=previous_id,  # TODO: Check if the interaction API supports previous_interaction_id
                 )
 
                 if interaction.output_audio and interaction.output_audio.data:
@@ -185,7 +185,7 @@ def process_directory(directory):
                 else:
                     print(f"  Warning: No audio output for {os.path.basename(md_file)}")
 
-                previous_id = interaction.id
+                previous_id = interaction.id  # TODO: check if key rotation breaks
                 break
 
             except Exception as e:
@@ -214,7 +214,9 @@ def process_directory(directory):
                     previous_id = None
                     continue
 
-                if (is_invalid_key or is_quota) and keys_tried < len(api_keys) - 1:
+                if (is_invalid_key or is_quota) and keys_tried < len(
+                    api_keys
+                ) - 1:  # TODO: Move key management out of the function
                     print(
                         f"  Error processing {os.path.basename(md_file)} for {key_name}"
                     )
@@ -226,6 +228,9 @@ def process_directory(directory):
                     previous_id = None  # Clear session history on key switch
                     continue
 
+                # TODO: Make sure this doesnt happen, session is too important for audio quality
+                # TODO: Also make sure the wait time is not above this the session expiry
+                # TODO: Alternatively, find a way to ensure audio consistency across retries with the same key
                 if is_quota:
                     wait_time = 15 * (attempt + 1)
                     print(

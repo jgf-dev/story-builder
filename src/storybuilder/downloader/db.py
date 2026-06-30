@@ -1,9 +1,5 @@
-<<<<<<< HEAD
-=======
 import concurrent.futures
 
-
->>>>>>> 3c4d9b6b (feat: Add pre-commit hook, optimize analysis writes, and secure dashboard)
 """
 Database layer for story storage -- shared by the downloader (live insert) and
 the batch import script.
@@ -207,7 +203,9 @@ def get_all_partition_paths() -> list[str]:
     if not _db_dir or not _is_partitioned:
         return []
     import glob
+
     return sorted(glob.glob(os.path.join(_db_dir, "[0-9][0-9][0-9][0-9].db")))
+
 
 def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
     """Execute a SELECT query across all database partitions sequentially
@@ -254,6 +252,7 @@ def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
 
     return all_rows
 
+
 def search_all_partitions(
     fts_query: str = "",
     category: "str | None" = None,
@@ -298,7 +297,10 @@ def search_all_partitions(
         if not partition_dir:
             return []
         import glob
-        db_paths = sorted(glob.glob(os.path.join(partition_dir, "[0-9][0-9][0-9][0-9].db")))
+
+        db_paths = sorted(
+            glob.glob(os.path.join(partition_dir, "[0-9][0-9][0-9][0-9].db"))
+        )
         if not db_paths:
             return []
 
@@ -366,22 +368,23 @@ def search_all_partitions(
 
     if db_paths:
         if len(db_paths) == 1 and db_paths[0] is None:
-             # Monolithic DB: no need for thread pool
-             all_results.extend(_search_single_db(None))
+            # Monolithic DB: no need for thread pool
+            all_results.extend(_search_single_db(None))
         else:
-            with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(db_paths), 10)) as executor:
+            with concurrent.futures.ThreadPoolExecutor(
+                max_workers=min(len(db_paths), 10)
+            ) as executor:
                 for res in executor.map(_search_single_db, db_paths):
                     all_results.extend(res)
 
     # Sort aggregated results
     if fts_query:
         # Sort by date desc (since rank order is lost when combined, or we could sort by a score if we fetched it)
-        all_results.sort(key=lambda x: (x.get("publication_date") or ""), reverse=True)
+        all_results.sort(key=lambda x: x.get("publication_date") or "", reverse=True)
     else:
-        all_results.sort(key=lambda x: (x.get("publication_date") or ""), reverse=True)
+        all_results.sort(key=lambda x: x.get("publication_date") or "", reverse=True)
 
     return all_results[:limit]
-
 
 
 def get_partition_path(story_date) -> str:
@@ -595,7 +598,9 @@ def optimize_fts() -> None:
                 # Monolithic
                 with _lock:
                     if _conn:
-                        _conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
+                        _conn.execute(
+                            "INSERT INTO stories_fts(stories_fts) VALUES ('optimize')"
+                        )
                         _conn.commit()
             else:
                 # Partitions

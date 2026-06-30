@@ -227,6 +227,7 @@ class TestDatabaseInit(unittest.TestCase):
                 title TEXT,
                 author_name TEXT,
                 author_email TEXT,
+                email_date TEXT,
                 publication_date TEXT,
                 url TEXT,
                 char_count INTEGER,
@@ -259,10 +260,10 @@ class TestDatabaseInit(unittest.TestCase):
             """
             INSERT INTO stories (
                 path, orientation, category, story_slug, chapter_num,
-                title, author_name, author_email,
+                title, author_name, author_email, email_date,
                 publication_date, url,
                 char_count, word_count, content, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 "nifty_stories/gay/test/legacy.txt",
@@ -273,6 +274,7 @@ class TestDatabaseInit(unittest.TestCase):
                 "Legacy Story",
                 "Legacy Author",
                 "legacy@example.com",
+                "2024-01-15",
                 "2024-01-15",
                 "https://example.com/legacy",
                 123,
@@ -289,7 +291,7 @@ class TestDatabaseInit(unittest.TestCase):
         try:
             cols = conn.execute("PRAGMA table_info(stories)").fetchall()
             col_names = [c[1] for c in cols]
-            self.assertIn("email_date", col_names)
+            self.assertNotIn("email_date", col_names)
             self.assertIn("created_at", col_names)
 
 

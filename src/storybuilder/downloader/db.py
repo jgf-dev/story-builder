@@ -700,12 +700,12 @@ def optimize_fts() -> None:
                             "INSERT INTO stories_fts(stories_fts) VALUES ('optimize')"
                         )
                         _conn.commit()
-            else:
-                # Partitions
-                conn = sqlite3.connect(path)
-                need_close = True
-                conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
-                conn.commit()
+                else:
+                    # Partitions
+                    conn = sqlite3.connect(path)
+                    need_close = True
+                    conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
+                    conn.commit()
         except sqlite3.OperationalError as e:
             # Best-effort maintenance operation: ignore per-connection optimize
             # failures so search optimization does not interrupt normal writes.

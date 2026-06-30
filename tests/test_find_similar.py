@@ -1,3 +1,4 @@
+import sys
 import unittest
 from io import StringIO
 from unittest.mock import MagicMock, patch
@@ -50,7 +51,7 @@ class TestFindSimilar(unittest.TestCase):
         mock_collection.get.return_value = None
 
         # Capture print output
-        captured_output = io.StringIO()
+        captured_output = StringIO()
         sys.stdout = captured_output
 
         try:
@@ -83,7 +84,7 @@ class TestFindSimilar(unittest.TestCase):
         mock_collection.get.return_value = {"embeddings": None}
 
         # Capture print output
-        captured_output = io.StringIO()
+        captured_output = StringIO()
         sys.stdout = captured_output
 
         try:
@@ -116,7 +117,7 @@ class TestFindSimilar(unittest.TestCase):
         mock_collection.get.return_value = {"embeddings": []}
 
         # Capture print output
-        captured_output = io.StringIO()
+        captured_output = StringIO()
         sys.stdout = captured_output
 
         try:
@@ -127,6 +128,29 @@ class TestFindSimilar(unittest.TestCase):
         # Assert output contains the expected error message
         output = captured_output.getvalue()
         self.assertIn("Error: Story 'nonexistent_story.txt' not found in the database.", output)
+
+    @patch("sys.argv", ["find_similar.py", "target.md", "--n-results", "2"])
+    @patch("storybuilder.analysis.find_similar.chromadb.PersistentClient")
+    @patch("sys.stdout", new_callable=StringIO)
+    def test_success_find_similar(self, mock_stdout, mock_chroma_client):
+        mock_instance = MagicMock()
+        mock_chroma_client.return_value = mock_instance
+        mock_collection = MagicMock()
+        mock_instance.get_collection.return_value = mock_collection
+
+        # return embeddings for target
+        mock_collection.get.return_value = {"embeddings": [[0.1, 0.2, 0.3]]}
+
+        # return query results
+        mock_collection.query.return_value = {"ids": [["target.md", "sim1.md", "sim2.md"]], "distances": [[0.0, 0.5, 0.6]]}
+
+        main()
+
+        output = mock_stdout.getvalue()
+        self.assertIn("Finding top 2 stories similar to: target.md", output)
+        self.assertNotIn("0. target.md", output)  # Should skip itself
+        self.assertIn("1. sim1.md", output)
+        self.assertIn("2. sim2.md", output)
 
 
 if __name__ == "__main__":

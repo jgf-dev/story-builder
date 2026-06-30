@@ -247,7 +247,9 @@ def process_story(story_dir, filepaths, cursor, conn, nlp, sentiment_pipe):
             subcat = f"{parts[idx + 1]}/{parts[idx + 2]}"
 
     cursor.execute(
-        "INSERT INTO stories (story_dir, subcategory) VALUES (?, ?)",
+        """
+        INSERT INTO stories (story_dir, subcategory) VALUES (?, ?)
+    """,
         (story_dir, subcat),
     )
     story_id = cursor.lastrowid

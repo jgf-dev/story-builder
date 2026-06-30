@@ -45,9 +45,9 @@ CREATE TABLE IF NOT EXISTS stories (
     author_email    TEXT,
     publication_date TEXT,
     url             TEXT,
-    char_count      INTEGER,
-    word_count      INTEGER,
-    content         TEXT,
+    char_count      INTEGER NOT NULL,
+    word_count      INTEGER NOT NULL,
+    content         TEXT NOT NULL,
     created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -157,13 +157,13 @@ def _parse_output_path(output_path: str) -> "tuple[str, str, str, int | None]":
 
 
 def _table_columns(conn: sqlite3.Connection, table_name: str) -> list[str]:
-    """Return the column names of the table, or empty list if table not exists."""
+    """Return the column names of a table, or an empty list if it does not exist."""
     cursor = conn.execute(f"PRAGMA table_info({table_name})")
     return [row[1] for row in cursor.fetchall()]
 
 
 def _resume_interrupted_migration(conn: sqlite3.Connection) -> bool:
-    """Recover legacy data if a prior schema rebuild stopped mid-flight."""
+    """Recover data from stories_legacy if a prior schema migration was interrupted."""
     legacy_columns = _table_columns(conn, "stories_legacy")
     if not legacy_columns:
         return False
@@ -177,7 +177,8 @@ def _resume_interrupted_migration(conn: sqlite3.Connection) -> bool:
         conn.execute("BEGIN")
         if copy_columns:
             conn.execute(
-                f"INSERT OR IGNORE INTO stories ({cols_sql}) SELECT {cols_sql} FROM stories_legacy"
+                f"INSERT OR IGNORE INTO stories ({cols_sql}) "
+                f"SELECT {cols_sql} FROM stories_legacy"
             )
         conn.execute("DROP TABLE stories_legacy")
         try:
@@ -240,9 +241,8 @@ def migrate_legacy_schema(conn: sqlite3.Connection) -> bool:
 
 
 def _migrate_schema(conn: "sqlite3.Connection") -> None:
-    """Apply schema migrations to an existing partition/db."""
+    """Apply schema migrations to an existing partition or database file."""
     migrate_legacy_schema(conn)
-
 
 # -- DB init ------------------------------------------------------------
 

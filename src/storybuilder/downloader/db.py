@@ -1,4 +1,3 @@
-import concurrent.futures
 
 
 """
@@ -13,6 +12,7 @@ import os
 import re
 import sqlite3
 import threading
+import concurrent.futures
 from pathlib import Path
 
 # -- Schema -------------------------------------------------------------
@@ -560,7 +560,6 @@ def optimize_fts_all(db_dir: str) -> None:
 
 def optimize_fts() -> None:
     """Rebuild the FTS index for optimal search performance across all databases."""
-    import concurrent.futures
 
     db_paths_to_optimize = []
 
@@ -576,18 +575,24 @@ def optimize_fts() -> None:
         conn = None
         need_close = False
         try:
-            if path is None:
-                # Monolithic
-                with _lock:
+            with _lock:
+                if path is None:
+                    # Monolithic
                     if _conn:
                         _conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
                         _conn.commit()
-            else:
-                # Partitions
-                conn = sqlite3.connect(path)
-                need_close = True
-                conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
-                conn.commit()
+                else:
+                    # Partitions
+                    if path in _connections:
+                        conn = _connections[path]
+                        conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
+                        conn.commit()
+                        conn = None # don't close the shared connection
+                    else:
+                        conn = sqlite3.connect(path)
+                        need_close = True
+                        conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
+                        conn.commit()
         except sqlite3.OperationalError as e:
             # Best-effort maintenance operation: ignore per-connection optimize
             # failures so search optimization does not interrupt normal writes.

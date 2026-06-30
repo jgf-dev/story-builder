@@ -163,7 +163,7 @@ def load_models(spacy_model_name, sentiment_model_name, use_gpu):
         max_length=512,
     )
 
-    processed_stories = 0
+    return nlp, sentiment_pipe
 
 def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe):
     with open(filepath, "r", encoding="utf-8") as f:
@@ -197,43 +197,40 @@ def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe
             except Exception:
                 sentiments.append({"label": "neutral", "score": 0.0})
 
-            cursor.execute("SELECT MAX(id) FROM sentences")
-            row = cursor.fetchone()
-            last_id_before = row[0] if row[0] is not None else 0
+    cursor.execute("SELECT MAX(id) FROM sentences")
+    row = cursor.fetchone()
+    last_id_before = row[0] if row and row[0] is not None else 0
 
-            sentence_batch = []
-            entity_batch = []
+    sentence_batch = []
+    entity_batch = []
 
-            for sent_idx, (sent, sent_result) in enumerate(zip(sentences, sentiments)):
-                score = get_sentiment_value(sent_result)
-                sentence_batch.append((story_id, filepath.name, chapter_idx, sent_idx, sent.text, score))
+    for sent_idx, (sent, sent_result) in enumerate(zip(sentences, sentiments)):
+        score = get_sentiment_value(sent_result)
+        sentence_batch.append((story_id, filepath.name, chapter_idx, sent_idx, sent.text, score))
 
-                sentence_id = last_id_before + 1 + sent_idx
-                for ent in sent.ents:
-                    if ent.label_ in ALLOWED_LABELS:
-                        entity_batch.append((sentence_id, ent.text, ent.label_))
+        sentence_id = last_id_before + 1 + sent_idx
+        for ent in sent.ents:
+            if ent.label_ in ALLOWED_LABELS:
+                entity_batch.append((sentence_id, ent.text, ent.label_))
 
-            cursor.executemany(
-                """
-                INSERT INTO sentences (story_id, chapter_filename, chapter_index, sentence_index, text, sentiment_score)
-                VALUES (?, ?, ?, ?, ?, ?)
-            """,
-                sentence_batch,
-            )
+    cursor.executemany(
+        """
+        INSERT INTO sentences (story_id, chapter_filename, chapter_index, sentence_index, text, sentiment_score)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """,
+        sentence_batch,
+    )
 
-            if entity_batch:
-                cursor.executemany(
-                    """
-                    INSERT INTO sentence_entities (sentence_id, entity_text, entity_label)
-                    VALUES (?, ?, ?)
-                """,
-                    entity_batch,
-                )
+    if entity_batch:
+        cursor.executemany(
+            """
+            INSERT INTO sentence_entities (sentence_id, entity_text, entity_label)
+            VALUES (?, ?, ?)
+        """,
+            entity_batch,
+        )
 
-            conn.commit()
-
-        processed_stories += 1
-
+def process_story(story_dir, filepaths, cursor, conn, nlp, sentiment_pipe):
     print(f"\nProcessing Story: {story_dir} ({len(filepaths)} chapters)")
 
     filepaths.sort(key=lambda x: extract_chapter_number(x.name))

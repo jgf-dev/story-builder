@@ -6,6 +6,10 @@ import glob
 import pandas as pd
 import plotly.express as px
 from pathlib import Path
+import sys
+
+# Ensure src layout package is importable
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from storybuilder.downloader import db as storybuilder_db
 
 # Define paths
@@ -134,6 +138,7 @@ def load_archive_stats():
     year_stats = []
     category_counts = {}
     author_counts = {}
+    word_counts = []
     bracket_counts = {
         "Short (<1K)": 0,
         "Medium-Short (1K-5K)": 0,
@@ -171,6 +176,10 @@ def load_archive_stats():
                 if auth:
                     author_counts[auth] = author_counts.get(auth, 0) + count
 
+            # Word counts sample for distribution
+            cursor.execute("SELECT word_count FROM stories")
+            word_counts.extend([r[0] for r in cursor.fetchall()])
+
             # Word count bracket distribution (binned at SQL level; NULLs excluded)
             cursor.execute(
                 """
@@ -197,10 +206,13 @@ def load_archive_stats():
             pass
             
     df_years = pd.DataFrame(year_stats)
-    df_cats = pd.DataFrame(list(category_counts.items()), columns=["Category", "Count"]).sort_values("Count", ascending=False)
-    df_auths = pd.DataFrame(list(author_counts.items()), columns=["Author", "Count"]).sort_values("Count", ascending=False)
-    
-    return df_years, df_cats, df_auths, word_counts
+    df_cats = pd.DataFrame(
+        list(category_counts.items()), columns=["Category", "Count"]
+    ).sort_values("Count", ascending=False)
+    df_auths = pd.DataFrame(
+        list(author_counts.items()), columns=["Author", "Count"]
+    ).sort_values("Count", ascending=False)
+    return df_years, df_cats, df_auths, df_words
 
 # ------------------------------------------------------------------------------
 # CORE SEARCH & QUERY ENGINE
@@ -210,7 +222,7 @@ def query_stories(fts_query="", category="All", author="All", year_range=None, e
     """Perform queries across databases, combining FTS, standard metadata, and entity filters."""
     db_files = get_db_files()
     results = []
-    
+
     # 1. Filter by entity first if specified
     entity_suffixes = None
     if entity_text:
@@ -232,83 +244,49 @@ def query_stories(fts_query="", category="All", author="All", year_range=None, e
                 if len(parts) >= 3:
                     entity_suffixes.append("/".join(parts[-3:]))
 
-    # Process each partition database
-    for db_path in db_files:
-        db_year = int(Path(db_path).stem)
-        
-        # Check year filter
-        if year_range and not (year_range[0] <= db_year <= year_range[1]):
-            continue
-            
-        try:
-            conn = sqlite3.connect(db_path)
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
-            
-            conditions = ["1=1"]
-            params = []
-            
-            if category != "All":
-                conditions.append("s.category = ?")
-                params.append(category)
-            if author != "All":
-                conditions.append("s.author_name = ?")
-                params.append(author)
-                
-            where_clause = " AND ".join(conditions)
-            
-            if fts_query:
-                # FTS Search query
-                sql = f"""
-                    SELECT s.path, s.title, s.author_name, s.category, s.publication_date, s.word_count,
-                           snippet(stories_fts, 2, '___HIGHLIGHT_START___', '___HIGHLIGHT_END___', '…', 40) AS snippet
-                    FROM stories s
-                    JOIN stories_fts ON s.id = stories_fts.rowid
-                    WHERE {where_clause} AND stories_fts MATCH ?
-                    ORDER BY rank
-                    LIMIT ?
-                """
-                cursor.execute(sql, params + [fts_query, limit])
-            else:
-                # Metadata-only browse query
-                sql = f"""
-                    SELECT s.path, s.title, s.author_name, s.category, s.publication_date, s.word_count,
-                           NULL AS snippet
-                    FROM stories s
-                    WHERE {where_clause}
-                    ORDER BY s.publication_date DESC
-                    LIMIT ?
-                """
-                cursor.execute(sql, params + [limit])
-                
-            rows = cursor.fetchall()
-            for r in rows:
-                row_dict = dict(r)
-                row_dict["db_year"] = db_year
-                
-                # Check entity suffixes match if filter active
-                if entity_suffixes is not None:
-                    matched_entity = False
-                    for suffix in entity_suffixes:
-                        if row_dict["path"].endswith(suffix):
-                            matched_entity = True
-                            break
-                    if not matched_entity:
-                        continue
-                        
-                results.append(row_dict)
-                
-            conn.close()
-        except sqlite3.Error:
-            pass
-            
-    # Sort final combined results
-    if fts_query:
-        # If FTS, we preserve ordering by partition rank or date desc
-        results.sort(key=lambda x: (x.get("publication_date") or ""), reverse=True)
-    else:
-        results.sort(key=lambda x: (x.get("publication_date") or ""), reverse=True)
-        
+    from storybuilder.downloader import db as storybuilder_db
+
+    date_from = None
+    date_to = None
+    if year_range:
+        date_from = f"{year_range[0]}-01-01"
+        date_to = f"{year_range[1]}-12-31"
+
+    # Use central search API
+    raw_results = storybuilder_db.search_all_partitions(
+        fts_query=fts_query,
+        category=category,
+        author=author,
+        date_from=date_from,
+        date_to=date_to,
+        limit=limit,
+        snippets=True,
+    )
+
+    results = []
+    for r in raw_results:
+        # Re-inject db_year from path or publication_date for dashboard router compatibility
+        pub_date = r.get("publication_date")
+        db_year = 2026
+        if pub_date and len(str(pub_date)) >= 4:
+            try:
+                db_year = int(str(pub_date)[:4])
+            except ValueError:
+                # Malformed publication_date: keep the default fallback year.
+                db_year = 2026
+
+        # Check entity suffixes match if filter active
+        if entity_suffixes is not None:
+            matched_entity = False
+            for suffix in entity_suffixes:
+                if r["path"].endswith(suffix):
+                    matched_entity = True
+                    break
+            if not matched_entity:
+                continue
+
+        r["db_year"] = db_year
+        results.append(r)
     return results[:limit]
 
 def get_story_by_path(story_path, db_year):
@@ -444,6 +422,11 @@ if page == "🔍 Search & Explorer":
     
     for res in search_results:
         # Create a container for the card styling
+        safe_title = html.escape(res["title"] or "Untitled")
+        safe_author = html.escape(res["author_name"] or "Unknown")
+        safe_category = html.escape(res["category"] or "Unknown")
+        safe_pub_date = html.escape(str(res["publication_date"] or "Unknown"))
+
         card_html = f"""
         <div class="story-card">
             <h4>{html.escape(res["title"] or "Untitled")}</h4>
@@ -460,6 +443,7 @@ if page == "🔍 Search & Explorer":
             # Escape the snippet first, then replace the placeholder highlight markers with actual HTML span tags
             snippet_escaped = html.escape(res["snippet"])
             snippet_cleaned = snippet_escaped.replace("___HIGHLIGHT_START___", "<span class='highlight'>").replace("___HIGHLIGHT_END___", "</span>")
+            card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
 
             card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
             
@@ -604,14 +588,17 @@ elif page == "⭐ Favorites & Tags":
                 continue
                 
             with st.container():
+                safe_fav_title = html.escape(f['title'] or '')
+                safe_fav_author = html.escape(f['author'] or 'Unknown')
+                safe_fav_tags = html.escape(f['tags'] or 'None')
+                safe_fav_notes = html.escape(f['notes'] or 'None')
                 st.markdown(
                     f"""
                     <div class='story-card'>
-                        <h4>{html.escape(f['title'])}</h4>
-                        <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 4px;'><b>Author:</b> {html.escape(f['author'] or 'Unknown')}</p>
-                        <p style='font-size: 0.9rem;'><span class='highlight'>Tags:</span> {html.escape(f['tags'] or 'None')}</p>
-                        <p style='font-size: 0.9rem; color: #cbd5e1;'><i>Notes:</i> {html.escape(f['notes'] or 'None')}</p>
-
+                        <h4>{safe_fav_title}</h4>
+                        <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 4px;'><b>Author:</b> {safe_fav_author}</p>
+                        <p style='font-size: 0.9rem;'><span class='highlight'>Tags:</span> {safe_fav_tags}</p>
+                        <p style='font-size: 0.9rem; color: #cbd5e1;'><i>Notes:</i> {safe_fav_notes}</p>
                     </div>
                     """,
                     unsafe_allow_html=True
@@ -654,8 +641,7 @@ elif page == "📊 Archive Stats":
     col_m1, col_m2, col_m3 = st.columns(3)
     col_m1.metric("Total Stories", f"{total_stories:,}")
     col_m2.metric("Total Archive Words", f"{total_words:,}")
-    col_m3.metric("Average Story Length", f"{total_words // total_stories:,} words")
-    
+    col_m3.metric("Average Story Length", f"{total_words // total_stories if total_stories > 0 else 0:,} words")
     st.markdown("---")
     
     # 1. Timeline Chart

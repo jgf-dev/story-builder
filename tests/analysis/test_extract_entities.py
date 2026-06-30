@@ -5,7 +5,11 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from storybuilder.analysis.extract_entities import init_db, is_processed, main
+from storybuilder.analysis.extract_entities import (
+    init_db,
+    is_processed,
+    main,
+)
 
 
 class TestExtractEntities(unittest.TestCase):
@@ -302,9 +306,6 @@ class TestExtractEntities(unittest.TestCase):
         conn.close()
 
 
-if __name__ == "__main__":
-    unittest.main()
-
     @patch("storybuilder.analysis.extract_entities.spacy.load")
     @patch("storybuilder.analysis.extract_entities.spacy.require_gpu")
     @patch("storybuilder.analysis.extract_entities.require_gpu")
@@ -390,3 +391,6 @@ if __name__ == "__main__":
             "Please run: python -m spacy download en_core_web_lg"
         )
         self.assertIsNone(result)
+
+if __name__ == "__main__":
+    unittest.main()

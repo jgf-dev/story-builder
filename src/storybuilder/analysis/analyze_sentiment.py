@@ -12,20 +12,33 @@ from tqdm import tqdm
 from transformers import pipeline
 
 DB_PATH = "sentiment_analysis.db"
-ALLOWED_LABELS = {"PERSON", "NORP", "GPE", "LOC", "ORG", "FAC", "EVENT", "PRODUCT", "WORK_OF_ART"}
+ALLOWED_LABELS = {
+    "PERSON",
+    "NORP",
+    "GPE",
+    "LOC",
+    "ORG",
+    "FAC",
+    "EVENT",
+    "PRODUCT",
+    "WORK_OF_ART",
+}
 
 
 def init_db(db_path):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS stories (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             story_dir TEXT UNIQUE,
             subcategory TEXT
         )
-    """)
-    cursor.execute("""
+    """
+    )
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS sentences (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             story_id INTEGER,
@@ -36,8 +49,10 @@ def init_db(db_path):
             sentiment_score REAL,
             FOREIGN KEY(story_id) REFERENCES stories(id)
         )
-    """)
-    cursor.execute("""
+    """
+    )
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS sentence_entities (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             sentence_id INTEGER,
@@ -45,10 +60,17 @@ def init_db(db_path):
             entity_label TEXT,
             FOREIGN KEY(sentence_id) REFERENCES sentences(id)
         )
-    """)
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_sentences_story ON sentences(story_id)")
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_entities_sentence ON sentence_entities(sentence_id)")
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_entities_text ON sentence_entities(entity_text)")
+    """
+    )
+    cursor.execute(
+        "CREATE INDEX IF NOT EXISTS idx_sentences_story ON sentences(story_id)"
+    )
+    cursor.execute(
+        "CREATE INDEX IF NOT EXISTS idx_entities_sentence ON sentence_entities(sentence_id)"
+    )
+    cursor.execute(
+        "CREATE INDEX IF NOT EXISTS idx_entities_text ON sentence_entities(entity_text)"
+    )
 
     conn.commit()
     return conn
@@ -79,7 +101,9 @@ def extract_chapter_number(filename):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Analyze narrative sentiment and entity interactions.")
+    parser = argparse.ArgumentParser(
+        description="Analyze narrative sentiment and entity interactions."
+    )
     parser.add_argument(
         "--stories-dir",
         type=str,
@@ -98,8 +122,12 @@ def parse_args():
         default=1,
         help="Max number of multi-chapter stories to process.",
     )
-    parser.add_argument("--db-path", type=str, default=DB_PATH, help="Path to SQLite DB.")
-    parser.add_argument("--spacy-model", type=str, default="en_core_web_sm", help="spaCy model.")
+    parser.add_argument(
+        "--db-path", type=str, default=DB_PATH, help="Path to SQLite DB."
+    )
+    parser.add_argument(
+        "--spacy-model", type=str, default="en_core_web_sm", help="spaCy model."
+    )
     parser.add_argument(
         "--sentiment-model",
         type=str,
@@ -129,8 +157,13 @@ def find_multi_chapter_stories(stories_dir, subcategory=None):
     return multi_stories
 
 
-def load_models(spacy_model, sentiment_model, use_gpu):
-    print(f"Loading models (spaCy: {spacy_model}, HF: {sentiment_model})...")
+    conn = init_db(args.db_path)
+    cursor = conn.cursor()
+
+def load_models(spacy_model_name, sentiment_model_name, use_gpu):
+    print(
+        f"Loading models (spaCy: {spacy_model_name}, HF: {sentiment_model_name})..."
+    )
     device = 0 if use_gpu else -1
 
     if use_gpu:
@@ -141,12 +174,12 @@ def load_models(spacy_model, sentiment_model, use_gpu):
         except Exception as e:
             print(f"Could not enable spaCy GPU: {e}")
 
-    nlp = spacy.load(spacy_model)
+    nlp = spacy.load(spacy_model_name)
     nlp.add_pipe("sentencizer")
 
     sentiment_pipe = pipeline(
         "sentiment-analysis",
-        model=sentiment_model,
+        model=sentiment_model_name,
         device=device,
         truncation=True,
         max_length=512,
@@ -157,7 +190,6 @@ def load_models(spacy_model, sentiment_model, use_gpu):
 def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe):
     with open(filepath, "r", encoding="utf-8") as f:
         text = f.read()
-
     text = re.sub(r"\s+", " ", text).strip()
     if not text:
         return
@@ -179,18 +211,16 @@ def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe
     except Exception as e:
         print(f"Sentiment pipeline error on {filepath}: {e}")
         sentiments = []
-        for s in sentence_texts:
+        for sentence_text in sentence_texts:
             try:
-                res = sentiment_pipe(s[:512])[0]
+                res = sentiment_pipe(sentence_text[:512])[0]
                 sentiments.append(res)
             except Exception:
                 sentiments.append({"label": "neutral", "score": 0.0})
 
     cursor.execute("SELECT MAX(id) FROM sentences")
-    row = cursor.fetchone()
-    last_id_before = row[0] if row and row[0] is not None else 0
-
-
+    row = cursor.fetchone() or (None,)
+    last_id_before = row[0] if row[0] is not None else 0
     sentence_batch = []
     entity_batch = []
 
@@ -199,7 +229,6 @@ def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe
         sentence_batch.append(
             (story_id, filepath.name, chapter_idx, sent_idx, sent.text, score)
         )
-
         sentence_id = last_id_before + 1 + sent_idx
         for ent in sent.ents:
             if ent.label_ in ALLOWED_LABELS:
@@ -228,9 +257,7 @@ def process_story(story_dir, filepaths, cursor, conn, nlp, sentiment_pipe):
     if cursor.fetchone():
         print(f"Skipping already processed story: {story_dir}")
         return False
-
     print(f"\nProcessing Story: {story_dir} ({len(filepaths)} chapters)")
-
     filepaths.sort(key=lambda x: extract_chapter_number(x.name))
 
     parts = Path(story_dir).parts
@@ -241,7 +268,9 @@ def process_story(story_dir, filepaths, cursor, conn, nlp, sentiment_pipe):
             subcat = f"{parts[idx + 1]}/{parts[idx + 2]}"
 
     cursor.execute(
-        "INSERT INTO stories (story_dir, subcategory) VALUES (?, ?)",
+        """
+        INSERT INTO stories (story_dir, subcategory) VALUES (?, ?)
+    """,
         (story_dir, subcat),
     )
     story_id = cursor.lastrowid
@@ -268,12 +297,13 @@ def main():
     nlp, sentiment_pipe = load_models(args.spacy_model, args.sentiment_model, args.gpu)
 
     processed_stories = 0
-
     for story_dir, filepaths in multi_stories.items():
-        if processed_stories >= args.limit_stories:
+        if args.limit_stories and processed_stories >= args.limit_stories:
             break
 
-        was_processed = process_story(story_dir, filepaths, cursor, conn, nlp, sentiment_pipe)
+        was_processed = process_story(
+            story_dir, filepaths, cursor, conn, nlp, sentiment_pipe
+        )
         if was_processed:
             processed_stories += 1
     conn.close()

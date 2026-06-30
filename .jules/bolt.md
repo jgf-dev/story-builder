@@ -28,3 +28,7 @@
 **Learning:** Making multiple `execute_all_partitions` calls for separate aggregations (like COUNT, SUM) is inefficient because it repeatedly opens connections and performs `ATTACH`/`DETACH` commands across partitioned databases. This leads to O(N * M) query overhead.
 **Action:** Always combine related cross-partition aggregations into a single SQL pass (e.g., `SELECT COUNT(*), SUM(char_count), SUM(word_count) FROM {table}`) to minimize database operations and improve query performance.
 
+## 2026-06-29 - [Parallelizing Cross-Partition SQLite Reads]
+
+**Learning:** Sequentially looping over multiple SQLite partition databases to execute individual queries introduces a significant O(N) latency bottleneck, especially for search queries across many years. Since read queries in WAL-mode SQLite do not block each other, reading from independent partition files concurrently is completely safe.
+**Action:** When querying separate SQLite partition databases (e.g. `search_all_partitions`), use `concurrent.futures.ThreadPoolExecutor` to map the read query across the database paths concurrently. This reduces execution latency from O(N) to O(1).

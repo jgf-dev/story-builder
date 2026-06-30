@@ -1,5 +1,4 @@
 import argparse
-import os
 import re
 import sqlite3
 from collections import defaultdict
@@ -56,9 +55,15 @@ def init_db(db_path):
             FOREIGN KEY(sentence_id) REFERENCES sentences(id)
         )
     """)
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_sentences_story ON sentences(story_id)")
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_entities_sentence ON sentence_entities(sentence_id)")
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_entities_text ON sentence_entities(entity_text)")
+    cursor.execute(
+        "CREATE INDEX IF NOT EXISTS idx_sentences_story ON sentences(story_id)"
+    )
+    cursor.execute(
+        "CREATE INDEX IF NOT EXISTS idx_entities_sentence ON sentence_entities(sentence_id)"
+    )
+    cursor.execute(
+        "CREATE INDEX IF NOT EXISTS idx_entities_text ON sentence_entities(entity_text)"
+    )
 
     conn.commit()
     return conn
@@ -89,7 +94,9 @@ def extract_chapter_number(filename):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Analyze narrative sentiment and entity interactions.")
+    parser = argparse.ArgumentParser(
+        description="Analyze narrative sentiment and entity interactions."
+    )
     parser.add_argument(
         "--stories-dir",
         type=str,
@@ -108,8 +115,12 @@ def parse_args():
         default=1,
         help="Max number of multi-chapter stories to process.",
     )
-    parser.add_argument("--db-path", type=str, default=DB_PATH, help="Path to SQLite DB.")
-    parser.add_argument("--spacy-model", type=str, default="en_core_web_sm", help="spaCy model.")
+    parser.add_argument(
+        "--db-path", type=str, default=DB_PATH, help="Path to SQLite DB."
+    )
+    parser.add_argument(
+        "--spacy-model", type=str, default="en_core_web_sm", help="spaCy model."
+    )
     parser.add_argument(
         "--sentiment-model",
         type=str,
@@ -150,12 +161,12 @@ def load_models(spacy_model, sentiment_model, use_gpu):
         except Exception as e:
             print(f"Could not enable spaCy GPU: {e}")
 
-    nlp = spacy.load(spacy_model)
+    nlp = spacy.load(args.spacy_model)
     nlp.add_pipe("sentencizer")
 
     sentiment_pipe = pipeline(  # pyrefly: ignore [no-matching-overload]
         "sentiment-analysis",
-        model=sentiment_model,
+        model=args.sentiment_model,
         device=device,
         truncation=True,
         max_length=512,
@@ -232,8 +243,7 @@ def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe
 
     cursor.connection.commit()
 
-
-        processed_stories += 1
+    processed_stories += 1
 
     print(f"\nProcessing Story: {story_dir} ({len(filepaths)} chapters)")
 
@@ -279,7 +289,9 @@ def main():
         if processed_stories >= args.limit_stories:
             break
 
-        was_processed = process_story(story_dir, filepaths, cursor, conn, nlp, sentiment_pipe)
+        was_processed = process_story(
+            story_dir, filepaths, cursor, conn, nlp, sentiment_pipe
+        )
         if was_processed:
             processed_stories += 1
     conn.close()

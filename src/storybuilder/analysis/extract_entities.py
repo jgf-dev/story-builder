@@ -162,7 +162,6 @@ def main():
         # Signal failure so CI pipelines and scripts that check the exit code
         # treat a missing/unloadable model as an error rather than success.
         raise SystemExit(1)
-
     all_files = list(Path(args.stories_dir).rglob("*.txt"))
     print(f"Found {len(all_files)} total text files.")
 

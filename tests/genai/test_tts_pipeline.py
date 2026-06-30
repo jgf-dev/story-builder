@@ -72,18 +72,7 @@ class TestTTSPipeline(unittest.TestCase):
             previous_id = None
             generated = []
 
-            for i, md_file in enumerate(self.prompt_files):
-                base_name = os.path.splitext(os.path.basename(md_file))[0]
-                wav_file = os.path.join(tmp_dir, f"{base_name}.wav")
 
-                print(f"\n[{i+1}/{len(self.prompt_files)}] Processing: {os.path.basename(md_file)}")
-                if previous_id:
-                    print(f"  Linking to previous_interaction_id={previous_id[:12]}... for voice continuity")
-
-                try:
-                    client, current_key_idx, previous_id = process_file(
-                        md_file, wav_file, client, previous_id, api_keys, current_key_idx
-                    )
                 except Exception as e:
                     err = str(e).lower()
                     if any(k in err for k in ("quota", "429", "resource_exhausted", "unauthenticated", "permission")):

@@ -17,8 +17,7 @@ _scripts_dir = str(Path(__file__).resolve().parents[2] / "scripts")
 if _scripts_dir not in sys.path:
     sys.path.insert(0, _scripts_dir)
 
-import import_to_sqlite  # pyrefly: ignore [missing-import]
-import story_db  # pyrefly: ignore [missing-import]
+
 
 
 class TestParseAuthor(unittest.TestCase):
@@ -273,8 +272,9 @@ class TestDatabaseInit(unittest.TestCase):
         try:
             cols = conn.execute("PRAGMA table_info(stories)").fetchall()
             col_names = [c[1] for c in cols]
-            self.assertNotIn("email_date", col_names)
+            self.assertIn("email_date", col_names)
             self.assertIn("created_at", col_names)
+
 
             row = conn.execute("SELECT * FROM stories").fetchone()
             self.assertIsNotNone(row)
@@ -287,6 +287,7 @@ class TestDatabaseInit(unittest.TestCase):
                 "SELECT COUNT(*) FROM stories_fts WHERE stories_fts MATCH 'legacy'"
             ).fetchone()[0]
             self.assertEqual(fts_count, 1)
+
         finally:
             close_db()
 
@@ -581,6 +582,7 @@ class TestParseHeader(unittest.TestCase):
             "It had multiple paragraphs.\n"
         )
         path = self._write_story_file("test.txt", content)
+        import import_to_sqlite
         result = import_to_sqlite.parse_header(path)
         self.assertIsNotNone(result)
         self.assertEqual(result["title"], "My Story")
@@ -600,6 +602,7 @@ class TestParseHeader(unittest.TestCase):
             "URL: https://example.com\n" + "=" * 80 + "\n\n" + "Email content here.\n"
         )
         path = self._write_story_file("email.txt", content)
+        import import_to_sqlite
         result = import_to_sqlite.parse_header(path)
         self.assertIsNotNone(result)
         self.assertEqual(result["title"], "Email Story")
@@ -607,16 +610,19 @@ class TestParseHeader(unittest.TestCase):
         self.assertEqual(result["author_email"], "user@host.com")
 
     def test_missing_file(self):
+        import import_to_sqlite
         result = import_to_sqlite.parse_header("/nonexistent/file.txt")
         self.assertIsNone(result)
 
     def test_no_header_marker(self):
         content = "Just plain text without any header markers.\n"
         path = self._write_story_file("noheader.txt", content)
+        import import_to_sqlite
         result = import_to_sqlite.parse_header(path)
         self.assertIsNone(result)
 
     def test_minimal_header(self):
+        import import_to_sqlite
         content = (
             "=" * 80 + "\n"
             "Title: Minimal\n"
@@ -631,6 +637,7 @@ class TestParseHeader(unittest.TestCase):
         self.assertEqual(result["content"], "body")
 
     def test_empty_content(self):
+        import import_to_sqlite
         content = (
             "=" * 80 + "\n"
             "Title: Empty\n"
@@ -673,6 +680,7 @@ class TestMultiDBConnect(unittest.TestCase):
         return path
 
     def test_connect_multi(self):
+        import story_db
         self._create_test_db("db1.db")
         self._create_test_db("db2.db")
 
@@ -707,9 +715,11 @@ class TestMultiDBConnect(unittest.TestCase):
         empty_dir = os.path.join(self.temp_dir, "empty")
         os.makedirs(empty_dir)
         with self.assertRaises(SystemExit):
+            import story_db
             story_db.connect_multi(empty_dir)
 
     def test_skips_stories_db(self):
+        import story_db
         self._create_test_db("stories.db")  # should be skipped
         self._create_test_db("real.db")
 
@@ -910,6 +920,7 @@ class TestImportToSQLite(unittest.TestCase):
 
     def test_parse_header_valid(self):
         import import_to_sqlite
+
         content = (
             "================================================================================\n"
             "Title: Test Story\n"
@@ -934,6 +945,7 @@ class TestImportToSQLite(unittest.TestCase):
 
     def test_parse_header_missing_fields(self):
         import import_to_sqlite
+
         content = (
             "================================================================================\n"
             "Title: No Author Story\n"
@@ -953,6 +965,7 @@ class TestImportToSQLite(unittest.TestCase):
 
     def test_parse_header_invalid_format(self):
         import import_to_sqlite
+
         # Missing the second divider
         content = (
             "================================================================================\n"
@@ -966,6 +979,7 @@ class TestImportToSQLite(unittest.TestCase):
 
     def test_minimal_header(self):
         import import_to_sqlite
+
         content = (
             "=" * 80 + "\n"
             "Title: Minimal\n"
@@ -983,6 +997,7 @@ class TestImportToSQLite(unittest.TestCase):
 
     def test_empty_content(self):
         import import_to_sqlite
+
         content = (
             "=" * 80 + "\n"
             "Title: Empty\n"

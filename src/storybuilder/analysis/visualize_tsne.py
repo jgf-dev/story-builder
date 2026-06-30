@@ -3,17 +3,33 @@ from typing import List, Tuple
 
 import chromadb
 import numpy as np
+import pandas as pd
 import plotly.express as px
 import plotly.io as pio
 from sklearn.manifold import TSNE
-import pandas as pd
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Visualize story embeddings using t-SNE.")
-    parser.add_argument("--db-path", type=str, default="./chroma_db", help="Path to the Chroma database.")
-    parser.add_argument("--output", type=str, default="tsne_visualization.html", help="Output HTML file path.")
-    parser.add_argument("--perplexity", type=float, default=1000.0, help="Perplexity for t-SNE (adjust based on dataset size).")
+    parser.add_argument(
+        "--db-path",
+        type=str,
+        default="./chroma_db",
+        help="Path to the Chroma database.",
+    )
+    parser.add_argument(
+        "--output",
+        type=str,
+        default="tsne_visualization.html",
+        help="Output HTML file path.",
+    )
+    parser.add_argument(
+        "--perplexity",
+        type=float,
+        default=1000.0,
+        help="Perplexity for t-SNE (adjust based on dataset size).",
+    )
+
     return parser.parse_args()
 
 
@@ -25,6 +41,7 @@ def fetch_embeddings(db_path: str) -> Tuple[List[str], np.ndarray, List[dict]]:
     except Exception:
         print("Error: Could not find 'story_averages' collection. Run generate_embeddings.py first.")
         return [], np.array([]), []
+
 
     print("Fetching embeddings from database...")
     data = collection_averages.get(include=["embeddings", "metadatas"])
@@ -83,7 +100,12 @@ def create_and_save_plot(embeddings_2d: np.ndarray, ids: List[str], short_names:
 
     fig.update_traces(marker=dict(size=8, line=dict(width=1, color="DarkSlateGrey")))
 
-    df = pd.DataFrame({"x": embeddings_2d[:, 0], "y": embeddings_2d[:, 1], "subcategory": subcategories})
+    df = pd.DataFrame({
+        "x": embeddings_2d[:, 0],
+        "y": embeddings_2d[:, 1],
+        "subcategory": subcategories,
+    })
+
     centroids = df.groupby("subcategory")[["x", "y"]].mean().reset_index()
 
     for _, row in centroids.iterrows():

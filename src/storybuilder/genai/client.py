@@ -21,7 +21,9 @@ def wave_file(filename, pcm, channels=1, rate=24000, sample_width=2):
 
 
 def _parse_voice_mappings(preamble):
+    """Extract voice mappings from the preamble section."""
     speaker_to_voice = {}
+
     for line in preamble.split("\n"):
         line = line.strip()
         if line.startswith("*") or line.startswith("-"):
@@ -34,6 +36,8 @@ def _parse_voice_mappings(preamble):
 
 
 def _extract_active_speakers(transcript):
+    """Extract active speakers actually speaking in the transcript, in order of appearance."""
+
     active_speakers = []
     for line in transcript.split("\n"):
         line = line.strip()
@@ -46,7 +50,9 @@ def _extract_active_speakers(transcript):
 
 
 def _build_speech_config(active_speakers, speaker_to_voice):
+    """Build the speech configuration based on active speakers and mappings."""
     speech_config = []
+
     for sp in active_speakers:
         if sp in speaker_to_voice:
             speech_config.append({"speaker": sp, "voice": speaker_to_voice[sp]})
@@ -81,6 +87,7 @@ def parse_speech_config(markdown_content):
         transcript = ""
 
     speaker_to_voice, _ = _parse_voice_mappings(preamble)
+
     active_speakers = _extract_active_speakers(transcript)
     return _build_speech_config(active_speakers, speaker_to_voice)
 
@@ -214,6 +221,7 @@ def process_directory(directory):
         client, current_key_idx, previous_id = process_file(
             md_file, wav_file, client, previous_id, api_keys, current_key_idx
         )
+
 
         # Slight delay to respect rate limits
         time.sleep(2)

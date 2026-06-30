@@ -1,5 +1,7 @@
 import argparse
 import os
+import re
+
 import sqlite3
 from collections import defaultdict
 from pathlib import Path
@@ -220,6 +222,7 @@ def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe
         )
 
     cursor.connection.commit()
+
 
 
 def process_story(story_dir, filepaths, cursor, conn, nlp, sentiment_pipe):

@@ -433,6 +433,7 @@ if page == "🔍 Search & Explorer":
                 <b>Author:</b> {html.escape(res['author_name'] or 'Unknown')} |
                 <b>Category:</b> {html.escape(res['category'] or 'Unknown')} |
                 <b>Published:</b> {html.escape(str(res['publication_date'] or 'Unknown'))} |
+
                 <b>Words:</b> {res['word_count']:,}
             </p>
         """
@@ -442,6 +443,7 @@ if page == "🔍 Search & Explorer":
             # Escape the snippet first, then replace the placeholder highlight markers with actual HTML span tags
             snippet_escaped = html.escape(res["snippet"])
             snippet_cleaned = snippet_escaped.replace("___HIGHLIGHT_START___", "<span class='highlight'>").replace("___HIGHLIGHT_END___", "</span>")
+
             card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
             
         card_html += "</div>"
@@ -562,6 +564,7 @@ elif page == "⭐ Favorites & Tags":
                         <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 4px;'><b>Author:</b> {html.escape(f['author'] or 'Unknown')}</p>
                         <p style='font-size: 0.9rem;'><span class='highlight'>Tags:</span> {html.escape(f['tags'] or 'None')}</p>
                         <p style='font-size: 0.9rem; color: #cbd5e1;'><i>Notes:</i> {html.escape(f['notes'] or 'None')}</p>
+
                     </div>
                     """,
                     unsafe_allow_html=True

@@ -25,5 +25,7 @@ stories/db/2004.db
 dummy_stories/
 benchmark.db
 .context-engine/git_history_cache.json
+dummy_stories/
+.kanban.db
 test_dbs/
-.switchboard/
+

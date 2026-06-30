@@ -466,10 +466,10 @@ if page == "🔍 Search & Explorer":
 
     for res in search_results:
         # Create a container for the card styling
-        safe_title = html.escape(res['title'] or '')
-        safe_author = html.escape(res['author_name'] or 'Unknown')
-        safe_category = html.escape(res['category'] or '')
-        safe_pub_date = html.escape(res['publication_date'] or 'Unknown')
+        safe_title = html.escape(res["title"] or "Untitled")
+        safe_author = html.escape(res["author_name"] or "Unknown")
+        safe_category = html.escape(res["category"] or "Unknown")
+        safe_pub_date = html.escape(str(res["publication_date"] or "Unknown"))
 
         card_html = f"""
         <div class="story-card">
@@ -478,7 +478,7 @@ if page == "🔍 Search & Explorer":
                 <b>Author:</b> {safe_author} |
                 <b>Category:</b> {safe_category} |
                 <b>Published:</b> {safe_pub_date} |
-                <b>Words:</b> {res['word_count']:,}
+                <b>Words:</b> {res["word_count"]:,}
             </p>
         """
 

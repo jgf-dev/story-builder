@@ -10,7 +10,6 @@ from tqdm import tqdm
 from transformers import pipeline
 
 DB_PATH = "sentiment_analysis.db"
-DB_PATH = "sentiment_analysis.db"
 ALLOWED_LABELS = {
     "PERSON",
     "NORP",
@@ -27,14 +26,17 @@ ALLOWED_LABELS = {
 def init_db(db_path):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS stories (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             story_dir TEXT UNIQUE,
             subcategory TEXT
         )
-    """)
-    cursor.execute("""
+    """
+    )
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS sentences (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             story_id INTEGER,
@@ -45,8 +47,10 @@ def init_db(db_path):
             sentiment_score REAL,
             FOREIGN KEY(story_id) REFERENCES stories(id)
         )
-    """)
-    cursor.execute("""
+    """
+    )
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS sentence_entities (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             sentence_id INTEGER,
@@ -54,7 +58,8 @@ def init_db(db_path):
             entity_label TEXT,
             FOREIGN KEY(sentence_id) REFERENCES sentences(id)
         )
-    """)
+    """
+    )
     cursor.execute(
         "CREATE INDEX IF NOT EXISTS idx_sentences_story ON sentences(story_id)"
     )
@@ -149,8 +154,10 @@ def find_multi_chapter_stories(stories_dir, subcategory=None):
     return multi_stories
 
 
-def load_models(spacy_model, sentiment_model, use_gpu):
-    print(f"Loading models (spaCy: {spacy_model}, HF: {sentiment_model})...")
+def load_models(spacy_model_name, sentiment_model_name, use_gpu):
+    print(
+        f"Loading models (spaCy: {spacy_model_name}, HF: {sentiment_model_name})..."
+    )
     device = 0 if use_gpu else -1
 
     if use_gpu:
@@ -161,12 +168,12 @@ def load_models(spacy_model, sentiment_model, use_gpu):
         except Exception as e:
             print(f"Could not enable spaCy GPU: {e}")
 
-    nlp = spacy.load(args.spacy_model)
+    nlp = spacy.load(spacy_model_name)
     nlp.add_pipe("sentencizer")
 
     sentiment_pipe = pipeline(  # pyrefly: ignore [no-matching-overload]
         "sentiment-analysis",
-        model=args.sentiment_model,
+        model=sentiment_model_name,
         device=device,
         truncation=True,
         max_length=512,
@@ -199,15 +206,15 @@ def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe
     except Exception as e:
         print(f"Sentiment pipeline error on {filepath}: {e}")
         sentiments = []
-        for s in sentence_texts:
+        for sentence_text in sentence_texts:
             try:
-                res = sentiment_pipe(s[:512])[0]
+                res = sentiment_pipe(sentence_text[:512])[0]
                 sentiments.append(res)
             except Exception:
                 sentiments.append({"label": "neutral", "score": 0.0})
 
     cursor.execute("SELECT MAX(id) FROM sentences")
-    row = cursor.fetchone()
+    row = cursor.fetchone() or (None,)
     last_id_before = row[0] if row[0] is not None else 0
 
     sentence_batch = []
@@ -241,9 +248,12 @@ def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe
             entity_batch,
         )
 
-    cursor.connection.commit()
 
-    processed_stories += 1
+def process_story(story_dir, filepaths, cursor, conn, nlp, sentiment_pipe):
+    cursor.execute("SELECT id FROM stories WHERE story_dir = ?", (story_dir,))
+    if cursor.fetchone():
+        print(f"Skipping already processed story: {story_dir}")
+        return False
 
     print(f"\nProcessing Story: {story_dir} ({len(filepaths)} chapters)")
 

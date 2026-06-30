@@ -1,0 +1,47 @@
+version: 1.0.0
+title: Open Issues
+description: Analyze a GitHub repository and list all open issues.
+instructions: |-
+    Analyze the GitHub repository at [REPO_URL] and list all open issues.
+
+    For each issue, provide:
+    - Labels
+    - Title
+    - Assignees
+    - Short main problem (3–6 words summary)
+    - URL and issue number
+
+    Output formats:
+    1. Markdown table with columns: Label | Title | Assignees | Main Problem
+    2. JSON
+
+    Include total number of open issues. Keep summaries short, clear, and readable.
+
+    ## Open Issues
+
+    Total open issues: 1
+
+    ### Markdown Table
+
+    | Label       | Title   | Assignees  | Main Problem        |
+    |------------|---------|------------|---------------------|
+    | enhancement | Button | Unassigned | Button not showing  |
+author:
+  contact: jgeofil
+extensions:
+- type: builtin
+  name: developer
+  display_name: Developer
+  timeout: 300
+  bundled: true
+- type: builtin
+  name: computercontroller
+  display_name: Computer Controller
+  timeout: 300
+  bundled: true
+- type: builtin
+  name: memory
+  display_name: Memory
+  timeout: 300
+  bundled: true
+prompt: Enter a repo url:

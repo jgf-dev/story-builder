@@ -3,16 +3,14 @@ from typing import List, Tuple
 
 import chromadb
 import numpy as np
+import pandas as pd
 import plotly.express as px
 import plotly.io as pio
 from sklearn.manifold import TSNE
-import pandas as pd
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Visualize story embeddings using t-SNE."
-    )
+    parser = argparse.ArgumentParser(description="Visualize story embeddings using t-SNE.")
     parser.add_argument(
         "--db-path",
         type=str,
@@ -40,9 +38,9 @@ def fetch_embeddings(db_path: str) -> Tuple[List[str], np.ndarray, List[dict]]:
     try:
         collection_averages = chroma_client.get_collection(name="story_averages")
     except Exception:
-        print(
-            "Error: Could not find 'story_averages' collection. Run generate_embeddings.py first."
-        )
+        print("Error: Could not find 'story_averages' collection. Run generate_embeddings.py first.")
+        return [], np.array([]), []
+        print("Error: Could not find 'story_averages' collection. Run generate_embeddings.py first.")
         return [], np.array([]), []
 
     print("Fetching embeddings from database...")
@@ -108,13 +106,11 @@ def create_and_save_plot(
 
     fig.update_traces(marker=dict(size=8, line=dict(width=1, color="DarkSlateGrey")))
 
-    df = pd.DataFrame(
-        {
-            "x": embeddings_2d[:, 0],
-            "y": embeddings_2d[:, 1],
-            "subcategory": subcategories,
-        }
-    )
+    df = pd.DataFrame({
+        "x": embeddings_2d[:, 0],
+        "y": embeddings_2d[:, 1],
+        "subcategory": subcategories,
+    })
     centroids = df.groupby("subcategory")[["x", "y"]].mean().reset_index()
 
     for _, row in centroids.iterrows():

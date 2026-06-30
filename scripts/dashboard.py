@@ -212,6 +212,13 @@ def load_archive_stats():
     df_auths = pd.DataFrame(
         list(author_counts.items()), columns=["Author", "Count"]
     ).sort_values("Count", ascending=False)
+    df_words = pd.DataFrame(
+        [
+            {"Bracket": bracket, "Stories": count}
+            for bracket, count in bracket_counts.items()
+            if count > 0
+        ]
+    )
     return df_years, df_cats, df_auths, df_words
 
 # ------------------------------------------------------------------------------
@@ -667,12 +674,6 @@ elif page == "📊 Archive Stats":
         
     # 3. Word Count Bracket Distribution
     st.subheader("📐 Story Length Distribution")
-    word_bins = pd.cut(
-        word_counts,
-        bins=[0, 1000, 5000, 10000, 20000, 50000, 1000000],
-        labels=["Short (<1K)", "Medium-Short (1K-5K)", "Medium (5K-10K)", "Medium-Long (10K-20K)", "Long (20K-50K)", "Epic (>50K)"]
-    )
-    df_words = pd.DataFrame({"Bracket": word_bins}).value_counts().reset_index(name="Stories")
     fig_words = px.bar(df_words, x="Bracket", y="Stories", title="Story Word Count Distribution Bracket")
     fig_words.update_layout(template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f")
     st.plotly_chart(fig_words, use_container_width=True)

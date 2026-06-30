@@ -2,7 +2,6 @@ import argparse
 import os
 import re
 import sqlite3
-import re
 from collections import defaultdict
 from pathlib import Path
 

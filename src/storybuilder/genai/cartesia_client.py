@@ -258,7 +258,6 @@ def process_directory_cartesia(directory, rate=24000):
             continue
 
         process_file_cartesia(md_file, wav_file, api_key, rate=rate)
-
         # Brief sleep between files
         time.sleep(1)
 

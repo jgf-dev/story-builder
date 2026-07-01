@@ -143,9 +143,6 @@ def _get_cached_subcategory(sub_url):
         cached_stories = cached_entry.get("stories", [])
         is_complete = cached_entry.get("complete", False)
 
-    # We only use cache-hit early-stop if we are not forcing a scan and the cache is marked complete.
-    # This ensures that we do not stop traversing on a cache hit when the cache has gaps or is partial.
-    use_cache = not force_scan and is_complete
     return cached_stories, is_complete
 
 def _scrape_subcategory_pages(

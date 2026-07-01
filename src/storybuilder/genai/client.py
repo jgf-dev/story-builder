@@ -30,7 +30,6 @@ def _parse_voice_mappings(markdown_content):
     else:
         preamble = markdown_content
         transcript = ""
-
     for line in preamble.split("\n"):
         line = line.strip()
         if line.startswith("*") or line.startswith("-"):
@@ -61,6 +60,7 @@ def _extract_active_speakers(transcript):
 def _build_speech_config(active_speakers, speaker_to_voice):
     """Builds the final speech config array with fallbacks and padding."""
     speech_config = []
+
     for sp in active_speakers:
         if sp in speaker_to_voice:
             speech_config.append({"speaker": sp, "voice": speaker_to_voice[sp]})
@@ -123,7 +123,7 @@ def process_directory(directory):
     key_name, api_key = api_keys[current_key_idx]
     client = genai.Client(api_key=api_key)
 
-    # Find all *-part.md files in the directory
+    # Find all *.md prompt files in the directory
     files = sorted(glob.glob(os.path.join(directory, "*.md")))
     if not files:
         print(f"No prompt files found in {directory}")

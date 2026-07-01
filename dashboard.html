@@ -125,11 +125,16 @@
       outline: none;
       box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--accent);
     }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
 
     .editor:focus-visible {
       box-shadow: inset 0 0 0 1px var(--accent);
     }
-
     button.primary {
       background: linear-gradient(180deg, rgba(125, 211, 252, 0.18), rgba(125, 211, 252, 0.08));
       border-color: rgba(125, 211, 252, 0.35);
@@ -313,7 +318,7 @@
 
     let currentFileName = 'TASKS.md';
     let currentHandle = null;
-    let isDirty = null;
+    let isDirty = null; // null so the first setDirty(false) goes through
 
     function setDirty(dirty) {
       if (isDirty === dirty) return;
@@ -321,19 +326,18 @@
       const saveBtn = document.getElementById('saveBtn');
       if (isDirty) {
         document.title = '* ' + document.title.replace(/^\*\s*/, '');
-        saveBtn.disabled = false;
-        saveBtn.style.opacity = '1';
-        saveBtn.style.cursor = 'pointer';
-        saveBtn.title = 'Save (Ctrl+S / Cmd+S)';
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.title = "Save (Ctrl+S / Cmd+S)";
+        }
       } else {
         document.title = document.title.replace(/^\*\s*/, '');
-        saveBtn.disabled = true;
-        saveBtn.style.opacity = '0.5';
-        saveBtn.style.cursor = 'not-allowed';
-        saveBtn.title = 'No unsaved changes';
+        if (saveBtn) {
+          saveBtn.disabled = true;
+          saveBtn.title = "No unsaved changes";
+        }
       }
     }
-
     function setStatus(message) {
       status.textContent = message;
     }
@@ -385,7 +389,7 @@
       saveBtn.disabled = true;
       saveBtn.textContent = 'Saving...';
       saveBtn.style.cursor = 'wait';
-
+      saveBtn.setAttribute('aria-busy', 'true');
       try {
         if (currentHandle && window.showSaveFilePicker) {
           await saveViaHandle(currentHandle, editor.value);
@@ -407,12 +411,8 @@
         setStatus(`Save failed: ${error.message}`);
       } finally {
         saveBtn.textContent = originalText;
-        if (isDirty) {
-          saveBtn.disabled = false;
-          saveBtn.style.cursor = 'pointer';
-        } else {
-          saveBtn.style.cursor = 'not-allowed';
-        }
+        saveBtn.removeAttribute('aria-busy');
+        saveBtn.style.cursor = '';
       }
     });
 
@@ -447,16 +447,15 @@
         e.returnValue = '';
       }
     });
-
     document.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        if (isDirty) {
-          document.getElementById('saveBtn').click();
+        const saveBtn = document.getElementById('saveBtn');
+        if (saveBtn && !saveBtn.disabled) { // Added check for saveBtn existence and disabled state
+          saveBtn.click();
         }
       }
     });
-
     loadText(template, 'TASKS.md');
   </script>
 </body>

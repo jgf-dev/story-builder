@@ -6,6 +6,7 @@ Thread-safe: uses WAL mode + a write lock.  Call init_db() once at startup,
 then insert_story() from any thread.
 """
 
+import concurrent.futures
 import os
 import re
 import sqlite3
@@ -14,31 +15,49 @@ from pathlib import Path
 
 # -- Schema -------------------------------------------------------------
 
+STORY_COLUMNS = (
+    "id",
+    "path",
+    "orientation",
+    "category",
+    "story_slug",
+    "chapter_num",
+    "title",
+    "author_name",
+    "author_email",
+    "publication_date",
+    "url",
+    "char_count",
+    "word_count",
+    "content",
+    "created_at",
+)
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS stories (
-    id              INTEGER PRIMARY KEY,
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
     path            TEXT UNIQUE NOT NULL,
     orientation     TEXT NOT NULL DEFAULT 'gay',
-    category        TEXT NOT NULL,
-    story_slug      TEXT NOT NULL,
+    category        TEXT,
+    story_slug      TEXT,
     chapter_num     INTEGER,
-    title           TEXT NOT NULL,
+    title           TEXT,
     author_name     TEXT,
     author_email    TEXT,
     publication_date TEXT,
     url             TEXT,
-    email_date      TEXT,
     char_count      INTEGER NOT NULL,
     word_count      INTEGER NOT NULL,
-    content         TEXT NOT NULL
+    content         TEXT NOT NULL,
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE VIRTUAL TABLE IF NOT EXISTS stories_fts USING fts5(
     title,
     author_name,
     content,
-    content=stories,
-    content_rowid=id
+    content='stories',
+    content_rowid='id'
 );
 
 CREATE TRIGGER IF NOT EXISTS stories_ai AFTER INSERT ON stories BEGIN
@@ -135,6 +154,98 @@ def _parse_output_path(output_path: str) -> "tuple[str, str, str, int | None]":
     return orientation, category, story_slug, chapter_num
 
 
+# -- Schema migrations --------------------------------------------------
+
+
+def _table_columns(conn: sqlite3.Connection, table_name: str) -> list[str]:
+    """Return the column names of a table, or an empty list if it does not exist."""
+    cursor = conn.execute(f"PRAGMA table_info({table_name})")
+    return [row[1] for row in cursor.fetchall()]
+
+
+def _resume_interrupted_migration(conn: sqlite3.Connection) -> bool:
+    """Recover data from stories_legacy if a prior schema migration was interrupted."""
+    legacy_columns = _table_columns(conn, "stories_legacy")
+    if not legacy_columns:
+        return False
+
+    copy_columns = [
+        col for col in STORY_COLUMNS if col in legacy_columns and col != "email_date"
+    ]
+    cols_sql = ", ".join(copy_columns)
+
+    try:
+        conn.execute("BEGIN")
+        if copy_columns:
+            conn.execute(
+                f"INSERT OR IGNORE INTO stories ({cols_sql}) "
+                f"SELECT {cols_sql} FROM stories_legacy"
+            )
+        conn.execute("DROP TABLE stories_legacy")
+        try:
+            conn.execute("DELETE FROM sqlite_sequence WHERE name = 'stories'")
+        except sqlite3.OperationalError:
+            pass
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+
+    conn.executescript(INDEXES)
+    return True
+
+
+def migrate_legacy_schema(conn: sqlite3.Connection) -> bool:
+    """Rebuild legacy story databases that still include the removed email_date column."""
+    if _resume_interrupted_migration(conn):
+        return True
+
+    legacy_columns = _table_columns(conn, "stories")
+    if not legacy_columns or "email_date" not in legacy_columns:
+        return False
+
+    copy_columns = [
+        col for col in STORY_COLUMNS if col in legacy_columns and col != "email_date"
+    ]
+    if not copy_columns:
+        return False
+
+    conn.executescript(
+        """
+        DROP TRIGGER IF EXISTS stories_ai;
+        DROP TRIGGER IF EXISTS stories_ad;
+        DROP TRIGGER IF EXISTS stories_au;
+        DROP TABLE IF EXISTS stories_fts;
+        """
+    )
+    conn.execute("ALTER TABLE stories RENAME TO stories_legacy")
+    conn.executescript(SCHEMA)
+
+    cols_sql = ", ".join(copy_columns)
+    try:
+        conn.execute("BEGIN")
+        conn.execute(
+            f"INSERT INTO stories ({cols_sql}) SELECT {cols_sql} FROM stories_legacy"
+        )
+        conn.execute("DROP TABLE stories_legacy")
+        try:
+            conn.execute("DELETE FROM sqlite_sequence WHERE name = 'stories'")
+        except sqlite3.OperationalError:
+            pass
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+
+    conn.executescript(INDEXES)
+    return True
+
+
+def _migrate_schema(conn: "sqlite3.Connection") -> None:
+    """Apply schema migrations to an existing partition or database file."""
+    migrate_legacy_schema(conn)
+
+
 # -- DB init ------------------------------------------------------------
 
 
@@ -163,6 +274,7 @@ def init_db(db_path: str) -> "sqlite3.Connection":
         _conn.execute("PRAGMA cache_size=-64000")
         _conn.executescript(SCHEMA)
         _conn.executescript(INDEXES)
+        _migrate_schema(_conn)
         return _conn
 
 
@@ -174,11 +286,23 @@ def get_conn() -> "sqlite3.Connection | None":
 
 
 def get_all_partition_paths() -> list[str]:
-    """Return paths of all partition databases."""
+    """Return paths of all partition databases.
+
+    Includes year partitions (e.g. ``2023.db``) as well as the ``unknown.db``
+    partition used for stories without a valid date (see get_partition_path).
+    Non-partition databases that may live in the same directory -- the
+    monolithic ``stories.db`` and the dashboard's ``dashboard_metadata.db``
+    (favorites/tags) -- are excluded since they lack the ``stories`` table
+    and partition queries should only touch partition files.
+    """
     if not _db_dir or not _is_partitioned:
         return []
     import glob
-    return sorted(glob.glob(os.path.join(_db_dir, "[0-9][0-9][0-9][0-9].db")))
+
+    excluded = {"stories.db", "dashboard_metadata.db"}
+    db_files = glob.glob(os.path.join(_db_dir, "*.db"))
+    return sorted(p for p in db_files if os.path.basename(p) not in excluded)
+
 
 def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
     """Execute a SELECT query across all database partitions sequentially
@@ -203,24 +327,28 @@ def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
     conn.row_factory = sqlite3.Row
     all_rows = []
 
-    for db_path in db_paths:
-        try:
-            conn.execute("ATTACH DATABASE ? AS curr_db", (db_path,))
-            curs = conn.cursor()
-            formatted_sql = sql.format(table="curr_db.stories")
-            curs.execute(formatted_sql, params)
-            all_rows.extend([dict(r) for r in curs.fetchall()])
-            curs.close()
-        except sqlite3.Error as e:
-            print(f"Error querying {db_path}: {e}")
-        finally:
+    try:
+        for db_path in db_paths:
             try:
-                conn.execute("DETACH DATABASE curr_db")
-            except sqlite3.Error:
-                pass
+                conn.execute("ATTACH DATABASE ? AS curr_db", (db_path,))
+                curs = conn.cursor()
+                formatted_sql = sql.format(table="curr_db.stories")
+                curs.execute(formatted_sql, params)
+                all_rows.extend([dict(r) for r in curs.fetchall()])
+                curs.close()
+            except sqlite3.Error as e:
+                print(f"Error querying {db_path}: {e}")
+            finally:
+                try:
+                    conn.execute("DETACH DATABASE curr_db")
+                except sqlite3.Error as e:
+                    # Best-effort cleanup: if detach fails, continue processing other partitions.
+                    print(f"Warning: failed to detach database {db_path}: {e}")
+    finally:
+        conn.close()
 
-    conn.close()
     return all_rows
+
 
 def search_all_partitions(
     fts_query: str = "",
@@ -229,9 +357,14 @@ def search_all_partitions(
     date_from: "str | None" = None,
     date_to: "str | None" = None,
     limit: int = 100,
-    snippets: bool = True
+    snippets: bool = True,
+    db_dir: "str | None" = None,
+    db_paths: "list[str] | None" = None,
+    query: "str | None" = None,
 ) -> list[dict]:
     """Search across all partitions using FTS or fallback to standard filtering."""
+    if query is not None:
+        fts_query = query
     conditions = ["1=1"]
     params = []
 
@@ -254,13 +387,40 @@ def search_all_partitions(
     if not _is_partitioned:
         db_paths = [None]
     else:
-        db_paths = get_all_partition_paths()
+        partition_dir = db_dir or _db_dir
+        if not partition_dir:
+            return []
+        if partition_dir == _db_dir:
+            db_paths = get_all_partition_paths()
+        else:
+            import glob
+
+            excluded = {"stories.db", "dashboard_metadata.db"}
+            db_files = glob.glob(os.path.join(partition_dir, "*.db"))
+            db_paths = sorted(
+                p for p in db_files if os.path.basename(p) not in excluded
+            )
+        if not db_paths:
+            return []
+        if not partition_dir:
+            return []
+        if partition_dir == _db_dir:
+            db_paths = get_all_partition_paths()
+        else:
+            import glob
+
+            excluded = {"stories.db", "dashboard_metadata.db"}
+            db_files = glob.glob(os.path.join(partition_dir, "*.db"))
+            db_paths = sorted(
+                p for p in db_files if os.path.basename(p) not in excluded
+            )
         if not db_paths:
             return []
 
-    for db_path in db_paths:
+    def _search_single_db(db_path: "str | None") -> list[dict]:
         conn = None
         need_close = False
+        results = []
         try:
             if db_path is None:
                 conn = get_conn()
@@ -269,39 +429,35 @@ def search_all_partitions(
                 need_close = True
 
             if not conn:
-                continue
+                return results
 
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
 
             query_params = list(params)
 
+            # Build the snippet expression once, reuse for both branches
+            snippet_expr = (
+                "snippet(stories_fts, 2, '___HIGHLIGHT_START___', '___HIGHLIGHT_END___', '…', 40)"
+                if (fts_query and snippets)
+                else "NULL"
+            )
+
             if fts_query:
-                # Use stories_fts explicitly unaliased for the snippet function
-                if snippets:
-                    sql = f"""
-                        SELECT s.id, s.path, s.category, s.story_slug, s.title, s.author_name,
-                               s.publication_date, s.char_count, s.word_count,
-                               snippet(stories_fts, 2, '___HIGHLIGHT_START___', '___HIGHLIGHT_END___', '…', 40) AS snippet
-                        FROM stories s
-                        JOIN stories_fts ON s.id = stories_fts.rowid
-                        WHERE {where_clause} AND stories_fts MATCH ?
-                        ORDER BY rank
-                        LIMIT ?
-                    """
-                else:
-                    sql = f"""
-                        SELECT s.id, s.path, s.category, s.story_slug, s.title, s.author_name,
-                               s.publication_date, s.char_count, s.word_count,
-                               NULL AS snippet
-                        FROM stories s
-                        JOIN stories_fts ON s.id = stories_fts.rowid
-                        WHERE {where_clause} AND stories_fts MATCH ?
-                        ORDER BY rank
-                        LIMIT ?
-                    """
+                # FTS query with optional snippets
+                sql = f"""
+                    SELECT s.id, s.path, s.category, s.story_slug, s.title, s.author_name,
+                           s.publication_date, s.char_count, s.word_count,
+                           {snippet_expr} AS snippet
+                    FROM stories s
+                    JOIN stories_fts ON s.id = stories_fts.rowid
+                    WHERE {where_clause} AND stories_fts MATCH ?
+                    ORDER BY rank
+                    LIMIT ?
+                """
                 query_params.extend([fts_query, limit])
             else:
+                # Non-FTS query: standard filtering and sorting by date
                 sql = f"""
                     SELECT s.id, s.path, s.category, s.story_slug, s.title, s.author_name,
                            s.publication_date, s.char_count, s.word_count,
@@ -314,23 +470,34 @@ def search_all_partitions(
                 query_params.append(limit)
 
             cursor.execute(sql, query_params)
-            all_results.extend([dict(r) for r in cursor.fetchall()])
+            results = [dict(r) for r in cursor.fetchall()]
 
         except sqlite3.Error as e:
             print(f"Error querying {db_path or 'monolithic db'}: {e}")
         finally:
             if need_close and conn:
                 conn.close()
+        return results
+
+    if db_paths:
+        if len(db_paths) == 1 and db_paths[0] is None:
+            # Monolithic DB: no need for thread pool
+            all_results.extend(_search_single_db(None))
+        else:
+            with concurrent.futures.ThreadPoolExecutor(
+                max_workers=min(len(db_paths), 10)
+            ) as executor:
+                for res in executor.map(_search_single_db, db_paths):
+                    all_results.extend(res)
 
     # Sort aggregated results
     if fts_query:
         # Sort by date desc (since rank order is lost when combined, or we could sort by a score if we fetched it)
-        all_results.sort(key=lambda x: (x.get("publication_date") or ""), reverse=True)
+        all_results.sort(key=lambda x: x.get("publication_date") or "", reverse=True)
     else:
-        all_results.sort(key=lambda x: (x.get("publication_date") or ""), reverse=True)
+        all_results.sort(key=lambda x: x.get("publication_date") or "", reverse=True)
 
     return all_results[:limit]
-
 
 
 def get_partition_path(story_date) -> str:
@@ -374,6 +541,7 @@ def _get_write_conn(story_date) -> "sqlite3.Connection | None":
             conn.execute("PRAGMA cache_size=-64000")
             conn.executescript(SCHEMA)
             conn.executescript(INDEXES)
+            _migrate_schema(conn)
             _connections[partition_path] = conn
         return _connections[partition_path]
 
@@ -429,8 +597,17 @@ def insert_story(
             conn.execute(sql, params)
             conn.commit()
             return True
-        except Exception:
+        except sqlite3.IntegrityError as e:
             conn.rollback()
+            print(f"Integrity error inserting story at {output_path}: {e}")
+            return False
+        except sqlite3.OperationalError as e:
+            conn.rollback()
+            print(f"Operational error inserting story at {output_path}: {e}")
+            return False
+        except Exception as e:
+            conn.rollback()
+            print(f"Unexpected error inserting story at {output_path}: {e}")
             return False
 
 
@@ -445,7 +622,11 @@ def story_exists(output_path: str, story_date: str) -> bool:
                 "SELECT 1 FROM stories WHERE path = ?", (output_path,)
             )
             return cursor.fetchone() is not None
-        except Exception:
+        except sqlite3.OperationalError as e:
+            print(f"Error checking story existence at {output_path}: {e}")
+            return False
+        except Exception as e:
+            print(f"Unexpected error checking story existence at {output_path}: {e}")
             return False
 
 
@@ -476,8 +657,35 @@ def get_story(output_path: str, story_date: str) -> "dict | None":
                     "content": row[5],
                 }
             return None
-        except Exception:
+        except sqlite3.OperationalError as e:
+            print(f"Error retrieving story at {output_path}: {e}")
             return None
+        except Exception as e:
+            print(f"Unexpected error retrieving story at {output_path}: {e}")
+            return None
+
+
+def optimize_fts_all(db_dir: str) -> None:
+    """Scan the given directory and rebuild FTS on all .db files."""
+    if not os.path.isdir(db_dir):
+        return
+
+    for filename in os.listdir(db_dir):
+        if not filename.endswith(".db"):
+            continue
+
+        db_path = os.path.join(db_dir, filename)
+        conn = None
+        try:
+            conn = sqlite3.connect(db_path, check_same_thread=False)
+            conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
+            conn.commit()
+        except sqlite3.OperationalError:
+            # Best-effort optimization: skip databases that do not support FTS optimize.
+            continue
+        finally:
+            if conn:
+                conn.close()
 
 
 def optimize_fts() -> None:
@@ -503,7 +711,9 @@ def optimize_fts() -> None:
                 # Monolithic
                 with _lock:
                     if _conn:
-                        _conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
+                        _conn.execute(
+                            "INSERT INTO stories_fts(stories_fts) VALUES ('optimize')"
+                        )
                         _conn.commit()
             else:
                 # Partitions
@@ -511,9 +721,10 @@ def optimize_fts() -> None:
                 need_close = True
                 conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
                 conn.commit()
-        except sqlite3.OperationalError:
+        except sqlite3.OperationalError as e:
             # Best-effort maintenance operation: ignore per-connection optimize
             # failures so search optimization does not interrupt normal writes.
+            print(f"FTS optimize skipped due to OperationalError: {e}")
             pass
         finally:
             if need_close and conn:
@@ -527,7 +738,6 @@ def optimize_fts() -> None:
             max_workers=min(len(db_paths_to_optimize), 10)
         ) as executor:
             list(executor.map(_opt, db_paths_to_optimize))
-
 
 
 def close_db() -> None:

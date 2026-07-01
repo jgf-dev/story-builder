@@ -5,6 +5,11 @@ import glob
 import pandas as pd
 import plotly.express as px
 from pathlib import Path
+import sys
+
+# Ensure src layout package is importable
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+from storybuilder.downloader import db as storybuilder_db
 
 # Define paths
 DB_DIR = "stories/db"
@@ -27,14 +32,14 @@ st.markdown(
         .reportview-container {
             background: #0b1020;
         }
-        
+
         /* Heading styles */
         h1, h2, h3 {
             font-family: 'Outfit', 'Inter', sans-serif;
             font-weight: 700;
             color: #e8eefc;
         }
-        
+
         /* Card styling */
         .story-card {
             background-color: rgba(22, 34, 64, 0.6);
@@ -50,7 +55,7 @@ st.markdown(
             background-color: rgba(22, 34, 64, 0.85);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
         }
-        
+
         /* Snippet highlight styling */
         .highlight {
             background-color: rgba(251, 191, 36, 0.25);
@@ -59,7 +64,7 @@ st.markdown(
             border-radius: 4px;
             font-weight: bold;
         }
-        
+
         /* Sidebar styling custom overrides */
         .css-1d391kg {
             background-color: #09101f;
@@ -121,7 +126,6 @@ def get_filter_options():
     # Significantly improves the startup time of the dashboard when building the sidebar filters.
     categories = set()
     authors = set()
-
     # Get unique categories
     cat_results = storybuilder_db.execute_all_partitions("SELECT DISTINCT category FROM {table}")
     for r in cat_results:
@@ -133,7 +137,6 @@ def get_filter_options():
     for r in author_results:
         if r.get("author_name"):
             authors.add(r["author_name"])
-
     return sorted(list(categories)), sorted(list(authors))
 
 
@@ -144,6 +147,7 @@ def load_archive_stats():
     year_stats = []
     category_counts = {}
     author_counts = {}
+    word_counts = []
     bracket_counts = {
         "Short (<1K)": 0,
         "Medium-Short (1K-5K)": 0,
@@ -152,7 +156,6 @@ def load_archive_stats():
         "Long (20K-50K)": 0,
         "Epic (>50K)": 0,
     }
-
     for db in db_files:
         year_name = Path(db).stem
         try:
@@ -170,7 +173,6 @@ def load_archive_stats():
                         "Total Words": words or 0,
                     }
                 )
-
             # Categories summary
             cursor.execute("SELECT category, COUNT(*) FROM stories GROUP BY category")
             for cat, count in cursor.fetchall():
@@ -184,6 +186,9 @@ def load_archive_stats():
             for auth, count in cursor.fetchall():
                 if auth:
                     author_counts[auth] = author_counts.get(auth, 0) + count
+            # Word counts sample for distribution
+            cursor.execute("SELECT word_count FROM stories")
+            word_counts.extend([r[0] for r in cursor.fetchall()])
 
             # Word count bracket distribution (binned at SQL level; NULLs excluded)
             cursor.execute(
@@ -206,7 +211,6 @@ def load_archive_stats():
             for bracket, count in cursor.fetchall():
                 if bracket in bracket_counts:
                     bracket_counts[bracket] += count
-
             conn.close()
         except sqlite3.Error:
             pass
@@ -218,6 +222,7 @@ def load_archive_stats():
     df_auths = pd.DataFrame(
         list(author_counts.items()), columns=["Author", "Count"]
     ).sort_values("Count", ascending=False)
+    return df_years, df_cats, df_auths, df_words
 
     order = [
         "Short (<1K)",
@@ -298,7 +303,8 @@ def query_stories(
             try:
                 db_year = int(str(pub_date)[:4])
             except ValueError:
-                pass
+                # Malformed publication_date: keep the default fallback year.
+                db_year = 2026
 
         # Check entity suffixes match if filter active
         if entity_suffixes is not None:
@@ -312,7 +318,6 @@ def query_stories(
 
         r["db_year"] = db_year
         results.append(r)
-
     return results[:limit]
 
 
@@ -470,13 +475,18 @@ if page == "🔍 Search & Explorer":
 
     for res in search_results:
         # Create a container for the card styling
+        safe_title = html.escape(res["title"] or "Untitled")
+        safe_author = html.escape(res["author_name"] or "Unknown")
+        safe_category = html.escape(res["category"] or "Unknown")
+        safe_pub_date = html.escape(str(res["publication_date"] or "Unknown"))
+
         card_html = f"""
         <div class="story-card">
-            <h4>{res["title"]}</h4>
+            <h4>{html.escape(res["title"] or "Untitled")}</h4>
             <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 8px;'>
-                <b>Author:</b> {res["author_name"] or "Unknown"} |
-                <b>Category:</b> {res["category"]} |
-                <b>Published:</b> {res["publication_date"] or "Unknown"} |
+                <b>Author:</b> {html.escape(res["author_name"] or "Unknown")} |
+                <b>Category:</b> {html.escape(res["category"] or "Unknown")} |
+                <b>Published:</b> {html.escape(str(res["publication_date"] or "Unknown"))} |
                 <b>Words:</b> {res["word_count"]:,}
             </p>
         """
@@ -490,6 +500,7 @@ if page == "🔍 Search & Explorer":
             )
             card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
 
+            card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
         card_html += "</div>"
         st.markdown(card_html, unsafe_allow_html=True)
 
@@ -666,7 +677,6 @@ elif page == "⭐ Favorites & Tags":
                     )
                 finally:
                     conn.close()
-
         # Display favorites
         for f in favorites:
             # Filter by tag if needed
@@ -678,13 +688,17 @@ elif page == "⭐ Favorites & Tags":
                 continue
 
             with st.container():
+                safe_fav_title = html.escape(f['title'] or '')
+                safe_fav_author = html.escape(f['author'] or 'Unknown')
+                safe_fav_tags = html.escape(f['tags'] or 'None')
+                safe_fav_notes = html.escape(f['notes'] or 'None')
                 st.markdown(
                      f"""
                     <div class='story-card'>
-                        <h4>{f["title"]}</h4>
-                        <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 4px;'><b>Author:</b> {f["author"] or "Unknown"}</p>
-                        <p style='font-size: 0.9rem;'><span class='highlight'>Tags:</span> {f["tags"] or "None"}</p>
-                        <p style='font-size: 0.9rem; color: #cbd5e1;'><i>Notes:</i> {f["notes"] or "None"}</p>
+                        <h4>{safe_fav_title}</h4>
+                        <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 4px;'><b>Author:</b> {safe_fav_author}</p>
+                        <p style='font-size: 0.9rem;'><span class='highlight'>Tags:</span> {safe_fav_tags}</p>
+                        <p style='font-size: 0.9rem; color: #cbd5e1;'><i>Notes:</i> {safe_fav_notes}</p>
                     </div>
                     """,
                     unsafe_allow_html=True,
@@ -709,7 +723,6 @@ elif page == "📊 Archive Stats":
 
     with st.spinner("Compiling database metrics..."):
         df_years, df_cats, df_auths, df_words = load_archive_stats()
-
     st.markdown("---")
 
     # Overview metrics row
@@ -719,8 +732,7 @@ elif page == "📊 Archive Stats":
     col_m1, col_m2, col_m3 = st.columns(3)
     col_m1.metric("Total Stories", f"{total_stories:,}")
     col_m2.metric("Total Archive Words", f"{total_words:,}")
-    col_m3.metric("Average Story Length", f"{total_words // total_stories:,} words")
-
+    col_m3.metric("Average Story Length", f"{total_words // total_stories if total_stories > 0 else 0:,} words")
     st.markdown("---")
 
     # 1. Timeline Chart

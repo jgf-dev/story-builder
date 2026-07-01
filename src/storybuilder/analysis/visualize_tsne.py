@@ -3,10 +3,10 @@ from typing import List, Tuple
 
 import chromadb
 import numpy as np
+import pandas as pd
 import plotly.express as px
 import plotly.io as pio
 from sklearn.manifold import TSNE
-import pandas as pd
 
 
 def parse_args() -> argparse.Namespace:
@@ -44,6 +44,7 @@ def fetch_embeddings(db_path: str) -> Tuple[List[str], np.ndarray, List[dict]]:
             "Error: Could not find 'story_averages' collection. Run generate_embeddings.py first."
         )
         return [], np.array([]), []
+
 
     print("Fetching embeddings from database...")
     data = collection_averages.get(include=["embeddings", "metadatas"])

@@ -22,7 +22,11 @@ ibm-credentials.env
 stories/db/2025.db
 stories/db/2004.db
 .coverage
+test_dbs/
+coverage.xml
 dummy_stories/
 benchmark.db
 .context-engine/git_history_cache.json
-.switchboard/
+dummy_stories/
+.kanban.db
+test_dbs/

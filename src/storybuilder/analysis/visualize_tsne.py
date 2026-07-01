@@ -10,7 +10,9 @@ from sklearn.manifold import TSNE
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Visualize story embeddings using t-SNE.")
+    parser = argparse.ArgumentParser(
+        description="Visualize story embeddings using t-SNE."
+    )
     parser.add_argument(
         "--db-path",
         type=str,
@@ -38,10 +40,11 @@ def fetch_embeddings(db_path: str) -> Tuple[List[str], np.ndarray, List[dict]]:
     try:
         collection_averages = chroma_client.get_collection(name="story_averages")
     except Exception:
-        print("Error: Could not find 'story_averages' collection. Run generate_embeddings.py first.")
+        print(
+            "Error: Could not find 'story_averages' collection. Run generate_embeddings.py first."
+        )
         return [], np.array([]), []
-        print("Error: Could not find 'story_averages' collection. Run generate_embeddings.py first.")
-        return [], np.array([]), []
+
 
     print("Fetching embeddings from database...")
     data = collection_averages.get(include=["embeddings", "metadatas"])
@@ -76,7 +79,7 @@ def extract_labels(ids: List[str]) -> Tuple[List[str], List[str]]:
         if len(parts) >= 3:
             subcategories.append(parts[2])
         else:
-            subcategories.append("Unknown")
+            subcategories.append("unknown")
     return short_names, subcategories
 
 
@@ -106,11 +109,13 @@ def create_and_save_plot(
 
     fig.update_traces(marker=dict(size=8, line=dict(width=1, color="DarkSlateGrey")))
 
-    df = pd.DataFrame({
-        "x": embeddings_2d[:, 0],
-        "y": embeddings_2d[:, 1],
-        "subcategory": subcategories,
-    })
+    df = pd.DataFrame(
+        {
+            "x": embeddings_2d[:, 0],
+            "y": embeddings_2d[:, 1],
+            "subcategory": subcategories,
+        }
+    )
     centroids = df.groupby("subcategory")[["x", "y"]].mean().reset_index()
 
     for _, row in centroids.iterrows():

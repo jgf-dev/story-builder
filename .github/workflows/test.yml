@@ -56,6 +56,61 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      pull-requests: read
+    outputs:
+      downloader: ${{ steps.filter.outputs.downloader }}
+      genai: ${{ steps.filter.outputs.genai }}
+      analysis: ${{ steps.filter.outputs.analysis }}
+      agents: ${{ steps.filter.outputs.agents }}
+      common: ${{ steps.filter.outputs.common }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ensure all test files are wired into CI
+        run: |
+          missing=0
+          for f in tests/test_*.py; do
+            if ! grep -q "$f" .github/workflows/test.yml; then
+              echo "Test file not referenced in .github/workflows/test.yml: $f"
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            echo "Add the file(s) above to the paths-filter and the matching pytest command."
+            exit 1
+          fi
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            downloader:
+              - 'src/storybuilder/downloader/**'
+              - 'scripts/import_to_sqlite.py'
+              - 'scripts/story_db.py'
+              - 'scripts/dashboard.py'
+              - 'tests/downloader/**'
+            genai:
+              - 'src/storybuilder/genai/**'
+              - 'src/storybuilder/agents/cartesia_tts_prompt_crafter/**'
+              - 'src/storybuilder/downloader/**'
+              - '.agent/skills/tts-prompt-crafter/**'
+              - 'tests/genai/**'
+            analysis:
+              - 'src/storybuilder/analysis/**'
+              - 'tests/analysis/**'
+            agents:
+              - 'src/storybuilder/agents/**'
+              - 'tests/agents/**'
+            common:
+              - 'pyproject.toml'
+              - 'uv.lock'
+              - '.github/workflows/test.yml'
+              - 'tests/misc/**'
+  test-downloader:
+    needs: changes
+    if: needs.changes.outputs.downloader == 'true' || needs.changes.outputs.common == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
       pull-requests: write
     steps:
       - name: Check out repository
@@ -199,3 +254,23 @@ jobs:
         with:
           coverageFile: coverage-misc.xml
           token: ${{ secrets.GITHUB_TOKEN }}
+
+  test-results:
+    needs:
+      - test-downloader
+      - test-genai
+      - test-analysis
+      - test-agents
+      - test-misc
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify test jobs succeeded
+        run: |
+          results="${{ join(needs.*.result, ' ') }}"
+          for r in $results; do
+            if [ "$r" != "success" ] && [ "$r" != "skipped" ]; then
+              echo "A required test job did not succeed: $r"
+              exit 1
+            fi
+          done

@@ -1,8 +1,9 @@
 import unittest
+
 from storybuilder.genai.client import (
-    _parse_voice_mappings,
-    _extract_active_speakers,
     _build_speech_config,
+    _extract_active_speakers,
+    _parse_voice_mappings,
 )
 
 
@@ -12,8 +13,9 @@ class TestParseSpeechConfigSplit(unittest.TestCase):
         * John (Voice: VoiceA)
         - Jane (Voice: VoiceB)
         """
-        mappings = _parse_voice_mappings(preamble)
+        mappings, speakers = _parse_voice_mappings(preamble)
         self.assertEqual(mappings, {"John": "VoiceA", "Jane": "VoiceB"})
+        self.assertEqual(speakers, ["John", "Jane"])
 
     def test_extract_active_speakers(self):
         transcript = """

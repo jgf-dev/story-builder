@@ -9,13 +9,28 @@ from scipy.interpolate import interp1d
 from sklearn.cluster import KMeans
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(description="Compare and cluster narrative trajectories.")
+def main():
+    parser = argparse.ArgumentParser(
+        description="Compare and cluster narrative trajectories."
+    )
     parser.add_argument("--db-path", default="sentiment_analysis.db")
-    parser.add_argument("--clusters", type=int, default=4, help="Number of narrative archetypes to find")
-    return parser.parse_args()
+    parser.add_argument(
+        "--clusters", type=int, default=4, help="Number of narrative archetypes to find"
+    )
+    args = parser.parse_args()
 
-def load_and_normalize_trajectories(conn, df_stories):
+    conn = sqlite3.connect(args.db_path)
+
+    df_stories = pd.read_sql_query(
+        "SELECT id, story_dir, subcategory FROM stories", conn
+    )
+
+    if len(df_stories) < args.clusters:
+        print(
+            f"Error: Not enough stories ({len(df_stories)}) to form {args.clusters} clusters."
+        )
+        return
+
     print(f"Loaded {len(df_stories)} processed stories. Normalizing trajectories...")
 
     normalized_arcs = []
@@ -59,19 +74,21 @@ def load_and_normalize_trajectories(conn, df_stories):
         normalized_arcs.append(arc_100)
         story_metadata.append(row)
 
-    return normalized_arcs, story_metadata
+    if not normalized_arcs:
+        print("No valid trajectories found.")
+        return
 
+    X = np.array(normalized_arcs)
 
-def cluster_and_plot(X, story_metadata, clusters, out_file):
-    print(f"Clustering into {clusters} narrative archetypes...")
-    kmeans = KMeans(n_clusters=clusters, random_state=42, n_init=10)
+    print(f"Clustering into {args.clusters} narrative archetypes...")
+    kmeans = KMeans(n_clusters=args.clusters, random_state=42, n_init=10)
     labels = kmeans.fit_predict(X)
 
     fig = go.Figure()
 
-    cluster_names = [f"Archetype {i + 1}" for i in range(clusters)]
+    cluster_names = [f"Archetype {i + 1}" for i in range(args.clusters)]
 
-    for i in range(clusters):
+    for i in range(args.clusters):
         cluster_arcs = X[labels == i]
         mean_arc = cluster_arcs.mean(axis=0)
         cluster_arcs.std(axis=0)
@@ -107,30 +124,9 @@ def cluster_and_plot(X, story_metadata, clusters, out_file):
         hovermode="x unified",
     )
 
+    out_file = "narrative_archetypes.html"
     fig.write_html(out_file)
     print(f"\nSaved archetype visualization to {out_file}")
-
-
-def main():
-    args = parse_args()
-
-    conn = sqlite3.connect(args.db_path)
-
-    df_stories = pd.read_sql_query("SELECT id, story_dir, subcategory FROM stories", conn)
-
-    if len(df_stories) < args.clusters:
-        print(f"Error: Not enough stories ({len(df_stories)}) to form {args.clusters} clusters.")
-        return
-
-    normalized_arcs, story_metadata = load_and_normalize_trajectories(conn, df_stories)
-
-    if not normalized_arcs:
-        print("No valid trajectories found.")
-        return
-
-    X = np.array(normalized_arcs)
-
-    cluster_and_plot(X, story_metadata, args.clusters, "narrative_archetypes.html")
 
 
 if __name__ == "__main__":

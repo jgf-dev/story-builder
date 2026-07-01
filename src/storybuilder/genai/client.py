@@ -20,9 +20,16 @@ def wave_file(filename, pcm, channels=1, rate=24000, sample_width=2):
         wf.writeframes(pcm)
 
 
-def _parse_voice_mappings(preamble):
-    """Extract voice mappings from the preamble section."""
+def _parse_voice_mappings(markdown_content):
+    """Parses the markdown content to extract speaker to voice mappings and the transcript."""
     speaker_to_voice = {}
+
+    parts = markdown_content.split("#### TRANSCRIPT")
+    if len(parts) == 2:
+        preamble, transcript = parts[0], parts[1]
+    else:
+        preamble = markdown_content
+        transcript = ""
     for line in preamble.split("\n"):
         line = line.strip()
         if line.startswith("*") or line.startswith("-"):
@@ -33,11 +40,12 @@ def _parse_voice_mappings(preamble):
                 speaker = match.group(1)
                 voice = match.group(2)
                 speaker_to_voice[speaker] = voice
-    return speaker_to_voice
+
+    return speaker_to_voice, transcript
 
 
 def _extract_active_speakers(transcript):
-    """Extract active speakers actually speaking in the transcript, in order of appearance."""
+    """Extracts active speakers actually speaking in the transcript in order of appearance."""
     active_speakers = []
     for line in transcript.split("\n"):
         line = line.strip()
@@ -50,8 +58,9 @@ def _extract_active_speakers(transcript):
 
 
 def _build_speech_config(active_speakers, speaker_to_voice):
-    """Build the speech configuration based on active speakers and mappings."""
+    """Builds the final speech config array with fallbacks and padding."""
     speech_config = []
+
     for sp in active_speakers:
         if sp in speaker_to_voice:
             speech_config.append({"speaker": sp, "voice": speaker_to_voice[sp]})
@@ -78,15 +87,13 @@ def _build_speech_config(active_speakers, speaker_to_voice):
 
 def parse_speech_config(markdown_content):
     """Parses the markdown content to extract speakers and voices, dynamically matching active speakers in the transcript."""
-    parts = markdown_content.split("#### TRANSCRIPT")
-    if len(parts) == 2:
-        preamble, transcript = parts[0], parts[1]
-    else:
-        preamble = markdown_content
-        transcript = ""
+    # 1. Parse all voice mappings defined in the preamble
+    speaker_to_voice, transcript = _parse_voice_mappings(markdown_content)
 
-    speaker_to_voice = _parse_voice_mappings(preamble)
+    # 2. Extract active speakers actually speaking in the transcript (in order of appearance)
     active_speakers = _extract_active_speakers(transcript)
+
+    # 3. Build speech_config using the active speakers
     return _build_speech_config(active_speakers, speaker_to_voice)
 
 
@@ -116,7 +123,7 @@ def process_directory(directory):
     key_name, api_key = api_keys[current_key_idx]
     client = genai.Client(api_key=api_key)
 
-    # Find all *-part.md files in the directory
+    # Find all *.md prompt files in the directory
     files = sorted(glob.glob(os.path.join(directory, "*.md")))
     if not files:
         print(f"No prompt files found in {directory}")
@@ -130,7 +137,9 @@ def process_directory(directory):
         wav_file = os.path.join(directory, f"{base_name}.wav")
 
         if os.path.exists(wav_file):
-            print(f"Skipping {os.path.basename(md_file)}, {os.path.basename(wav_file)} already exists.")
+            print(
+                f"Skipping {os.path.basename(md_file)}, {os.path.basename(wav_file)} already exists."
+            )
             continue
 
         print(f"Processing {os.path.basename(md_file)}...")
@@ -150,7 +159,7 @@ def process_directory(directory):
                     input=content,
                     response_modalities=["audio"],
                     generation_config={"speech_config": speech_config},
-                    previous_interaction_id=previous_id,
+                    previous_interaction_id=previous_id,  # TODO: Check if the interaction API supports previous_interaction_id
                 )
 
                 if interaction.output_audio and interaction.output_audio.data:
@@ -158,18 +167,25 @@ def process_directory(directory):
 
                     # Dynamically extract sample rate from mime_type if available
                     sample_rate = 24000
-                    if hasattr(interaction.output_audio, "mime_type") and interaction.output_audio.mime_type:
-                        rate_match = re.search(r"rate=(\d+)", interaction.output_audio.mime_type)
+                    if (
+                        hasattr(interaction.output_audio, "mime_type")
+                        and interaction.output_audio.mime_type
+                    ):
+                        rate_match = re.search(
+                            r"rate=(\d+)", interaction.output_audio.mime_type
+                        )
                         if rate_match:
                             sample_rate = int(rate_match.group(1))
-                            print(f"  Extracted sample rate from mime_type: {sample_rate}Hz")
+                            print(
+                                f"  Extracted sample rate from mime_type: {sample_rate}Hz"
+                            )
 
                     wave_file(wav_file, audio_bytes, rate=sample_rate)
                     print(f"  Saved audio to {os.path.basename(wav_file)}")
                 else:
                     print(f"  Warning: No audio output for {os.path.basename(md_file)}")
 
-                previous_id = interaction.id
+                previous_id = interaction.id  # TODO: check if key rotation breaks
                 break
 
             except Exception as e:
@@ -180,16 +196,30 @@ def process_directory(directory):
                     or "modality" in error_msg.lower()
                     or "400" in error_msg
                 )
-                is_quota = "429" in error_msg or "too_many_requests" in error_msg.lower() or "quota" in error_msg.lower()
-                is_session_not_found = "404" in error_msg or "not_found" in error_msg.lower() or "requested entity was not found" in error_msg.lower()
+                is_quota = (
+                    "429" in error_msg
+                    or "too_many_requests" in error_msg.lower()
+                    or "quota" in error_msg.lower()
+                )
+                is_session_not_found = (
+                    "404" in error_msg
+                    or "not_found" in error_msg.lower()
+                    or "requested entity was not found" in error_msg.lower()
+                )
 
                 if is_session_not_found and previous_id is not None:
-                    print(f"  Session ID {previous_id} not found or expired. Retrying without session history.")
+                    print(
+                        f"  Session ID {previous_id} not found or expired. Retrying without session history."
+                    )
                     previous_id = None
                     continue
 
-                if (is_invalid_key or is_quota) and keys_tried < len(api_keys) - 1:
-                    print(f"  Error processing {os.path.basename(md_file)} for {key_name}")
+                if (is_invalid_key or is_quota) and keys_tried < len(
+                    api_keys
+                ) - 1:  # TODO: Move key management out of the function
+                    print(
+                        f"  Error processing {os.path.basename(md_file)} for {key_name}"
+                    )
                     keys_tried += 1
                     current_key_idx = (current_key_idx + 1) % len(api_keys)
                     key_name, api_key = api_keys[current_key_idx]
@@ -198,9 +228,14 @@ def process_directory(directory):
                     previous_id = None  # Clear session history on key switch
                     continue
 
+                # TODO: Make sure this doesnt happen, session is too important for audio quality
+                # TODO: Also make sure the wait time is not above this the session expiry
+                # TODO: Alternatively, find a way to ensure audio consistency across retries with the same key
                 if is_quota:
                     wait_time = 15 * (attempt + 1)
-                    print(f"  Rate limit/Quota hit on all keys. Retrying in {wait_time}s... (Attempt {attempt + 1}/{max_retries})")
+                    print(
+                        f"  Rate limit/Quota hit on all keys. Retrying in {wait_time}s... (Attempt {attempt + 1}/{max_retries})"
+                    )
                     time.sleep(wait_time)
                     attempt += 1
                     keys_tried = 0
@@ -208,15 +243,23 @@ def process_directory(directory):
                     print(f"  Error processing {os.path.basename(md_file)}: {e}")
                     break
         else:
-            print(f"  Failed to process {os.path.basename(md_file)} after {max_retries} attempts.")
+            print(
+                f"  Failed to process {os.path.basename(md_file)} after {max_retries} attempts."
+            )
 
         # Slight delay to respect rate limits
         time.sleep(2)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Process TTS prompt files to generate audio.")
-    parser.add_argument("--dir", default="stories/the_secret_vacation", help="Directory containing the *-part.md files")
+    parser = argparse.ArgumentParser(
+        description="Process TTS prompt files to generate audio."
+    )
+    parser.add_argument(
+        "--dir",
+        default="stories/the_secret_vacation",
+        help="Directory containing the *-part.md files",
+    )
     args = parser.parse_args()
 
     if os.path.isdir(args.dir):

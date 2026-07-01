@@ -5,6 +5,11 @@ import glob
 import pandas as pd
 import plotly.express as px
 from pathlib import Path
+import sys
+
+# Ensure src layout package is importable
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+from storybuilder.downloader import db as storybuilder_db
 
 # Define paths
 DB_DIR = "stories/db"
@@ -121,7 +126,6 @@ def get_filter_options():
     # Significantly improves the startup time of the dashboard when building the sidebar filters.
     categories = set()
     authors = set()
-
     # Get unique categories
     cat_results = storybuilder_db.execute_all_partitions("SELECT DISTINCT category FROM {table}")
     for r in cat_results:
@@ -129,8 +133,8 @@ def get_filter_options():
             categories.add(r["category"])
 
     # Get unique authors
-    auth_results = storybuilder_db.execute_all_partitions("SELECT DISTINCT author_name FROM {table}")
-    for r in auth_results:
+    author_results = storybuilder_db.execute_all_partitions("SELECT DISTINCT author_name FROM {table}")
+    for r in author_results:
         if r.get("author_name"):
             authors.add(r["author_name"])
     return sorted(list(categories)), sorted(list(authors))
@@ -143,6 +147,7 @@ def load_archive_stats():
     year_stats = []
     category_counts = {}
     author_counts = {}
+    word_counts = []
     bracket_counts = {
         "Short (<1K)": 0,
         "Medium-Short (1K-5K)": 0,
@@ -181,6 +186,9 @@ def load_archive_stats():
             for auth, count in cursor.fetchall():
                 if auth:
                     author_counts[auth] = author_counts.get(auth, 0) + count
+            # Word counts sample for distribution
+            cursor.execute("SELECT word_count FROM stories")
+            word_counts.extend([r[0] for r in cursor.fetchall()])
 
             # Word count bracket distribution (binned at SQL level; NULLs excluded)
             cursor.execute(
@@ -214,6 +222,14 @@ def load_archive_stats():
     df_auths = pd.DataFrame(
         list(author_counts.items()), columns=["Author", "Count"]
     ).sort_values("Count", ascending=False)
+    df_words = pd.DataFrame(
+        [
+            {"Bracket": bracket, "Stories": count}
+            for bracket, count in bracket_counts.items()
+            if count > 0
+        ]
+    )
+    return df_years, df_cats, df_auths, df_words
 
     order = [
         "Short (<1K)",
@@ -294,7 +310,8 @@ def query_stories(
             try:
                 db_year = int(str(pub_date)[:4])
             except ValueError:
-                pass
+                # Malformed publication_date: keep the default fallback year.
+                db_year = 2026
 
         # Check entity suffixes match if filter active
         if entity_suffixes is not None:
@@ -465,6 +482,11 @@ if page == "🔍 Search & Explorer":
 
     for res in search_results:
         # Create a container for the card styling
+        safe_title = html.escape(res["title"] or "Untitled")
+        safe_author = html.escape(res["author_name"] or "Unknown")
+        safe_category = html.escape(res["category"] or "Unknown")
+        safe_pub_date = html.escape(str(res["publication_date"] or "Unknown"))
+
         card_html = f"""
         <div class="story-card">
             <h4>{html.escape(res["title"] or "Untitled")}</h4>
@@ -478,9 +500,14 @@ if page == "🔍 Search & Explorer":
 
         # Display highlighted snippets if any
         if res.get("snippet"):
-            snippet_cleaned = res["snippet"].replace("___HIGHLIGHT_START___", "<span class='highlight'>").replace("___HIGHLIGHT_END___", "</span>")
+            snippet_cleaned = (
+                res["snippet"]
+                .replace("___HIGHLIGHT_START___", "<span class='highlight'>")
+                .replace("___HIGHLIGHT_END___", "</span>")
+            )
             card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
 
+            card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
         card_html += "</div>"
         st.markdown(card_html, unsafe_allow_html=True)
 
@@ -668,13 +695,17 @@ elif page == "⭐ Favorites & Tags":
                 continue
 
             with st.container():
+                safe_fav_title = html.escape(f['title'] or '')
+                safe_fav_author = html.escape(f['author'] or 'Unknown')
+                safe_fav_tags = html.escape(f['tags'] or 'None')
+                safe_fav_notes = html.escape(f['notes'] or 'None')
                 st.markdown(
                      f"""
                     <div class='story-card'>
-                        <h4>{f['title']}</h4>
-                        <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 4px;'><b>Author:</b> {f['author'] or 'Unknown'}</p>
-                        <p style='font-size: 0.9rem;'><span class='highlight'>Tags:</span> {f['tags'] or 'None'}</p>
-                        <p style='font-size: 0.9rem; color: #cbd5e1;'><i>Notes:</i> {f['notes'] or 'None'}</p>
+                        <h4>{safe_fav_title}</h4>
+                        <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 4px;'><b>Author:</b> {safe_fav_author}</p>
+                        <p style='font-size: 0.9rem;'><span class='highlight'>Tags:</span> {safe_fav_tags}</p>
+                        <p style='font-size: 0.9rem; color: #cbd5e1;'><i>Notes:</i> {safe_fav_notes}</p>
                     </div>
                     """,
                     unsafe_allow_html=True,
@@ -708,8 +739,7 @@ elif page == "📊 Archive Stats":
     col_m1, col_m2, col_m3 = st.columns(3)
     col_m1.metric("Total Stories", f"{total_stories:,}")
     col_m2.metric("Total Archive Words", f"{total_words:,}")
-    col_m3.metric("Average Story Length", f"{total_words // total_stories:,} words")
-
+    col_m3.metric("Average Story Length", f"{total_words // total_stories if total_stories > 0 else 0:,} words")
     st.markdown("---")
 
     # 1. Timeline Chart

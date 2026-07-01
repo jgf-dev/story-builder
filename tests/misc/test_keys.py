@@ -36,6 +36,5 @@ class TestKeys(unittest.TestCase):
             else:
                 self.fail(f"Vertex AI Client test failed: {e}")
 
-
-if __name__ == "__main__":
-    unittest.main()
+        if __name__ == "__main__":
+            unittest.main()

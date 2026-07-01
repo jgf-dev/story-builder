@@ -481,6 +481,15 @@ def search_all_partitions(
 
     if db_paths:
         if len(db_paths) == 1 and db_paths[0] is None:
+             # Monolithic DB: no need for thread pool
+             all_results.extend(_search_single_db(None))
+        else:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(db_paths), 10)) as executor:
+                for res in executor.map(_search_single_db, db_paths):
+                    all_results.extend(res)
+
+    if db_paths:
+        if len(db_paths) == 1 and db_paths[0] is None:
             # Monolithic DB: no need for thread pool
             all_results.extend(_search_single_db(None))
         else:
@@ -664,32 +673,8 @@ def get_story(output_path: str, story_date: str) -> "dict | None":
             return None
 
 
-def optimize_fts_all(db_dir: str) -> None:
-    """Scan the given directory and rebuild FTS on all .db files."""
-    if not os.path.isdir(db_dir):
-        return
-
-    for filename in os.listdir(db_dir):
-        if not filename.endswith(".db"):
-            continue
-
-        db_path = os.path.join(db_dir, filename)
-        conn = None
-        try:
-            conn = sqlite3.connect(db_path, check_same_thread=False)
-            conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
-            conn.commit()
-        except sqlite3.OperationalError:
-            # Best-effort optimization: skip databases that do not support FTS optimize.
-            continue
-        finally:
-            if conn:
-                conn.close()
 def optimize_fts() -> None:
     """Rebuild the FTS index for optimal search performance across all databases."""
-    import concurrent.futures
-    import glob
-    import os
 
     db_paths_to_optimize = []
     with _lock:

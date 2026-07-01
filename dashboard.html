@@ -273,6 +273,7 @@
         <div class="toolbar">
           <input id="fileInput" class="sr-only" type="file" accept=".md,text/markdown,text/plain">
           <label class="file-label" for="fileInput">Load TASKS.md</label>
+          <input id="fileInput" type="file" accept=".md,text/markdown,text/plain">
           <button class="primary" id="saveBtn" title="Save (Ctrl+S / Cmd+S)" aria-keyshortcuts="Control+S Meta+S" disabled>Save</button>
           <button id="downloadBtn">Download Copy</button>
           <button class="warn" id="resetBtn">Reset Template</button>
@@ -341,19 +342,11 @@
     function setDirty(dirty) {
       if (isDirty === dirty) return;
       isDirty = dirty;
-      const saveBtn = document.getElementById('saveBtn');
+      saveBtn.disabled = !isDirty;
       if (isDirty) {
         document.title = '* ' + document.title.replace(/^\*\s*/, '');
-        if (saveBtn) {
-          saveBtn.disabled = false;
-          saveBtn.title = "Save (Ctrl+S / Cmd+S)";
-        }
       } else {
         document.title = document.title.replace(/^\*\s*/, '');
-        if (saveBtn) {
-          saveBtn.disabled = true;
-          saveBtn.title = "No unsaved changes";
-        }
       }
     }
     function setStatus(message) {
@@ -400,15 +393,14 @@
       loadText(await file.text(), currentFileName);
     });
 
-    document.getElementById('saveBtn').addEventListener('click', async () => {
-      const saveBtn = document.getElementById('saveBtn');
+    saveBtn.addEventListener('click', async () => {
       if (!isDirty || saveBtn.disabled) return;
 
       const originalText = saveBtn.textContent;
       saveBtn.textContent = 'Saving...';
       saveBtn.disabled = true;
       document.body.style.cursor = 'wait';
-      saveBtn.setAttribute('aria-busy', 'true');
+
       try {
         if (currentHandle && window.showSaveFilePicker) {
           await saveViaHandle(currentHandle, editor.value);
@@ -430,7 +422,7 @@
         setStatus(`Save failed: ${error.message}`);
       } finally {
         saveBtn.textContent = originalText;
-        saveBtn.removeAttribute('aria-busy');
+        saveBtn.disabled = !isDirty;
         document.body.style.cursor = '';
       }
     });
@@ -469,8 +461,7 @@
     document.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        const saveBtn = document.getElementById('saveBtn');
-        if (saveBtn && !saveBtn.disabled) {
+        if (isDirty) {
           saveBtn.click();
         }
       }

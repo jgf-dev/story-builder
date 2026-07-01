@@ -239,7 +239,7 @@ class TestDatabaseInit(unittest.TestCase):
         )
         legacy_conn.execute(
             """
-            CREATE VIRTUAL TABLE IF NOT EXISTS stories_fts USING FTS5(
+            CREATE VIRTUAL TABLE stories_fts USING fts5(
                 title,
                 author_name,
                 content,
@@ -250,7 +250,7 @@ class TestDatabaseInit(unittest.TestCase):
         )
         legacy_conn.execute(
             """
-            CREATE TRIGGER IF NOT EXISTS stories_ai AFTER INSERT ON stories BEGIN
+            CREATE TRIGGER stories_ai AFTER INSERT ON stories BEGIN
                 INSERT INTO stories_fts(rowid, title, author_name, content)
                 VALUES (new.id, new.title, new.author_name, new.content);
             END;
@@ -260,7 +260,7 @@ class TestDatabaseInit(unittest.TestCase):
             """
             INSERT INTO stories (
                 path, orientation, category, story_slug, chapter_num,
-                title, author_name, author_email, email_date,
+                title, author_name, author_email,
                 publication_date, url,
                 char_count, word_count, content, created_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -317,6 +317,7 @@ class TestDatabaseInit(unittest.TestCase):
             self.assertEqual(row["title"], "Legacy Story")
             self.assertEqual(row["publication_date"], "2024-01-15")
             self.assertEqual(row["created_at"], "2024-01-16 12:34:56")
+
             # fts_count = conn.execute(
             #     "SELECT COUNT(*) FROM stories_fts WHERE stories_fts MATCH 'legacy'"
             # ).fetchone()[0]

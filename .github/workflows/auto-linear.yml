@@ -34,4 +34,3 @@ jobs:
           #linear-issue-label-ids: # optional
           # GitHub token required to modify the PR title.
           github-token: "${{ secrets.GITHUB_TOKEN }}"
-

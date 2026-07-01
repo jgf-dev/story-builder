@@ -6,6 +6,7 @@ import pandas as pd
 import plotly.express as px
 from pathlib import Path
 import sys
+import html
 
 # Ensure src layout package is importable
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
@@ -482,29 +483,27 @@ if page == "🔍 Search & Explorer":
 
     for res in search_results:
         # Create a container for the card styling
-        safe_title = html.escape(res["title"] or "Untitled")
-        safe_author = html.escape(res["author_name"] or "Unknown")
-        safe_category = html.escape(res["category"] or "Unknown")
-        safe_pub_date = html.escape(str(res["publication_date"] or "Unknown"))
-
+        safe_title = html.escape(res['title'] or '')
+        safe_author = html.escape(res['author_name'] or 'Unknown')
+        safe_category = html.escape(res['category'] or '')
+        safe_pub_date = html.escape(str(res['publication_date'] or 'Unknown'))
         card_html = f"""
         <div class="story-card">
-            <h4>{html.escape(res["title"] or "Untitled")}</h4>
+            <h4>{safe_title}</h4>
             <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 8px;'>
-                <b>Author:</b> {html.escape(res["author_name"] or "Unknown")} |
-                <b>Category:</b> {html.escape(res["category"] or "Unknown")} |
-                <b>Published:</b> {html.escape(str(res["publication_date"] or "Unknown"))} |
-                <b>Words:</b> {res["word_count"]:,}
+            <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 8px;'>
+                <b>Author:</b> {safe_author} |
+                <b>Category:</b> {safe_category} |
+                <b>Published:</b> {safe_pub_date} |
+                <b>Words:</b> {res['word_count']:,}
             </p>
         """
 
         # Display highlighted snippets if any
         if res.get("snippet"):
-            snippet_cleaned = (
-                res["snippet"]
-                .replace("___HIGHLIGHT_START___", "<span class='highlight'>")
-                .replace("___HIGHLIGHT_END___", "</span>")
-            )
+            # Escape the snippet first, then replace the placeholder highlight markers with actual HTML span tags
+            snippet_escaped = html.escape(res["snippet"])
+            snippet_cleaned = snippet_escaped.replace("___HIGHLIGHT_START___", "<span class='highlight'>").replace("___HIGHLIGHT_END___", "</span>")
             card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
 
             card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"

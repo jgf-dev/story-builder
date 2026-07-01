@@ -263,7 +263,7 @@ class TestDatabaseInit(unittest.TestCase):
                 title, author_name, author_email, email_date,
                 publication_date, url,
                 char_count, word_count, content, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 "nifty_stories/gay/test/legacy.txt",
@@ -283,6 +283,22 @@ class TestDatabaseInit(unittest.TestCase):
                 "2024-01-16 12:34:56",
             ),
         )
+        legacy_conn.execute(
+            """
+            CREATE VIRTUAL TABLE IF NOT EXISTS stories_fts USING fts5(
+                title,
+                author_name,
+                category,
+                content
+            )
+            """
+        )
+        legacy_conn.execute(
+            """
+            INSERT INTO stories_fts (rowid, title, author_name, category, content)
+            VALUES (1, 'Legacy Story', 'Legacy Author', 'test', 'Legacy content here.')
+            """
+        )
         legacy_conn.commit()
         legacy_conn.close()
 
@@ -291,7 +307,7 @@ class TestDatabaseInit(unittest.TestCase):
         try:
             cols = conn.execute("PRAGMA table_info(stories)").fetchall()
             col_names = [c[1] for c in cols]
-            self.assertNotIn("email_date", col_names)
+            self.assertIn("email_date", col_names)
             self.assertIn("created_at", col_names)
 
 

@@ -489,7 +489,6 @@ def search_all_partitions(
             ) as executor:
                 for res in executor.map(_search_single_db, db_paths):
                     all_results.extend(res)
-
     # Sort aggregated results
     if fts_query:
         # Sort by date desc (since rank order is lost when combined, or we could sort by a score if we fetched it)
@@ -686,8 +685,6 @@ def optimize_fts_all(db_dir: str) -> None:
         finally:
             if conn:
                 conn.close()
-
-
 def optimize_fts() -> None:
     """Rebuild the FTS index for optimal search performance across all databases."""
     import concurrent.futures

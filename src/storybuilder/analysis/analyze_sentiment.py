@@ -193,7 +193,6 @@ def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe
     text = re.sub(r"\s+", " ", text).strip()
     if not text:
         return
-
     text = re.sub(r"\s+", " ", text).strip()
     if not text:
         return

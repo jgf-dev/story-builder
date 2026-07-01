@@ -3,7 +3,10 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 name: Linear sync or create
-on: pull_request
+on:
+ - pull_request
+ - issues
+ - discussion
 
 permissions:
   pull-requests: write
@@ -31,4 +34,3 @@ jobs:
           #linear-issue-label-ids: # optional
           # GitHub token required to modify the PR title.
           github-token: "${{ secrets.GITHUB_TOKEN }}"
-

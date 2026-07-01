@@ -222,6 +222,13 @@ def load_archive_stats():
     df_auths = pd.DataFrame(
         list(author_counts.items()), columns=["Author", "Count"]
     ).sort_values("Count", ascending=False)
+    df_words = pd.DataFrame(
+        [
+            {"Bracket": bracket, "Stories": count}
+            for bracket, count in bracket_counts.items()
+            if count > 0
+        ]
+    )
     return df_years, df_cats, df_auths, df_words
 
     order = [

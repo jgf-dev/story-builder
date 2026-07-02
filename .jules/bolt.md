@@ -32,3 +32,7 @@
 
 **Learning:** Sequentially looping over multiple SQLite partition databases to execute individual queries introduces a significant O(N) latency bottleneck, especially for search queries across many years. Since read queries in WAL-mode SQLite do not block each other, reading from independent partition files concurrently is completely safe.
 **Action:** When querying separate SQLite partition databases (e.g. `search_all_partitions`), use `concurrent.futures.ThreadPoolExecutor` to map the read query across the database paths concurrently. This reduces execution latency from O(N) to O(1).
+
+## 2026-07-02 - [Avoid Unused Memory Fetching in Streams]
+**Learning:** In Streamlit dashboard's `load_archive_stats`, iterating over multi-partition SQLite databases to fetch all `word_count` integers into a Python list using `cursor.execute` + `fetchall()` was an entirely unused operation because the data was aggregated immediately below at the SQL level (`CASE WHEN...`). This resulted in a massive O(N) memory bottleneck for large archives.
+**Action:** Remove the unused fetch logic and Python list entirely when binning and aggregating data natively in SQL. Ensure all `fetchall()` operations are actually utilized later in the function.

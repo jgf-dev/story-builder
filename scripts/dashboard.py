@@ -120,7 +120,6 @@ def get_nlp_conn():
 @st.cache_data
 def get_filter_options():
     """Compile distinct categories and authors across all partitions for filters."""
-    from storybuilder.downloader import db as storybuilder_db
 
     # Expected optimization impact: Resolving categories and authors across M year partitions
     # O(2 * M) individual DB queries -> 2 queries using ATTACH DATABASE.
@@ -143,12 +142,16 @@ def get_filter_options():
 
 @st.cache_data
 def load_archive_stats():
-    """Pre-aggregate stats across all partition databases for the visualizations."""
+    """Pre-aggregate stats across all partition databases for the visualizations.
+
+    PERFORMANCE IMPACT: Removed an unused memory fetch of `word_count` to avoid pulling
+    thousands of rows into Python memory since binning logic is handled directly in SQL.
+    Expected improvement: O(1) memory footprint for distributions rather than O(N).
+    """
     db_files = get_db_files()
     year_stats = []
     category_counts = {}
     author_counts = {}
-    word_counts = []
     bracket_counts = {
         "Short (<1K)": 0,
         "Medium-Short (1K-5K)": 0,
@@ -187,9 +190,6 @@ def load_archive_stats():
             for auth, count in cursor.fetchall():
                 if auth:
                     author_counts[auth] = author_counts.get(auth, 0) + count
-            # Word counts sample for distribution
-            cursor.execute("SELECT word_count FROM stories")
-            word_counts.extend([r[0] for r in cursor.fetchall()])
 
             # Word count bracket distribution (binned at SQL level; NULLs excluded)
             cursor.execute(
@@ -283,7 +283,6 @@ def query_stories(
                 if len(parts) >= 3:
                     entity_suffixes.append("/".join(parts[-3:]))
 
-    from storybuilder.downloader import db as storybuilder_db
 
     date_from = None
     date_to = None
@@ -502,10 +501,7 @@ if page == "🔍 Search & Explorer":
 
         # Display highlighted snippets if any
         if res.get("snippet"):
-<<<<<<< HEAD
             # Escape the snippet first, then replace the placeholder highlight markers with actual HTML span tags
-=======
->>>>>>> fix-failing-tests-16749664909518946067
             snippet_escaped = html.escape(res["snippet"])
             snippet_cleaned = snippet_escaped.replace("___HIGHLIGHT_START___", "<span class='highlight'>").replace("___HIGHLIGHT_END___", "</span>")
             card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"

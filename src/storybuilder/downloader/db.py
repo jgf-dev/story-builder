@@ -305,47 +305,51 @@ def get_all_partition_paths() -> list[str]:
 
 
 def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
-    """Execute a SELECT query across all database partitions sequentially
-    using ATTACH DATABASE to avoid hitting the SQLITE_MAX_ATTACHED limit.
-
+    """Execute a SELECT query across all database partitions concurrently.
     The SQL must use {table} where the target table name goes.
     Returns a list of dictionaries.
     """
     if not _is_partitioned:
-        conn = get_conn()
-        if not conn:
+        db_paths = [None]
+    else:
+        db_paths = get_all_partition_paths()
+        if not db_paths:
             return []
-        conn.row_factory = sqlite3.Row
-        cursor = conn.execute(sql.format(table="stories"), params)
-        return [dict(r) for r in cursor.fetchall()]
 
-    db_paths = get_all_partition_paths()
-    if not db_paths:
-        return []
-
-    conn = sqlite3.connect(":memory:")
-    conn.row_factory = sqlite3.Row
     all_rows = []
 
-    try:
-        for db_path in db_paths:
-            try:
-                conn.execute("ATTACH DATABASE ? AS curr_db", (db_path,))
-                curs = conn.cursor()
-                formatted_sql = sql.format(table="curr_db.stories")
-                curs.execute(formatted_sql, params)
-                all_rows.extend([dict(r) for r in curs.fetchall()])
-                curs.close()
-            except sqlite3.Error as e:
-                print(f"Error querying {db_path}: {e}")
-            finally:
-                try:
-                    conn.execute("DETACH DATABASE curr_db")
-                except sqlite3.Error as e:
-                    # Best-effort cleanup: if detach fails, continue processing other partitions.
-                    print(f"Warning: failed to detach database {db_path}: {e}")
-    finally:
-        conn.close()
+    def _execute_single_db(db_path: "str | None") -> list[dict]:
+        conn = None
+        need_close = False
+        results = []
+        try:
+            if db_path is None:
+                conn = get_conn()
+            else:
+                conn = sqlite3.connect(db_path)
+                need_close = True
+
+            if not conn:
+                return results
+
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            formatted_sql = sql.format(table="stories")
+            cursor.execute(formatted_sql, params)
+            results = [dict(r) for r in cursor.fetchall()]
+        except sqlite3.Error as e:
+            print(f"Error querying {db_path or 'monolithic db'}: {e}")
+        finally:
+            if need_close and conn:
+                conn.close()
+        return results
+
+    if len(db_paths) == 1 and db_paths[0] is None:
+        all_rows.extend(_execute_single_db(None))
+    else:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(db_paths), 10)) as executor:
+            for res in executor.map(_execute_single_db, db_paths):
+                all_rows.extend(res)
 
     return all_rows
 

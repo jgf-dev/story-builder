@@ -32,3 +32,8 @@
 
 **Learning:** Sequentially looping over multiple SQLite partition databases to execute individual queries introduces a significant O(N) latency bottleneck, especially for search queries across many years. Since read queries in WAL-mode SQLite do not block each other, reading from independent partition files concurrently is completely safe.
 **Action:** When querying separate SQLite partition databases (e.g. `search_all_partitions`), use `concurrent.futures.ThreadPoolExecutor` to map the read query across the database paths concurrently. This reduces execution latency from O(N) to O(1).
+
+## 2026-07-03 - [Parallelizing Cross-Partition execute_all_partitions]
+
+**Learning:** `execute_all_partitions` was using sequential `ATTACH DATABASE` to execute queries across all partitions. With multiple aggregations queries, it repeatedly attached/detached the DBs sequentially, leading to O(N * M) query overhead. Reading from independent partition files concurrently is safe in WAL-mode.
+**Action:** When executing global select queries across all partitioned SQLite databases via `execute_all_partitions`, use `concurrent.futures.ThreadPoolExecutor` to map the queries across the independent database paths concurrently instead of using sequential `ATTACH DATABASE`. This dramatically reduces latency from O(N) to O(1) where N is number of partitions.

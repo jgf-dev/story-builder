@@ -74,7 +74,9 @@ jobs:
       - name: Run Downloader Tests
         run: uv run pytest --cov=src --cov-report=xml:coverage-downloader.xml tests/downloader/
       - name: Post Coverage Comment
-        uses: orgoro/coverage@v3.2
+      - name: Post Coverage Comment
+        if: github.event_name == 'pull_request'
+
         with:
           coverageFile: coverage-downloader.xml
           token: ${{ secrets.GITHUB_TOKEN }}

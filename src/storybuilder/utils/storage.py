@@ -27,7 +27,7 @@ def upload_file_to_hf(file_path: Path, repo_id: str = REPO_ID) -> None:
     if is_hf_bucket(repo_id):
         hf.batch_bucket_files(
             repo_id,
-            add=[(file_path, file_path.name)],  # type: ignore
+            add=[(file_path, file_path.name)],
             token=HF_TOKEN,
         )
         return
@@ -63,7 +63,8 @@ def upload_directory_to_hf(directory_path: Path, repo_id: str = REPO_ID) -> None
             raise ValueError(message)
 
         additions = [
-            (path, str(path.relative_to(directory_path)).replace(os.sep, "/")) for path in db_files
+            (path, str(path.relative_to(directory_path)))
+            for path in db_files
         ]
         if additions is not None:
             print(f"Uploading {len(additions)} .db files to bucket {repo_id}...")

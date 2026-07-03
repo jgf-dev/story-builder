@@ -73,6 +73,10 @@ class TestTTSPipeline(unittest.TestCase):
             generated = []
 
 
+            for i, md_file in enumerate(self.prompt_files):
+                base_name = Path(md_file).stem
+                wav_file = os.path.join(tmp_dir, f"{base_name}.wav")
+
                 # Sanitize voice names to valid Gemini voices for the integration test
                 with open(md_file, "r", encoding="utf-8") as f:
                     content = f.read()

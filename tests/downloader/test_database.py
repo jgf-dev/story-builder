@@ -261,8 +261,7 @@ class TestDatabaseInit(unittest.TestCase):
             INSERT INTO stories (
                 path, orientation, category, story_slug, chapter_num,
                 title, author_name, author_email,
-                publication_date, url,
-                char_count, word_count, content, created_at
+                publication_date, url, char_count, word_count, content, created_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
@@ -274,7 +273,6 @@ class TestDatabaseInit(unittest.TestCase):
                 "Legacy Story",
                 "Legacy Author",
                 "legacy@example.com",
-                "2024-01-15",
                 "2024-01-15",
                 "https://example.com/legacy",
                 123,

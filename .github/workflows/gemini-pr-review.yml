@@ -29,8 +29,6 @@ jobs:
         env:
           GOOGLE_AI_STUDIO_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Add fallback keys for quota rotation (optional but recommended)
-          # GOOGLE_AI_STUDIO_GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 }}
           # GOOGLE_AI_STUDIO_GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
           config.model: "gemini/gemini-1.5-pro"
           config.fallback_models: "gemini/gemini-1.5-flash"

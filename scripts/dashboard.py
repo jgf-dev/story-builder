@@ -10,7 +10,7 @@ import html
 
 # Ensure src layout package is importable
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from storybuilder.downloader import db as storybuilder_db
+
 
 # Define paths
 DB_DIR = "stories/db"
@@ -120,6 +120,7 @@ def get_nlp_conn():
 @st.cache_data
 def get_filter_options():
     """Compile distinct categories and authors across all partitions for filters."""
+    from storybuilder.downloader import db as storybuilder_db
 
     # Expected optimization impact: Resolving categories and authors across M year partitions
     # O(2 * M) individual DB queries -> 2 queries using ATTACH DATABASE.
@@ -231,18 +232,6 @@ def load_archive_stats():
     )
     return df_years, df_cats, df_auths, df_words
 
-    order = [
-        "Short (<1K)",
-        "Medium-Short (1K-5K)",
-        "Medium (5K-10K)",
-        "Medium-Long (10K-20K)",
-        "Long (20K-50K)",
-        "Epic (>50K)",
-    ]
-    df_words = pd.DataFrame(
-        [{"Bracket": b, "Stories": bracket_counts[b]} for b in order]
-    )
-
     return df_years, df_cats, df_auths, df_words
 
 
@@ -289,6 +278,7 @@ def query_stories(
         date_from = f"{year_range[0]}-01-01"
         date_to = f"{year_range[1]}-12-31"
 
+    from storybuilder.downloader import db as storybuilder_db
     # Use central search API
     raw_results = storybuilder_db.search_all_partitions(
         fts_query=fts_query,

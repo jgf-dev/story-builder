@@ -9,6 +9,7 @@ Run manually with:
     uv run pytest tests/genai/test_tts_pipeline.py -v -s
 """
 
+from ........usr.lib.python3.dist-packages.sympy.abc import i
 import glob
 import os
 import shutil
@@ -70,17 +71,21 @@ class TestTTSPipeline(unittest.TestCase):
             previous_id = None
             generated = []
 
-            for md_file in self.prompt_files:            for i, md_file in enumerate(self.prompt_files):
+            for i, md_file in enumerate(self.prompt_files):
                 base_name = Path(md_file).stem
                 wav_file = os.path.join(tmp_dir, f"{base_name}.wav")
 
-            # Sanitize voice names to valid Gemini voices for the integration test
-            with open(md_file, "r", encoding="utf-8") as f:
-                content = f.read()
-            content = content.replace("en-US-Journey-F", "Aoede").replace("en-US-Journey-D", "Charon").replace("en-US-Journey-O", "Kore")
-            temp_md_file = os.path.join(tmp_dir, f"{base_name}.md")
-            with open(temp_md_file, "w", encoding="utf-8") as f:
-                f.write(content)
+                # Sanitize voice names to valid Gemini voices for the integration test
+                with open(md_file, "r", encoding="utf-8") as f:
+                    content = f.read()
+                content = (
+                    content.replace("en-US-Journey-F", "Aoede")
+                    .replace("en-US-Journey-D", "Charon")
+                    .replace("en-US-Journey-O", "Kore")
+                )
+                temp_md_file = os.path.join(tmp_dir, f"{base_name}.md")
+                with open(temp_md_file, "w", encoding="utf-8") as f:
+                    f.write(content)
                 print(f"\n[{i + 1}/{len(self.prompt_files)}] Processing: {os.path.basename(md_file)}")
                 if previous_id:
                     print(f"  Linking to previous_interaction_id={previous_id[:12]}... for voice continuity")

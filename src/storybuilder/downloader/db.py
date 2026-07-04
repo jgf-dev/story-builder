@@ -5,14 +5,18 @@ the batch import script.
 Thread-safe: uses WAL mode + a write lock.  Call init_db() once at startup,
 then insert_story() from any thread.
 """
-
 import concurrent.futures
 import os
 import re
 import sqlite3
 import threading
+from logging import getLogger
 from pathlib import Path
 
+from nltk.lm.vocabulary import _
+
+
+logging = getLogger(__name__)
 
 # -- Schema -------------------------------------------------------------
 
@@ -99,8 +103,12 @@ _lock = threading.Lock()
 # -- Regex patterns -----------------------------------------------------
 
 _EMAIL_AUTHOR_RE = re.compile(r"^(.+?)\s*<([^>]+)>\s*$")
-_CHAPTER_SUFFIX_RE = re.compile(r"^(.+?)-(\d+)\.(txt|html)$")
+_CHAPTER_SUFFIX_RE = re.compile(r"^(.+?)-(\d+)$")
 
+# -- Constants ----------------------------------------------------------
+
+_BASE_TOPIC = "Gay"
+_MIN_PATH_PARTS = 3
 
 # -- Author parsing -----------------------------------------------------
 
@@ -128,32 +136,18 @@ def _parse_output_path(output_path: str) -> "tuple[str, str, str, int | None]":
     Path structure (5+ parts): <output_dir>/<orientation>/<category>/<story_slug>/<file>
     """
     parts = Path(output_path).parts
-    orientation = "gay"
-    category = ""
-    story_slug = ""
+    if len(parts) <= _MIN_PATH_PARTS:
+        message = f"Invalid output path: {output_path}. Must have at least 4 parts."
+        raise ValueError(message)
+
+    story_slug = parts[-2] if len(parts) >= _MIN_PATH_PARTS + 2 else Path(parts[-1]).stem
+
     chapter_num = None
 
-    filename = parts[-1]
-
-    if len(parts) >= 3:
-        orientation = parts[1]
-    if len(parts) >= 3:
-        category = parts[2]
-    if len(parts) >= 5:
-        story_slug = parts[3]
-    else:
-        story_slug = Path(filename).stem
-
-    m = _CHAPTER_SUFFIX_RE.match(filename)
-    if m:
+    if m := _CHAPTER_SUFFIX_RE.match(story_slug):
         chapter_num = int(m.group(2))
-    elif len(parts) >= 5:
-        base = Path(filename).stem
-        m2 = re.match(r"^.+?-(\d+)$", base)
-        if m2:
-            chapter_num = int(m2.group(1))
 
-    return orientation, category, story_slug, chapter_num
+    return _BASE_TOPIC, parts[_MIN_PATH_PARTS - 1], story_slug, chapter_num
 
 
 # -- Schema migrations --------------------------------------------------
@@ -351,7 +345,8 @@ def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
             cursor.execute(formatted_sql, params)
             results = [dict(r) for r in cursor.fetchall()]
         except sqlite3.Error as e:
-            print(f"Error querying {db_path or 'monolithic db'}: {e}")
+            message = "Error querying %{message}: "
+            logging.exception(message, db_path or "monolithic db", exc_info=e)
         finally:
             if cursor:
                 cursor.close()
@@ -482,7 +477,8 @@ def search_all_partitions(
             results = [dict(r) for r in cursor.fetchall()]
 
         except sqlite3.Error as e:
-            print(f"Error querying {db_path or 'monolithic db'}: {e}")
+            message = "Error querying %{message}: "
+            logging.exception(message, db_path or "monolithic db", exc_info=e)
         finally:
             if cursor:
                 cursor.close()
@@ -609,15 +605,18 @@ def insert_story(
             return True
         except sqlite3.IntegrityError as e:
             conn.rollback()
-            print(f"Integrity error inserting story at {output_path}: {e}")
+            message = "Integrity error inserting story at %{message}: "
+            logging.exception(message, output_path, exc_info=e)
             return False
         except sqlite3.OperationalError as e:
             conn.rollback()
-            print(f"Operational error inserting story at {output_path}: {e}")
+            message = "Operational error inserting story at %{message}: "
+            logging.exception(message, output_path, exc_info=e)
             return False
         except Exception as e:
             conn.rollback()
-            print(f"Unexpected error inserting story at {output_path}: {e}")
+            message = "Unexpected error inserting story at %{message}: "
+            logging.exception(message, output_path, exc_info=e)
             return False
 
 

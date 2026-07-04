@@ -42,3 +42,4 @@ test_dbs/
 # Temp folders
 .context-engine
 .bt
+test.db

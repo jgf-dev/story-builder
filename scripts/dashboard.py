@@ -132,13 +132,17 @@ def get_filter_options() -> tuple[list[str], list[str]]:
     categories = set()
     authors = set()
     # Get unique categories
-    cat_results = storybuilder_db.execute_all_partitions("SELECT DISTINCT category FROM {table}")
+    cat_results = storybuilder_db.execute_all_partitions(
+        "SELECT DISTINCT category FROM {table}"
+    )
     for r in cat_results:
         if r.get("category"):
             categories.add(r["category"])
 
     # Get unique authors
-    author_results = storybuilder_db.execute_all_partitions("SELECT DISTINCT author_name FROM {table}")
+    author_results = storybuilder_db.execute_all_partitions(
+        "SELECT DISTINCT author_name FROM {table}"
+    )
     for r in author_results:
         if r.get("author_name"):
             authors.add(r["author_name"])
@@ -293,7 +297,11 @@ class StorySearchQuery:
     entity_text: str = ""
     entity_label: str = "PERSON"
     limit: int = 100
-
+    date_from = None
+    date_to = None
+    if year_range:
+        date_from = f"{year_range[0]}-01-01"
+        date_to = f"{year_range[1]}-12-31"
 
 def _resolve_entity_suffixes(
     entity_text: str, entity_label: str,
@@ -563,7 +571,7 @@ if page == "🔍 Search & Explorer":
                 <b>Author:</b> {safe_author} |
                 <b>Category:</b> {safe_category} |
                 <b>Published:</b> {safe_pub_date} |
-                <b>Words:</b> {res['word_count']:,}
+                <b>Words:</b> {res["word_count"]:,}
             </p>
         """
 
@@ -572,9 +580,9 @@ if page == "🔍 Search & Explorer":
             # Escape the snippet first, then replace the placeholder highlight markers with actual HTML span tags
             snippet_escaped = html.escape(res["snippet"])
             snippet_cleaned = snippet_escaped.replace(
-                "___HIGHLIGHT_START___", "<span class='highlight'>").replace("___HIGHLIGHT_END___", "</span>")
-            card_html += "<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; padding: 8px;"
-            card_html += f" background: rgba(0, 0, 0, 0.2); border-radius: 6px;'>... {snippet_cleaned} ...</p>"
+                "___HIGHLIGHT_START___", "<span class='highlight'>"
+            ).replace("___HIGHLIGHT_END___", "</span>")
+            card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
         card_html += "</div>"
         st.markdown(card_html, unsafe_allow_html=True)
 
@@ -762,12 +770,12 @@ elif page == "⭐ Favorites & Tags":
                 continue
 
             with st.container():
-                safe_fav_title = html.escape(f['title'] or '')
-                safe_fav_author = html.escape(f['author'] or 'Unknown')
-                safe_fav_tags = html.escape(f['tags'] or 'None')
-                safe_fav_notes = html.escape(f['notes'] or 'None')
+                safe_fav_title = html.escape(f["title"] or "")
+                safe_fav_author = html.escape(f["author"] or "Unknown")
+                safe_fav_tags = html.escape(f["tags"] or "None")
+                safe_fav_notes = html.escape(f["notes"] or "None")
                 st.markdown(
-                     f"""
+                    f"""
                     <div class='story-card'>
                         <h4>{safe_fav_title}</h4>
                         <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 4px;'><b>Author:</b> {safe_fav_author}</p>
@@ -806,7 +814,10 @@ elif page == "📊 Archive Stats":
     col_m1, col_m2, col_m3 = st.columns(3)
     col_m1.metric("Total Stories", f"{total_stories:,}")
     col_m2.metric("Total Archive Words", f"{total_words:,}")
-    col_m3.metric("Average Story Length", f"{total_words // total_stories if total_stories > 0 else 0:,} words")
+    col_m3.metric(
+        "Average Story Length",
+        f"{total_words // total_stories if total_stories > 0 else 0:,} words",
+    )
     st.markdown("---")
 
     # 1. Timeline Chart

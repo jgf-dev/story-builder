@@ -192,6 +192,7 @@ def _flush_batch(conn: sqlite3.Connection, batch: list, force: bool) -> int:
 
     if _is_partitioned:
         from storybuilder.downloader.db import _get_write_conn
+
         conns = {}
         for row in batch:
             story_date = row[8]
@@ -223,7 +224,10 @@ def _flush_batch(conn: sqlite3.Connection, batch: list, force: bool) -> int:
                             c.commit()
                             count += 1
                         except Exception as e:
-                            print(f"[WARN] Skipping row during forced import (path={r[0]!r}): {e}", file=sys.stderr)
+                            print(
+                                f"[WARN] Skipping row during forced import (path={r[0]!r}): {e}",
+                                file=sys.stderr,
+                            )
                     imported += count
         return imported
 

@@ -372,9 +372,27 @@ def _enrich_with_db_year(results: list[dict]) -> list[dict]:
 
 
 def query_stories(
-    params: StorySearchQuery,
+    params: StorySearchQuery | None = None,
+    *,
+    fts_query: str = "",
+    category: str = "All",
+    author: str = "All",
+    year_range: tuple[int, int] | None = None,
+    entity_text: str = "",
+    entity_label: str = "PERSON",
+    limit: int = 100,
 ) -> list[dict]:
     """Search the archive with FTS, filters, and entity-based narrowing."""
+    if params is None:
+        params = StorySearchQuery(
+            fts_query=fts_query,
+            category=category,
+            author=author,
+            year_range=year_range,
+            entity_text=entity_text,
+            entity_label=entity_label,
+            limit=limit,
+        )
     entity_suffixes = _resolve_entity_suffixes(params.entity_text, params.entity_label)
     date_from, date_to = _build_date_range(params.year_range)
 
@@ -391,6 +409,7 @@ def query_stories(
     results = _enrich_with_db_year(raw_results)
     results = _filter_by_entity_suffixes(results, entity_suffixes)
     return results[:params.limit]
+
 
 
 def get_story_by_path(story_path: str, db_year: int | str | None = None) -> dict | None:

@@ -13,6 +13,7 @@ import sqlite3
 import threading
 from pathlib import Path
 
+
 # -- Schema -------------------------------------------------------------
 
 STORY_COLUMNS = (
@@ -242,7 +243,6 @@ def migrate_legacy_schema(conn: sqlite3.Connection) -> bool:
         conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('rebuild')")
     except sqlite3.OperationalError:
         pass
-    return True
 
 
 def _migrate_schema(conn: "sqlite3.Connection") -> None:
@@ -398,7 +398,6 @@ def search_all_partitions(
             db_paths = get_all_partition_paths()
         else:
             import glob
-
             excluded = {"stories.db", "dashboard_metadata.db"}
             db_files = glob.glob(os.path.join(partition_dir, "*.db"))
             db_paths = sorted(
@@ -474,7 +473,9 @@ def search_all_partitions(
              # Monolithic DB: no need for thread pool
              all_results.extend(_search_single_db(None))
         else:
-            with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(db_paths), 10)) as executor:
+            with concurrent.futures.ThreadPoolExecutor(
+                max_workers=min(len(db_paths), 10)
+            ) as executor:
                 for res in executor.map(_search_single_db, db_paths):
                     all_results.extend(res)
     # Sort aggregated results

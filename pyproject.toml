@@ -4,64 +4,40 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
+system = ["linux"]
 dependencies = [
-    "beautifulsoup4>=4.14.3",
-    "braintrust>=0.25.0",
-    "cartesia>=3.2.0",
+    "beautifulsoup4>=4.15.0",
+    "braintrust>=0.26.0",
+    "cartesia>=3.3.0",
     "chromadb>=1.5.9",
     "google-adk[a2a,all,db,eval]>=2.2.0",
     "google-cloud-aiplatform[adk,ag2,agent-engines]>=1.158.0",
     "google-cloud-storage>=3.12.0",
-    "google-genai>=2.8.0",
-    "ibm-watsonx-orchestrate>=2.11.0",
-    "lsprotocol==2023.0.1",
-    "matplotlib>=3.10.9",
-    "openai>=2.41.0",
+    "google-genai>=2.10.0",
+    "matplotlib>=3.11.0",
+    "openai>=2.44.0",
     "opentelemetry-distro>=0.63b1",
-    "opentelemetry-exporter-otlp>=1.42.1",
-    "pandas>=2.3.3",
+    "opentelemetry-exporter-otlp",
+    "pandas>=3.0.3",
     "plotly>=6.8.0",
-    "pygls==1.0.0",
     "pysocks>=1.7.1",
     "python-dotenv>=1.2.2",
     "requests>=2.34.2",
     "scikit-learn>=1.9.0",
-    "sentence-transformers>=5.5.1",
+    "sentence-transformers>=5.6.0",
     "spacy[cuda12x]>=3.8.14",
     "streamlit>=1.58.0",
-    "tqdm>=4.68.1",
-    "transformers>=5.10.2",
-    "xai-sdk>=1.15.0",
+    "tqdm>=4.68.3",
+    "transformers>=5.13.0",
+    "xai-sdk>=1.17.0",
     "opentelemetry-instrumentation-asyncio==0.63b1",
     "opentelemetry-instrumentation-dbapi==0.63b1",
     "opentelemetry-instrumentation-logging==0.63b1",
     "opentelemetry-instrumentation-sqlite3==0.63b1",
-    "opentelemetry-instrumentation-threading==0.63b1",
-    "opentelemetry-instrumentation-urllib==0.63b1",
-    "opentelemetry-instrumentation-wsgi==0.63b1",
     "opentelemetry-instrumentation-openai-v2",
-    "opentelemetry-instrumentation-vertexai>=2.0b0",
-    "opentelemetry-instrumentation-aiohttp-client==0.63b1",
-    "opentelemetry-instrumentation-aiohttp-server==0.63b1",
-    "opentelemetry-instrumentation-click==0.63b1",
-    "opentelemetry-instrumentation-fastapi==0.63b1",
-    "opentelemetry-instrumentation-grpc==0.63b1",
-    "opentelemetry-instrumentation-httpx==0.63b1",
-    "opentelemetry-instrumentation-jinja2==0.63b1",
-    "opentelemetry-instrumentation-redis==0.63b1",
-    "opentelemetry-instrumentation-requests==0.63b1",
-    "opentelemetry-instrumentation-sqlalchemy==0.63b1",
-    "opentelemetry-instrumentation-starlette==0.63b1",
-    "opentelemetry-instrumentation-tortoiseorm==0.63b1",
-    "opentelemetry-instrumentation-urllib3==0.63b1",
-    "agent-framework>=1.0.0b251120",
-    "twine>=6.2.0",
-    "ruff>=0.15.20",
-    "black>=26.5.1",
-    "isort>=8.0.1",
-    "pre-commit>=4.6.0",
-    "nbqa>=1.9.1",
-    "codecov>=2.1.13",
+    "opentelemetry-instrumentation-vertexai>=0.62.1",
+    "agent-framework>=1.10.0",
+
 ]
 
 [project.scripts]
@@ -72,8 +48,8 @@ genai-tts = "storybuilder.genai.tts:main"
 requires = ["uv_build>=0.11.15,<0.12.0"]
 build-backend = "uv_build"
 
-[tool.uv.extra-build-dependencies]
-cupy = ["pkg_resources"]
+#[tool.uv.extra-build-dependencies]
+#cupy = ["pkg_resources"]
 
 [tool.pyrefly]
 project-includes = ["**/*.py*", "**/*.ipynb"]
@@ -160,8 +136,6 @@ section-order = [
 [tool.ruff.lint.pycodestyle]
       ignore-overlong-task-comments = true
 
-[tool.ruff.lint.pydocstyle]
-convention = "numpy"
 
 [tool.ruff.lint.flake8-annotations]
       allow-star-arg-any = false
@@ -190,4 +164,19 @@ dev = [
     "pytest-benchmark>=5.2.3",
     "pytest-cov>=7.1.0",
     "ruff>=0.15.20",
+    "pre-commit>=4.6.0",
+    "nbqa>=1.9.1",
+    "codecov>=2.1.13",
+]
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+    "evals",
+]
+python_files = ["test_*.py"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "adk_eval: marks tests that run ADK evaluation engine",
+    "agentic: marks tests using agentic evaluation patterns (reflection, rubric)",
 ]

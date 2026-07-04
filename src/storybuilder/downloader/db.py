@@ -93,6 +93,7 @@ _conn: "sqlite3.Connection | None" = None
 _connections: dict[str, sqlite3.Connection] = {}
 _is_partitioned = False
 _db_dir: "str | None" = None
+_monolithic_db_path: "str | None" = None
 _lock = threading.Lock()
 
 # -- Regex patterns -----------------------------------------------------
@@ -255,7 +256,7 @@ def _migrate_schema(conn: "sqlite3.Connection") -> None:
 
 def init_db(db_path: str) -> "sqlite3.Connection":
     """Initialize the database (idempotent). Returns the connection."""
-    global _conn, _is_partitioned, _db_dir
+    global _conn, _is_partitioned, _db_dir, _monolithic_db_path
 
     is_dir = os.path.isdir(db_path) or (
         not db_path.endswith(".db") and not Path(db_path).suffix
@@ -265,12 +266,14 @@ def init_db(db_path: str) -> "sqlite3.Connection":
         os.makedirs(db_path, exist_ok=True)
         _is_partitioned = True
         _db_dir = db_path
+        _monolithic_db_path = None
         # Return a dummy connection to satisfy get_conn() is not None
         _conn = sqlite3.connect(":memory:", check_same_thread=False)
         return _conn
     else:
         _is_partitioned = False
         _db_dir = None
+        _monolithic_db_path = db_path
         os.makedirs(os.path.dirname(db_path) or ".", exist_ok=True)
         _conn = sqlite3.connect(db_path, check_same_thread=False)
         _conn.execute("PRAGMA journal_mode=WAL")
@@ -309,47 +312,59 @@ def get_all_partition_paths() -> list[str]:
 
 
 def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
-    """Execute a SELECT query across all database partitions sequentially
-    using ATTACH DATABASE to avoid hitting the SQLITE_MAX_ATTACHED limit.
-
+    """Execute a SELECT query across all database partitions concurrently.
     The SQL must use {table} where the target table name goes.
     Returns a list of dictionaries.
     """
     if not _is_partitioned:
-        conn = get_conn()
-        if not conn:
+        db_paths = [None]
+    else:
+        db_paths = get_all_partition_paths()
+        if not db_paths:
             return []
-        conn.row_factory = sqlite3.Row
-        cursor = conn.execute(sql.format(table="stories"), params)
-        return [dict(r) for r in cursor.fetchall()]
 
-    db_paths = get_all_partition_paths()
-    if not db_paths:
-        return []
-
-    conn = sqlite3.connect(":memory:")
-    conn.row_factory = sqlite3.Row
     all_rows = []
 
-    try:
-        for db_path in db_paths:
-            try:
+    def _execute_single_db(db_path: "str | None") -> list[dict]:
+        conn = None
+        cursor = None
+        need_close = False
+        results = []
+        try:
+            if db_path is None:
+                if not _is_partitioned and _monolithic_db_path:
+                    conn = sqlite3.connect(_monolithic_db_path)
+                    need_close = True
+                else:
+                    conn = get_conn()
+                if not conn:
+                    return results
+                formatted_sql = sql.format(table="stories")
+            else:
+                conn = sqlite3.connect(db_path)
+                need_close = True
                 conn.execute("ATTACH DATABASE ? AS curr_db", (db_path,))
-                curs = conn.cursor()
                 formatted_sql = sql.format(table="curr_db.stories")
-                curs.execute(formatted_sql, params)
-                all_rows.extend([dict(r) for r in curs.fetchall()])
-                curs.close()
-            except sqlite3.Error as e:
-                print(f"Error querying {db_path}: {e}")
-            finally:
-                try:
-                    conn.execute("DETACH DATABASE curr_db")
-                except sqlite3.Error as e:
-                    # Best-effort cleanup: if detach fails, continue processing other partitions.
-                    print(f"Warning: failed to detach database {db_path}: {e}")
-    finally:
-        conn.close()
+
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute(formatted_sql, params)
+            results = [dict(r) for r in cursor.fetchall()]
+        except sqlite3.Error as e:
+            print(f"Error querying {db_path or 'monolithic db'}: {e}")
+        finally:
+            if cursor:
+                cursor.close()
+            if need_close and conn:
+                conn.close()
+        return results
+
+    if len(db_paths) == 1 and db_paths[0] is None:
+        all_rows.extend(_execute_single_db(None))
+    else:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(db_paths), 10)) as executor:
+            for res in executor.map(_execute_single_db, db_paths):
+                all_rows.extend(res)
 
     return all_rows
 
@@ -408,11 +423,16 @@ def search_all_partitions(
 
     def _search_single_db(db_path: "str | None") -> list[dict]:
         conn = None
+        cursor = None
         need_close = False
         results = []
         try:
             if db_path is None:
-                conn = get_conn()
+                if not _is_partitioned and _monolithic_db_path:
+                    conn = sqlite3.connect(_monolithic_db_path)
+                    need_close = True
+                else:
+                    conn = get_conn()
             else:
                 conn = sqlite3.connect(db_path)
                 need_close = True
@@ -464,6 +484,8 @@ def search_all_partitions(
         except sqlite3.Error as e:
             print(f"Error querying {db_path or 'monolithic db'}: {e}")
         finally:
+            if cursor:
+                cursor.close()
             if need_close and conn:
                 conn.close()
         return results
@@ -703,7 +725,7 @@ def optimize_fts() -> None:
 
 
 def close_db() -> None:
-    global _conn, _connections, _is_partitioned, _db_dir
+    global _conn, _connections, _is_partitioned, _db_dir, _monolithic_db_path
     with _lock:
         if _conn is not None:
             _conn.close()
@@ -713,3 +735,4 @@ def close_db() -> None:
         _connections.clear()
         _is_partitioned = False
         _db_dir = None
+        _monolithic_db_path = None

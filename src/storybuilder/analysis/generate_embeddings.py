@@ -127,15 +127,19 @@ def process_story(filepath_str, collection_chunks, collection_averages, model):
         if not chunks:
             return False
 
-        chunk_embeddings = model.encode(chunks, convert_to_numpy=True, show_progress_bar=False)
+        chunk_embeddings = model.encode(
+            chunks, convert_to_numpy=True, show_progress_bar=False
+        )
         chunk_ids = [f"{filepath_str}_chunk_{i}" for i in range(len(chunks))]
-        chunk_metadatas = [{"story_id": filepath_str, "chunk_index": i} for i in range(len(chunks))]
+        chunk_metadatas = [
+            {"story_id": filepath_str, "chunk_index": i} for i in range(len(chunks))
+        ]
 
         collection_chunks.add(
             ids=chunk_ids,
             embeddings=chunk_embeddings.tolist(),
             documents=chunks,
-            metadatas=chunk_metadatas
+            metadatas=chunk_metadatas,
         )
 
         avg_embedding = np.mean(chunk_embeddings, axis=0)
@@ -144,7 +148,7 @@ def process_story(filepath_str, collection_chunks, collection_averages, model):
             ids=[filepath_str],
             embeddings=[avg_embedding.tolist()],
             documents=[""],
-            metadatas=[{"filepath": filepath_str}]
+            metadatas=[{"filepath": filepath_str}],
         )
 
         return True
@@ -156,7 +160,9 @@ def process_story(filepath_str, collection_chunks, collection_averages, model):
 
 def main():
     args = parse_args()
-    chroma_client, collection_chunks, collection_averages = setup_collections(args.db_path)
+    chroma_client, collection_chunks, collection_averages = setup_collections(
+        args.db_path
+    )
 
     print(f"Loading SentenceTransformer model: {args.model}")
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -170,9 +176,7 @@ def main():
     pbar = tqdm(total=min(len(all_files), args.limit), desc="Embedding stories")
 
     for filepath in all_files:
-        if process_story(
-            str(filepath), collection_chunks, collection_averages, model
-        ):
+        if process_story(str(filepath), collection_chunks, collection_averages, model):
             processed_count += 1
             pbar.update(1)
 

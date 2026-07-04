@@ -84,7 +84,6 @@ class TestSubagent(unittest.TestCase):
                 or "resource exhausted" in str(e).lower()
                 or "429" in str(e).lower()
             ):
-
                 self.skipTest(f"Skipped due to API/auth issue: {e}")
             else:
                 self.fail(f"Subagent direct call failed: {e}")

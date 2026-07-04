@@ -1,21 +1,27 @@
-import streamlit as st
+import html
 import sqlite3
-import os
-import glob
+import sys
+from dataclasses import dataclass
+from logging import getLogger
+from pathlib import Path
+
 import pandas as pd
 import plotly.express as px
-from pathlib import Path
-import sys
-import html
+import streamlit as st
+
+
+logger = getLogger(__name__)
 
 # Ensure src layout package is importable
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from storybuilder.downloader import db as storybuilder_db
+from storybuilder.downloader import db as storybuilder_db  # noqa: E402
+
 
 # Define paths
 DB_DIR = "stories/db"
-NLP_DB_PATH = "nlp_analysis.db"
+NLP_DB_PATH = "stories/db/nlp_analysis.db"
 META_DB_PATH = "stories/db/dashboard_metadata.db"
+LONG_YEAR = 4
 
 # Set up page config
 st.set_page_config(
@@ -26,7 +32,7 @@ st.set_page_config(
 )
 
 # Inject custom CSS for premium design
-st.markdown(
+st.html(
     """
     <style>
         /* Main background and container styling */
@@ -72,7 +78,6 @@ st.markdown(
         }
     </style>
     """,
-    unsafe_allow_html=True,
 )
 
 # ------------------------------------------------------------------------------
@@ -80,17 +85,18 @@ st.markdown(
 # ------------------------------------------------------------------------------
 
 
-def get_db_files():
+def get_db_files() -> list[Path]:
     """Retrieve all year-partitioned databases, sorted."""
-    if not os.path.exists(DB_DIR):
+    if not Path(DB_DIR).exists():
         return []
-    db_files = sorted(glob.glob(os.path.join(DB_DIR, "[0-9][0-9][0-9][0-9].db")))
-    return db_files
+
+    return sorted(Path(DB_DIR).glob("[0-9][0-9][0-9][0-9].db"))
 
 
-def get_meta_conn():
+def get_meta_conn() -> sqlite3.Connection:
     """Establish connection to local dashboard metadata (favorites & tags)."""
-    os.makedirs(os.path.dirname(META_DB_PATH) or ".", exist_ok=True)
+
+    Path(Path(META_DB_PATH).parent or ".").mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(META_DB_PATH, check_same_thread=False)
     conn.execute(
         """
@@ -103,25 +109,23 @@ def get_meta_conn():
             notes TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
-        """
+        """,
     )
     conn.commit()
     return conn
 
 
 @st.cache_resource
-def get_nlp_conn():
+def get_nlp_conn() -> sqlite3.Connection | None:
     """Establish cached connection to NLP database."""
-    if not os.path.exists(NLP_DB_PATH):
+    if not Path(NLP_DB_PATH).exists():
         return None
     return sqlite3.connect(NLP_DB_PATH, check_same_thread=False)
 
 
 @st.cache_data
-def get_filter_options():
+def get_filter_options() -> tuple[list[str], list[str]]:
     """Compile distinct categories and authors across all partitions for filters."""
-    from storybuilder.downloader import db as storybuilder_db
-
     # Expected optimization impact: Resolving categories and authors across M year partitions
     # O(2 * M) individual DB queries -> 2 queries using ATTACH DATABASE.
     # Significantly improves the startup time of the dashboard when building the sidebar filters.
@@ -138,113 +142,139 @@ def get_filter_options():
     for r in author_results:
         if r.get("author_name"):
             authors.add(r["author_name"])
-    return sorted(list(categories)), sorted(list(authors))
+    return sorted(categories), sorted(authors)
+
+
+# ── Word-count bracket labels (shared by stats helpers) ───────────────────
+BRACKET_LABELS = [
+    "Short (<1K)",
+    "Medium-Short (1K-5K)",
+    "Medium (5K-10K)",
+    "Medium-Long (10K-20K)",
+    "Long (20K-50K)",
+    "Epic (>50K)",
+]
+
+
+# ── Archive-stats helpers ───────────────────────────────────────────────
+
+
+def _init_aggregators() -> dict:
+    """Return fresh accumulator dicts for a full aggregation pass."""
+    return {
+        "year_stats": [],
+        "category_counts": {},
+        "author_counts": {},
+        "bracket_counts": dict.fromkeys(BRACKET_LABELS, 0),
+    }
+
+
+def _query_year_summary(cursor: sqlite3.Cursor, year_name: int, year_stats: list) -> None:
+    """Append per-year totals to *year_stats*."""
+    cursor.execute("SELECT COUNT(*), SUM(word_count) FROM stories")
+    cnt, words = cursor.fetchone()
+    if cnt:
+        year_stats.append(
+            {
+                "Year": year_name,
+                "Stories Count": cnt,
+                "Total Words": words or 0,
+            },
+        )
+
+
+def _accumulate_category_counts(cursor: sqlite3.Cursor, accumulator: dict) -> None:
+    """Add this db's category distribution to *accumulator*."""
+    cursor.execute("SELECT category, COUNT(*) FROM stories GROUP BY category")
+    for cat, count in cursor.fetchall():
+        if cat:
+            accumulator[cat] = accumulator.get(cat, 0) + count
+
+
+def _accumulate_author_counts(cursor: sqlite3.Cursor, accumulator: dict) -> None:
+    """Add this db's author distribution to *accumulator*."""
+    cursor.execute("SELECT author_name, COUNT(*) FROM stories GROUP BY author_name")
+    for auth, count in cursor.fetchall():
+        if auth:
+            accumulator[auth] = accumulator.get(auth, 0) + count
+
+
+def _accumulate_bracket_counts(cursor: sqlite3.Cursor, accumulator: dict) -> None:
+    """Add this db's word-count bracket distribution to *accumulator*."""
+    cursor.execute(
+        """
+        SELECT
+            CASE
+                WHEN word_count < 1000 THEN 'Short (<1K)'
+                WHEN word_count < 5000 THEN 'Medium-Short (1K-5K)'
+                WHEN word_count < 10000 THEN 'Medium (5K-10K)'
+                WHEN word_count < 20000 THEN 'Medium-Long (10K-20K)'
+                WHEN word_count < 50000 THEN 'Long (20K-50K)'
+                ELSE 'Epic (>50K)'
+            END AS bracket,
+            COUNT(*)
+        FROM stories
+        WHERE word_count IS NOT NULL
+        GROUP BY bracket
+        """,
+    )
+    for bracket, count in cursor.fetchall():
+        if bracket in accumulator:
+            accumulator[bracket] += count
+
+
+def _process_partition(db_path: str, year_name: int, ag: dict) -> None:
+    """Connect to a single partition DB and collect all stats into *ag*."""
+    conn: sqlite3.Connection | None = None
+    cursor: sqlite3.Cursor | None = None
+
+    try:
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+    except sqlite3.Error:
+        logger.exception("Failed to connect to partition DB: %s", db_path)
+
+    if cursor:
+        try:
+            _query_year_summary(cursor, year_name, ag["year_stats"])
+            _accumulate_category_counts(cursor, ag["category_counts"])
+            _accumulate_author_counts(cursor, ag["author_counts"])
+            _accumulate_bracket_counts(cursor, ag["bracket_counts"])
+        except sqlite3.Error:
+            logger.exception("Failed to query partition DB: %s", db_path)
+        finally:
+            if conn:
+                conn.close()
+
+
+def _format_stats_dataframes(ag: dict) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """Convert aggregator dicts into the four final DataFrames."""
+    df_years = pd.DataFrame(ag["year_stats"])
+    df_cats = (
+        pd.DataFrame(list(ag["category_counts"].items()), columns=["Category", "Count"])
+        .sort_values("Count", ascending=False)
+    )
+    df_auths = (
+        pd.DataFrame(list(ag["author_counts"].items()), columns=["Author", "Count"])
+        .sort_values("Count", ascending=False)
+    )
+    df_words = pd.DataFrame(
+        [
+            {"Bracket": label, "Stories": ag["bracket_counts"][label]}
+            for label in BRACKET_LABELS
+            if (ag["bracket_counts"][label] > 0)
+        ],
+    )
+    return df_years, df_cats, df_auths, df_words
 
 
 @st.cache_data
-def load_archive_stats():
+def load_archive_stats() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Pre-aggregate stats across all partition databases for the visualizations."""
-    db_files = get_db_files()
-    year_stats = []
-    category_counts = {}
-    author_counts = {}
-    word_counts = []
-    bracket_counts = {
-        "Short (<1K)": 0,
-        "Medium-Short (1K-5K)": 0,
-        "Medium (5K-10K)": 0,
-        "Medium-Long (10K-20K)": 0,
-        "Long (20K-50K)": 0,
-        "Epic (>50K)": 0,
-    }
-    for db in db_files:
-        year_name = Path(db).stem
-        try:
-            conn = sqlite3.connect(db)
-            cursor = conn.cursor()
-
-            # Year level summary
-            cursor.execute("SELECT COUNT(*), SUM(word_count) FROM stories")
-            cnt, words = cursor.fetchone()
-            if cnt:
-                year_stats.append(
-                    {
-                        "Year": int(year_name),
-                        "Stories Count": cnt,
-                        "Total Words": words or 0,
-                    }
-                )
-            # Categories summary
-            cursor.execute("SELECT category, COUNT(*) FROM stories GROUP BY category")
-            for cat, count in cursor.fetchall():
-                if cat:
-                    category_counts[cat] = category_counts.get(cat, 0) + count
-
-            # Top authors
-            cursor.execute(
-                "SELECT author_name, COUNT(*) FROM stories GROUP BY author_name"
-            )
-            for auth, count in cursor.fetchall():
-                if auth:
-                    author_counts[auth] = author_counts.get(auth, 0) + count
-            # Word counts sample for distribution
-            cursor.execute("SELECT word_count FROM stories")
-            word_counts.extend([r[0] for r in cursor.fetchall()])
-
-            # Word count bracket distribution (binned at SQL level; NULLs excluded)
-            cursor.execute(
-                """
-                SELECT
-                    CASE
-                        WHEN word_count < 1000 THEN 'Short (<1K)'
-                        WHEN word_count < 5000 THEN 'Medium-Short (1K-5K)'
-                        WHEN word_count < 10000 THEN 'Medium (5K-10K)'
-                        WHEN word_count < 20000 THEN 'Medium-Long (10K-20K)'
-                        WHEN word_count < 50000 THEN 'Long (20K-50K)'
-                        ELSE 'Epic (>50K)'
-                    END AS bracket,
-                    COUNT(*)
-                FROM stories
-                WHERE word_count IS NOT NULL
-                GROUP BY bracket
-                """
-            )
-            for bracket, count in cursor.fetchall():
-                if bracket in bracket_counts:
-                    bracket_counts[bracket] += count
-            conn.close()
-        except sqlite3.Error:
-            pass
-
-    df_years = pd.DataFrame(year_stats)
-    df_cats = pd.DataFrame(
-        list(category_counts.items()), columns=["Category", "Count"]
-    ).sort_values("Count", ascending=False)
-    df_auths = pd.DataFrame(
-        list(author_counts.items()), columns=["Author", "Count"]
-    ).sort_values("Count", ascending=False)
-    df_words = pd.DataFrame(
-        [
-            {"Bracket": bracket, "Stories": count}
-            for bracket, count in bracket_counts.items()
-            if count > 0
-        ]
-    )
-    return df_years, df_cats, df_auths, df_words
-
-    order = [
-        "Short (<1K)",
-        "Medium-Short (1K-5K)",
-        "Medium (5K-10K)",
-        "Medium-Long (10K-20K)",
-        "Long (20K-50K)",
-        "Epic (>50K)",
-    ]
-    df_words = pd.DataFrame(
-        [{"Bracket": b, "Stories": bracket_counts[b]} for b in order]
-    )
-
-    return df_years, df_cats, df_auths, df_words
+    ag = _init_aggregators()
+    for db in get_db_files():
+        _process_partition(str(db), int(Path(db).stem), ag)
+    return _format_stats_dataframes(ag)
 
 
 # ------------------------------------------------------------------------------
@@ -252,88 +282,123 @@ def load_archive_stats():
 # ------------------------------------------------------------------------------
 
 
+@dataclass
+class StorySearchQuery:
+    """Parameter bundle for query_stories()."""
+
+    fts_query: str = ""
+    category: str = "All"
+    author: str = "All"
+    year_range: tuple[int, int] | None = None
+    entity_text: str = ""
+    entity_label: str = "PERSON"
+    limit: int = 100
+
+
+def _resolve_entity_suffixes(
+    entity_text: str, entity_label: str,
+) -> list[str] | None:
+    """Query NLP database for story-path suffixes matching entity text + label.
+
+    Returns None when no entity filter is requested (no filtering needed).
+    Returns an empty list when the NLP database is unavailable.
+    """
+    if not entity_text:
+        return None
+
+    nlp_conn = get_nlp_conn()
+    if not nlp_conn:
+        return []
+
+    cursor = nlp_conn.cursor()
+    cursor.execute(
+        """
+        SELECT filepath FROM stories s
+        JOIN entities e ON s.id = e.story_id
+        WHERE e.text LIKE ? AND e.label = ?
+        """,
+        (f"%{entity_text}%", entity_label),
+    )
+    suffixes = []
+    for r in cursor.fetchall():
+        parts = Path(r[0]).parts
+        if len(parts) >= 3:
+            suffixes.append("/".join(parts[-3:]))
+    return suffixes
+
+
+def _build_date_range(
+    year_range: tuple[int, int] | None,
+) -> tuple[str | None, str | None]:
+    """Convert a (start, end) year range to ISO date strings."""
+    if not year_range:
+        return None, None
+    return f"{year_range[0]}-01-01", f"{year_range[1]}-12-31"
+
+
+def _extract_db_year(pub_date: str | int | None) -> int:
+    """Extract the 4-digit year from a publication_date value."""
+    try:
+        if pub_date and len(str(pub_date)) >= LONG_YEAR:
+            return int(str(pub_date)[:4])
+    except (ValueError, TypeError):
+        pass
+    return 2026
+
+
+def _filter_by_entity_suffixes(
+    results: list[dict], entity_suffixes: list[str] | None,
+) -> list[dict]:
+    """Remove results whose path doesn't match any entity suffix."""
+    if entity_suffixes is None:
+        return results  # No entity filter active
+
+    filtered = []
+    for r in results:
+        for suffix in entity_suffixes:
+            if r["path"].endswith(suffix):
+                filtered.append(r)
+                break
+    return filtered
+
+
+def _enrich_with_db_year(results: list[dict]) -> list[dict]:
+    """Inject db_year into each result dict based on publication_date."""
+    enriched = []
+    for r in results:
+        r["db_year"] = _extract_db_year(r.get("publication_date"))
+        enriched.append(r)
+    return enriched
+
+
 def query_stories(
-    fts_query="",
-    category="All",
-    author="All",
-    year_range=None,
-    entity_text="",
-    entity_label="PERSON",
-    limit=100,
-):
-    results = []
-    # 1. Filter by entity first if specified
-    entity_suffixes = None
-    if entity_text:
-        nlp_conn = get_nlp_conn()
-        if nlp_conn:
-            cursor = nlp_conn.cursor()
-            # Match text and label
-            cursor.execute(
-                """
-                SELECT filepath FROM stories s
-                JOIN entities e ON s.id = e.story_id
-                WHERE e.text LIKE ? AND e.label = ?
-                """,
-                (f"%{entity_text}%", entity_label),
-            )
-            entity_suffixes = []
-            for r in cursor.fetchall():
-                parts = Path(r[0]).parts
-                if len(parts) >= 3:
-                    entity_suffixes.append("/".join(parts[-3:]))
+    params: StorySearchQuery,
+) -> list[dict]:
+    """Search the archive with FTS, filters, and entity-based narrowing."""
+    entity_suffixes = _resolve_entity_suffixes(params.entity_text, params.entity_label)
+    date_from, date_to = _build_date_range(params.year_range)
 
-    from storybuilder.downloader import db as storybuilder_db
-
-    date_from = None
-    date_to = None
-    if year_range:
-        date_from = f"{year_range[0]}-01-01"
-        date_to = f"{year_range[1]}-12-31"
-
-    # Use central search API
     raw_results = storybuilder_db.search_all_partitions(
-        fts_query=fts_query,
-        category=category,
-        author=author,
+        fts_query=params.fts_query,
+        category=params.category,
+        author=params.author,
         date_from=date_from,
         date_to=date_to,
-        limit=limit,
+        limit=params.limit,
         snippets=True,
     )
 
-    results = []
-    for r in raw_results:
-        # Re-inject db_year from path or publication_date for dashboard router compatibility
-        pub_date = r.get("publication_date")
-        db_year = 2026
-        if pub_date and len(str(pub_date)) >= 4:
-            try:
-                db_year = int(str(pub_date)[:4])
-            except ValueError:
-                # Malformed publication_date: keep the default fallback year.
-                db_year = 2026
-
-        # Check entity suffixes match if filter active
-        if entity_suffixes is not None:
-            matched_entity = False
-            for suffix in entity_suffixes:
-                if r["path"].endswith(suffix):
-                    matched_entity = True
-                    break
-            if not matched_entity:
-                continue
-
-        r["db_year"] = db_year
-        results.append(r)
-    return results[:limit]
+    results = _enrich_with_db_year(raw_results)
+    results = _filter_by_entity_suffixes(results, entity_suffixes)
+    return results[:params.limit]
 
 
-def get_story_by_path(story_path, db_year):
+def get_story_by_path(story_path: str, db_year: int | str | None = None) -> dict | None:
     """Retrieve full text and details of a single story from its year partition db."""
-    db_path = os.path.join(DB_DIR, f"{db_year}.db")
-    if not os.path.exists(db_path):
+    db_path = str(Path(DB_DIR) / f"{db_year or 2026}.db")
+    if not Path(db_path).exists():
         return None
+    conn: sqlite3.Connection | None = None
 
     try:
         conn = sqlite3.connect(db_path)
@@ -341,10 +406,12 @@ def get_story_by_path(story_path, db_year):
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM stories WHERE path = ?", (story_path,))
         row = cursor.fetchone()
-        conn.close()
         return dict(row) if row else None
     except sqlite3.Error:
         return None
+    finally:
+        if conn:
+            conn.close()
 
 
 # ------------------------------------------------------------------------------
@@ -352,7 +419,7 @@ def get_story_by_path(story_path, db_year):
 # ------------------------------------------------------------------------------
 
 
-def add_favorite(story_path, title, author, tags, notes):
+def add_favorite(story_path: str, title: str, author: str, tags: str | None, notes: str | None) -> bool:
     conn = get_meta_conn()
     cursor = conn.cursor()
     try:
@@ -364,27 +431,29 @@ def add_favorite(story_path, title, author, tags, notes):
             (story_path, title, author, tags, notes),
         )
         conn.commit()
-        return True
     except sqlite3.Error:
         return False
+    else:
+        return True
     finally:
         conn.close()
 
 
-def remove_favorite(story_path):
+def remove_favorite(story_path: str) -> bool:
     conn = get_meta_conn()
     cursor = conn.cursor()
     try:
         cursor.execute("DELETE FROM favorites WHERE story_path = ?", (story_path,))
         conn.commit()
-        return True
     except sqlite3.Error:
         return False
+    else:
+        return True
     finally:
         conn.close()
 
 
-def get_favorites():
+def get_favorites() -> list[dict]:
     conn = get_meta_conn()
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -418,8 +487,8 @@ categories_list, authors_list = get_filter_options()
 
 st.sidebar.subheader("Filters")
 # Filter variables
-selected_category = st.sidebar.selectbox("Category", ["All"] + categories_list)
-selected_author = st.sidebar.selectbox("Author", ["All"] + authors_list)
+selected_category = st.sidebar.selectbox("Category", ["All", *categories_list])
+selected_author = st.sidebar.selectbox("Author", ["All", *authors_list])
 
 # Year Range Slider
 db_files = get_db_files()
@@ -464,33 +533,31 @@ if page == "🔍 Search & Explorer":
     st.write("Browse, search and filter the narrative archives.")
 
     fts_input = st.text_input(
-        "Full-Text Search (FTS5 syntax, e.g. vampire OR werewolf)", ""
+        "Full-Text Search (FTS5 syntax, e.g. vampire OR werewolf)", "",
     )
 
     st.markdown("---")
 
     with st.spinner("Searching records..."):
-        search_results = query_stories(
+        search_results = query_stories(StorySearchQuery(
             fts_query=fts_input,
             category=selected_category,
             author=selected_author,
             year_range=year_range,
             entity_text=entity_text_input,
             entity_label=entity_label_select,
-        )
+        ))
 
     st.subheader(f"Found {len(search_results)} Result(s)")
 
     for res in search_results:
         # Create a container for the card styling
-        safe_title = html.escape(res['title'] or '')
-        safe_author = html.escape(res['author_name'] or 'Unknown')
-        safe_category = html.escape(res['category'] or '')
-        safe_pub_date = html.escape(str(res['publication_date'] or 'Unknown'))
+        safe_title = html.escape(res["title"] or "")
+        safe_author = html.escape(res["author_name"] or "Unknown")
+        safe_category = html.escape(res["category"] or "")
+        safe_pub_date = html.escape(str(res["publication_date"] or "Unknown"))
         card_html = f"""
         <div class="story-card">
-            <h4>{safe_title}</h4>
-            <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 8px;'>
             <h4>{safe_title}</h4>
             <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 8px;'>
                 <b>Author:</b> {safe_author} |
@@ -502,15 +569,12 @@ if page == "🔍 Search & Explorer":
 
         # Display highlighted snippets if any
         if res.get("snippet"):
-<<<<<<< HEAD
             # Escape the snippet first, then replace the placeholder highlight markers with actual HTML span tags
-=======
->>>>>>> fix-failing-tests-16749664909518946067
             snippet_escaped = html.escape(res["snippet"])
-            snippet_cleaned = snippet_escaped.replace("___HIGHLIGHT_START___", "<span class='highlight'>").replace("___HIGHLIGHT_END___", "</span>")
-            card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
-
-            card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
+            snippet_cleaned = snippet_escaped.replace(
+                "___HIGHLIGHT_START___", "<span class='highlight'>").replace("___HIGHLIGHT_END___", "</span>")
+            card_html += "<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; padding: 8px;"
+            card_html += f" background: rgba(0, 0, 0, 0.2); border-radius: 6px;'>... {snippet_cleaned} ...</p>"
         card_html += "</div>"
         st.markdown(card_html, unsafe_allow_html=True)
 
@@ -531,11 +595,11 @@ elif page == "📖 Read Story":
 
     if not st.session_state.selected_story_path:
         st.warning(
-            "No story selected. Please go to 'Search & Explorer' first to pick a story."
+            "No story selected. Please go to 'Search & Explorer' first to pick a story.",
         )
     else:
         story = get_story_by_path(
-            st.session_state.selected_story_path, st.session_state.selected_story_year
+            st.session_state.selected_story_path, st.session_state.selected_story_year,
         )
         if not story:
             st.error("Error loading story contents.")
@@ -716,9 +780,9 @@ elif page == "⭐ Favorites & Tags":
                 col1, col2 = st.columns([1, 8])
                 with col1:
                     # Attempt to resolve database year based on path to load it in reader
-                    db_year = path_to_db_year.get(
+                    db_year: str = str(path_to_db_year.get(
                         f["story_path"], 2026
-                    )  # Default fallback
+                    ))  # Default fallback
                     if st.button("Read", key=f"read_fav_{f['story_path']}"):
                         st.session_state.selected_story_path = f["story_path"]
                         st.session_state.selected_story_year = db_year

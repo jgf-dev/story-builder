@@ -238,6 +238,10 @@ def migrate_legacy_schema(conn: sqlite3.Connection) -> bool:
         raise
 
     conn.executescript(INDEXES)
+    try:
+        conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('rebuild')")
+    except sqlite3.OperationalError:
+        pass
     return True
 
 
@@ -402,20 +406,6 @@ def search_all_partitions(
             )
         if not db_paths:
             return []
-        if not partition_dir:
-            return []
-        if partition_dir == _db_dir:
-            db_paths = get_all_partition_paths()
-        else:
-            import glob
-
-            excluded = {"stories.db", "dashboard_metadata.db"}
-            db_files = glob.glob(os.path.join(partition_dir, "*.db"))
-            db_paths = sorted(
-                p for p in db_files if os.path.basename(p) not in excluded
-            )
-        if not db_paths:
-            return []
 
     def _search_single_db(db_path: "str | None") -> list[dict]:
         conn = None
@@ -485,17 +475,6 @@ def search_all_partitions(
              all_results.extend(_search_single_db(None))
         else:
             with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(db_paths), 10)) as executor:
-                for res in executor.map(_search_single_db, db_paths):
-                    all_results.extend(res)
-
-    if db_paths:
-        if len(db_paths) == 1 and db_paths[0] is None:
-            # Monolithic DB: no need for thread pool
-            all_results.extend(_search_single_db(None))
-        else:
-            with concurrent.futures.ThreadPoolExecutor(
-                max_workers=min(len(db_paths), 10)
-            ) as executor:
                 for res in executor.map(_search_single_db, db_paths):
                     all_results.extend(res)
     # Sort aggregated results

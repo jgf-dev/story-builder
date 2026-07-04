@@ -110,5 +110,11 @@
     "notebook.output.textLineLimit": 20,
     "notebook.compactView": false,
     "notebook.diff.ignoreMetadata": true,
-    "notebook.diff.ignoreOutputs": true
+    "notebook.diff.ignoreOutputs": true,
+    "python.testing.pytestEnabled": true,
+    "python.testing.pytestArgs": [
+        ".",
+        "--cache-mode=session"
+    ],
+    "python.testing.autoTestDiscoverOnSaveEnabled": true
 }

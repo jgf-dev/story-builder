@@ -36,8 +36,8 @@ dependencies = [
     "opentelemetry-instrumentation-sqlite3==0.63b1",
     "opentelemetry-instrumentation-openai-v2",
     "opentelemetry-instrumentation-vertexai>=0.62.1",
-    "agent-framework>=1.10.0",
-
+    "opentelemetry.exporter.otlp.proto.http",
+    "dotenv>=0.9.9",
 ]
 
 [project.scripts]

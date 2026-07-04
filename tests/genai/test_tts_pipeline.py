@@ -70,7 +70,7 @@ class TestTTSPipeline(unittest.TestCase):
             previous_id = None
             generated = []
 
-            for i, md_file in enumerate(self.prompt_files):
+            for md_file in self.prompt_files:            for i, md_file in enumerate(self.prompt_files):
                 base_name = Path(md_file).stem
                 wav_file = os.path.join(tmp_dir, f"{base_name}.wav")
 

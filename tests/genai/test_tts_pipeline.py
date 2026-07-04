@@ -72,7 +72,7 @@ class TestTTSPipeline(unittest.TestCase):
             previous_id = None
             generated = []
 
-
+            for i, md_file in enumerate(self.prompt_files):
                 # Sanitize voice names to valid Gemini voices for the integration test
                 with open(md_file, "r", encoding="utf-8") as f:
                     content = f.read()

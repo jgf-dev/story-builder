@@ -38,6 +38,7 @@ dependencies = [
     "opentelemetry-instrumentation-vertexai>=0.62.1",
     "opentelemetry.exporter.otlp.proto.http",
     "dotenv>=0.9.9",
+    "sqlmodel>=0.0.39",
 ]
 
 [project.scripts]

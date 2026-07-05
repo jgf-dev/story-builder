@@ -9,8 +9,8 @@ Run manually with:
     uv run pytest tests/genai/test_tts_pipeline.py -v -s
 """
 
-from ........usr.lib.python3.dist-packages.sympy.abc import i
 import glob
+
 import os
 import shutil
 import tempfile

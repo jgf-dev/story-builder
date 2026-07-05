@@ -120,7 +120,6 @@ def get_nlp_conn():
 @st.cache_data
 def get_filter_options():
     """Compile distinct categories and authors across all partitions for filters."""
-    from storybuilder.downloader import db as storybuilder_db
 
     # Expected optimization impact: Resolving categories and authors across M year partitions
     # O(2 * M) individual DB queries -> 2 queries using ATTACH DATABASE.
@@ -128,13 +127,17 @@ def get_filter_options():
     categories = set()
     authors = set()
     # Get unique categories
-    cat_results = storybuilder_db.execute_all_partitions("SELECT DISTINCT category FROM {table}")
+    cat_results = storybuilder_db.execute_all_partitions(
+        "SELECT DISTINCT category FROM {table}"
+    )
     for r in cat_results:
         if r.get("category"):
             categories.add(r["category"])
 
     # Get unique authors
-    author_results = storybuilder_db.execute_all_partitions("SELECT DISTINCT author_name FROM {table}")
+    author_results = storybuilder_db.execute_all_partitions(
+        "SELECT DISTINCT author_name FROM {table}"
+    )
     for r in author_results:
         if r.get("author_name"):
             authors.add(r["author_name"])
@@ -282,8 +285,6 @@ def query_stories(
                 parts = Path(r[0]).parts
                 if len(parts) >= 3:
                     entity_suffixes.append("/".join(parts[-3:]))
-
-    from storybuilder.downloader import db as storybuilder_db
 
     date_from = None
     date_to = None
@@ -483,10 +484,10 @@ if page == "🔍 Search & Explorer":
 
     for res in search_results:
         # Create a container for the card styling
-        safe_title = html.escape(res['title'] or '')
-        safe_author = html.escape(res['author_name'] or 'Unknown')
-        safe_category = html.escape(res['category'] or '')
-        safe_pub_date = html.escape(str(res['publication_date'] or 'Unknown'))
+        safe_title = html.escape(res["title"] or "")
+        safe_author = html.escape(res["author_name"] or "Unknown")
+        safe_category = html.escape(res["category"] or "")
+        safe_pub_date = html.escape(str(res["publication_date"] or "Unknown"))
         card_html = f"""
         <div class="story-card">
             <h4>{safe_title}</h4>
@@ -496,7 +497,7 @@ if page == "🔍 Search & Explorer":
                 <b>Author:</b> {safe_author} |
                 <b>Category:</b> {safe_category} |
                 <b>Published:</b> {safe_pub_date} |
-                <b>Words:</b> {res['word_count']:,}
+                <b>Words:</b> {res["word_count"]:,}
             </p>
         """
 
@@ -504,7 +505,9 @@ if page == "🔍 Search & Explorer":
         if res.get("snippet"):
             # Escape the snippet first, then replace the placeholder highlight markers with actual HTML span tags
             snippet_escaped = html.escape(res["snippet"])
-            snippet_cleaned = snippet_escaped.replace("___HIGHLIGHT_START___", "<span class='highlight'>").replace("___HIGHLIGHT_END___", "</span>")
+            snippet_cleaned = snippet_escaped.replace(
+                "___HIGHLIGHT_START___", "<span class='highlight'>"
+            ).replace("___HIGHLIGHT_END___", "</span>")
             card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
         card_html += "</div>"
         st.markdown(card_html, unsafe_allow_html=True)
@@ -693,12 +696,12 @@ elif page == "⭐ Favorites & Tags":
                 continue
 
             with st.container():
-                safe_fav_title = html.escape(f['title'] or '')
-                safe_fav_author = html.escape(f['author'] or 'Unknown')
-                safe_fav_tags = html.escape(f['tags'] or 'None')
-                safe_fav_notes = html.escape(f['notes'] or 'None')
+                safe_fav_title = html.escape(f["title"] or "")
+                safe_fav_author = html.escape(f["author"] or "Unknown")
+                safe_fav_tags = html.escape(f["tags"] or "None")
+                safe_fav_notes = html.escape(f["notes"] or "None")
                 st.markdown(
-                     f"""
+                    f"""
                     <div class='story-card'>
                         <h4>{safe_fav_title}</h4>
                         <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 4px;'><b>Author:</b> {safe_fav_author}</p>
@@ -737,7 +740,10 @@ elif page == "📊 Archive Stats":
     col_m1, col_m2, col_m3 = st.columns(3)
     col_m1.metric("Total Stories", f"{total_stories:,}")
     col_m2.metric("Total Archive Words", f"{total_words:,}")
-    col_m3.metric("Average Story Length", f"{total_words // total_stories if total_stories > 0 else 0:,} words")
+    col_m3.metric(
+        "Average Story Length",
+        f"{total_words // total_stories if total_stories > 0 else 0:,} words",
+    )
     st.markdown("---")
 
     # 1. Timeline Chart

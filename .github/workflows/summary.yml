@@ -42,7 +42,7 @@ jobs:
         id: title-edit
         uses: actions/ai-inference@v1
         with:
-          promtpt: |
+          prompt: |
             You are improving the title of an issue; the current title and body are included below.
             Edit the title to match the contents of the body. Return only the improved title.
 

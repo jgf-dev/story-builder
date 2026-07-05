@@ -147,7 +147,6 @@ def get_filter_options():
 @st.cache_data
 def load_archive_stats():
     """Pre-aggregate stats across all partition databases for the visualizations."""
-    db_files = get_db_files()
     year_stats = []
     category_counts = {}
     author_counts = {}
@@ -160,79 +159,95 @@ def load_archive_stats():
         "Long (20K-50K)": 0,
         "Epic (>50K)": 0,
     }
-    for db in db_files:
+
+    # We will still iterate get_db_files() because execute_all_partitions doesn't return the DB year name by default in its result set natively unless we query it.
+    for db in get_db_files():
         year_name = Path(db).stem
         try:
-            conn = sqlite3.connect(db)
-            cursor = conn.cursor()
+            with sqlite3.connect(db) as conn:
+                cursor = conn.cursor()
 
-            # Year level summary
-            cursor.execute("SELECT COUNT(*), SUM(word_count) FROM stories")
-            cnt, words = cursor.fetchone()
-            if cnt:
-                year_stats.append(
-                    {
-                        "Year": int(year_name),
-                        "Stories Count": cnt,
-                        "Total Words": words or 0,
-                    }
+                # Year level summary
+                cursor.execute("SELECT COUNT(*), SUM(word_count) FROM stories")
+                row = cursor.fetchone()
+                if row and row[0]:
+                    year_stats.append(
+                        {
+                            "Year": int(year_name),
+                            "Stories Count": row[0],
+                            "Total Words": row[1] or 0,
+                        }
+                    )
+
+                # Categories summary
+                for cat, count in cursor.execute(
+                    "SELECT category, COUNT(*) FROM stories GROUP BY category"
+                ):
+                    if cat:
+                        category_counts[cat] = category_counts.get(cat, 0) + count
+
+                # Top authors
+                for auth, count in cursor.execute(
+                    "SELECT author_name, COUNT(*) FROM stories GROUP BY author_name"
+                ):
+                    if auth:
+                        author_counts[auth] = author_counts.get(auth, 0) + count
+
+                # Word counts sample for distribution
+                word_counts.extend(
+                    [r[0] for r in cursor.execute("SELECT word_count FROM stories")]
                 )
-            # Categories summary
-            cursor.execute("SELECT category, COUNT(*) FROM stories GROUP BY category")
-            for cat, count in cursor.fetchall():
-                if cat:
-                    category_counts[cat] = category_counts.get(cat, 0) + count
 
-            # Top authors
-            cursor.execute(
-                "SELECT author_name, COUNT(*) FROM stories GROUP BY author_name"
-            )
-            for auth, count in cursor.fetchall():
-                if auth:
-                    author_counts[auth] = author_counts.get(auth, 0) + count
-            # Word counts sample for distribution
-            cursor.execute("SELECT word_count FROM stories")
-            word_counts.extend([r[0] for r in cursor.fetchall()])
+                # Word count bracket distribution
+                cursor.execute("""
+                    SELECT
+                        CASE
+                            WHEN word_count < 1000 THEN 'Short (<1K)'
+                            WHEN word_count < 5000 THEN 'Medium-Short (1K-5K)'
+                            WHEN word_count < 10000 THEN 'Medium (5K-10K)'
+                            WHEN word_count < 20000 THEN 'Medium-Long (10K-20K)'
+                            WHEN word_count < 50000 THEN 'Long (20K-50K)'
+                            ELSE 'Epic (>50K)'
+                        END as Bracket,
+                        COUNT(*)
+                    FROM stories
+                    WHERE word_count IS NOT NULL
+                    GROUP BY Bracket
+                """)
+                for bracket, count in cursor:
+                    if bracket in bracket_counts:
+                        bracket_counts[bracket] += count
 
-            # Word count bracket distribution (binned at SQL level; NULLs excluded)
-            cursor.execute(
-                """
-                SELECT
-                    CASE
-                        WHEN word_count < 1000 THEN 'Short (<1K)'
-                        WHEN word_count < 5000 THEN 'Medium-Short (1K-5K)'
-                        WHEN word_count < 10000 THEN 'Medium (5K-10K)'
-                        WHEN word_count < 20000 THEN 'Medium-Long (10K-20K)'
-                        WHEN word_count < 50000 THEN 'Long (20K-50K)'
-                        ELSE 'Epic (>50K)'
-                    END AS bracket,
-                    COUNT(*)
-                FROM stories
-                WHERE word_count IS NOT NULL
-                GROUP BY bracket
-                """
-            )
-            for bracket, count in cursor.fetchall():
-                if bracket in bracket_counts:
-                    bracket_counts[bracket] += count
-            conn.close()
-        except sqlite3.Error:
-            pass
+        except sqlite3.Error as e:
+            print(f"Error querying {db}: {e}")
 
-    df_years = pd.DataFrame(year_stats)
-    df_cats = pd.DataFrame(
-        list(category_counts.items()), columns=["Category", "Count"]
-    ).sort_values("Count", ascending=False)
-    df_auths = pd.DataFrame(
-        list(author_counts.items()), columns=["Author", "Count"]
-    ).sort_values("Count", ascending=False)
-    df_words = pd.DataFrame(
-        [
-            {"Bracket": bracket, "Stories": count}
-            for bracket, count in bracket_counts.items()
-            if count > 0
-        ]
+    # Build DataFrames
+    df_years = (
+        pd.DataFrame(year_stats).sort_values("Year")
+        if year_stats
+        else pd.DataFrame(columns=["Year", "Stories Count", "Total Words"])
     )
+
+    df_cats = pd.DataFrame(
+        [{"Category": k, "Stories": v} for k, v in category_counts.items()]
+    ).sort_values("Stories", ascending=False)
+
+    df_auths = pd.DataFrame(
+        [{"Author": k, "Stories": v} for k, v in author_counts.items()]
+    ).sort_values("Stories", ascending=False)
+
+    order = [
+        "Short (<1K)",
+        "Medium-Short (1K-5K)",
+        "Medium (5K-10K)",
+        "Medium-Long (10K-20K)",
+        "Long (20K-50K)",
+        "Epic (>50K)",
+    ]
+    df_words = pd.DataFrame(
+        [{"Bracket": b, "Stories": bracket_counts[b]} for b in order]
+    )
+
     return df_years, df_cats, df_auths, df_words
 
 

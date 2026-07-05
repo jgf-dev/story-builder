@@ -6,14 +6,13 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
+from storybuilder.dashboard.config import BRACKET_LABELS
+from storybuilder.dashboard.config import LONG_YEAR
+from storybuilder.dashboard.config import get_db_dir
+from storybuilder.dashboard.config import get_meta_db_path
+from storybuilder.dashboard.config import get_nlp_db_path
 from storybuilder.downloader import db as storybuilder_db
-from storybuilder.dashboard.config import (
-    BRACKET_LABELS,
-    LONG_YEAR,
-    get_db_dir,
-    get_meta_db_path,
-    get_nlp_db_path,
-)
+
 
 logger = getLogger(__name__)
 
@@ -66,7 +65,7 @@ def get_filter_options() -> tuple[list[str], list[str]]:
     """Compile distinct categories and authors across the database for filters."""
     categories = set()
     authors = set()
-    
+
     # Get unique categories
     cat_results = storybuilder_db.execute_query("SELECT DISTINCT category FROM {table}")
     for r in cat_results:
@@ -78,11 +77,12 @@ def get_filter_options() -> tuple[list[str], list[str]]:
     for r in author_results:
         if r.get("author_name"):
             authors.add(r["author_name"])
-            
+
     return sorted(categories), sorted(authors)
 
 
 # ── Archive-stats helpers ───────────────────────────────────────────────
+
 
 def _init_aggregators() -> dict:
     """Return fresh accumulator dicts for a full aggregation pass."""
@@ -97,13 +97,13 @@ def _init_aggregators() -> dict:
 def _format_stats_dataframes(ag: dict) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Convert aggregator dicts into the four final DataFrames."""
     df_years = pd.DataFrame(ag["year_stats"])
-    df_cats = (
-        pd.DataFrame(list(ag["category_counts"].items()), columns=["Category", "Count"])
-        .sort_values("Count", ascending=False)
+    df_cats = pd.DataFrame(list(ag["category_counts"].items()), columns=["Category", "Count"]).sort_values(
+        "Count",
+        ascending=False,
     )
-    df_auths = (
-        pd.DataFrame(list(ag["author_counts"].items()), columns=["Author", "Count"])
-        .sort_values("Count", ascending=False)
+    df_auths = pd.DataFrame(list(ag["author_counts"].items()), columns=["Author", "Count"]).sort_values(
+        "Count",
+        ascending=False,
     )
     df_words = pd.DataFrame(
         [
@@ -119,14 +119,14 @@ def _format_stats_dataframes(ag: dict) -> tuple[pd.DataFrame, pd.DataFrame, pd.D
 def load_archive_stats() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Pre-aggregate stats from the monolithic database for the visualizations."""
     ag = _init_aggregators()
-    
+
     conn = storybuilder_db.get_conn()
     if not conn:
         return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
-        
+
     try:
         cursor = conn.cursor()
-        
+
         # 1. Year stats
         cursor.execute(
             """
@@ -134,28 +134,24 @@ def load_archive_stats() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.D
             FROM stories
             WHERE publication_date IS NOT NULL AND length(publication_date) >= 4
             GROUP BY year_val
-            """
+            """,
         )
         for yr, cnt, words in cursor.fetchall():
             if yr:
-                ag["year_stats"].append({
-                    "Year": yr,
-                    "Stories Count": cnt,
-                    "Total Words": words or 0
-                })
-                
+                ag["year_stats"].append({"Year": yr, "Stories Count": cnt, "Total Words": words or 0})
+
         # 2. Category counts
         cursor.execute("SELECT category, COUNT(*) FROM stories GROUP BY category")
         for cat, cnt in cursor.fetchall():
             if cat:
                 ag["category_counts"][cat] = cnt
-                
+
         # 3. Author counts
         cursor.execute("SELECT author_name, COUNT(*) FROM stories GROUP BY author_name")
         for auth, cnt in cursor.fetchall():
             if auth:
                 ag["author_counts"][auth] = cnt
-                
+
         # 4. Bracket counts
         cursor.execute(
             """
@@ -172,15 +168,15 @@ def load_archive_stats() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.D
             FROM stories
             WHERE word_count IS NOT NULL
             GROUP BY bracket
-            """
+            """,
         )
         for bracket, cnt in cursor.fetchall():
             if bracket in ag["bracket_counts"]:
                 ag["bracket_counts"][bracket] += cnt
-                
+
     except Exception as e:
         logger.exception("Failed to query archive statistics from database", exc_info=e)
-        
+
     return _format_stats_dataframes(ag)
 
 
@@ -203,7 +199,8 @@ class StorySearchQuery:
 
 
 def _resolve_entity_suffixes(
-    entity_text: str, entity_label: str,
+    entity_text: str,
+    entity_label: str,
 ) -> list[str] | None:
     """Query NLP database for story-path suffixes matching entity text + label.
 
@@ -254,7 +251,8 @@ def _extract_db_year(pub_date: str | int | None) -> int:
 
 
 def _filter_by_entity_suffixes(
-    results: list[dict], entity_suffixes: list[str] | None,
+    results: list[dict],
+    entity_suffixes: list[str] | None,
 ) -> list[dict]:
     """Remove results whose path doesn't match any entity suffix."""
     if entity_suffixes is None:
@@ -311,11 +309,11 @@ def query_stories(
         date_to=date_to,
         limit=params.limit,
         snippets=True,
+        entity_suffixes=entity_suffixes,
     )
 
     results = _enrich_with_db_year(raw_results)
-    results = _filter_by_entity_suffixes(results, entity_suffixes)
-    return results[:params.limit]
+    return results[: params.limit]
 
 
 def get_story_by_path(story_path: str, db_year: int | str | None = None) -> dict | None:
@@ -330,9 +328,8 @@ def get_story_by_path(story_path: str, db_year: int | str | None = None) -> dict
         if row:
             if isinstance(row, sqlite3.Row) or hasattr(row, "keys"):
                 return dict(row)
-            else:
-                cols = [col[0] for col in cursor.description]
-                return dict(zip(cols, row))
+            cols = [col[0] for col in cursor.description]
+            return dict(zip(cols, row))
         return None
     except Exception:
         logger.exception("Failed to retrieve story by path: %s", story_path)

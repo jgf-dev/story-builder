@@ -2,12 +2,11 @@ import glob
 import os
 from pathlib import Path
 
-from google.cloud.storage import Client, transfer_manager
+from google.cloud.storage import Client
+from google.cloud.storage import transfer_manager
 
 
-def upload_many(
-    bucket_name: str, filenames: list[str], source_directory: str = "", workers: int = 8
-):
+def upload_many(bucket_name: str, filenames: list[str], source_directory: str = "", workers: int = 8):
     """Upload every file in a list to a bucket, concurrently in a process pool.
 
     Each blob name is derived from the filename, not including the
@@ -20,7 +19,10 @@ def upload_many(
     bucket = storage_client.bucket(bucket_name)
 
     results = transfer_manager.upload_many_from_filenames(
-        bucket, filenames, source_directory=source_directory, max_workers=workers
+        bucket,
+        filenames,
+        source_directory=source_directory,
+        max_workers=workers,
     )
 
     for name, result in zip(filenames, results):
@@ -28,9 +30,9 @@ def upload_many(
         # the input list, in order.
 
         if isinstance(result, Exception):
-            print("Failed to upload {} due to exception: {}".format(name, result))
+            print(f"Failed to upload {name} due to exception: {result}")
         else:
-            print("Uploaded {} to {}.".format(name, bucket.name))
+            print(f"Uploaded {name} to {bucket.name}.")
 
 
 if __name__ == "__main__":

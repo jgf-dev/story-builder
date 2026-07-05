@@ -7,7 +7,6 @@ and refines until all criteria pass or the iteration limit is reached.
 Based on the agentic-eval skill patterns.
 """
 
-import json
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -203,6 +202,6 @@ class LLMJudgeReflectionEvaluator(ReflectionEvaluator):
                         status="FAIL",
                         score=0.0,
                         feedback=f"Judge error: {e}",
-                    )
+                    ),
                 )
         return results

@@ -10,7 +10,6 @@ Fixtures:
 """
 
 import json
-import os
 from pathlib import Path
 
 import pytest
@@ -46,7 +45,7 @@ def load_jsonl(request):
         if not filepath.exists():
             pytest.skip(f"Dataset file not found: {filepath}")
         records = []
-        with open(filepath) as f:
+        with Path(filepath).open() as f:
             for line in f:
                 line = line.strip()
                 if line:
@@ -65,6 +64,7 @@ def tts_agent():
     """
     try:
         from storybuilder.agents.tts_prompt_crafter.agent import root_agent
+
         return root_agent
     except ImportError:
         pytest.skip("TTS Prompt Crafter agent module not available")

@@ -1,4 +1,3 @@
-import concurrent.futures
 import logging as std_logging
 import os
 import re
@@ -6,38 +5,48 @@ import sqlite3
 import threading
 from logging import getLogger
 from pathlib import Path
-from typing import Optional
 
-from sqlmodel import Field, Session, SQLModel, create_engine, select, text
-from sqlalchemy import func, literal_column
+from sqlalchemy import func
+from sqlalchemy import literal_column
+from sqlmodel import Field
+from sqlmodel import Session
+from sqlmodel import SQLModel
+from sqlmodel import create_engine
+from sqlmodel import select
+from sqlmodel import text
+
 
 logging = getLogger(__name__)
 
 # -- Schema -------------------------------------------------------------
 
+
 class Story(SQLModel, table=True):
     __tablename__ = "stories"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     path: str = Field(unique=True, index=True)
     orientation: str = Field(default="gay", sa_column_kwargs={"server_default": text("'gay'")})
-    category: Optional[str] = Field(default=None, index=True)
-    story_slug: Optional[str] = Field(default=None, index=True)
-    chapter_num: Optional[int] = Field(default=None)
-    title: Optional[str] = Field(default=None)
-    author_name: Optional[str] = Field(default=None, index=True)
-    author_email: Optional[str] = Field(default=None)
-    publication_date: Optional[str] = Field(default=None, index=True)
-    url: Optional[str] = Field(default=None)
+    category: str | None = Field(default=None, index=True)
+    story_slug: str | None = Field(default=None, index=True)
+    chapter_num: int | None = Field(default=None)
+    title: str | None = Field(default=None)
+    author_name: str | None = Field(default=None, index=True)
+    author_email: str | None = Field(default=None)
+    publication_date: str | None = Field(default=None, index=True)
+    url: str | None = Field(default=None)
     char_count: int = Field(index=True)
     word_count: int = Field()
     content: str = Field()
-    created_at: Optional[str] = Field(
-        default=None,
-        sa_column_kwargs={"server_default": text("CURRENT_TIMESTAMP")}
-    )
+    created_at: str | None = Field(default=None, sa_column_kwargs={"server_default": text("CURRENT_TIMESTAMP")})
 
-from sqlalchemy import Table, Column, Integer, Text, MetaData
+
+from sqlalchemy import Column
+from sqlalchemy import Integer
+from sqlalchemy import MetaData
+from sqlalchemy import Table
+from sqlalchemy import Text
+
 
 metadata_fts = MetaData()
 stories_fts = Table(
@@ -156,7 +165,6 @@ def _parse_author(raw: "str | None") -> "tuple[str | None, str | None]":
 # -- Path parsing -------------------------------------------------------
 
 
-
 def _parse_output_path(output_path: str) -> "tuple[str, str, str, int | None]":
     """Extract (orientation, category, story_slug, chapter_num) from a path.
 
@@ -192,7 +200,6 @@ def _parse_output_path(output_path: str) -> "tuple[str, str, str, int | None]":
     return orientation, category, story_slug, chapter_num
 
 
-
 # -- Schema migrations --------------------------------------------------
 
 
@@ -208,18 +215,13 @@ def _resume_interrupted_migration(conn: sqlite3.Connection) -> bool:
     if not legacy_columns:
         return False
 
-    copy_columns = [
-        col for col in STORY_COLUMNS if col in legacy_columns and col != "email_date"
-    ]
+    copy_columns = [col for col in STORY_COLUMNS if col in legacy_columns and col != "email_date"]
     cols_sql = ", ".join(copy_columns)
 
     try:
         conn.execute("BEGIN")
         if copy_columns:
-            conn.execute(
-                f"INSERT OR IGNORE INTO stories ({cols_sql}) "
-                f"SELECT {cols_sql} FROM stories_legacy"
-            )
+            conn.execute(f"INSERT OR IGNORE INTO stories ({cols_sql}) SELECT {cols_sql} FROM stories_legacy")
         conn.execute("DROP TABLE stories_legacy")
         try:
             conn.execute("DELETE FROM sqlite_sequence WHERE name = 'stories'")
@@ -243,9 +245,7 @@ def migrate_legacy_schema(conn: sqlite3.Connection) -> bool:
     if not legacy_columns or "email_date" not in legacy_columns:
         return False
 
-    copy_columns = [
-        col for col in STORY_COLUMNS if col in legacy_columns and col != "email_date"
-    ]
+    copy_columns = [col for col in STORY_COLUMNS if col in legacy_columns and col != "email_date"]
     if not copy_columns:
         return False
 
@@ -255,7 +255,7 @@ def migrate_legacy_schema(conn: sqlite3.Connection) -> bool:
         DROP TRIGGER IF EXISTS stories_ad;
         DROP TRIGGER IF EXISTS stories_au;
         DROP TABLE IF EXISTS stories_fts;
-        """
+        """,
     )
     conn.execute("ALTER TABLE stories RENAME TO stories_legacy")
     conn.executescript(SCHEMA)
@@ -263,9 +263,7 @@ def migrate_legacy_schema(conn: sqlite3.Connection) -> bool:
     cols_sql = ", ".join(copy_columns)
     try:
         conn.execute("BEGIN")
-        conn.execute(
-            f"INSERT INTO stories ({cols_sql}) SELECT {cols_sql} FROM stories_legacy"
-        )
+        conn.execute(f"INSERT INTO stories ({cols_sql}) SELECT {cols_sql} FROM stories_legacy")
         conn.execute("DROP TABLE stories_legacy")
         try:
             conn.execute("DELETE FROM sqlite_sequence WHERE name = 'stories'")
@@ -295,15 +293,13 @@ def init_db(db_path: str) -> "sqlite3.Connection":
     """Initialize the database (idempotent). Returns the connection."""
     global _conn, _is_partitioned, _db_dir, _monolithic_db_path, _engine, _db_path_global
 
-    is_dir = os.path.isdir(db_path) or (
-        not db_path.endswith(".db") and not Path(db_path).suffix
-    )
+    is_dir = Path(db_path).is_dir() or (not db_path.endswith(".db") and not Path(db_path).suffix)
 
     if is_dir:
-        os.makedirs(db_path, exist_ok=True)
+        Path(db_path).mkdir(exist_ok=True, parents=True)
         resolved_path = os.path.join(db_path, "stories.db")
     else:
-        os.makedirs(os.path.dirname(db_path) or ".", exist_ok=True)
+        Path(os.path.dirname(db_path) or ".").mkdir(exist_ok=True, parents=True)
         resolved_path = db_path
 
     _is_partitioned = False
@@ -311,9 +307,7 @@ def init_db(db_path: str) -> "sqlite3.Connection":
     _monolithic_db_path = resolved_path
     _db_path_global = resolved_path
 
-    _engine = create_engine(
-        f"sqlite:///{resolved_path}", connect_args={"check_same_thread": False}
-    )
+    _engine = create_engine(f"sqlite:///{resolved_path}", connect_args={"check_same_thread": False})
 
     # Initialize tables via SQLModel metadata
     SQLModel.metadata.create_all(_engine)
@@ -365,8 +359,12 @@ def search_stories(
     db_dir: "str | None" = None,
     db_paths: "list[str] | None" = None,
     query: "str | None" = None,
+    entity_suffixes: "list[str] | None" = None,
 ) -> list[dict]:
     """Search the monolithic database using SQLModel and SQLAlchemy expressions."""
+    if entity_suffixes == []:
+        return []
+
     if query is not None:
         fts_query = query
 
@@ -413,13 +411,14 @@ def search_stories(
                     query_stmt = query_stmt.where(Story.publication_date >= date_from)
                 if date_to:
                     query_stmt = query_stmt.where(Story.publication_date <= date_to)
+                if entity_suffixes:
+                    from sqlalchemy import or_
 
-                query_stmt = query_stmt.join(
-                    fts_table, Story.id == fts_table.c.rowid
-                )
-                query_stmt = query_stmt.where(
-                    literal_column("stories_fts").op("MATCH")(fts_query)
-                )
+                    or_clauses = [Story.path.like(f"%{suffix}") for suffix in entity_suffixes]
+                    query_stmt = query_stmt.where(or_(*or_clauses))
+
+                query_stmt = query_stmt.join(fts_table, Story.id == fts_table.c.rowid)
+                query_stmt = query_stmt.where(literal_column("stories_fts").op("MATCH")(fts_query))
                 query_stmt = query_stmt.order_by(literal_column("rank"))
                 query_stmt = query_stmt.limit(limit)
 
@@ -438,34 +437,37 @@ def search_stories(
                             "char_count": row[7],
                             "word_count": row[8],
                             "snippet": row[9],
-                        }
+                        },
                     )
                 return output
-            else:
-                # Standard filter path
-                stmt = select(Story)
-                if category and category != "All":
-                    stmt = stmt.where(Story.category == category)
-                if author and author != "All":
-                    stmt = stmt.where(Story.author_name == author)
-                if date_from:
-                    stmt = stmt.where(Story.publication_date >= date_from)
-                if date_to:
-                    stmt = stmt.where(Story.publication_date <= date_to)
+            # Standard filter path
+            stmt = select(Story)
+            if category and category != "All":
+                stmt = stmt.where(Story.category == category)
+            if author and author != "All":
+                stmt = stmt.where(Story.author_name == author)
+            if date_from:
+                stmt = stmt.where(Story.publication_date >= date_from)
+            if date_to:
+                stmt = stmt.where(Story.publication_date <= date_to)
+            if entity_suffixes:
+                from sqlalchemy import or_
 
-                stmt = stmt.order_by(Story.publication_date.desc())
-                stmt = stmt.limit(limit)
-                stories = session.exec(stmt).all()
-                output = []
-                for s in stories:
-                    d = s.model_dump()
-                    d["snippet"] = None
-                    output.append(d)
-                return output
+                or_clauses = [Story.path.like(f"%{suffix}") for suffix in entity_suffixes]
+                stmt = stmt.where(or_(*or_clauses))
+
+            stmt = stmt.order_by(Story.publication_date.desc())
+            stmt = stmt.limit(limit)
+            stories = session.exec(stmt).all()
+            output = []
+            for s in stories:
+                d = s.model_dump()
+                d["snippet"] = None
+                output.append(d)
+            return output
         except Exception as e:
             std_logging.exception("Error executing search_stories", exc_info=e)
             return []
-
 
 
 # -- Insert -------------------------------------------------------------
@@ -490,51 +492,48 @@ def insert_story(
     char_count = len(content)
     word_count = len(content.split())
 
-    with _lock:
-        with Session(engine) as session:
-            try:
-                # Query if story already exists by path to do INSERT OR REPLACE
-                db_story = session.exec(
-                    select(Story).where(Story.path == output_path)
-                ).first()
-                if db_story:
-                    db_story.orientation = orientation
-                    db_story.category = category
-                    db_story.story_slug = story_slug
-                    db_story.chapter_num = chapter_num
-                    db_story.title = title
-                    db_story.author_name = author_name
-                    db_story.author_email = author_email
-                    db_story.publication_date = story_date
-                    db_story.url = url
-                    db_story.char_count = char_count
-                    db_story.word_count = word_count
-                    db_story.content = content
-                    session.add(db_story)
-                else:
-                    db_story = Story(
-                        path=output_path,
-                        orientation=orientation,
-                        category=category,
-                        story_slug=story_slug,
-                        chapter_num=chapter_num,
-                        title=title,
-                        author_name=author_name,
-                        author_email=author_email,
-                        publication_date=story_date,
-                        url=url,
-                        char_count=char_count,
-                        word_count=word_count,
-                        content=content,
-                    )
-                    session.add(db_story)
-                session.commit()
-                return True
-            except Exception as e:
-                session.rollback()
-                message = "Unexpected error inserting story at %{message}: "
-                std_logging.exception(message, output_path, exc_info=e)
-                return False
+    with _lock, Session(engine) as session:
+        try:
+            # Query if story already exists by path to do INSERT OR REPLACE
+            db_story = session.exec(select(Story).where(Story.path == output_path)).first()
+            if db_story:
+                db_story.orientation = orientation
+                db_story.category = category
+                db_story.story_slug = story_slug
+                db_story.chapter_num = chapter_num
+                db_story.title = title
+                db_story.author_name = author_name
+                db_story.author_email = author_email
+                db_story.publication_date = story_date
+                db_story.url = url
+                db_story.char_count = char_count
+                db_story.word_count = word_count
+                db_story.content = content
+                session.add(db_story)
+            else:
+                db_story = Story(
+                    path=output_path,
+                    orientation=orientation,
+                    category=category,
+                    story_slug=story_slug,
+                    chapter_num=chapter_num,
+                    title=title,
+                    author_name=author_name,
+                    author_email=author_email,
+                    publication_date=story_date,
+                    url=url,
+                    char_count=char_count,
+                    word_count=word_count,
+                    content=content,
+                )
+                session.add(db_story)
+            session.commit()
+            return True
+        except Exception as e:
+            session.rollback()
+            message = "Unexpected error inserting story at %{message}: "
+            std_logging.exception(message, output_path, exc_info=e)
+            return False
 
 
 def story_exists(output_path: str, story_date: str = "") -> bool:
@@ -544,14 +543,10 @@ def story_exists(output_path: str, story_date: str = "") -> bool:
         return False
     with Session(engine) as session:
         try:
-            db_story = session.exec(
-                select(Story.id).where(Story.path == output_path)
-            ).first()
+            db_story = session.exec(select(Story.id).where(Story.path == output_path)).first()
             return db_story is not None
         except Exception as e:
-            std_logging.exception(
-                "Unexpected error checking story existence at %s", output_path, exc_info=e
-            )
+            std_logging.exception("Unexpected error checking story existence at %s", output_path, exc_info=e)
             return False
 
 
@@ -562,9 +557,7 @@ def get_story(output_path: str, story_date: str = "") -> "dict | None":
         return None
     with Session(engine) as session:
         try:
-            db_story = session.exec(
-                select(Story).where(Story.path == output_path)
-            ).first()
+            db_story = session.exec(select(Story).where(Story.path == output_path)).first()
             if db_story:
                 author_name = db_story.author_name
                 author_email = db_story.author_email
@@ -581,9 +574,7 @@ def get_story(output_path: str, story_date: str = "") -> "dict | None":
                 }
             return None
         except Exception as e:
-            std_logging.exception(
-                "Unexpected error retrieving story at %s", output_path, exc_info=e
-            )
+            std_logging.exception("Unexpected error retrieving story at %s", output_path, exc_info=e)
             return None
 
 
@@ -594,9 +585,7 @@ def optimize_fts() -> None:
         return
     with Session(engine) as session:
         try:
-            session.exec(
-                text("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
-            )
+            session.exec(text("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')"))
             session.commit()
         except Exception as e:
             std_logging.exception("FTS optimize skipped", exc_info=e)
@@ -613,4 +602,3 @@ def close_db() -> None:
         _db_dir = None
         _monolithic_db_path = None
         _db_path_global = None
-

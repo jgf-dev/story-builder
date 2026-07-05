@@ -11,15 +11,11 @@ from tqdm import tqdm
 def get_chunks(text, chunk_size=200):
     """Splits text into chunks of approximately `chunk_size` words."""
     words = text.split()
-    return [
-        " ".join(words[i : i + chunk_size]) for i in range(0, len(words), chunk_size)
-    ]
+    return [" ".join(words[i : i + chunk_size]) for i in range(0, len(words), chunk_size)]
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Generate embeddings for stories and store in ChromaDB."
-    )
+    parser = argparse.ArgumentParser(description="Generate embeddings for stories and store in ChromaDB.")
     parser.add_argument(
         "--limit",
         type=int,
@@ -50,12 +46,11 @@ def parse_args():
 def setup_collections(db_path):
     chroma_client = chromadb.PersistentClient(path=db_path)
 
-    collection_chunks = chroma_client.get_or_create_collection(
-        name="story_chunks", metadata={"hnsw:space": "cosine"}
-    )
+    collection_chunks = chroma_client.get_or_create_collection(name="story_chunks", metadata={"hnsw:space": "cosine"})
 
     collection_averages = chroma_client.get_or_create_collection(
-        name="story_averages", metadata={"hnsw:space": "cosine"}
+        name="story_averages",
+        metadata={"hnsw:space": "cosine"},
     )
 
     return chroma_client, collection_chunks, collection_averages
@@ -67,20 +62,15 @@ def process_story(filepath_str, collection_chunks, collection_averages, model):
         return False
 
     try:
-        with open(filepath_str, "r", encoding="utf-8") as f:
-            text = f.read()
+        text = Path(filepath_str).read_text(encoding="utf-8")
 
         chunks = get_chunks(text, chunk_size=250)
         if not chunks:
             return False
 
-        chunk_embeddings = model.encode(
-            chunks, convert_to_numpy=True, show_progress_bar=False
-        )
+        chunk_embeddings = model.encode(chunks, convert_to_numpy=True, show_progress_bar=False)
         chunk_ids = [f"{filepath_str}_chunk_{i}" for i in range(len(chunks))]
-        chunk_metadatas = [
-            {"story_id": filepath_str, "chunk_index": i} for i in range(len(chunks))
-        ]
+        chunk_metadatas = [{"story_id": filepath_str, "chunk_index": i} for i in range(len(chunks))]
 
         collection_chunks.add(
             ids=chunk_ids,
@@ -107,9 +97,7 @@ def process_story(filepath_str, collection_chunks, collection_averages, model):
 
 def main():
     args = parse_args()
-    chroma_client, collection_chunks, collection_averages = setup_collections(
-        args.db_path
-    )
+    chroma_client, collection_chunks, collection_averages = setup_collections(args.db_path)
 
     return chroma_client, collection_chunks, collection_averages
 
@@ -120,20 +108,15 @@ def process_story(filepath_str, collection_chunks, collection_averages, model):
         return False
 
     try:
-        with open(filepath_str, "r", encoding="utf-8") as f:
-            text = f.read()
+        text = Path(filepath_str).read_text(encoding="utf-8")
 
         chunks = get_chunks(text, chunk_size=250)
         if not chunks:
             return False
 
-        chunk_embeddings = model.encode(
-            chunks, convert_to_numpy=True, show_progress_bar=False
-        )
+        chunk_embeddings = model.encode(chunks, convert_to_numpy=True, show_progress_bar=False)
         chunk_ids = [f"{filepath_str}_chunk_{i}" for i in range(len(chunks))]
-        chunk_metadatas = [
-            {"story_id": filepath_str, "chunk_index": i} for i in range(len(chunks))
-        ]
+        chunk_metadatas = [{"story_id": filepath_str, "chunk_index": i} for i in range(len(chunks))]
 
         collection_chunks.add(
             ids=chunk_ids,
@@ -160,9 +143,7 @@ def process_story(filepath_str, collection_chunks, collection_averages, model):
 
 def main():
     args = parse_args()
-    chroma_client, collection_chunks, collection_averages = setup_collections(
-        args.db_path
-    )
+    chroma_client, collection_chunks, collection_averages = setup_collections(args.db_path)
 
     print(f"Loading SentenceTransformer model: {args.model}")
     device = "cuda" if torch.cuda.is_available() else "cpu"

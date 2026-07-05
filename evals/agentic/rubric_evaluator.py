@@ -4,11 +4,9 @@ Scores agent outputs against weighted evaluation dimensions using
 configurable rubrics. Supports LLM-as-judge and deterministic scorers.
 """
 
-import json
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass
-from dataclasses import field
 from typing import Any
 
 
@@ -123,7 +121,7 @@ class RubricEvaluator:
                     weighted_score=score / 5.0 * dim.weight,
                     reason=f"Override scorer for '{dim.name}' to get detailed feedback",
                     details={"criterion_description": dim.description},
-                )
+                ),
             )
 
         overall_score = sum(s.weighted_score for s in dimension_scores)
@@ -173,9 +171,9 @@ def default_llm_judge_scorer(
         prompt = f"""You are an expert evaluator. Score the following agent response
 on a scale of 1 (worst) to 5 (best).
 
-Task: {context.get('task', 'N/A')}
+Task: {context.get("task", "N/A")}
 
-Agent Response: {context.get('response', 'N/A')}
+Agent Response: {context.get("response", "N/A")}
 
 Return only a number from 1 to 5."""
         try:

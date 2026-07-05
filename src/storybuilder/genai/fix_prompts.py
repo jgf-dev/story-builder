@@ -28,7 +28,9 @@ You are an expert audio director. Rewrite the provided TTS prompt text to fix th
 def extract_markdown_block(content: str) -> str:
     content = content.strip()
     # Match ```markdown ... ``` or ``` ... ```
-    match = re.match(r"^```(?:markdown)?\s*\n(.*?)\n```$", content, re.DOTALL | re.IGNORECASE)
+    match = re.match(
+        r"^```(?:markdown)?\s*\n(.*?)\n```$", content, re.DOTALL | re.IGNORECASE
+    )
     if match:
         return match.group(1).strip()
     # Match any generic block at start and end

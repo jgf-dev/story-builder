@@ -18,6 +18,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+
 # Maximum number of real audio API calls to make during the test.
 MAX_API_CALLS = 3
 
@@ -63,7 +64,8 @@ class TestTTSPipeline(unittest.TestCase):
         """
         from google import genai
 
-        from storybuilder.genai.client import get_gemini_api_keys, process_file
+        from storybuilder.genai.client import get_gemini_api_keys
+        from storybuilder.genai.client import process_file
 
         api_keys = get_gemini_api_keys()
         self.assertGreater(len(api_keys), 0, "No GEMINI_API_KEY found in environment")

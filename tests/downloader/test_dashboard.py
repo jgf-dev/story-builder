@@ -35,9 +35,7 @@ class TestDashboard(unittest.TestCase):
 
         # Patch db.py globals used by dashboard's new refactored code
         import storybuilder.downloader.db as sb_db
-
-        sb_db._db_dir = self.db_dir
-        sb_db._is_partitioned = True
+        sb_db.init_db(self.db_dir)
 
         self.patch_dir.start()
         self.patch_nlp.start()
@@ -49,29 +47,27 @@ class TestDashboard(unittest.TestCase):
         self.patch_meta.stop()
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def _create_mock_partition(self, year, category, title, author, date, word_count, path, content):
-        from storybuilder.downloader.db import INDEXES, SCHEMA
-
-        db_path = os.path.join(self.db_dir, f"{year}.db")
-        conn = sqlite3.connect(db_path)
-        conn.executescript(SCHEMA)
-        conn.executescript(INDEXES)
-
-        # Insert test story
-        conn.execute(
-            """
-            INSERT OR REPLACE INTO stories (
-                path, orientation, category, story_slug, chapter_num, title,
-                author_name, author_email, publication_date, url, char_count, word_count, content
-            )
-            VALUES (?, 'gay', ?, ?, 1, ?, ?, 'test@email.com', ?, 'http://test', ?, ?, ?)
-            """,
-            (path, category, Path(path).stem, title, author, date, len(content), word_count, content),
+    def _create_mock_partition(
+        self, year, category, title, author, date, word_count, path, content
+    ):
+        from storybuilder.downloader import db as sb_db
+        from sqlmodel import Session, select
+        
+        sb_db.insert_story(
+            output_path=path,
+            title=title,
+            author=author,
+            story_date=date,
+            url="http://test",
+            content=content,
         )
-        conn.commit()
-        conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
-        conn.commit()
-        conn.close()
+        if word_count is not None:
+            with Session(sb_db._engine) as session:
+                story = session.exec(select(sb_db.Story).where(sb_db.Story.path == path)).first()
+                if story:
+                    story.word_count = word_count
+                    session.add(story)
+                    session.commit()
 
     def _create_mock_nlp_db(self, filepath, text, label):
         conn = sqlite3.connect(self.nlp_db_path)
@@ -96,9 +92,16 @@ class TestDashboard(unittest.TestCase):
             )
             """
         )
-        conn.execute("INSERT OR REPLACE INTO stories (filepath) VALUES (?)", (filepath,))
-        story_id = conn.execute("SELECT id FROM stories WHERE filepath = ?", (filepath,)).fetchone()[0]
-        conn.execute("INSERT INTO entities (story_id, text, label, frequency) VALUES (?, ?, ?, 1)", (story_id, text, label))
+        conn.execute(
+            "INSERT OR REPLACE INTO stories (filepath) VALUES (?)", (filepath,)
+        )
+        story_id = conn.execute(
+            "SELECT id FROM stories WHERE filepath = ?", (filepath,)
+        ).fetchone()[0]
+        conn.execute(
+            "INSERT INTO entities (story_id, text, label, frequency) VALUES (?, ?, ?, 1)",
+            (story_id, text, label),
+        )
         conn.commit()
         conn.close()
 
@@ -121,7 +124,9 @@ class TestDashboard(unittest.TestCase):
         self.assertEqual(get_favorites(), [])
 
         # Add favorite
-        success = add_favorite("test_path.txt", "Test Story", "Test Author", "tag1,tag2", "Some notes")
+        success = add_favorite(
+            "test_path.txt", "Test Story", "Test Author", "tag1,tag2", "Some notes"
+        )
         self.assertTrue(success)
 
         favs = get_favorites()
@@ -132,7 +137,13 @@ class TestDashboard(unittest.TestCase):
         self.assertEqual(favs[0]["notes"], "Some notes")
 
         # Update favorite
-        success_update = add_favorite("test_path.txt", "Test Story", "Test Author", "tag1,tag2,tag3", "Updated notes")
+        success_update = add_favorite(
+            "test_path.txt",
+            "Test Story",
+            "Test Author",
+            "tag1,tag2,tag3",
+            "Updated notes",
+        )
         self.assertTrue(success_update)
         favs = get_favorites()
         self.assertEqual(favs[0]["tags"], "tag1,tag2,tag3")
@@ -231,7 +242,11 @@ class TestDashboard(unittest.TestCase):
 
         # Create NLP entries
         # Path inside NLP db starts with test_stories, but we normalize
-        self._create_mock_nlp_db(filepath="test_stories/gay/college/story1.txt", text="Jordi Santos", label="PERSON")
+        self._create_mock_nlp_db(
+            filepath="test_stories/gay/college/story1.txt",
+            text="Jordi Santos",
+            label="PERSON",
+        )
 
         # Filter by entity text & label
         res_ent = query_stories(entity_text="Jordi", entity_label="PERSON")

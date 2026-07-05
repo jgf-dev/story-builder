@@ -1,7 +1,12 @@
-from xai_sdk.chat import system, user
+import pathlib
 
-from storybuilder.utils import get_prompt, get_story
 from storybuilder.xaiapi.client import create_chat_session
+from xai_sdk.chat import system
+from xai_sdk.chat import user
+
+from storybuilder.utils import get_prompt
+from storybuilder.utils import get_story
+
 
 annotate_prompt = get_prompt("annotate")
 
@@ -20,5 +25,4 @@ def annotate_story(story: str) -> str:
 
 if __name__ == "__main__":
     ann = annotate_story("cumshort")
-    with open("../../stories/cumshort.annotated.md", "w") as f:
-        f.write(ann)
+    pathlib.Path("../../stories/cumshort.annotated.md").write_text(ann)

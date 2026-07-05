@@ -2,7 +2,8 @@ import glob
 import os
 from pathlib import Path
 
-from google.cloud.storage import Client, transfer_manager
+from google.cloud.storage import Client
+from google.cloud.storage import transfer_manager
 
 
 def upload_many(bucket_name: str, filenames: list[str], source_directory: str = "", workers: int = 8):
@@ -17,16 +18,21 @@ def upload_many(bucket_name: str, filenames: list[str], source_directory: str = 
     storage_client = Client()
     bucket = storage_client.bucket(bucket_name)
 
-    results = transfer_manager.upload_many_from_filenames(bucket, filenames, source_directory=source_directory, max_workers=workers)
+    results = transfer_manager.upload_many_from_filenames(
+        bucket,
+        filenames,
+        source_directory=source_directory,
+        max_workers=workers,
+    )
 
     for name, result in zip(filenames, results):
         # The results list is either `None` or an exception for each filename in
         # the input list, in order.
 
         if isinstance(result, Exception):
-            print("Failed to upload {} due to exception: {}".format(name, result))
+            print(f"Failed to upload {name} due to exception: {result}")
         else:
-            print("Uploaded {} to {}.".format(name, bucket.name))
+            print(f"Uploaded {name} to {bucket.name}.")
 
 
 if __name__ == "__main__":

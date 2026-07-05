@@ -1,12 +1,11 @@
 import argparse
 import concurrent.futures
 import datetime
-import glob
 import sys
 import time
 from pathlib import Path
 
-from storybuilder.downloader.storage import upload_many
+from storybuilder.downloader.storage import upload_many_gcs, upload_many_s3
 
 # Add project root to sys.path to enable absolute imports when run directly as a script
 if __name__ == "__main__" and __package__ is None:
@@ -81,6 +80,26 @@ def _parse_args() -> argparse.Namespace:
         "--db",
         default="stories/db",
         help="SQLite database path or directory. Stories are inserted into partitioned databases under this path as they download. Set to empty string to disable.",
+    )
+    parser.add_argument(
+        "--s3-bucket",
+        default="",
+        help="S3 bucket to upload the output tree to.",
+    )
+    parser.add_argument(
+        "--s3-prefix",
+        default="",
+        help="S3 object prefix.",
+    )
+    parser.add_argument(
+        "--gcs-bucket",
+        default="",
+        help="GCS bucket to upload the output tree to.",
+    )
+    parser.add_argument(
+        "--gcs-prefix",
+        default="",
+        help="GCS object prefix.",
     )
     return parser.parse_args()
 
@@ -252,17 +271,44 @@ def _download_stories(
     return successful_downloads
 
 
-def _upload_to_gcs(db_path_str: str) -> None:
-    db_path = Path(db_path_str)
+def _upload_to_cloud(args: argparse.Namespace) -> None:
+    db_path = Path(args.db)
     if db_path.is_dir():
-        db_files = glob.glob(str(db_path / "*.db"))
+        db_files = [str(p) for p in db_path.glob("*.db")]
         source_dir = str(db_path)
     else:
         db_files = [str(db_path)]
         source_dir = str(db_path.parent)
 
-    print("Uploading to GCS...")
-    upload_many("nifty-index", db_files, source_directory=source_dir)
+    # Output tree
+    output_dir = Path(args.output_dir)
+    output_files = (
+        [str(p) for p in output_dir.rglob("*") if p.is_file()]
+        if output_dir.exists()
+        else []
+    )
+
+    if args.s3_bucket:
+        print(f"Uploading output tree to S3 ({args.s3_bucket})...")
+        upload_many_s3(
+            args.s3_bucket,
+            args.s3_prefix,
+            output_files,
+            source_directory=str(output_dir),
+        )
+
+    if args.gcs_bucket:
+        print(f"Uploading output tree to GCS ({args.gcs_bucket})...")
+        upload_many_gcs(
+            args.gcs_bucket,
+            args.gcs_prefix,
+            output_files,
+            source_directory=str(output_dir),
+        )
+    elif not args.s3_bucket:
+        # Fallback to the original behavior: upload DB files to GCS nifty-index
+        print("Uploading to GCS...")
+        upload_many_gcs("nifty-index", "", db_files, source_directory=source_dir)
 
 
 def main():
@@ -297,7 +343,7 @@ def main():
         db.optimize_fts()
         db.close_db()
         print(f"Stories saved to database: {args.db}")
-        _upload_to_gcs(args.db)
+        _upload_to_cloud(args)
 
 
 if __name__ == "__main__":

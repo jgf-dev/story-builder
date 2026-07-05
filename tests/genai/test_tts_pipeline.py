@@ -72,6 +72,10 @@ class TestTTSPipeline(unittest.TestCase):
             previous_id = None
             generated = []
 
+            for i, md_file in enumerate(self.prompt_files):
+                base_name = os.path.basename(md_file).replace(".md", "")
+                wav_file = os.path.join(tmp_dir, f"{base_name}.wav")
+
 
                 # Sanitize voice names to valid Gemini voices for the integration test
                 with open(md_file, "r", encoding="utf-8") as f:
@@ -105,7 +109,7 @@ class TestTTSPipeline(unittest.TestCase):
                     generated.append(wav_file)
                     print(f"  ✓ WAV written ({size} bytes)")
                 else:
-                    print(f"  ⚠ No WAV output — API returned no audio (non-fatal)")
+                    print("  ⚠ No WAV output — API returned no audio (non-fatal)")
 
             print(f"\nTTS pipeline test complete: {len(generated)}/{len(self.prompt_files)} files generated audio.")
 

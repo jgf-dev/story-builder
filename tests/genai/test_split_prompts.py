@@ -202,7 +202,7 @@ class TestDBIntegration(unittest.TestCase):
             ]
 
             # Monkey patch upload_many to avoid hitting GCS during unit test
-            self.patcher_upload = unittest.mock.patch("storybuilder.downloader.cli.upload_many")
+            self.patcher_upload = unittest.mock.patch("storybuilder.downloader.cli.upload_many_gcs")
             self.mock_upload = self.patcher_upload.start()
         except Exception as e:
             self.fail(f"Error setting up mocks: {e}")

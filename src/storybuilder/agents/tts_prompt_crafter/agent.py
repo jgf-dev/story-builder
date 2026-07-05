@@ -22,14 +22,22 @@ from google.adk.models import Gemini
 from google.adk.runners import Runner
 from google.adk.sessions import DatabaseSessionService
 from google.adk.telemetry.setup import maybe_set_otel_providers
-from google.genai import Client, types
-from opentelemetry import _logs, metrics, trace
+from google.genai import Client
+from google.genai import types
+from opentelemetry import _logs
+from opentelemetry import metrics
+from opentelemetry import trace
 from opentelemetry._logs._internal import ProxyLoggerProvider
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+from pydantic import Field
 from pydantic.types import NonNegativeInt
 
 from .prompts import get_prompt
-from .tools import list_stories, read_story, split_scene_files, write_scene_file
+from .tools import list_stories
+from .tools import read_story
+from .tools import split_scene_files
+from .tools import write_scene_file
+
 
 dotenv_path = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", ".env")
@@ -64,21 +72,6 @@ def _otel_providers_are_default() -> bool:
 
 if _otel_providers_are_default():
     maybe_set_otel_providers()
-
-logger = logging.getLogger(__name__)
-
-
-logger = logging.getLogger(__name__)
-
-
-logger = logging.getLogger(__name__)
-
-
-logger = logging.getLogger(__name__)
-
-
-logger = logging.getLogger(__name__)
-
 
 # ---------------------------------------------------------------------------
 # Safety Settings — all categories set to OFF for explicit content support
@@ -385,7 +378,9 @@ runner = Runner(
 )
 
 logging.getLogger(__name__).info(f"Runner created for agent '{runner.agent.name}'.")
-logging.getLogger(__name__).info(f"  Sub-agents: {story_analyzer.name}, {scene_writer.name}")
+logging.getLogger(__name__).info(
+    f"  Sub-agents: {story_analyzer.name}, {scene_writer.name}"
+)
 logging.getLogger(__name__).info(
     f"  Function tools: {read_story.__name__}, {list_stories.__name__}, {write_scene_file.__name__}, {split_scene_files.__name__}"
 )

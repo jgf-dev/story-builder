@@ -30,4 +30,16 @@ benchmark.db
 dummy_stories/
 .kanban.db
 test_dbs/
+*.db.sql
+
+# Agent scratch folders
+.qwen
+.qoder
+.jules
+.hermes
+.cursor
+
+# Temp folders
+.context-engine
+.bt
 test.db

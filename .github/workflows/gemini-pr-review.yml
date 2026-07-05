@@ -11,7 +11,8 @@ jobs:
     timeout-minutes: 5
 
     concurrency:
-      group: pr-agent-${{ github.event.pull_request.number }}
+      group: pr-agent-${{ github.event.pull_request.number || github.event.issue.number }}
+
       cancel-in-progress: true
 
     if: ${{ github.event.sender.type != 'Bot' }}

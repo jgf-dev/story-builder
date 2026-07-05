@@ -5,9 +5,13 @@ import re
 import subprocess
 import sys
 
+
 def natural_sort_key(s):
     """Sort strings containing numbers naturally."""
-    return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', s)]
+    return [
+        int(text) if text.isdigit() else text.lower() for text in re.split(r"(\d+)", s)
+    ]
+
 
 def get_audio_player():
     if sys.platform == "darwin":
@@ -17,6 +21,7 @@ def get_audio_player():
     else:
         # Assuming linux
         return ["aplay", "-q"]
+
 
 def play_sequence(directory):
     files = glob.glob(os.path.join(directory, "*-part.wav"))
@@ -46,9 +51,14 @@ def play_sequence(directory):
             print("\nPlayback stopped by user.")
             break
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Play a sequence of TTS audio files.")
-    parser.add_argument("--dir", default="stories/the_secret_vacation", help="Directory containing the *-part.wav files")
+    parser.add_argument(
+        "--dir",
+        default="stories/the_secret_vacation",
+        help="Directory containing the *-part.wav files",
+    )
     args = parser.parse_args()
 
     if os.path.isdir(args.dir):

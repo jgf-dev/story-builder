@@ -45,7 +45,6 @@ def fetch_embeddings(db_path: str) -> Tuple[List[str], np.ndarray, List[dict]]:
         )
         return [], np.array([]), []
 
-
     print("Fetching embeddings from database...")
     data = collection_averages.get(include=["embeddings", "metadatas"])
 

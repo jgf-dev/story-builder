@@ -59,7 +59,8 @@ def init_db(db_path):
             entity_label TEXT,
             FOREIGN KEY(sentence_id) REFERENCES sentences(id)
         )
-    """)
+    """
+    )
     cursor.execute(
         "CREATE INDEX IF NOT EXISTS idx_sentences_story ON sentences(story_id)"
     )
@@ -158,10 +159,9 @@ def load_models(spacy_model_name, sentiment_model_name, use_gpu):
     print(f"Loading models (spaCy: {spacy_model_name}, HF: {sentiment_model_name})...")
     device = 0 if use_gpu else -1
 
+
 def load_models(spacy_model_name, sentiment_model_name, use_gpu):
-    print(
-        f"Loading models (spaCy: {spacy_model_name}, HF: {sentiment_model_name})..."
-    )
+    print(f"Loading models (spaCy: {spacy_model_name}, HF: {sentiment_model_name})...")
     device = 0 if use_gpu else -1
 
     if use_gpu:
@@ -185,6 +185,7 @@ def load_models(spacy_model_name, sentiment_model_name, use_gpu):
     return nlp, sentiment_pipe
 
     return nlp, sentiment_pipe
+
 
 def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe):
     with open(filepath, "r", encoding="utf-8") as f:

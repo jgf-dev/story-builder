@@ -61,7 +61,9 @@ class TestFindSimilar(unittest.TestCase):
 
         # Assert output contains the expected error message
         output = captured_output.getvalue()
-        self.assertIn("Error: Story 'nonexistent_story.txt' not found in the database.", output)
+        self.assertIn(
+            "Error: Story 'nonexistent_story.txt' not found in the database.", output
+        )
 
     @patch("storybuilder.analysis.find_similar.chromadb.PersistentClient")
     @patch("storybuilder.analysis.find_similar.argparse.ArgumentParser.parse_args")
@@ -94,11 +96,15 @@ class TestFindSimilar(unittest.TestCase):
 
         # Assert output contains the expected error message
         output = captured_output.getvalue()
-        self.assertIn("Error: Story 'nonexistent_story.txt' not found in the database.", output)
+        self.assertIn(
+            "Error: Story 'nonexistent_story.txt' not found in the database.", output
+        )
 
     @patch("storybuilder.analysis.find_similar.chromadb.PersistentClient")
     @patch("storybuilder.analysis.find_similar.argparse.ArgumentParser.parse_args")
-    def test_missing_story_embeddings_empty_list(self, mock_parse_args, mock_chroma_client):
+    def test_missing_story_embeddings_empty_list(
+        self, mock_parse_args, mock_chroma_client
+    ):
         # Setup mock args
         mock_args = MagicMock()
         mock_args.target_story = "nonexistent_story.txt"
@@ -127,7 +133,9 @@ class TestFindSimilar(unittest.TestCase):
 
         # Assert output contains the expected error message
         output = captured_output.getvalue()
-        self.assertIn("Error: Story 'nonexistent_story.txt' not found in the database.", output)
+        self.assertIn(
+            "Error: Story 'nonexistent_story.txt' not found in the database.", output
+        )
 
 
 if __name__ == "__main__":

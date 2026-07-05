@@ -4,13 +4,17 @@
 # documentation.
 name: Linear sync or create
 on:
- - pull_request
- - issues
- - discussion
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+  issues:
+    types: [opened, reopened, labeled]
+  discussion:
+    types: [created, answered, labeled]
 
 permissions:
   pull-requests: write
   issues: write
+  discussions: write
 
 jobs:
   dependabot:
@@ -34,4 +38,3 @@ jobs:
           #linear-issue-label-ids: # optional
           # GitHub token required to modify the PR title.
           github-token: "${{ secrets.GITHUB_TOKEN }}"
-

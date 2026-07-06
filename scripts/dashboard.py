@@ -120,7 +120,6 @@ def get_nlp_conn():
 @st.cache_data
 def get_filter_options():
     """Compile distinct categories and authors across all partitions for filters."""
-    from storybuilder.downloader import db as storybuilder_db
 
     # Expected optimization impact: Resolving categories and authors across M year partitions
     # O(2 * M) individual DB queries -> 2 queries using ATTACH DATABASE.
@@ -283,7 +282,6 @@ def query_stories(
                 if len(parts) >= 3:
                     entity_suffixes.append("/".join(parts[-3:]))
 
-    from storybuilder.downloader import db as storybuilder_db
 
     date_from = None
     date_to = None

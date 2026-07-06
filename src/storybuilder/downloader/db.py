@@ -152,7 +152,6 @@ def _parse_author(raw: "str | None") -> "tuple[str | None, str | None]":
     """Parse 'Name <email>' or bare email into (name, email)."""
     if not raw:
         return None, None
-_CHAPTER_SUFFIX_RE = re.compile(r"^(.+?)-(\d+)\.(txt|html)$")
     m = _EMAIL_AUTHOR_RE.match(raw)
     if m:
         return m.group(1).strip(), m.group(2).strip()
@@ -531,8 +530,7 @@ def insert_story(
             return True
         except Exception as e:
             session.rollback()
-            message = "Unexpected error inserting story at %{message}: "
-                message = "Unexpected error inserting story at %s: "
+            std_logging.exception("Unexpected error inserting story at %s", output_path, exc_info=e)
             return False
 
 

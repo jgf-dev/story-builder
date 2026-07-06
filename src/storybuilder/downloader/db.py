@@ -274,12 +274,12 @@ def migrate_legacy_schema(conn: sqlite3.Connection) -> bool:
         raise
 
     conn.executescript(INDEXES)
+    conn.executescript(INDEXES)
     try:
         conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('rebuild')")
-    except sqlite3.OperationalError as exc:
-        # Best-effort FTS rebuild: some SQLite builds/configurations may not support it here.
-        logging.debug("Skipping stories_fts rebuild during migration: %s", exc)
-
+    except sqlite3.OperationalError:
+        pass
+    return True
 
 def _migrate_schema(conn: "sqlite3.Connection") -> None:
     """Apply schema migrations to an existing partition or database file."""

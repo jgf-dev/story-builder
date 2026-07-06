@@ -231,19 +231,6 @@ def load_archive_stats():
     )
     return df_years, df_cats, df_auths, df_words
 
-    order = [
-        "Short (<1K)",
-        "Medium-Short (1K-5K)",
-        "Medium (5K-10K)",
-        "Medium-Long (10K-20K)",
-        "Long (20K-50K)",
-        "Epic (>50K)",
-    ]
-    df_words = pd.DataFrame(
-        [{"Bracket": b, "Stories": bracket_counts[b]} for b in order]
-    )
-
-    return df_years, df_cats, df_auths, df_words
 
 
 # ------------------------------------------------------------------------------

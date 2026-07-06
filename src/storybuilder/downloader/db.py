@@ -532,7 +532,7 @@ def insert_story(
         except Exception as e:
             session.rollback()
             message = "Unexpected error inserting story at %{message}: "
-            std_logging.exception(message, output_path, exc_info=e)
+                message = "Unexpected error inserting story at %s: "
             return False
 
 

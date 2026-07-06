@@ -118,7 +118,11 @@ class RubricEvaluator:
                     dimension=dim.name,
                     score=score,
                     weight=dim.weight,
-                    weighted_score=score / 5.0 * dim.weight,
+                    weighted_score=weighted,
+                    reason=f"Override scorer for '{dim.name}' to get detailed feedback",
+                    details={"criterion_description": dim.description},
+                ),
+            )
                     reason=f"Override scorer for '{dim.name}' to get detailed feedback",
                     details={"criterion_description": dim.description},
                 ),

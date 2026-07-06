@@ -3,7 +3,6 @@ import os
 import re
 import sqlite3
 import threading
-from logging import getLogger
 from pathlib import Path
 
 from sqlalchemy import func
@@ -16,7 +15,7 @@ from sqlmodel import select
 from sqlmodel import text
 
 
-logging = getLogger(__name__)
+logging = std_logging.getLogger(__name__)
 
 # -- Schema -------------------------------------------------------------
 

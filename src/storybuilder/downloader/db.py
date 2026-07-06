@@ -152,7 +152,7 @@ def _parse_author(raw: "str | None") -> "tuple[str | None, str | None]":
     """Parse 'Name <email>' or bare email into (name, email)."""
     if not raw:
         return None, None
-    raw = raw.strip()
+_CHAPTER_SUFFIX_RE = re.compile(r"^(.+?)-(\d+)\.(txt|html)$")
     m = _EMAIL_AUTHOR_RE.match(raw)
     if m:
         return m.group(1).strip(), m.group(2).strip()

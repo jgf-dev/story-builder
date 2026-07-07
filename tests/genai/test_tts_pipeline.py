@@ -72,6 +72,8 @@ class TestTTSPipeline(unittest.TestCase):
             previous_id = None
             generated = []
 
+            for md_file in sample_files:
+                base_name = os.path.basename(md_file).replace(".md", "")
 
                 # Sanitize voice names to valid Gemini voices for the integration test
                 with open(md_file, "r", encoding="utf-8") as f:

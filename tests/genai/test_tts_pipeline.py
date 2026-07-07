@@ -76,17 +76,17 @@ class TestTTSPipeline(unittest.TestCase):
                 base_name = os.path.splitext(os.path.basename(md_file))[0]
                 wav_file = os.path.join(tmp_dir, f"{base_name}.wav")
 
-            # Sanitize voice names to valid Gemini voices for the integration test
-            with open(md_file, "r", encoding="utf-8") as f:
-                content = f.read()
-            content = (
-                content.replace("en-US-Journey-F", "Aoede")
-                .replace("en-US-Journey-D", "Charon")
-                .replace("en-US-Journey-O", "Kore")
-            )
-            temp_md_file = os.path.join(tmp_dir, f"{base_name}.md")
-            with open(temp_md_file, "w", encoding="utf-8") as f:
-                f.write(content)
+                # Sanitize voice names to valid Gemini voices for the integration test
+                with open(md_file, "r", encoding="utf-8") as f:
+                    content = f.read()
+                content = (
+                    content.replace("en-US-Journey-F", "Aoede")
+                    .replace("en-US-Journey-D", "Charon")
+                    .replace("en-US-Journey-O", "Kore")
+                )
+                temp_md_file = os.path.join(tmp_dir, f"{base_name}.md")
+                with open(temp_md_file, "w", encoding="utf-8") as f:
+                    f.write(content)
                 print(f"\n[{i+1}/{len(self.prompt_files)}] Processing: {os.path.basename(md_file)}")
                 if previous_id:
                     print(f"  Linking to previous_interaction_id={previous_id[:12]}... for voice continuity")
@@ -108,13 +108,16 @@ class TestTTSPipeline(unittest.TestCase):
                     generated.append(wav_file)
                     print(f"  ✓ WAV written ({size} bytes)")
                 else:
-                    print(f"  ⚠ No WAV output — API returned no audio (non-fatal)")
+                    print("  ⚠ No WAV output — API returned no audio (non-fatal)")
 
             print(f"\nTTS pipeline test complete: {len(generated)}/{len(self.prompt_files)} files generated audio.")
 
         finally:
             shutil.rmtree(tmp_dir, ignore_errors=True)
 
+            for i, md_file in enumerate(self.prompt_files):
+                base_name = os.path.splitext(os.path.basename(md_file))[0]
+                wav_file = os.path.join(tmp_dir, f"{base_name}.wav")
 
 if __name__ == "__main__":
     unittest.main()

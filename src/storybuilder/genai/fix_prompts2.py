@@ -89,7 +89,7 @@ def fix_prompts(directory):
             with open(md_file, "w") as f:
                 f.write(fixed_content)
 
-            print(f"  Fixed and saved.")
+            print("  Fixed and saved.")
         except Exception as e:
             print(f"  Error processing {os.path.basename(md_file)}: {e}")
 

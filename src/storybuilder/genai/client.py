@@ -23,6 +23,7 @@ def wave_file(filename, pcm, channels=1, rate=24000, sample_width=2):
 def _parse_voice_mappings(markdown_content):
     """Parses the markdown content to extract speaker to voice mappings and the transcript."""
     speaker_to_voice = {}
+    speakers = []
 
     parts = markdown_content.split("#### TRANSCRIPT")
     if len(parts) == 2:
@@ -40,8 +41,10 @@ def _parse_voice_mappings(markdown_content):
                 speaker = match.group(1)
                 voice = match.group(2)
                 speaker_to_voice[speaker] = voice
+                if speaker not in speakers:
+                    speakers.append(speaker)
 
-    return speaker_to_voice, transcript
+    return speaker_to_voice, speakers, transcript
 
 
 def _extract_active_speakers(transcript):
@@ -88,7 +91,7 @@ def _build_speech_config(active_speakers, speaker_to_voice):
 def parse_speech_config(markdown_content):
     """Parses the markdown content to extract speakers and voices, dynamically matching active speakers in the transcript."""
     # 1. Parse all voice mappings defined in the preamble
-    speaker_to_voice, transcript = _parse_voice_mappings(markdown_content)
+    speaker_to_voice, speakers, transcript = _parse_voice_mappings(markdown_content)
 
     # 2. Extract active speakers actually speaking in the transcript (in order of appearance)
     active_speakers = _extract_active_speakers(transcript)

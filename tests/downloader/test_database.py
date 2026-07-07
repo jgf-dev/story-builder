@@ -258,16 +258,10 @@ class TestDatabaseInit(unittest.TestCase):
             """
             INSERT INTO stories (
                 path, orientation, category, story_slug, chapter_num,
-<<<<<<< HEAD
-                title, author_name, author_email,
-                publication_date, url, char_count, word_count, content, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-=======
                 title, author_name, author_email, email_date,
                 publication_date, url,
                 char_count, word_count, content, created_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
->>>>>>> decisive-hoverfly
             """,
             (
                 "nifty_stories/gay/test/legacy.txt",
@@ -278,6 +272,7 @@ class TestDatabaseInit(unittest.TestCase):
                 "Legacy Story",
                 "Legacy Author",
                 "legacy@example.com",
+                "2024-01-10",
                 "2024-01-15",
                 "https://example.com/legacy",
                 123,

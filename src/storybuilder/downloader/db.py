@@ -107,7 +107,6 @@ _CHAPTER_SUFFIX_RE = re.compile(r"^(.+?)-(\d+)$")
 
 # -- Constants ----------------------------------------------------------
 
-_BASE_TOPIC = "Gay"
 _MIN_PATH_PARTS = 3
 
 # -- Author parsing -----------------------------------------------------
@@ -136,18 +135,21 @@ def _parse_output_path(output_path: str) -> "tuple[str, str, str, int | None]":
     Path structure (5+ parts): <output_dir>/<orientation>/<category>/<story_slug>/<file>
     """
     parts = Path(output_path).parts
-    if len(parts) <= _MIN_PATH_PARTS:
-        message = f"Invalid output path: {output_path}. Must have at least 4 parts."
+    if len(parts) < _MIN_PATH_PARTS:
+        message = f"Invalid output path: {output_path}. Must have at least {_MIN_PATH_PARTS} parts."
         raise ValueError(message)
 
+    orientation = parts[1].lower()
+    category = parts[_MIN_PATH_PARTS - 1]
     story_slug = parts[-2] if len(parts) >= _MIN_PATH_PARTS + 2 else Path(parts[-1]).stem
 
     chapter_num = None
-
     if m := _CHAPTER_SUFFIX_RE.match(story_slug):
         chapter_num = int(m.group(2))
+    elif m := _CHAPTER_SUFFIX_RE.match(Path(parts[-1]).stem):
+        chapter_num = int(m.group(2))
 
-    return _BASE_TOPIC, parts[_MIN_PATH_PARTS - 1], story_slug, chapter_num
+    return orientation, category, story_slug, chapter_num
 
 
 # -- Schema migrations --------------------------------------------------

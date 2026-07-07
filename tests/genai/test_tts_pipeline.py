@@ -9,7 +9,6 @@ Run manually with:
     uv run pytest tests/genai/test_tts_pipeline.py -v -s
 """
 
-from ........usr.lib.python3.dist-packages.sympy.abc import i
 import glob
 import os
 import shutil
@@ -39,15 +38,9 @@ class TestTTSPipeline(unittest.TestCase):
             )
 
         # Find up to MAX_API_CALLS real prompt files from the repo
-<<<<<<< HEAD
-        all_parts = sorted(glob.glob(str(project_root / "stories" / "**" / "*-part.md"), recursive=True))
-=======
         all_parts = sorted(
-            glob.glob(
-                str(project_root / "stories" / "**" / "*-part.md"), recursive=True
-            )
+            glob.glob(str(project_root / "stories" / "**" / "*-part.md"), recursive=True)
         )
->>>>>>> decisive-hoverfly
         # Exclude archive directories
         all_parts = [p for p in all_parts if "archive" not in p]
 
@@ -86,11 +79,7 @@ class TestTTSPipeline(unittest.TestCase):
             generated = []
 
             for i, md_file in enumerate(self.prompt_files):
-<<<<<<< HEAD
                 base_name = Path(md_file).stem
-=======
-                base_name = os.path.splitext(os.path.basename(md_file))[0]
->>>>>>> decisive-hoverfly
                 wav_file = os.path.join(tmp_dir, f"{base_name}.wav")
 
                 # Sanitize voice names to valid Gemini voices for the integration test
@@ -104,13 +93,9 @@ class TestTTSPipeline(unittest.TestCase):
                 temp_md_file = os.path.join(tmp_dir, f"{base_name}.md")
                 with open(temp_md_file, "w", encoding="utf-8") as f:
                     f.write(content)
-<<<<<<< HEAD
-                print(f"\n[{i + 1}/{len(self.prompt_files)}] Processing: {os.path.basename(md_file)}")
-=======
                 print(
                     f"\n[{i + 1}/{len(self.prompt_files)}] Processing: {os.path.basename(md_file)}"
                 )
->>>>>>> decisive-hoverfly
                 if previous_id:
                     print(
                         f"  Linking to previous_interaction_id={previous_id[:12]}... for voice continuity"
@@ -137,13 +122,9 @@ class TestTTSPipeline(unittest.TestCase):
                             "permission",
                         )
                     ):
-<<<<<<< HEAD
-                        self.skipTest(f"Skipped due to API/quota issue on file {i + 1}: {e}")
-=======
                         self.skipTest(
                             f"Skipped due to API/quota issue on file {i + 1}: {e}"
                         )
->>>>>>> decisive-hoverfly
                     else:
                         self.fail(
                             f"process_file failed on {os.path.basename(md_file)}: {e}"

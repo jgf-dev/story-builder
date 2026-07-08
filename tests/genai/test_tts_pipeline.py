@@ -82,12 +82,7 @@ class TestTTSPipeline(unittest.TestCase):
             generated = []
 
             for i, md_file in enumerate(self.prompt_files):
-<<<<<<< HEAD
-<<<<<<< HEAD
                 base_name = Path(md_file).stem
-=======
-                base_name = os.path.basename(md_file).replace("-part.md", "")
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
                 wav_file = os.path.join(tmp_dir, f"{base_name}.wav")
 
 =======

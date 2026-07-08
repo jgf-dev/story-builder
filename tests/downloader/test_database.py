@@ -292,13 +292,7 @@ class TestDatabaseInit(unittest.TestCase):
                 "2024-01-16 12:34:56",
             ),
         )
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
 
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
         legacy_conn.commit()
         legacy_conn.close()
 

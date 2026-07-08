@@ -524,30 +524,6 @@ def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
                 need_close = True
                 conn.execute("ATTACH DATABASE ? AS curr_db", (db_path,))
                 formatted_sql = sql.format(table="curr_db.stories")
-<<<<<<< HEAD
-
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
-            cursor.execute(formatted_sql, params)
-            results = [dict(r) for r in cursor.fetchall()]
-        except sqlite3.Error as e:
-            message = "Error querying %{message}: "
-            logging.exception(message, db_path or "monolithic db", exc_info=e)
-        finally:
-            if cursor:
-                cursor.close()
-            if need_close and conn:
-                conn.close()
-        return results
-
-    if len(db_paths) == 1 and db_paths[0] is None:
-        all_rows.extend(_execute_single_db(None))
-    else:
-        with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(db_paths), 10)) as executor:
-            for res in executor.map(_execute_single_db, db_paths):
-                all_rows.extend(res)
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 
             if not conn:
                 return results
@@ -720,9 +696,9 @@ def search_stories(
             # Monolithic DB: no need for thread pool
             all_results.extend(_search_single_db(None))
         else:
-<<<<<<< HEAD
-=======
-            with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(db_paths), 10)) as executor:
+            with concurrent.futures.ThreadPoolExecutor(
+                max_workers=min(len(db_paths), 10)
+            ) as executor:
                 for res in executor.map(_search_single_db, db_paths):
                     all_results.extend(res)
 >>>>>>> palette/fix-duplicate-file-input-14315194890274537724

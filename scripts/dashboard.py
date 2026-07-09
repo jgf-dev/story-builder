@@ -127,17 +127,60 @@ def get_filter_options():
     categories = set()
     authors = set()
     # Get unique categories
-    cat_results = storybuilder_db.execute_all_partitions("SELECT DISTINCT category FROM {table}")
+    cat_results = storybuilder_db.execute_all_partitions(
+        "SELECT DISTINCT category FROM {table}"
+    )
     for r in cat_results:
         if r.get("category"):
             categories.add(r["category"])
 
     # Get unique authors
-    author_results = storybuilder_db.execute_all_partitions("SELECT DISTINCT author_name FROM {table}")
+    author_results = storybuilder_db.execute_all_partitions(
+        "SELECT DISTINCT author_name FROM {table}"
+    )
     for r in author_results:
         if r.get("author_name"):
             authors.add(r["author_name"])
     return sorted(categories), sorted(authors)
+
+
+@st.cache_data
+def _aggregate_db_stats(db, category_counts, author_counts, word_counts):
+    year_stats = None
+    try:
+        conn = sqlite3.connect(db)
+        cursor = conn.cursor()
+
+        # Year level summary
+        cursor.execute("SELECT COUNT(*), SUM(word_count) FROM stories")
+        cnt, words = cursor.fetchone()
+        if cnt:
+            year_stats = {
+                "Year": int(Path(db).stem),
+                "Stories Count": cnt,
+                "Total Words": words or 0,
+            }
+
+        # Categories summary
+        cursor.execute("SELECT category, COUNT(*) FROM stories GROUP BY category")
+        for cat, count in cursor.fetchall():
+            if cat:
+                category_counts[cat] = category_counts.get(cat, 0) + count
+
+        # Top authors
+        cursor.execute("SELECT author_name, COUNT(*) FROM stories GROUP BY author_name")
+        for auth, count in cursor.fetchall():
+            if auth:
+                author_counts[auth] = author_counts.get(auth, 0) + count
+
+        # Word counts sample for distribution
+        cursor.execute("SELECT word_count FROM stories")
+        word_counts.extend([r[0] for r in cursor.fetchall()])
+
+        conn.close()
+    except sqlite3.Error:
+        pass
+    return year_stats
 
 
 @st.cache_data
@@ -156,63 +199,25 @@ def load_archive_stats():
         "Epic (>50K)": 0,
     }
     for db in get_db_files():
-        year_name = Path(db).stem
-        try:
-            conn = sqlite3.connect(db)
-            cursor = conn.cursor()
+        ystats = _aggregate_db_stats(db, category_counts, author_counts, word_counts)
+        if ystats:
+            year_stats.append(ystats)
 
-            # Year level summary
-            cursor.execute("SELECT COUNT(*), SUM(word_count) FROM stories")
-            cnt, words = cursor.fetchone()
-            if cnt:
-                year_stats.append(
-                    {
-                        "Year": int(year_name),
-                        "Stories Count": cnt,
-                        "Total Words": words or 0,
-                    }
-                )
-            # Categories summary
-            cursor.execute("SELECT category, COUNT(*) FROM stories GROUP BY category")
-            for cat, count in cursor.fetchall():
-                if cat:
-                    category_counts[cat] = category_counts.get(cat, 0) + count
-
-            # Top authors
-            cursor.execute(
-                "SELECT author_name, COUNT(*) FROM stories GROUP BY author_name"
-            )
-            for auth, count in cursor.fetchall():
-                if auth:
-                    author_counts[auth] = author_counts.get(auth, 0) + count
-            # Word counts sample for distribution
-            cursor.execute("SELECT word_count FROM stories")
-            word_counts.extend([r[0] for r in cursor.fetchall()])
-
-            # Word count bracket distribution (binned at SQL level; NULLs excluded)
-            cursor.execute(
-                """
-                SELECT
-                    CASE
-                        WHEN word_count < 1000 THEN 'Short (<1K)'
-                        WHEN word_count < 5000 THEN 'Medium-Short (1K-5K)'
-                        WHEN word_count < 10000 THEN 'Medium (5K-10K)'
-                        WHEN word_count < 20000 THEN 'Medium-Long (10K-20K)'
-                        WHEN word_count < 50000 THEN 'Long (20K-50K)'
-                        ELSE 'Epic (>50K)'
-                    END AS bracket,
-                    COUNT(*)
-                FROM stories
-                WHERE word_count IS NOT NULL
-                GROUP BY bracket
-                """
-            )
-            for bracket, count in cursor.fetchall():
-                if bracket in bracket_counts:
-                    bracket_counts[bracket] += count
-            conn.close()
-        except sqlite3.Error:
-            pass
+    for wc in word_counts:
+        if wc is None:
+            continue
+        if wc < 1000:
+            bracket_counts["Short (<1K)"] += 1
+        elif wc < 5000:
+            bracket_counts["Medium-Short (1K-5K)"] += 1
+        elif wc < 10000:
+            bracket_counts["Medium (5K-10K)"] += 1
+        elif wc < 20000:
+            bracket_counts["Medium-Long (10K-20K)"] += 1
+        elif wc < 50000:
+            bracket_counts["Long (20K-50K)"] += 1
+        else:
+            bracket_counts["Epic (>50K)"] += 1
 
     df_years = pd.DataFrame(year_stats)
     df_cats = pd.DataFrame(
@@ -221,6 +226,7 @@ def load_archive_stats():
     df_auths = pd.DataFrame(
         list(author_counts.items()), columns=["Author", "Count"]
     ).sort_values("Count", ascending=False)
+
     order = [
         "Short (<1K)",
         "Medium-Short (1K-5K)",
@@ -230,7 +236,11 @@ def load_archive_stats():
         "Epic (>50K)",
     ]
     df_words = pd.DataFrame(
-        [{"Bracket": b, "Stories": bracket_counts[b]} for b in order if bracket_counts[b] > 0]
+        [
+            {"Bracket": b, "Stories": bracket_counts[b]}
+            for b in order
+            if bracket_counts[b] > 0
+        ]
     )
 
     return df_years, df_cats, df_auths, df_words
@@ -271,7 +281,6 @@ def query_stories(
                 parts = Path(r[0]).parts
                 if len(parts) >= 3:
                     entity_suffixes.append("/".join(parts[-3:]))
-
 
     date_from = None
     date_to = None
@@ -390,16 +399,13 @@ st.sidebar.title("📚 StoryBuilder")
 st.sidebar.write("---")
 
 # Page Navigation
-page = st.sidebar.radio(
-    "Navigation",
-    [
-        "🔍 Search & Explorer",
-        "📖 Read Story",
-        "⭐ Favorites & Tags",
-        "📊 Archive Stats",
-    ],
-    key="nav_page",
-)
+PAGES = [
+    "🔍 Search & Explorer",
+    "📖 Read Story",
+    "⭐ Favorites & Tags",
+    "📊 Archive Stats",
+]
+page = st.sidebar.radio("Navigation", PAGES, key="nav_page")
 
 # Fetch filter options dynamically
 categories_list, authors_list = get_filter_options()
@@ -471,10 +477,10 @@ if page == "🔍 Search & Explorer":
 
     for res in search_results:
         # Create a container for the card styling
-        safe_title = html.escape(res['title'] or '')
-        safe_author = html.escape(res['author_name'] or 'Unknown')
-        safe_category = html.escape(res['category'] or '')
-        safe_pub_date = html.escape(str(res['publication_date'] or 'Unknown'))
+        safe_title = html.escape(res["title"] or "")
+        safe_author = html.escape(res["author_name"] or "Unknown")
+        safe_category = html.escape(res["category"] or "")
+        safe_pub_date = html.escape(str(res["publication_date"] or "Unknown"))
         card_html = f"""
         <div class="story-card">
             <h4>{safe_title}</h4>
@@ -484,7 +490,7 @@ if page == "🔍 Search & Explorer":
                 <b>Author:</b> {safe_author} |
                 <b>Category:</b> {safe_category} |
                 <b>Published:</b> {safe_pub_date} |
-                <b>Words:</b> {res['word_count']:,}
+                <b>Words:</b> {res["word_count"]:,}
             </p>
         """
 
@@ -492,7 +498,9 @@ if page == "🔍 Search & Explorer":
         if res.get("snippet"):
             # Escape the snippet first, then replace the placeholder highlight markers with actual HTML span tags
             snippet_escaped = html.escape(res["snippet"])
-            snippet_cleaned = snippet_escaped.replace("___HIGHLIGHT_START___", "<span class='highlight'>").replace("___HIGHLIGHT_END___", "</span>")
+            snippet_cleaned = snippet_escaped.replace(
+                "___HIGHLIGHT_START___", "<span class='highlight'>"
+            ).replace("___HIGHLIGHT_END___", "</span>")
             card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
         card_html += "</div>"
         st.markdown(card_html, unsafe_allow_html=True)
@@ -634,15 +642,15 @@ elif page == "⭐ Favorites & Tags":
                     all_tags.add(t.strip())
 
         # Tag filter selector
-        filter_tag = st.selectbox(
-            "Filter Favorites by Tag", ["All"] + sorted(all_tags)
-        )
+        filter_tag = st.selectbox("Filter Favorites by Tag", ["All"] + sorted(all_tags))
 
         st.write("---")
         # Expected optimization impact: Resolving N favorite stories in M year partitions
         # O(N * M) individual DB queries -> O(M) queries with IN clauses.
         # Significantly improves load time of the Favorites tab, reducing it from seconds to milliseconds.
-        fav_paths = [f["story_path"] for f in favorites if "story_path" in f and f["story_path"]]
+        fav_paths = [
+            f["story_path"] for f in favorites if "story_path" in f and f["story_path"]
+        ]
         path_to_db_year = {}
         # Since we are in the `else` block (meaning `favorites` is not empty), `fav_paths` is generally not empty.
         # But we filter it just in case, and no need to use `if fav_paths:` because if it is empty the range generator is empty.
@@ -666,9 +674,7 @@ elif page == "⭐ Favorites & Tags":
                     for (p,) in res:
                         path_to_db_year[p] = y
             except sqlite3.Error as e:
-                st.warning(
-                    f"Could not resolve story paths from database '{y_db}': {e}"
-                )
+                st.warning(f"Could not resolve story paths from database '{y_db}': {e}")
             finally:
                 conn.close()
         # Display favorites
@@ -682,12 +688,12 @@ elif page == "⭐ Favorites & Tags":
                 continue
 
             with st.container():
-                safe_fav_title = html.escape(f['title'] or '')
-                safe_fav_author = html.escape(f['author'] or 'Unknown')
-                safe_fav_tags = html.escape(f['tags'] or 'None')
-                safe_fav_notes = html.escape(f['notes'] or 'None')
+                safe_fav_title = html.escape(f["title"] or "")
+                safe_fav_author = html.escape(f["author"] or "Unknown")
+                safe_fav_tags = html.escape(f["tags"] or "None")
+                safe_fav_notes = html.escape(f["notes"] or "None")
                 st.markdown(
-                     f"""
+                    f"""
                     <div class='story-card'>
                         <h4>{safe_fav_title}</h4>
                         <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 4px;'><b>Author:</b> {safe_fav_author}</p>
@@ -726,7 +732,10 @@ elif page == "📊 Archive Stats":
     col_m1, col_m2, col_m3 = st.columns(3)
     col_m1.metric("Total Stories", f"{total_stories:,}")
     col_m2.metric("Total Archive Words", f"{total_words:,}")
-    col_m3.metric("Average Story Length", f"{total_words // total_stories if total_stories > 0 else 0:,} words")
+    col_m3.metric(
+        "Average Story Length",
+        f"{total_words // total_stories if total_stories > 0 else 0:,} words",
+    )
     st.markdown("---")
 
     # 1. Timeline Chart

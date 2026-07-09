@@ -342,6 +342,7 @@
       if (isDirty === dirty) return;
       isDirty = dirty;
       saveBtn.disabled = !isDirty;
+      saveBtn.title = isDirty ? 'Save (Ctrl+S / Cmd+S)' : 'No unsaved changes';
       if (isDirty) {
         document.title = '* ' + document.title.replace(/^\*\s*/, '');
       } else {
@@ -397,6 +398,7 @@
 
       const originalText = saveBtn.textContent;
       saveBtn.textContent = 'Saving...';
+      saveBtn.title = 'Saving in progress...';
       saveBtn.disabled = true;
       document.body.style.cursor = 'wait';
 
@@ -422,6 +424,7 @@
       } finally {
         saveBtn.textContent = originalText;
         saveBtn.disabled = !isDirty;
+        saveBtn.title = isDirty ? 'Save (Ctrl+S / Cmd+S)' : 'No unsaved changes';
         document.body.style.cursor = '';
       }
     });

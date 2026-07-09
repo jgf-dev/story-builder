@@ -222,15 +222,6 @@ def load_archive_stats():
     df_auths = pd.DataFrame(
         list(author_counts.items()), columns=["Author", "Count"]
     ).sort_values("Count", ascending=False)
-    df_words = pd.DataFrame(
-        [
-            {"Bracket": bracket, "Stories": count}
-            for bracket, count in bracket_counts.items()
-            if count > 0
-        ]
-    )
-    return df_years, df_cats, df_auths, df_words
-
     order = [
         "Short (<1K)",
         "Medium-Short (1K-5K)",
@@ -240,7 +231,7 @@ def load_archive_stats():
         "Epic (>50K)",
     ]
     df_words = pd.DataFrame(
-        [{"Bracket": b, "Stories": bracket_counts[b]} for b in order]
+        [{"Bracket": b, "Stories": bracket_counts[b]} for b in order if bracket_counts[b] > 0]
     )
 
     return df_years, df_cats, df_auths, df_words
@@ -652,34 +643,35 @@ elif page == "⭐ Favorites & Tags":
         # Expected optimization impact: Resolving N favorite stories in M year partitions
         # O(N * M) individual DB queries -> O(M) queries with IN clauses.
         # Significantly improves load time of the Favorites tab, reducing it from seconds to milliseconds.
-        fav_paths = [f["story_path"] for f in favorites]
+        fav_paths = [f["story_path"] for f in favorites if "story_path" in f and f["story_path"]]
         path_to_db_year = {}
-        if fav_paths:
-            for y_db in get_db_files():
-                y = int(Path(y_db).stem)
-                conn = sqlite3.connect(y_db)
-                try:
-                    # chunking just in case of very large favorites lists
-                    chunk_size = 900
-                    for i in range(0, len(fav_paths), chunk_size):
-                        chunk = fav_paths[i : i + chunk_size]
-                        placeholders = ",".join("?" * len(chunk))
-                        res = (
-                            conn.cursor()
-                            .execute(
-                                f"SELECT path FROM stories WHERE path IN ({placeholders})",
-                                chunk,
-                            )
-                            .fetchall()
+        # Since we are in the `else` block (meaning `favorites` is not empty), `fav_paths` is generally not empty.
+        # But we filter it just in case, and no need to use `if fav_paths:` because if it is empty the range generator is empty.
+        for y_db in get_db_files():
+            y = int(Path(y_db).stem)
+            conn = sqlite3.connect(y_db)
+            try:
+                # chunking just in case of very large favorites lists
+                chunk_size = 900
+                for i in range(0, len(fav_paths), chunk_size):
+                    chunk = fav_paths[i : i + chunk_size]
+                    placeholders = ",".join("?" * len(chunk))
+                    res = (
+                        conn.cursor()
+                        .execute(
+                            f"SELECT path FROM stories WHERE path IN ({placeholders})",
+                            chunk,
                         )
-                        for (p,) in res:
-                            path_to_db_year[p] = y
-                except sqlite3.Error as e:
-                    st.warning(
-                        f"Could not resolve story paths from database '{y_db}': {e}"
+                        .fetchall()
                     )
-                finally:
-                    conn.close()
+                    for (p,) in res:
+                        path_to_db_year[p] = y
+            except sqlite3.Error as e:
+                st.warning(
+                    f"Could not resolve story paths from database '{y_db}': {e}"
+                )
+            finally:
+                conn.close()
         # Display favorites
         for f in favorites:
             # Filter by tag if needed

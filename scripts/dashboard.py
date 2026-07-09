@@ -137,13 +137,12 @@ def get_filter_options():
     for r in author_results:
         if r.get("author_name"):
             authors.add(r["author_name"])
-    return sorted(list(categories)), sorted(list(authors))
+    return sorted(categories), sorted(authors)
 
 
 @st.cache_data
 def load_archive_stats():
     """Pre-aggregate stats across all partition databases for the visualizations."""
-    db_files = get_db_files()
     year_stats = []
     category_counts = {}
     author_counts = {}
@@ -156,7 +155,7 @@ def load_archive_stats():
         "Long (20K-50K)": 0,
         "Epic (>50K)": 0,
     }
-    for db in db_files:
+    for db in get_db_files():
         year_name = Path(db).stem
         try:
             conn = sqlite3.connect(db)
@@ -636,7 +635,7 @@ elif page == "⭐ Favorites & Tags":
 
         # Tag filter selector
         filter_tag = st.selectbox(
-            "Filter Favorites by Tag", ["All"] + sorted(list(all_tags))
+            "Filter Favorites by Tag", ["All"] + sorted(all_tags)
         )
 
         st.write("---")

@@ -1,6 +1,7 @@
 import importlib
 import sys
 from pathlib import Path
+<<<<<<< HEAD
 
 # Ensure src layout package is importable
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
@@ -27,6 +28,7 @@ NLP_DB_PATH = "stories/db/nlp_analysis.db"
 META_DB_PATH = "stories/db/dashboard_metadata.db"
 
 # Rerouting rendering to modular components
+<<<<<<< HEAD
 from storybuilder.dashboard.config import init_session_state
 from storybuilder.dashboard.config import inject_custom_css
 from storybuilder.dashboard.config import setup_page
@@ -118,8 +120,29 @@ def main() -> None:
         render_archive_stats()
 
 
+<<<<<<< HEAD
 if __name__ == "__main__":
     main()
+=======
+def get_meta_conn():
+    """Establish connection to local dashboard metadata (favorites & tags)."""
+    os.makedirs(os.path.dirname(META_DB_PATH) or ".", exist_ok=True)
+    conn = sqlite3.connect(META_DB_PATH, check_same_thread=False)
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS favorites (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            story_path TEXT UNIQUE,
+            title TEXT,
+            author TEXT,
+            tags TEXT,
+            notes TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+    conn.commit()
+    return conn
 
 def get_meta_conn():
     """Establish connection to local dashboard metadata (favorites & tags)."""
@@ -533,7 +556,14 @@ if page == "🔍 Search & Explorer":
 
         # Display highlighted snippets if any
         if res.get("snippet"):
+<<<<<<< HEAD
             # Escape the snippet first, then replace the placeholder highlight markers with actual HTML span tags
+=======
+<<<<<<< HEAD
+            # Escape the snippet first, then replace the placeholder highlight markers with actual HTML span tags
+=======
+>>>>>>> fix-failing-tests-16749664909518946067
+>>>>>>> palette/save-button-tooltip-16022957350325416287
             snippet_escaped = html.escape(res["snippet"])
             snippet_cleaned = snippet_escaped.replace("___HIGHLIGHT_START___", "<span class='highlight'>").replace(
                 "___HIGHLIGHT_END___", "</span>"
@@ -553,6 +583,8 @@ if page == "🔍 Search & Explorer":
                 st.query_params["nav_page"] = "📖 Read Story"
                 st.rerun()
         st.write("")
+<<<<<<< HEAD
+=======
 
 # -- PAGE 2: READ STORY --
 elif page == "📖 Read Story":

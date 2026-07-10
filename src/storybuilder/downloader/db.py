@@ -152,7 +152,7 @@ def _parse_output_path(output_path: str) -> "tuple[str, str, str, int | None]":
     if (m := _CHAPTER_SUFFIX_RE.match(story_slug)) or (m := _CHAPTER_SUFFIX_RE.match(Path(parts[-1]).stem)):
         chapter_num = int(m.group(2))
 
-    return _BASE_TOPIC, parts[_MIN_PATH_PARTS - 1], story_slug, chapter_num
+    return orientation, category, story_slug, chapter_num
 
 
 # -- Schema migrations --------------------------------------------------

@@ -42,8 +42,11 @@ class TestDashboard(unittest.TestCase):
         self.patch_dir.start()
         self.patch_nlp.start()
         self.patch_meta.start()
+        sb_db.init_db(self.db_dir)
 
     def tearDown(self):
+        import storybuilder.downloader.db as sb_db
+        sb_db.close_db()
         self.patch_dir.stop()
         self.patch_nlp.stop()
         self.patch_meta.stop()
@@ -198,6 +201,8 @@ class TestDashboard(unittest.TestCase):
 
         # Browse all
         results = query_stories()
+        print("RESULTS:", [r["title"] for r in results])
+        print("PATHS:", [r["path"] for r in results])
         self.assertEqual(len(results), 2)
         # Results should be sorted by date desc
         self.assertEqual(results[0]["title"], "2026 Story Title")

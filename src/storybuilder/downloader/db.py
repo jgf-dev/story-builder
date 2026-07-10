@@ -1,5 +1,7 @@
 import logging as std_logging
 
+
+
 import os
 import re
 import sqlite3
@@ -149,7 +151,6 @@ _CHAPTER_SUFFIX_RE = re.compile(r"^(.+?)-(\d+)$")
 
 _MIN_PATH_PARTS = 3
 
-
 # -- Constants ----------------------------------------------------------
 
 _BASE_TOPIC = "Gay"
@@ -186,6 +187,7 @@ def _parse_output_path(output_path: str) -> "tuple[str, str, str, int | None]":
 
     orientation = parts[1].lower()
     category = parts[_MIN_PATH_PARTS - 1]
+
     story_slug = parts[-2] if len(parts) >= _MIN_PATH_PARTS + 2 else Path(parts[-1]).stem
 
     chapter_num = None
@@ -194,6 +196,7 @@ def _parse_output_path(output_path: str) -> "tuple[str, str, str, int | None]":
         chapter_num = int(m.group(2))
 
     return orientation, parts[_MIN_PATH_PARTS - 1], story_slug, chapter_num
+
 
 
 # -- Schema migrations --------------------------------------------------
@@ -276,6 +279,7 @@ def migrate_legacy_schema(conn: sqlite3.Connection) -> bool:
     except sqlite3.OperationalError:
         logging.debug("Skipping FTS rebuild during legacy schema migration", exc_info=True)
 
+
     return True
 
 def _migrate_schema(conn: "sqlite3.Connection") -> None:
@@ -289,6 +293,7 @@ def _migrate_schema(conn: "sqlite3.Connection") -> None:
 def init_db(db_path: str) -> "sqlite3.Connection":
     """Initialize the database (idempotent). Returns the connection."""
     global _conn, _is_partitioned, _db_dir, _monolithic_db_path, _engine, _db_path_global
+
 
 
     is_dir = Path(db_path).is_dir() or (not db_path.endswith(".db") and not Path(db_path).suffix)
@@ -348,6 +353,7 @@ def execute_query(sql: str, params: tuple = ()) -> list[dict]:
 
 
 
+
 def search_stories(
 
     fts_query: str = "",
@@ -375,6 +381,7 @@ def search_stories(
 
     with Session(engine) as session:
         try:
+
 
             if fts_query:
                 # Compile Join query for FTS virtual table and Story
@@ -423,6 +430,7 @@ def search_stories(
                 query_stmt = query_stmt.where(literal_column("stories_fts").op("MATCH")(fts_query))
                 query_stmt = query_stmt.order_by(literal_column("rank"))
                 query_stmt = query_stmt.limit(limit)
+
 
 
                 results = session.exec(query_stmt).all()

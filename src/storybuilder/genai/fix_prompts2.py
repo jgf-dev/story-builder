@@ -30,6 +30,7 @@ PROMPT_INSTRUCTION = (
 
 
 
+
 def extract_markdown_block(content: str) -> str:
     content = content.strip()
     # Match ```markdown ... ``` or ``` ... ```
@@ -106,6 +107,9 @@ def fix_prompts(directory: str) -> None:
             print("  Fixed and saved.")
         except Exception as e:  # noqa: BLE001
             print(f"  Error processing {path.name}: {e}")
+
+
+
 
 
 

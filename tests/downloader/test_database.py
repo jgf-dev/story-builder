@@ -733,6 +733,7 @@ class TestMonolithicDatabase(unittest.TestCase):
         from storybuilder.downloader import db
         db.init_db(self.db_path)
 
+
         db.insert_story(
             output_path="nifty_stories/gay/adult-friends/test-story.txt",
             title="Test Story",
@@ -762,6 +763,8 @@ class TestMonolithicDatabase(unittest.TestCase):
         results = db.search_stories(fts_query="banana", snippets=True)
         self.assertEqual(len(results), 1)
         self.assertIn("banana", results[0]["snippet"])
+
+
 
 
 

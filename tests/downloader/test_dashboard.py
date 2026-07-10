@@ -67,6 +67,8 @@ class TestDashboard(unittest.TestCase):
 
 
 
+
+
         )
         if word_count is not None:
             with Session(sb_db._engine) as session:
@@ -104,6 +106,7 @@ class TestDashboard(unittest.TestCase):
         )
         story_id = conn.execute(
             "SELECT id FROM stories WHERE filepath = ?", (filepath,),
+
         ).fetchone()[0]
         conn.execute(
             "INSERT INTO entities (story_id, text, label, frequency) VALUES (?, ?, ?, 1)",

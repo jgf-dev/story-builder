@@ -18,8 +18,6 @@
             "console": "integratedTerminal",
             "args": [],
             "justMyCode": true
-<<<<<<< HEAD
-<<<<<<< HEAD
         },
         {
             "type": "pwa-msedge",
@@ -73,13 +71,3 @@
         }
     ]
 }
-=======
-        }
-        ]
-    }
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
-        }
-        ]
-    }
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724

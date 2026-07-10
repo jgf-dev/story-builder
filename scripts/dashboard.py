@@ -141,7 +141,7 @@ def get_filter_options():
     for r in author_results:
         if r.get("author_name"):
             authors.add(r["author_name"])
-    return sorted(categories), sorted(authors)
+    return sorted(list(categories)), sorted(list(authors))
 
 
 @st.cache_data
@@ -171,7 +171,13 @@ def load_archive_stats():
                 cursor.execute("SELECT COUNT(*), SUM(word_count) FROM stories")
                 row = cursor.fetchone()
                 if row and row[0]:
-                    year_stats.append([int(year_name), row[0], row[1] or 0])  # noqa: E501
+                    year_stats.append(
+                        {
+                            "Year": int(year_name),
+                            "Stories Count": row[0],
+                            "Total Words": row[1] or 0,
+                        }
+                    )
 
                 # Categories summary
                 for cat, count in cursor.execute(
@@ -217,9 +223,9 @@ def load_archive_stats():
 
     # Build DataFrames
     df_years = (
-        pd.DataFrame(year_stats, columns=["Year", "Stories_Count", "Total_Words"]).sort_values("Year")
+        pd.DataFrame(year_stats).sort_values("Year")
         if year_stats
-        else pd.DataFrame(columns=["Year", "Stories_Count", "Total_Words"])
+        else pd.DataFrame(columns=["Year", "Stories Count", "Total Words"])
     )
 
     df_cats = pd.DataFrame(
@@ -644,7 +650,9 @@ elif page == "⭐ Favorites & Tags":
                     all_tags.add(t.strip())
 
         # Tag filter selector
-        filter_tag = st.selectbox("Filter Favorites by Tag", ["All"] + sorted(all_tags))
+        filter_tag = st.selectbox(
+            "Filter Favorites by Tag", ["All"] + sorted(list(all_tags))
+        )
 
         st.write("---")
         # Expected optimization impact: Resolving N favorite stories in M year partitions
@@ -727,8 +735,8 @@ elif page == "📊 Archive Stats":
     st.markdown("---")
 
     # Overview metrics row
-    total_stories = df_years["Stories_Count"].sum()
-    total_words = df_years["Total_Words"].sum()
+    total_stories = df_years["Stories Count"].sum()
+    total_words = df_years["Total Words"].sum()
 
     col_m1, col_m2, col_m3 = st.columns(3)
     col_m1.metric("Total Stories", f"{total_stories:,}")
@@ -744,7 +752,7 @@ elif page == "📊 Archive Stats":
     fig_line = px.line(
         df_years,
         x="Year",
-        y="Stories_Count",
+        y="Stories Count",
         title="Story Publications Per Year",
         markers=True,
     )

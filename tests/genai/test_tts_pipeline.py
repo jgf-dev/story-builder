@@ -65,22 +65,22 @@ class TestTTSPipeline(unittest.TestCase):
 
         from storybuilder.genai.client import get_gemini_api_keys, process_file
 
-        configured_api_keys = get_gemini_api_keys()
-        self.assertGreater(len(configured_api_keys), 0, "No GEMINI_API_KEY found in environment")
+        api_keys = get_gemini_api_keys()
+        self.assertGreater(len(api_keys), 0, "No GEMINI_API_KEY found in environment")
 
-        active_key_index = 0
-        _, api_key = configured_api_keys[active_key_index]
+        current_key_idx = 0
+        _, api_key = api_keys[current_key_idx]
         client = genai.Client(api_key=api_key)
 
         # Use a temp dir for output — don't pollute the repo
-        temp_genai_dir = tempfile.mkdtemp(prefix="tts_run_")
+        tmp_dir = tempfile.mkdtemp(prefix="tts_run_")
         try:
-            prev_interaction = None
-            completed_files = []
+            previous_id = None
+            generated = []
 
             for i, md_file in enumerate(self.prompt_files):
                 base_name = os.path.basename(md_file).replace(".md", "")
-                wav_file = os.path.join(temp_genai_dir, f"{base_name}.wav")
+                wav_file = os.path.join(tmp_dir, f"{base_name}.wav")
 
                 # Sanitize voice names to valid Gemini voices for the integration test
                 with open(md_file, "r", encoding="utf-8") as f:
@@ -90,25 +90,25 @@ class TestTTSPipeline(unittest.TestCase):
                     .replace("en-US-Journey-D", "Charon")
                     .replace("en-US-Journey-O", "Kore")
                 )
-                temp_md_file = os.path.join(temp_genai_dir, f"{base_name}.md")
+                temp_md_file = os.path.join(tmp_dir, f"{base_name}.md")
                 with open(temp_md_file, "w", encoding="utf-8") as f:
                     f.write(content)
                 print(
                     f"\n[{i + 1}/{len(self.prompt_files)}] Processing: {os.path.basename(md_file)}"
                 )
-                if prev_interaction:
+                if previous_id:
                     print(
-                        f"  Linking to previous_interaction_id={prev_interaction[:12]}... for voice continuity"
+                        f"  Linking to previous_interaction_id={previous_id[:12]}... for voice continuity"
                     )
 
                 try:
-                    client, active_key_index, prev_interaction = process_file(
+                    client, current_key_idx, previous_id = process_file(
                         temp_md_file,
                         wav_file,
                         client,
-                        prev_interaction,
-                        configured_api_keys,
-                        active_key_index,
+                        previous_id,
+                        api_keys,
+                        current_key_idx,
                     )
                 except Exception as e:
                     err = str(e).lower()
@@ -135,17 +135,17 @@ class TestTTSPipeline(unittest.TestCase):
                     self.assertGreater(
                         size, 0, f"WAV file for {os.path.basename(md_file)} is empty"
                     )
-                    completed_files.append(wav_file)
+                    generated.append(wav_file)
                     print(f"  ✓ WAV written ({size} bytes)")
                 else:
                     print("  ⚠ No WAV output — API returned no audio (non-fatal)")
 
             print(
-                f"\nTTS pipeline test complete: {len(completed_files)}/{len(self.prompt_files)} files completed_files audio."
+                f"\nTTS pipeline test complete: {len(generated)}/{len(self.prompt_files)} files generated audio."
             )
 
         finally:
-            shutil.rmtree(temp_genai_dir, ignore_errors=True)
+            shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
 if __name__ == "__main__":

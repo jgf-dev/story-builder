@@ -242,7 +242,6 @@ When adding features or fixing bugs, cross-check the exact behaviors exercised i
 - **Secret**: `LINEAR_API_KEY` is stored in GitHub Secrets (not in `.env`). For local Linear API calls, the user must export it.
 - **Prompt**: Use `/linear-assistant` (`.github/prompts/linear-assistant.prompt.md`) to create, find, or sync Linear issues from chat.
 - **Convention**: All Linear issue titles are prefixed with `GIT-` to match the auto-linear workflow. Use the `PRO` team key.
-
 - **API**: Linear GraphQL endpoint is `https://api.linear.app/graphql`. Prefer GraphQL over REST.
 =======
 - **Secret**: `LINEAR_API_KEY` is stored in GitHub Secrets (not in `.env`). For local Linear API calls, the user must export it.

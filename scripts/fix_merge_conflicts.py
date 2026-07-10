@@ -3,6 +3,7 @@
 Simple utility to auto-resolve git merge conflict markers by keeping the
 Use with caution and review changes before committing.
 """
+
 from pathlib import Path
 
 
@@ -19,22 +20,22 @@ def resolve_file(path: Path) -> bool:
     n = len(lines)
     changed = False
     while i < n:
-            line = lines[i]
-            # detect markers anywhere in the line (allow leading/trailing spaces)
-            if "<<<<<<<" in line:
-                # collect HEAD side
+        line = lines[i]
+        # detect markers anywhere in the line (allow leading/trailing spaces)
+        if "<<<<<<<" in line:
+            # collect HEAD side
+            i += 1
+            head_lines = []
+            while i < n and ">>>>>>>" not in lines[i]:
                 i += 1
-                head_lines = []
-                while i < n and ">>>>>>>" not in lines[i]:
-                    i += 1
-                # skip the >>>>>>> marker
-                if i < n and ">>>>>>>" in lines[i]:
-                    i += 1
-                out_lines.extend(head_lines)
-                changed = True
-            else:
-                out_lines.append(line)
+            # skip the >>>>>>> marker
+            if i < n and ">>>>>>>" in lines[i]:
                 i += 1
+            out_lines.extend(head_lines)
+            changed = True
+        else:
+            out_lines.append(line)
+            i += 1
     if changed:
         path.write_text("\n".join(out_lines) + "\n", encoding="utf-8")
     return changed

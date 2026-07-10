@@ -35,6 +35,7 @@ def load_cache(cache_dir):
             safe_print(
                 f"Loaded cache from {cache_path} with {len(metadata_cache)} entries."
             )
+<<<<<<< HEAD
 =======
             with pathlib.Path(cache_path).open("r", encoding="utf-8") as f, cache_lock:
                 data = json.load(f)
@@ -42,6 +43,8 @@ def load_cache(cache_dir):
                 metadata_cache.update(data)
             safe_print(f"Loaded cache from {cache_path} with {len(metadata_cache)} entries.")
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
         except Exception as e:
             safe_print(f"Warning: Failed to load cache: {e}")
     else:

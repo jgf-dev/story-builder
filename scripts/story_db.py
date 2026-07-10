@@ -226,10 +226,14 @@ def cmd_get(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None)
         print(
             f"Author:   {row['author_name'] or 'Unknown'}"
 <<<<<<< HEAD
+<<<<<<< HEAD
             + (f" <{row['author_email']}>" if row["author_email"] else "")
 =======
             + (f" <{row['author_email']}>" if row["author_email"] else ""),
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+            + (f" <{row['author_email']}>" if row["author_email"] else "")
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
         )
         print(f"Date:     {row['publication_date'] or 'Unknown'}")
         print(f"URL:      {row['url'] or 'N/A'}")
@@ -301,10 +305,14 @@ def cmd_list(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None
         author = (row["author_name"] or "")[:24]
         print(
 <<<<<<< HEAD
+<<<<<<< HEAD
             f"{row['id']:>6}  {title:<45}  {author:<25}  {row['publication_date'] or '':>10}  {row['word_count']:>8,}  {row['category']}"
 =======
             f"{row['id']:>6}  {title:<45}  {author:<25}  {row['publication_date'] or '':>10}  {row['word_count']:>8,}  {row['category']}",
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+            f"{row['id']:>6}  {title:<45}  {author:<25}  {row['publication_date'] or '':>10}  {row['word_count']:>8,}  {row['category']}"
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
         )
 
 
@@ -354,8 +362,11 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
             or 0
         )
 
+<<<<<<< HEAD
 =======
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
     print(
         f"\n=== Database Stats{' for ' + args.category if args.category else ''} ===\n"
     )

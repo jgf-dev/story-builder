@@ -61,6 +61,9 @@ def init_db(db_path):
             FOREIGN KEY(sentence_id) REFERENCES sentences(id)
         )
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
     """
     )
     cursor.execute(

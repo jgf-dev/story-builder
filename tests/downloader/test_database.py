@@ -293,9 +293,12 @@ class TestDatabaseInit(unittest.TestCase):
             ),
         )
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
         legacy_conn.commit()
         legacy_conn.close()
 
@@ -824,6 +827,9 @@ class TestMonolithicDatabase(unittest.TestCase):
     def test_execute_query(self):
         from storybuilder.downloader import db
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 
         # Initialize with directory path
         db.init_db(self.temp_dir)
@@ -879,6 +885,7 @@ class TestMonolithicDatabase(unittest.TestCase):
 =======
 
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+
 
 
 class TestImportToSQLite(unittest.TestCase):

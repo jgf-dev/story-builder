@@ -2,9 +2,12 @@ import importlib
 import sys
 from pathlib import Path
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 
 # Ensure src layout package is importable
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
@@ -31,6 +34,7 @@ NLP_DB_PATH = "stories/db/nlp_analysis.db"
 META_DB_PATH = "stories/db/dashboard_metadata.db"
 
 # Rerouting rendering to modular components
+<<<<<<< HEAD
 <<<<<<< HEAD
 from storybuilder.dashboard.config import init_session_state  # noqa: E402
 from storybuilder.dashboard.config import inject_custom_css  # noqa: E402
@@ -157,3 +161,48 @@ if __name__ == "__main__":
                 st.rerun()
         st.write("")
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+from storybuilder.dashboard.config import init_session_state  # noqa: E402
+from storybuilder.dashboard.config import inject_custom_css  # noqa: E402
+from storybuilder.dashboard.config import setup_page  # noqa: E402
+
+# Expose key data operations at module level to satisfy test imports
+from storybuilder.dashboard.data import add_favorite  # noqa: E402, F401
+from storybuilder.dashboard.data import get_db_files  # noqa: E402, F401
+from storybuilder.dashboard.data import get_favorites  # noqa: E402, F401
+from storybuilder.dashboard.data import get_story_by_path  # noqa: E402, F401
+from storybuilder.dashboard.data import query_stories  # noqa: E402, F401
+from storybuilder.dashboard.data import remove_favorite  # noqa: E402, F401
+
+# Expose pages
+from storybuilder.dashboard.pages.archive_stats import render_archive_stats  # noqa: E402
+from storybuilder.dashboard.pages.favorites_tags import render_favorites_tags  # noqa: E402
+from storybuilder.dashboard.pages.read_story import render_read_story  # noqa: E402
+from storybuilder.dashboard.pages.search_explorer import render_search_explorer  # noqa: E402
+from storybuilder.dashboard.ui.sidebar import render_sidebar  # noqa: E402
+
+
+def main() -> None:
+    # Setup page configurations as the first Streamlit instruction
+    setup_page()
+    inject_custom_css()
+    init_session_state()
+
+    # Render sidebar and retrieve routing & filter inputs
+    page, filters = render_sidebar()
+
+    # Route and render pages
+    if page == "🔍 Search & Explorer":
+        render_search_explorer(filters)
+    elif page == "📖 Read Story":
+        render_read_story()
+    elif page == "⭐ Favorites & Tags":
+        render_favorites_tags()
+    elif page == "📊 Archive Stats":
+        render_archive_stats()
+
+
+if __name__ == "__main__":
+    main()
+
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724

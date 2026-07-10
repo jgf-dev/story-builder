@@ -5,12 +5,19 @@ import subprocess  # noqa: S404
 import sys
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 
 def natural_sort_key(s):
     """Sort strings containing numbers naturally."""
     return [
         int(text) if text.isdigit() else text.lower() for text in re.split(r"(\d+)", s)
     ]
+<<<<<<< HEAD
+=======
+
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 
 =======
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
@@ -30,6 +37,9 @@ def get_audio_player() -> list[str]:
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 def play_sequence(directory):
     files = glob.glob(os.path.join(directory, "*-part.wav"))
     files.sort(key=natural_sort_key)

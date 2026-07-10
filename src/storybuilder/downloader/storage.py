@@ -22,6 +22,7 @@ def upload_many(
 
     results = transfer_manager.upload_many_from_filenames(
 <<<<<<< HEAD
+<<<<<<< HEAD
         bucket, filenames, source_directory=source_directory, max_workers=workers
 =======
         bucket,
@@ -29,6 +30,9 @@ def upload_many(
         source_directory=source_directory,
         max_workers=workers,
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+        bucket, filenames, source_directory=source_directory, max_workers=workers
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
     )
 
     for name, result in zip(filenames, results):

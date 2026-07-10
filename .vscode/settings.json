@@ -117,6 +117,7 @@
         "--cache-mode=session"
     ],
 <<<<<<< HEAD
+<<<<<<< HEAD
     "python.testing.autoTestDiscoverOnSaveEnabled": true
 =======
     "python.testing.autoTestDiscoverOnSaveEnabled": true,
@@ -125,4 +126,7 @@
         "projectKey": "jgf-dev_story-builder"
     }
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+    "python.testing.autoTestDiscoverOnSaveEnabled": true
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 }

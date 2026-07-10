@@ -15,12 +15,18 @@ def main():
         help="Path to the Chroma database.",
     )
 <<<<<<< HEAD
+<<<<<<< HEAD
     parser.add_argument(
         "--n-results", type=int, default=5, help="Number of similar stories to return."
     )
 =======
     parser.add_argument("--n-results", type=int, default=5, help="Number of similar stories to return.")
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+    parser.add_argument(
+        "--n-results", type=int, default=5, help="Number of similar stories to return."
+    )
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
     args = parser.parse_args()
 
     chroma_client = chromadb.PersistentClient(path=args.db_path)

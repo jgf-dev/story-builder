@@ -1,16 +1,22 @@
 import html
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 from pathlib import Path
 import sqlite3
 import streamlit as st
 
 from storybuilder.dashboard.data import get_favorites, get_db_files
+<<<<<<< HEAD
 =======
 
 import streamlit as st
 
 from storybuilder.dashboard.data import get_favorites
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 
 
 def render_favorites_tags() -> None:
@@ -21,18 +27,27 @@ def render_favorites_tags() -> None:
     favorites = get_favorites()
     if not favorites:
 <<<<<<< HEAD
+<<<<<<< HEAD
         st.info(
             "You haven't bookmarked any stories yet. Read a story and add it to favorites!"
         )
 =======
         st.info("You haven't bookmarked any stories yet. Read a story and add it to favorites!")
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+        st.info(
+            "You haven't bookmarked any stories yet. Read a story and add it to favorites!"
+        )
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
     else:
         # Get unique tags
         all_tags = set()
         for f in favorites:
             if f["tags"]:
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
                 for t in f["tags"].split(","):
                     all_tags.add(t.strip())
 
@@ -40,12 +55,15 @@ def render_favorites_tags() -> None:
         filter_tag = st.selectbox(
             "Filter Favorites by Tag", ["All"] + sorted(list(all_tags))
         )
+<<<<<<< HEAD
 =======
                 all_tags.update(t.strip() for t in f["tags"].split(","))
 
         # Tag filter selector
         filter_tag = st.selectbox("Filter Favorites by Tag", ["All"] + sorted(list(all_tags)))
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 
         st.write("---")
         # Expected optimization impact: Resolving N favorite stories in M year partitions
@@ -55,6 +73,9 @@ def render_favorites_tags() -> None:
         path_to_db_year = {}
         if fav_paths:
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
             for y_db in get_db_files():
                 try:
                     y = int(Path(y_db).stem)
@@ -83,6 +104,7 @@ def render_favorites_tags() -> None:
                     )
                 finally:
                     conn.close()
+<<<<<<< HEAD
 =======
             from storybuilder.downloader import db as storybuilder_db
 
@@ -102,6 +124,8 @@ def render_favorites_tags() -> None:
             except Exception as e:
                 st.warning(f"Could not resolve story paths from database: {e}")
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 
         # Display favorites
         for f in favorites:
@@ -115,16 +139,22 @@ def render_favorites_tags() -> None:
 
             with st.container():
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
                 safe_fav_title = html.escape(f['title'] or '')
                 safe_fav_author = html.escape(f['author'] or 'Unknown')
                 safe_fav_tags = html.escape(f['tags'] or 'None')
                 safe_fav_notes = html.escape(f['notes'] or 'None')
+<<<<<<< HEAD
 =======
                 safe_fav_title = html.escape(f["title"] or "")
                 safe_fav_author = html.escape(f["author"] or "Unknown")
                 safe_fav_tags = html.escape(f["tags"] or "None")
                 safe_fav_notes = html.escape(f["notes"] or "None")
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
                 st.markdown(
                     f"""
                     <div class='story-card'>
@@ -144,13 +174,19 @@ def render_favorites_tags() -> None:
                         st.session_state.selected_story_path = f["story_path"]
                         st.session_state.selected_story_year = db_year
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
                         st.query_params["nav_page"] = "📖 Read Story"
                         st.rerun()
                 st.write("")
 
+<<<<<<< HEAD
 =======
                         st.session_state["nav_page"] = "📖 Read Story"
                         st.query_params["nav_page"] = "📖 Read Story"
                         st.rerun()
                 st.write("")
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724

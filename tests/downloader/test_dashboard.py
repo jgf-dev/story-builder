@@ -51,6 +51,9 @@ class TestDashboard(unittest.TestCase):
         self, year, category, title, author, date, word_count, path, content
     ):
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
         from storybuilder.downloader.db import INDEXES, SCHEMA
 
         db_path = os.path.join(self.db_dir, f"{year}.db")
@@ -78,6 +81,7 @@ class TestDashboard(unittest.TestCase):
                 word_count,
                 content,
             ),
+<<<<<<< HEAD
 =======
         from storybuilder.downloader import db as sb_db
         from sqlmodel import Session, select
@@ -90,6 +94,8 @@ class TestDashboard(unittest.TestCase):
             url="http://test",
             content=content,
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
         )
         if word_count is not None:
             with Session(sb_db._engine) as session:

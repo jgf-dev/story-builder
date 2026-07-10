@@ -61,10 +61,14 @@ def fetch_page(url, delay, headers=None, max_retries=3):
     if not headers:
         headers = {
 <<<<<<< HEAD
+<<<<<<< HEAD
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 =======
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
         }
 
     for attempt in range(max_retries):
@@ -79,21 +83,28 @@ def fetch_page(url, delay, headers=None, max_retries=3):
             elif response.status_code in (403, 429, 503):
                 safe_print(
                     f"Warning: Fetching {url} returned status code {response.status_code} (Attempt {attempt + 1}/{max_retries})"
+<<<<<<< HEAD
 =======
             if response.status_code in (403, 429, 503):
                 safe_print(
                     f"Warning: Fetching {url} returned status code {response.status_code} (Attempt {attempt + 1}/{max_retries})",
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
                 )
                 if ENABLE_ROTATION:
                     rotate_windscribe_ip()
             else:
                 safe_print(
 <<<<<<< HEAD
+<<<<<<< HEAD
                     f"Warning: Fetching {url} returned status code {response.status_code} (Attempt {attempt + 1}/{max_retries})"
 =======
                     f"Warning: Fetching {url} returned status code {response.status_code} (Attempt {attempt + 1}/{max_retries})",
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+                    f"Warning: Fetching {url} returned status code {response.status_code} (Attempt {attempt + 1}/{max_retries})"
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
                 )
         except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
             safe_print(

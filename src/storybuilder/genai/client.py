@@ -43,10 +43,15 @@ def _parse_voice_mappings(markdown_content):
                 speaker_to_voice[speaker] = voice
                 if speaker not in speakers:
                     speakers.append(speaker)
+<<<<<<< HEAD
     # Always return the transcript as text (possibly empty). Tests expect an
     # empty string when only mappings are present in the preamble.
     transcript_text = transcript.strip() if isinstance(transcript, str) else ""
     return speaker_to_voice, transcript_text
+=======
+
+    return speaker_to_voice, speakers if not transcript else transcript
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 
 
 def _extract_active_speakers(transcript):

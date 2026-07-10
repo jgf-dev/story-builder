@@ -18,10 +18,14 @@ from logging import getLogger
 from pathlib import Path
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 from nltk.lm.vocabulary import _
 
 
 logging = getLogger(__name__)
+<<<<<<< HEAD
 =======
 from sqlalchemy import func
 from sqlalchemy import literal_column
@@ -35,6 +39,8 @@ from sqlmodel import text
 
 logging = std_logging.getLogger(__name__)
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 
 # -- Schema -------------------------------------------------------------
 
@@ -163,12 +169,20 @@ _lock = threading.Lock()
 _EMAIL_AUTHOR_RE = re.compile(r"^(.+?)\s*<([^>]+)>\s*$")
 _CHAPTER_SUFFIX_RE = re.compile(r"^(.+?)-(\d+)$")
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 # -- Constants ----------------------------------------------------------
 
 _MIN_PATH_PARTS = 3
 =======
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+
+# -- Constants ----------------------------------------------------------
+
+_BASE_TOPIC = "Gay"
+_MIN_PATH_PARTS = 3
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 
 # -- Author parsing -----------------------------------------------------
 
@@ -195,6 +209,7 @@ def _parse_output_path(output_path: str) -> "tuple[str, str, str, int | None]":
     Path structure (5+ parts): <output_dir>/<orientation>/<category>/<story_slug>/<file>
     """
     parts = Path(output_path).parts
+<<<<<<< HEAD
 <<<<<<< HEAD
     if len(parts) < _MIN_PATH_PARTS:
         message = f"Invalid output path: {output_path}. Must have at least {_MIN_PATH_PARTS} parts."
@@ -256,9 +271,20 @@ def _parse_output_path(output_path: str) -> "tuple[str, str, str, int | None]":
     # Otherwise, check filename for chapter suffix but do not override slug.
     if m := _CHAPTER_SUFFIX_RE.match(filename_stem):
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+    if len(parts) <= _MIN_PATH_PARTS:
+        message = f"Invalid output path: {output_path}. Must have at least 4 parts."
+        raise ValueError(message)
+
+    story_slug = parts[-2] if len(parts) >= _MIN_PATH_PARTS + 2 else Path(parts[-1]).stem
+
+    chapter_num = None
+
+    if m := _CHAPTER_SUFFIX_RE.match(story_slug):
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
         chapter_num = int(m.group(2))
 
-    return orientation, category, story_slug, chapter_num
+    return _BASE_TOPIC, parts[_MIN_PATH_PARTS - 1], story_slug, chapter_num
 
 
 # -- Schema migrations --------------------------------------------------
@@ -340,9 +366,13 @@ def migrate_legacy_schema(conn: sqlite3.Connection) -> bool:
         conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('rebuild')")
     except sqlite3.OperationalError:
 <<<<<<< HEAD
+<<<<<<< HEAD
         pass
 =======
         logging.debug("Skipping FTS rebuild during legacy schema migration", exc_info=True)
+=======
+        pass
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
     return True
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
 
@@ -358,10 +388,14 @@ def _migrate_schema(conn: "sqlite3.Connection") -> None:
 def init_db(db_path: str) -> "sqlite3.Connection":
     """Initialize the database (idempotent). Returns the connection."""
 <<<<<<< HEAD
+<<<<<<< HEAD
     global _conn, _is_partitioned, _db_dir, _monolithic_db_path
 =======
     global _conn, _is_partitioned, _db_dir, _monolithic_db_path, _engine, _db_path_global
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+    global _conn, _is_partitioned, _db_dir, _monolithic_db_path
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 
     is_dir = Path(db_path).is_dir() or (not db_path.endswith(".db") and not Path(db_path).suffix)
 
@@ -490,6 +524,7 @@ def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
                 need_close = True
                 conn.execute("ATTACH DATABASE ? AS curr_db", (db_path,))
                 formatted_sql = sql.format(table="curr_db.stories")
+<<<<<<< HEAD
 
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
@@ -511,7 +546,32 @@ def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
         with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(db_paths), 10)) as executor:
             for res in executor.map(_execute_single_db, db_paths):
                 all_rows.extend(res)
+=======
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 
+            if not conn:
+                return results
+
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute(formatted_sql, params)
+            results = [dict(r) for r in cursor.fetchall()]
+        except sqlite3.Error as e:
+            message = "Error querying %{message}: "
+            logging.exception(message, db_path or "monolithic db", exc_info=e)
+        finally:
+            if cursor:
+                cursor.close()
+            if need_close and conn:
+                conn.close()
+        return results
+
+    if len(db_paths) == 1 and db_paths[0] is None:
+        all_rows.extend(_execute_single_db(None))
+    else:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(db_paths), 10)) as executor:
+            for res in executor.map(_execute_single_db, db_paths):
+                all_rows.extend(res)
     return all_rows
 =======
 def execute_query(sql: str, params: tuple = ()) -> list[dict]:
@@ -660,6 +720,12 @@ def search_stories(
             # Monolithic DB: no need for thread pool
             all_results.extend(_search_single_db(None))
         else:
+<<<<<<< HEAD
+=======
+            with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(db_paths), 10)) as executor:
+                for res in executor.map(_search_single_db, db_paths):
+                    all_results.extend(res)
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
             with concurrent.futures.ThreadPoolExecutor(
                 max_workers=min(len(db_paths), 10)
             ) as executor:
@@ -813,11 +879,14 @@ def insert_story(
             conn.rollback()
             message = "Unexpected error inserting story at %{message}: "
             logging.exception(message, output_path, exc_info=e)
+<<<<<<< HEAD
 =======
         except Exception as e:
             session.rollback()
             std_logging.exception("Unexpected error inserting story at %s", output_path, exc_info=e)
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
             return False
 
 
@@ -878,10 +947,14 @@ def optimize_fts() -> None:
 
 def close_db() -> None:
 <<<<<<< HEAD
+<<<<<<< HEAD
     global _conn, _connections, _is_partitioned, _db_dir, _monolithic_db_path
 =======
     global _conn, _engine, _is_partitioned, _db_dir, _monolithic_db_path, _db_path_global
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+    global _conn, _connections, _is_partitioned, _db_dir, _monolithic_db_path
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
     with _lock:
         if _conn is not None:
             _conn.close()
@@ -896,6 +969,9 @@ def close_db() -> None:
         _db_dir = None
         _monolithic_db_path = None
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         _db_path_global = None
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724

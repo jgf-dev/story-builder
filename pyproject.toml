@@ -32,7 +32,10 @@ dependencies = [
 =======
     "streamlit>=1.58.0",
     "tqdm>=4.68.3",
+<<<<<<< HEAD
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
     "transformers>=5.13.0",
     "xai-sdk>=1.17.0",
     "opentelemetry-instrumentation-asyncio==0.63b1",
@@ -44,9 +47,12 @@ dependencies = [
     "opentelemetry.exporter.otlp.proto.http",
     "dotenv>=0.9.9",
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     "sqlmodel>=0.0.39",
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 ]
 
 [project.scripts]

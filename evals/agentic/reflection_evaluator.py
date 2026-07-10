@@ -8,9 +8,13 @@ Based on the agentic-eval skill patterns.
 """
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 import json
 =======
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+import json
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -207,9 +211,13 @@ class LLMJudgeReflectionEvaluator(ReflectionEvaluator):
                         score=0.0,
                         feedback=f"Judge error: {e}",
 <<<<<<< HEAD
+<<<<<<< HEAD
                     )
 =======
                     ),
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+                    )
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
                 )
         return results

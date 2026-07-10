@@ -38,6 +38,10 @@ from .tools import read_story
 from .tools import split_scene_files
 from .tools import write_scene_file
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 
 =======
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
@@ -341,6 +345,12 @@ runner = Runner(
 
 logging.getLogger(__name__).info(f"Runner created for agent '{runner.agent.name}'.")
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+logging.getLogger(__name__).info(
+    f"  Sub-agents: {story_analyzer.name}, {scene_writer.name}"
+)
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 logging.getLogger(__name__).info(
     f"  Sub-agents: {story_analyzer.name}, {scene_writer.name}"
 )

@@ -32,9 +32,12 @@ dummy_stories/
 test_dbs/
 *.db.sql
 <<<<<<< HEAD
+<<<<<<< HEAD
 test.db
 =======
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 
 # Agent scratch folders
 .qwen

@@ -254,10 +254,13 @@ def process_directory_cartesia(directory, rate=24000):
             print(
                 f"Skipping {os.path.basename(md_file)}, {os.path.basename(wav_file)} already exists."
             )
+<<<<<<< HEAD
 =======
         if pathlib.Path(wav_file).exists():
             print(f"Skipping {os.path.basename(md_file)}, {os.path.basename(wav_file)} already exists.")
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
             continue
 
         process_file_cartesia(md_file, wav_file, api_key, rate=rate)
@@ -267,12 +270,18 @@ def process_directory_cartesia(directory, rate=24000):
 
 if __name__ == "__main__":
 <<<<<<< HEAD
+<<<<<<< HEAD
     parser = argparse.ArgumentParser(
         description="Process TTS prompt files using Cartesia API."
     )
 =======
     parser = argparse.ArgumentParser(description="Process TTS prompt files using Cartesia API.")
 >>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+=======
+    parser = argparse.ArgumentParser(
+        description="Process TTS prompt files using Cartesia API."
+    )
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
     parser.add_argument(
         "--dir",
         default="stories/the_secret_vacation",

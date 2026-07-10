@@ -73,7 +73,6 @@ def _format_header(title, author, story_date, story_url):
     return header
 
 
-
 def save_story(story_url, output_path, story_date, delay):
     """
     Downloads the story from story_url and saves it to output_path.
@@ -120,7 +119,6 @@ def save_story(story_url, output_path, story_date, delay):
     return True
 
 
-
 def _is_already_downloaded(idx_str, url, output_paths, story_date):
     if db.get_conn() is not None:
         # Check if all paths exist in the database
@@ -144,19 +142,23 @@ def _is_already_downloaded(idx_str, url, output_paths, story_date):
             return True
     return False
 
+
 def _replicate_story(primary_path, output_paths, story_date):
     if len(output_paths) <= 1:
         return
 
     if db.get_conn() is None:
         import shutil
+
         for extra_path in output_paths[1:]:
             safe_print(f"Copying already downloaded story to: {extra_path}")
             os.makedirs(os.path.dirname(extra_path), exist_ok=True)
             try:
                 shutil.copy2(primary_path, extra_path)
             except Exception as e:
-                safe_print(f"Warning: Failed to copy {primary_path} to {extra_path}: {e}")
+                safe_print(
+                    f"Warning: Failed to copy {primary_path} to {extra_path}: {e}"
+                )
     else:
         # Retrieve from database and insert for duplicates
         story_data = db.get_story(primary_path, story_date)
@@ -170,6 +172,7 @@ def _replicate_story(primary_path, output_paths, story_date):
                     url=story_data["url"],
                     content=story_data["content"],
                 )
+
 
 def download_single_target(idx_str, url, output_paths, story_date, delay, force=False):
     """

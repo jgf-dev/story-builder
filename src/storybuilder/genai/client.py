@@ -50,6 +50,8 @@ def _parse_voice_mappings(markdown_content):
 def _extract_active_speakers(transcript):
     """Extracts active speakers actually speaking in the transcript in order of appearance."""
     active_speakers = []
+    if transcript is None:
+        return active_speakers
     if isinstance(transcript, list):
         return transcript
     for line in transcript.split("\n"):

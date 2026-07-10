@@ -20,7 +20,10 @@ Run with:
 
 import pytest
 
+<<<<<<< HEAD
 from evals.agentic.reflection_evaluator import CritiqueResult
+=======
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
 from evals.agentic.reflection_evaluator import ReflectionEvaluator
 from evals.agentic.rubric_evaluator import RubricDimension
 from evals.agentic.rubric_evaluator import RubricEvaluator
@@ -137,7 +140,11 @@ class TestTTSPromptCrafterGreetings:
     @pytest.mark.parametrize("query", GREETING_QUERIES)
     def test_greeting_response(self, adk_events, query):
         """Agent should respond appropriately to greetings."""
+<<<<<<< HEAD
         events = adk_events({'content': query, 'role': 'user'})
+=======
+        events = adk_events(query)
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
 
         assert len(events) > 0, f"No events returned for query: {query}"
 
@@ -154,10 +161,19 @@ class TestTTSPromptCrafterGreetings:
             if event.content and event.content.parts:
                 for part in event.content.parts:
                     if part.function_call:
+<<<<<<< HEAD
                         tool_calls.append({
                             "name": part.function_call.name,
                             "args": dict(part.function_call.args) if part.function_call.args else {},
                         })
+=======
+                        tool_calls.append(
+                            {
+                                "name": part.function_call.name,
+                                "args": dict(part.function_call.args) if part.function_call.args else {},
+                            },
+                        )
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
 
         # Evaluate using rubric
         evaluator = RubricEvaluator(dimensions=TTS_EVALUATION_RUBRIC, threshold=0.5)
@@ -170,11 +186,16 @@ class TestTTSPromptCrafterGreetings:
         assert result.passed, (
             f"Rubric evaluation FAILED for '{query}':\n"
             f"  Overall score: {result.overall_score:.2f} (threshold: {result.threshold})\n"
+<<<<<<< HEAD
             f"  Dimensions:\n" +
             "\n".join(
                 f"    {s.dimension}: {s.score}/5.0 (weight: {s.weight})"
                 for s in result.dimension_scores
             )
+=======
+            f"  Dimensions:\n"
+            + "\n".join(f"    {s.dimension}: {s.score}/5.0 (weight: {s.weight})" for s in result.dimension_scores)
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
         )
 
 
@@ -185,7 +206,11 @@ class TestTTSPromptCrafterPipeline:
     @pytest.mark.parametrize("query", PIPELINE_QUERIES)
     def test_pipeline_execution(self, adk_events, query):
         """Agent should process a story through the full pipeline."""
+<<<<<<< HEAD
         events = adk_events({'content': query})
+=======
+        events = adk_events(query)
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
 
         assert len(events) > 0, "No events returned"
 
@@ -198,9 +223,13 @@ class TestTTSPromptCrafterPipeline:
                         tool_calls_made.add(part.function_call.name)
 
         # Should have at least attempted tool usage
+<<<<<<< HEAD
         assert len(tool_calls_made) > 0, (
             f"No tool calls made during pipeline execution"
         )
+=======
+        assert len(tool_calls_made) > 0, "No tool calls made during pipeline execution"
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
 
         # Get final response
         final_events = [e for e in events if e.is_final_response()]
@@ -215,7 +244,11 @@ class TestTTSPromptCrafterEdgeCases:
     def test_missing_story(self, adk_events):
         """Agent should handle non-existent story paths gracefully."""
         query = "Process the story at stories/text/nonexistent.md"
+<<<<<<< HEAD
         events = adk_events({'content': query})
+=======
+        events = adk_events(query)
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
 
         final_events = [e for e in events if e.is_final_response()]
         if not final_events:
@@ -229,6 +262,7 @@ class TestTTSPromptCrafterEdgeCases:
         # Should mention the error or inability to find the file
         error_indicators = ["not found", "doesn't exist", "cannot", "unable", "error", "sorry"]
         has_error_response = any(indicator in response.lower() for indicator in error_indicators)
+<<<<<<< HEAD
         assert has_error_response, (
             f"Agent should acknowledge the missing file.\nResponse: {response[:200]}"
         )
@@ -236,6 +270,13 @@ class TestTTSPromptCrafterEdgeCases:
     def test_empty_query(self, adk_events):
         """Agent should handle empty queries gracefully."""
         events = adk_events({'content': '', 'role': 'user'})
+=======
+        assert has_error_response, f"Agent should acknowledge the missing file.\nResponse: {response[:200]}"
+
+    def test_empty_query(self, adk_events):
+        """Agent should handle empty queries gracefully."""
+        events = adk_events("")
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
 
         assert len(events) > 0, "No events for empty query"
 
@@ -266,7 +307,11 @@ class TestTTSPromptCrafterReflection:
     @pytest.mark.parametrize("query", GREETING_QUERIES[:2])
     def test_self_reflection_on_greetings(self, adk_events, query):
         """Verify agent outputs pass self-reflection criteria."""
+<<<<<<< HEAD
         events = adk_events({'content': query, 'role': 'user'})
+=======
+        events = adk_events(query)
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
 
         final_events = [e for e in events if e.is_final_response()]
         if not final_events:

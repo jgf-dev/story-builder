@@ -17,12 +17,18 @@ Usage:
 """
 
 import argparse
+<<<<<<< HEAD
 import glob
+=======
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
 import json
 import logging
 import os
 import sys
+<<<<<<< HEAD
 import time
+=======
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
 from pathlib import Path
 
 
@@ -48,7 +54,11 @@ def discover_eval_sets(agent_dir: Path) -> list[Path]:
 
 def load_eval_set(eval_set_path: Path) -> dict:
     """Load an ADK eval set JSON file."""
+<<<<<<< HEAD
     with open(eval_set_path) as f:
+=======
+    with Path(eval_set_path).open() as f:
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
         return json.load(f)
 
 
@@ -56,7 +66,11 @@ def print_eval_set_summary(eval_set: dict) -> None:
     """Print a summary of an eval set."""
     name = eval_set.get("name", eval_set.get("eval_set_id", "unknown"))
     cases = eval_set.get("eval_cases", [])
+<<<<<<< HEAD
     print(f"\n{'='*60}")
+=======
+    print(f"\n{'=' * 60}")
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
     print(f"Eval Set: {name}")
     print(f"  Cases: {len(cases)}")
     for i, case in enumerate(cases):
@@ -64,8 +78,17 @@ def print_eval_set_summary(eval_set: dict) -> None:
         eval_id = case.get("eval_id", f"case_{i}")
         turns = len(conv)
         first_msg = conv[0].get("user_content", {}).get("parts", [{}])[0].get("text", "")[:80] if conv else ""
+<<<<<<< HEAD
         print(f"  [{i+1}] {eval_id}: {turns} turn(s) — \"{first_msg}...\"" if first_msg else f"  [{i+1}] {eval_id}: {turns} turn(s)")
     print(f"{'='*60}")
+=======
+        print(
+            f'  [{i + 1}] {eval_id}: {turns} turn(s) — "{first_msg}..."'
+            if first_msg
+            else f"  [{i + 1}] {eval_id}: {turns} turn(s)",
+        )
+    print(f"{'=' * 60}")
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
 
 
 def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
@@ -78,7 +101,10 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
     Results are automatically saved to .adk/eval_history/ by the ADK.
     """
     import asyncio
+<<<<<<< HEAD
     import json as _json
+=======
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
     from pathlib import Path as _Path
 
     eval_path = _Path(eval_set_path)
@@ -102,9 +128,13 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
 
         try:
             # Load using ADK's file loader (handles both new and old formats)
+<<<<<<< HEAD
             pydantic_eval_set = load_eval_set_from_file(
                 str(eval_path), eval_name
             )
+=======
+            pydantic_eval_set = load_eval_set_from_file(str(eval_path), eval_name)
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
 
             # Determine agent module path relative to the agent's directory
             # The agent module must be importable from the agent directory
@@ -117,7 +147,11 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
                     eval_set=pydantic_eval_set,
                     num_runs=1,
                     print_detailed_results=verbose,
+<<<<<<< HEAD
                 )
+=======
+                ),
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
             )
 
             # Print results summary
@@ -131,9 +165,13 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
                         metric_name = getattr(metric, "metric_name", "?")
                         score = getattr(metric, "score", None)
                         status = getattr(metric, "eval_status", None)
+<<<<<<< HEAD
                         status_label = {1: "PASS", 2: "FAIL", 3: "SKIP", 4: "ERROR"}.get(
                             status, str(status or "?")
                         )
+=======
+                        status_label = {1: "PASS", 2: "FAIL", 3: "SKIP", 4: "ERROR"}.get(status, str(status or "?"))
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
                         if score is not None:
                             print(f"    {metric_name}: {score:.4f} [{status_label}]")
                         else:
@@ -261,7 +299,11 @@ def main():
         for eval_path in all_eval_sets:
             eval_set = load_eval_set(eval_path)
             issues = validate_eval_set_structure(eval_set, str(eval_path))
+<<<<<<< HEAD
             print(f"\n{'='*60}")
+=======
+            print(f"\n{'=' * 60}")
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
             print(f"File: {eval_path.relative_to(PROJECT_ROOT)}")
             print(f"  Cases: {len(eval_set.get('eval_cases', []))}")
             if issues:

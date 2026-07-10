@@ -31,7 +31,10 @@ dummy_stories/
 .kanban.db
 test_dbs/
 *.db.sql
+<<<<<<< HEAD
 test.db
+=======
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
 
 # Agent scratch folders
 .qwen

@@ -60,10 +60,14 @@ def _validate_eval_set_structure(data: dict, name: str) -> list[str]:
             # Check for required fields in parts
             for k, part in enumerate(uc.get("parts", [])):
                 if not part.get("text") and not part.get("inline_data"):
+<<<<<<< HEAD
                     issues.append(
                         f"[{case_id}] turn[{j}] user_content.parts[{k}]: "
                         "Missing 'text' or 'inline_data'"
                     )
+=======
+                    issues.append(f"[{case_id}] turn[{j}] user_content.parts[{k}]: Missing 'text' or 'inline_data'")
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
 
     return issues
 
@@ -85,16 +89,24 @@ class TestEvalSetDiscovery:
     def test_tts_prompt_crafter_has_evals(self):
         """TTS Prompt Crafter should have at least one eval set."""
         evals = discover_eval_sets(TTS_AGENT_DIR)
+<<<<<<< HEAD
         assert len(evals) >= 1, (
             f"No .evalset.json files found in {TTS_AGENT_DIR}"
         )
+=======
+        assert len(evals) >= 1, f"No .evalset.json files found in {TTS_AGENT_DIR}"
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
 
     def test_cartesia_agent_has_evals(self):
         """Cartesia TTS agent should have at least one eval set."""
         evals = discover_eval_sets(CARTESIA_AGENT_DIR)
+<<<<<<< HEAD
         assert len(evals) >= 1, (
             f"No .evalset.json files found in {CARTESIA_AGENT_DIR}"
         )
+=======
+        assert len(evals) >= 1, f"No .evalset.json files found in {CARTESIA_AGENT_DIR}"
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
 
 
 class TestEvalSetStructure:
@@ -109,6 +121,7 @@ class TestEvalSetStructure:
         """Each eval set must have valid structure."""
         assert eval_path.exists(), f"Eval set not found: {eval_path}"
 
+<<<<<<< HEAD
         with open(eval_path) as f:
             data = json.load(f)
 
@@ -116,6 +129,14 @@ class TestEvalSetStructure:
         assert not issues, (
             f"Structural issues in {eval_path.relative_to(PROJECT_ROOT)}:\n"
             + "\n".join(f"  - {i}" for i in issues)
+=======
+        with Path(eval_path).open() as f:
+            data = json.load(f)
+
+        issues = _validate_eval_set_structure(data, eval_path.stem)
+        assert not issues, f"Structural issues in {eval_path.relative_to(PROJECT_ROOT)}:\n" + "\n".join(
+            f"  - {i}" for i in issues
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
         )
 
     def test_all_eval_sets_have_unique_ids(self):
@@ -124,7 +145,11 @@ class TestEvalSetStructure:
         all_evals = discover_eval_sets(TTS_AGENT_DIR) + discover_eval_sets(CARTESIA_AGENT_DIR)
 
         for eval_path in all_evals:
+<<<<<<< HEAD
             with open(eval_path) as f:
+=======
+            with Path(eval_path).open() as f:
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
                 data = json.load(f)
             eval_id = data.get("eval_set_id", eval_path.stem)
             if eval_id not in seen_ids:
@@ -152,16 +177,27 @@ class TestEvalRunViaADK:
         traces and scores responses.
         """
         import sys
+<<<<<<< HEAD
+=======
+
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
         sys.path.insert(0, str(Path(__file__).parent.parent))
         from evals.run_adk_eval import run_eval_via_adk
 
         result = run_eval_via_adk(eval_path, verbose=False)
+<<<<<<< HEAD
         assert result.get("status") in ("completed", "error"), (
             f"Eval run failed: {result.get('error')}"
         )
+=======
+        assert result.get("status") in ("completed", "validated_only"), f"Eval run failed: {result.get('error')}"
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
 
     @pytest.mark.slow
     @pytest.mark.skip(reason="Cartesia TTS agent tools not yet implemented")
     def test_run_cartesia_eval_set(self):
         """Cartesia eval sets can be run once tools are implemented."""
+<<<<<<< HEAD
         pass
+=======
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483

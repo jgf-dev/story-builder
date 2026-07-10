@@ -26,12 +26,11 @@ import argparse
 import os
 import sqlite3
 import sys
-from collections import Counter
 from pathlib import Path
 
 
 def connect(db_path: str) -> sqlite3.Connection:
-    if not os.path.exists(db_path):
+    if not Path(db_path).exists():
         print(
             f"Error: Database '{db_path}' not found. Run import_to_sqlite.py first.",
             file=sys.stderr,
@@ -42,53 +41,20 @@ def connect(db_path: str) -> sqlite3.Connection:
     return conn
 
 
-def connect_multi(db_dir: str) -> "tuple[sqlite3.Connection, list[str]]":
-    """Return an empty memory connection and a list of DB paths.
-
-    We dynamically ATTACH these later via db.py to avoid SQLITE_MAX_ATTACHED limits.
-    """
-    db_files = sorted(
-        str(p)
-        for p in Path(db_dir).glob("*.db")
-        if p.name not in ("stories.db",)  # skip the monolithic db
-    )
-    if not db_files:
-        print(f"Error: No .db files found in '{db_dir}'", file=sys.stderr)
-        sys.exit(1)
-
-    conn = sqlite3.connect(":memory:")
-    conn.row_factory = sqlite3.Row
-    return conn, db_files
-
-
-def _query_all(*args, **kwargs):
-    # Deprecated
-    pass
-
-
 def _resolve_connection(args) -> "tuple[sqlite3.Connection, list[str] | None]":
     """Resolve connection from args, supporting both --db and --db-dir.
 
-    Returns (conn, db_paths) where db_paths is None for single-DB mode
-    and a list of file paths for multi-DB mode.
-    Auto-detects if --db is a directory.
+    Returns (conn, db_paths) where db_paths is always None (monolithic mode).
+    Auto-detects if --db is a directory and resolves it to stories.db.
     """
     db_path = getattr(args, "db_dir", None) or args.db
-    if os.path.isdir(db_path):
-        conn, db_paths = connect_multi(db_path)
-        # execute_all_partitions() relies on the db module's internal
-        # _is_partitioned / _db_dir globals, which are only set by init_db().
-        # Initialize it here so the multi-partition query paths in
-        # cmd_stats / cmd_list / cmd_get resolve partitions instead of
-        # falling through to an empty monolithic connection.
-        from storybuilder.downloader import db as storybuilder_db
-
-        storybuilder_db.init_db(db_path)
-        print(f"Connected to {len(db_paths)} databases in {db_path}")
-        return conn, db_paths
+    if Path(db_path).is_dir():
+        resolved_path = os.path.join(db_path, "stories.db")
     else:
-        conn = connect(db_path)
-        return conn, None
+        resolved_path = db_path
+
+    conn = connect(resolved_path)
+    return conn, None
 
 
 # ——— Search ————————————————————————————————————————————————————————————————————
@@ -114,6 +80,7 @@ def cmd_search(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = No
 
     where = " AND ".join(conditions)
 
+<<<<<<< HEAD
     conditions = ["stories_fts MATCH ?"]
     params = [args.query]
 
@@ -184,6 +151,21 @@ def cmd_search(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = No
         """
         params.append(args.limit)
         rows = conn.execute(sql, params).fetchall()
+=======
+    sql = f"""
+        SELECT s.id, s.path, s.category, s.story_slug, s.chapter_num,
+               s.title, s.author_name, s.publication_date,
+               s.char_count, s.word_count,
+               snippet(stories_fts, 2, '<b>', '</b>', '…', 40) AS snippet
+        FROM stories s
+        JOIN stories_fts ON s.id = stories_fts.rowid
+        WHERE {where}
+        ORDER BY rank
+        LIMIT ?
+    """
+    params.append(args.limit)
+    rows = conn.execute(sql, params).fetchall()
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
 
     if not rows:
         print(f"No results for '{args.query}'")
@@ -209,20 +191,8 @@ def cmd_get(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None)
     """Retrieve a specific story or all chapters of a story."""
     slug = args.slug
 
-    rows = []
-    if db_paths:
-        from storybuilder.downloader import db as storybuilder_db
-
-        sql = "SELECT * FROM {table} WHERE path = ? OR story_slug = ?"
-        # We fetch all rows that match, then optionally break if we were just doing single?
-        # execute_all_partitions gets all rows from all attached DBs
-        db_rows = storybuilder_db.execute_all_partitions(sql, (slug, slug))
-        if db_rows:
-            rows.extend(db_rows)
-    else:
-        sql = "SELECT * FROM stories WHERE path = ? OR story_slug = ?"
-        db_rows = conn.execute(sql, (slug, slug)).fetchall()
-        rows.extend(db_rows)
+    sql = "SELECT * FROM stories WHERE path = ? OR story_slug = ?"
+    rows = conn.execute(sql, (slug, slug)).fetchall()
 
     if not rows:
         print(f"No story found for '{slug}'")
@@ -235,7 +205,7 @@ def cmd_get(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None)
         for row in rows:
             fname = Path(row["path"]).name
             out_path = out_dir / fname
-            with open(out_path, "w", encoding="utf-8") as f:
+            with Path(out_path).open("w", encoding="utf-8") as f:
                 f.write(f"{'=' * 80}\n")
                 f.write(f"Title: {row['title']}\n")
                 f.write(f"Author: {row['author_name']}")
@@ -255,7 +225,11 @@ def cmd_get(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None)
         print(f"Title:    {row['title']}")
         print(
             f"Author:   {row['author_name'] or 'Unknown'}"
+<<<<<<< HEAD
             + (f" <{row['author_email']}>" if row["author_email"] else "")
+=======
+            + (f" <{row['author_email']}>" if row["author_email"] else ""),
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
         )
         print(f"Date:     {row['publication_date'] or 'Unknown'}")
         print(f"URL:      {row['url'] or 'N/A'}")
@@ -302,58 +276,16 @@ def cmd_list(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None
         "chars": "char_count DESC",
     }.get(args.sort, "publication_date DESC")
 
-    if db_paths:
-        # Use new db.py API to query across partitions
-        from storybuilder.downloader import db as storybuilder_db
-
-        raw_rows = storybuilder_db.execute_all_partitions(
-            f"""SELECT id, path, category, story_slug, title, author_name,
-                       publication_date, char_count, word_count
-                FROM {{table}}
-                WHERE {" AND ".join(conditions)}
-                ORDER BY {order}
-                LIMIT ?""",
-            tuple(params) + (args.limit,),
-        )
-
-        if args.sort == "title":
-
-            def key_func(r):
-                return r["title"] or ""
-
-            rev = False
-        elif args.sort == "words":
-
-            def key_func(r):
-                return r["word_count"] or 0
-
-            rev = True
-        elif args.sort == "chars":
-
-            def key_func(r):
-                return r["char_count"] or 0
-
-            rev = True
-        else:
-
-            def key_func(r):
-                return r["publication_date"] or ""
-
-            rev = True
-
-        raw_rows.sort(key=key_func, reverse=rev)
-        rows = raw_rows[: args.limit]
-    else:
-        sql = f"""
-            SELECT id, path, category, story_slug, title, author_name,
-                   publication_date, char_count, word_count
-            FROM stories
-            WHERE {" AND ".join(conditions)}
-            ORDER BY {order}
-            LIMIT ?
-        """
-        params.append(args.limit)
-        rows = conn.execute(sql, params).fetchall()
+    sql = f"""
+        SELECT id, path, category, story_slug, title, author_name,
+               publication_date, char_count, word_count
+        FROM stories
+        WHERE {" AND ".join(conditions)}
+        ORDER BY {order}
+        LIMIT ?
+    """
+    params.append(args.limit)
+    rows = conn.execute(sql, params).fetchall()
 
     if not rows:
         print("No stories found.")
@@ -368,7 +300,11 @@ def cmd_list(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None
         title = row["title"][:44] if row["title"] else ""
         author = (row["author_name"] or "")[:24]
         print(
+<<<<<<< HEAD
             f"{row['id']:>6}  {title:<45}  {author:<25}  {row['publication_date'] or '':>10}  {row['word_count']:>8,}  {row['category']}"
+=======
+            f"{row['id']:>6}  {title:<45}  {author:<25}  {row['publication_date'] or '':>10}  {row['word_count']:>8,}  {row['category']}",
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
         )
 
 
@@ -383,9 +319,11 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
         where = "WHERE category = ?"
         params.append(args.category)
 
-    if db_paths:
-        from storybuilder.downloader import db as storybuilder_db
+    total = conn.execute(f"SELECT COUNT(*) FROM stories {where}", params).fetchone()[0]
+    total_chars = conn.execute(f"SELECT SUM(char_count) FROM stories {where}", params).fetchone()[0] or 0
+    total_words = conn.execute(f"SELECT SUM(word_count) FROM stories {where}", params).fetchone()[0] or 0
 
+<<<<<<< HEAD
         # Expected optimization impact: Resolving stats across M year partitions
         # O(3 * M) individual DB queries -> O(1 * M) using ATTACH DATABASE.
         # Significantly improves the stats query time by combining COUNT and SUMs into a single pass.
@@ -416,6 +354,8 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
             or 0
         )
 
+=======
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
     print(
         f"\n=== Database Stats{' for ' + args.category if args.category else ''} ===\n"
     )
@@ -428,33 +368,20 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
 
     # Top categories
     print("\n  Top categories:")
-    if db_paths:
-        from storybuilder.downloader import db as storybuilder_db
-
-        cat_rows = storybuilder_db.execute_all_partitions(
-            f"""SELECT category, COUNT(*) as cnt
-                FROM {{table}} {"WHERE category = ?" if args.category else ""}
-                GROUP BY category""",
-            (args.category,) if args.category else (),
-        )
-        cat_counter = Counter()
-        for row in cat_rows:
-            cat_counter[row["category"]] += row["cnt"]
-        cats = [{"category": k, "cnt": v} for k, v in cat_counter.most_common(15)]
-    else:
-        cats = conn.execute(
-            f"""
-            SELECT category, COUNT(*) as cnt
-            FROM stories {where or "WHERE 1=1"}
-            GROUP BY category ORDER BY cnt DESC LIMIT 15
-            """,
-            params if where else [],
-        ).fetchall()
+    cats = conn.execute(
+        f"""
+        SELECT category, COUNT(*) as cnt
+        FROM stories {where or "WHERE 1=1"}
+        GROUP BY category ORDER BY cnt DESC LIMIT 15
+        """,
+        params if where else [],
+    ).fetchall()
     for c in cats:
         print(f"    {c['category']:<25} {c['cnt']:>6,}")
 
     # Top authors
     print("\n  Top authors:")
+<<<<<<< HEAD
     if db_paths:
         from storybuilder.downloader import db as storybuilder_db
 
@@ -483,30 +410,28 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
             """,
             params if where else [],
         ).fetchall()
+=======
+    authors = conn.execute(
+        f"""
+        SELECT author_name, COUNT(*) as cnt, SUM(word_count) as total_words
+        FROM stories {where or "WHERE 1=1"}
+        GROUP BY author_name ORDER BY cnt DESC LIMIT 15
+        """,
+        params if where else [],
+    ).fetchall()
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
     for a in authors:
         name = (a["author_name"] or "Unknown")[:30]
         print(f"    {name:<30} {a['cnt']:>5} stories  ({a['total_words']:,} words)")
 
     # Date range
-    if db_paths:
-        from storybuilder.downloader import db as storybuilder_db
-
-        date_rows = storybuilder_db.execute_all_partitions(
-            f"SELECT MIN(publication_date) as min_date, MAX(publication_date) as max_date FROM {{table}} {where}",
-            tuple(params),
-        )
-        min_dates = [r["min_date"] for r in date_rows if r["min_date"]]
-        max_dates = [r["max_date"] for r in date_rows if r["max_date"]]
-        d_min = min(min_dates) if min_dates else "N/A"
-        d_max = max(max_dates) if max_dates else "N/A"
-    else:
-        daterange = conn.execute(
-            f"""SELECT MIN(publication_date), MAX(publication_date)
-            FROM stories {where}""",
-            params,
-        ).fetchone()
-        d_min = daterange[0]
-        d_max = daterange[1]
+    daterange = conn.execute(
+        f"""SELECT MIN(publication_date), MAX(publication_date)
+        FROM stories {where}""",
+        params,
+    ).fetchone()
+    d_min = daterange[0]
+    d_max = daterange[1]
     print(f"\n  Date range:  {d_min} — {d_max}")
 
     print()

@@ -1,4 +1,5 @@
 import argparse
+
 import chromadb
 
 
@@ -13,9 +14,13 @@ def main():
         default="./chroma_db",
         help="Path to the Chroma database.",
     )
+<<<<<<< HEAD
     parser.add_argument(
         "--n-results", type=int, default=5, help="Number of similar stories to return."
     )
+=======
+    parser.add_argument("--n-results", type=int, default=5, help="Number of similar stories to return.")
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
     args = parser.parse_args()
 
     chroma_client = chromadb.PersistentClient(path=args.db_path)
@@ -43,9 +48,13 @@ def main():
 
     print(f"Finding top {args.n_results} stories similar to: {args.target_story}\n")
 
+<<<<<<< HEAD
     query_results = collection_averages.query(
         query_embeddings=[target_embedding], n_results=args.n_results + 1
     )
+=======
+    query_results = collection_averages.query(query_embeddings=[target_embedding], n_results=args.n_results + 1)
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
 
     for idx, (filepath, distance) in enumerate(
         zip(query_results["ids"][0], query_results["distances"][0])

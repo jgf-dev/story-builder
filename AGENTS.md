@@ -236,9 +236,17 @@ When adding features or fixing bugs, cross-check the exact behaviors exercised i
 ## Linear Integration
 
 - **Workflow**: `.github/workflows/auto-linear.yml` runs on every PR, finds-or-creates a Linear issue (team key `PRO`, title prefix `GIT-`), and prefixes the PR title. Uses `ctriolo/action-find-or-create-linear-issue@v0.60`.
+<<<<<<< HEAD
 - **Task tracking**: The canonical task list is [`tasks/TASKS.md`](tasks/TASKS.md). Unchecked `- [ ]` items under "Active" are candidates for Linear issue creation.
 - **Secret**: `LINEAR_API_KEY` is stored in GitHub Secrets (not in `.env`). For local Linear API calls, the user must export it.
 - **Prompt**: Use `/linear-assistant` (`.github/prompts/linear-assistant.prompt.md`) to create, find, or sync Linear issues from chat.
 - **Convention**: All Linear issue titles are prefixed with `GIT-` to match the auto-linear workflow. Use the `PRO` team key.
 
 - **API**: Linear GraphQL endpoint is `https://api.linear.app/graphql`. Prefer GraphQL over REST.
+=======
+- **Secret**: `LINEAR_API_KEY` is stored in GitHub Secrets (not in `.env`). For local Linear API calls, the user must export it.
+- **Task tracking**: The canonical task list is [`tasks/TASKS.md`](tasks/TASKS.md). Unchecked `- [ ]` items under "Active" are candidates for Linear issue creation.
+- **Prompt**: Use `/linear-assistant` (`.github/prompts/linear-assistant.prompt.md`) to create, find, or sync Linear issues from chat.
+- **Convention**: All Linear issue titles are prefixed with `GIT-` to match the auto-linear workflow. Use the `PRO` team key.
+- **API**: Linear GraphQL endpoint is `https://api.linear.app/graphql`. Prefer GraphQL over REST.
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483

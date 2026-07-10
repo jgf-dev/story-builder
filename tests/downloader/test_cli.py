@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import patch, MagicMock
 import argparse
+import sys
 
 from storybuilder.downloader.cli import _setup_network
 from storybuilder.downloader import network

@@ -16,6 +16,3 @@
 ## 2026-07-06 - Remove duplicate file input for better accessibility and UX
 **Learning:** Duplicate `id` attributes can break `label for="..."` association and confuse screen readers. Having both a visible native input and a visually-hidden, custom-styled `<input type="file">` results in a disjointed user experience and redundancy.
 **Action:** Removed the duplicate native visible `<input type="file">` in `dashboard.html` that shared the same `id` as the `.sr-only` input used for custom styling.
-## 2026-07-09 - Explain Disabled States
-**Learning:** Users can be confused when a button is disabled without explanation. Adding a dynamic `title` attribute provides an accessible tooltip explaining why the action is currently unavailable.
-**Action:** When disabling interactive elements like save buttons, dynamically update their `title` attribute to explain the disabled state (e.g., "No unsaved changes" or "Saving in progress...") and restore it when enabled.

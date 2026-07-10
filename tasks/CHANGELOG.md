@@ -1,7 +1,14 @@
 ---
-title: Storybuilder dev changelog
-description: Explanantion of changes per commits
----
+
+## 10/07/2026
+
+### Resolved multi-branch merge conflicts (cloud-output-adapters + parallelize-partitions)
+
+- **storage.py**: Merged both branches — adopted `upload_many_gcs` (renamed from `upload_many`) and added new `upload_many_s3` + `_upload_single_s3` from the cloud-output-adapters branch. Added type hints and docstrings.
+- **test_split_prompts.py**: Updated mock target from `upload_many` to `upload_many_gcs` to match `cli.py` imports.
+- **test_tts_pipeline.py**: Resolved 12 conflict regions — kept `get_gemini_api_keys` (matching current `client.py`), used `Path`-based operations, consistent variable naming (`configured_api_keys`, `completed_files`), and added return type hints.
+- **db.py**: No conflict markers (already resolved), staged as-is.
+- All 15 tests pass. Ran `ruff check --fix` (64 auto-fixes) and `ruff format`.
 
 ## 04/07/2026
   

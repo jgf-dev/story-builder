@@ -40,7 +40,8 @@ class TestTTSPipeline(unittest.TestCase):
         # Find up to MAX_API_CALLS real prompt files from the repo
         all_parts = sorted(
             glob.glob(
-                str(project_root / "stories" / "**" / "*-part.md"), recursive=True,
+                str(project_root / "stories" / "**" / "*-part.md"),
+                recursive=True,
             ),
         )
         # Exclude archive directories
@@ -64,7 +65,8 @@ class TestTTSPipeline(unittest.TestCase):
         """
         from google import genai
 
-        from storybuilder.genai.client import get_gemini_api_keys, process_file
+        from storybuilder.genai.client import get_gemini_api_keys
+        from storybuilder.genai.client import process_file
 
         configured_api_keys = get_gemini_api_keys()
         self.assertGreater(len(configured_api_keys), 0, "No GEMINI_API_KEY found in environment")
@@ -132,7 +134,9 @@ class TestTTSPipeline(unittest.TestCase):
                 if Path(wav_file).exists():
                     size = Path(wav_file).stat().st_size
                     self.assertGreater(
-                        size, 0, f"WAV file for {os.path.basename(md_file)} is empty",
+                        size,
+                        0,
+                        f"WAV file for {os.path.basename(md_file)} is empty",
                     )
                     completed_files.append(wav_file)
                     print(f"  ✓ WAV written ({size} bytes)")

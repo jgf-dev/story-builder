@@ -4,8 +4,10 @@ import os
 from pathlib import Path
 
 import boto3
-from botocore.exceptions import BotoCoreError, ClientError
-from google.cloud.storage import Client, transfer_manager
+from botocore.exceptions import BotoCoreError
+from botocore.exceptions import ClientError
+from google.cloud.storage import Client
+from google.cloud.storage import transfer_manager
 
 
 def upload_many_gcs(
@@ -24,9 +26,7 @@ def upload_many_gcs(
             bucket,
             filenames,
             source_directory=source_directory,
-            blob_name_prefix=prefix + "/"
-            if prefix and not prefix.endswith("/")
-            else prefix,
+            blob_name_prefix=prefix + "/" if prefix and not prefix.endswith("/") else prefix,
             max_workers=workers,
         )
 
@@ -75,9 +75,7 @@ def upload_many_s3(
             for filename in filenames:
                 # Calculate object name
                 rel_path = (
-                    os.path.relpath(filename, source_directory)
-                    if source_directory
-                    else os.path.basename(filename)
+                    os.path.relpath(filename, source_directory) if source_directory else os.path.basename(filename)
                 )
 
                 # Replace Windows path separators if needed
@@ -85,7 +83,11 @@ def upload_many_s3(
 
                 object_name = f"{prefix}{rel_path}"
                 future = executor.submit(
-                    _upload_single_s3, s3_client, bucket_name, object_name, filename
+                    _upload_single_s3,
+                    s3_client,
+                    bucket_name,
+                    object_name,
+                    filename,
                 )
                 future_to_file[future] = filename
 
@@ -95,13 +97,13 @@ def upload_many_s3(
                     result = future.result()
                     if isinstance(result, Exception):
                         print(
-                            f"Failed to upload {filename} to S3 due to exception: {result}"
+                            f"Failed to upload {filename} to S3 due to exception: {result}",
                         )
                     else:
                         pass  # print(f"Uploaded {filename} to S3.")
                 except Exception as exc:
                     print(
-                        f"Failed to upload {filename} to S3 due to unhandled exception: {exc}"
+                        f"Failed to upload {filename} to S3 due to unhandled exception: {exc}",
                     )
     except Exception as e:
         print(f"Failed to initialize S3 upload: {e}")

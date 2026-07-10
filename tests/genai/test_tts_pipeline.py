@@ -10,7 +10,6 @@ Run manually with:
 """
 
 import glob
-
 import os
 import shutil
 import tempfile
@@ -35,21 +34,21 @@ class TestTTSPipeline(unittest.TestCase):
         cls.api_key = os.getenv("GEMINI_API_KEY")
         if not cls.api_key:
             raise unittest.SkipTest(
-                "GEMINI_API_KEY not configured — skipping TTS pipeline test"
+                "GEMINI_API_KEY not configured — skipping TTS pipeline test",
             )
 
         # Find up to MAX_API_CALLS real prompt files from the repo
         all_parts = sorted(
             glob.glob(
-                str(project_root / "stories" / "**" / "*-part.md"), recursive=True
-            )
+                str(project_root / "stories" / "**" / "*-part.md"), recursive=True,
+            ),
         )
         # Exclude archive directories
         all_parts = [p for p in all_parts if "archive" not in p]
 
         if not all_parts:
             raise unittest.SkipTest(
-                "No *-part.md prompt files found — skipping TTS pipeline test"
+                "No *-part.md prompt files found — skipping TTS pipeline test",
             )
 
         # Take at most MAX_API_CALLS files
@@ -87,22 +86,20 @@ class TestTTSPipeline(unittest.TestCase):
                 wav_file = os.path.join(tmp_dir, f"{base_name}.wav")
 
                 # Sanitize voice names to valid Gemini voices for the integration test
-                with open(md_file, "r", encoding="utf-8") as f:
-                    content = f.read()
+                content = Path(md_file).read_text(encoding="utf-8")
                 content = (
                     content.replace("en-US-Journey-F", "Aoede")
                     .replace("en-US-Journey-D", "Charon")
                     .replace("en-US-Journey-O", "Kore")
                 )
                 temp_md_file = os.path.join(tmp_dir, f"{base_name}.md")
-                with open(temp_md_file, "w", encoding="utf-8") as f:
-                    f.write(content)
+                Path(temp_md_file).write_text(content, encoding="utf-8")
                 print(
-                    f"\n[{i + 1}/{len(self.prompt_files)}] Processing: {os.path.basename(md_file)}"
+                    f"\n[{i + 1}/{len(self.prompt_files)}] Processing: {os.path.basename(md_file)}",
                 )
                 if previous_id:
                     print(
-                        f"  Linking to previous_interaction_id={previous_id[:12]}... for voice continuity"
+                        f"  Linking to previous_interaction_id={previous_id[:12]}... for voice continuity",
                     )
 
                 try:
@@ -127,17 +124,17 @@ class TestTTSPipeline(unittest.TestCase):
                         )
                     ):
                         self.skipTest(
-                            f"Skipped due to API/quota issue on file {i + 1}: {e}"
+                            f"Skipped due to API/quota issue on file {i + 1}: {e}",
                         )
                     else:
                         self.fail(
-                            f"process_file failed on {os.path.basename(md_file)}: {e}"
+                            f"process_file failed on {os.path.basename(md_file)}: {e}",
                         )
 
-                if os.path.exists(wav_file):
-                    size = os.path.getsize(wav_file)
+                if Path(wav_file).exists():
+                    size = Path(wav_file).stat().st_size
                     self.assertGreater(
-                        size, 0, f"WAV file for {os.path.basename(md_file)} is empty"
+                        size, 0, f"WAV file for {os.path.basename(md_file)} is empty",
                     )
                     generated.append(wav_file)
                     print(f"  ✓ WAV written ({size} bytes)")
@@ -145,7 +142,7 @@ class TestTTSPipeline(unittest.TestCase):
                     print("  ⚠ No WAV output — API returned no audio (non-fatal)")
 
             print(
-                f"\nTTS pipeline test complete: {len(generated)}/{len(self.prompt_files)} files generated audio."
+                f"\nTTS pipeline test complete: {len(generated)}/{len(self.prompt_files)} files generated audio.",
             )
 
         finally:

@@ -72,7 +72,7 @@ class TestParseOutputPath(unittest.TestCase):
         from storybuilder.downloader.db import _parse_output_path
 
         orientation, category, slug, num = _parse_output_path(
-            "nifty_stories/gay/adult-friends/my-story/my-story-3.txt"
+            "nifty_stories/gay/adult-friends/my-story/my-story-3.txt",
         )
         self.assertEqual(orientation, "gay")
         self.assertEqual(category, "adult-friends")
@@ -83,7 +83,7 @@ class TestParseOutputPath(unittest.TestCase):
         from storybuilder.downloader.db import _parse_output_path
 
         orientation, category, slug, num = _parse_output_path(
-            "nifty_stories/gay/adult-friends/my-story.txt"
+            "nifty_stories/gay/adult-friends/my-story.txt",
         )
         self.assertEqual(orientation, "gay")
         self.assertEqual(category, "adult-friends")
@@ -95,7 +95,7 @@ class TestParseOutputPath(unittest.TestCase):
 
         # 3-part path: only output_dir/orientation/file — category = parts[2] = filename
         orientation, category, slug, num = _parse_output_path(
-            "nifty_stories/gay/story.txt"
+            "nifty_stories/gay/story.txt",
         )
         self.assertEqual(orientation, "gay")
         # With 3 parts, category = parts[2] which is the filename 'story.txt'
@@ -107,7 +107,7 @@ class TestParseOutputPath(unittest.TestCase):
         from storybuilder.downloader.db import _parse_output_path
 
         orientation, category, slug, num = _parse_output_path(
-            "nifty_stories/lesbian/college/title/title-1.txt"
+            "nifty_stories/lesbian/college/title/title-1.txt",
         )
         self.assertEqual(orientation, "lesbian")
         self.assertEqual(category, "college")
@@ -120,7 +120,7 @@ class TestParseOutputPath(unittest.TestCase):
         # 5-part path: downloads/gay/adult-friends/multi/my-story.txt
         # parts[3] = 'multi' is the story_slug directory, not the filename
         orientation, category, slug, num = _parse_output_path(
-            "downloads/gay/adult-friends/multi/my-story.txt"
+            "downloads/gay/adult-friends/multi/my-story.txt",
         )
         self.assertEqual(orientation, "gay")
         self.assertEqual(category, "adult-friends")
@@ -131,7 +131,7 @@ class TestParseOutputPath(unittest.TestCase):
         from storybuilder.downloader.db import _parse_output_path
 
         orientation, category, slug, num = _parse_output_path(
-            "nifty_stories/gay/college/slug/story-5.html"
+            "nifty_stories/gay/college/slug/story-5.html",
         )
         self.assertEqual(orientation, "gay")
         self.assertEqual(category, "college")
@@ -160,7 +160,7 @@ class TestDatabaseInit(unittest.TestCase):
         conn = init_db(self.db_path)
         try:
             tables = conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
+                "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name",
             ).fetchall()
             table_names = [r[0] for r in tables]
             self.assertIn("stories", table_names)
@@ -177,7 +177,7 @@ class TestDatabaseInit(unittest.TestCase):
         conn = init_db(self.db_path)
         try:
             indexes = conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='index' ORDER BY name"
+                "SELECT name FROM sqlite_master WHERE type='index' ORDER BY name",
             ).fetchall()
             index_names = [r[0] for r in indexes]
             self.assertIn("idx_stories_category", index_names)
@@ -239,7 +239,7 @@ class TestDatabaseInit(unittest.TestCase):
                 content TEXT,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
-            """
+            """,
         )
         legacy_conn.execute(
             """
@@ -250,7 +250,7 @@ class TestDatabaseInit(unittest.TestCase):
                 content=stories,
                 content_rowid=id
             )
-            """
+            """,
         )
         legacy_conn.execute(
             """
@@ -258,7 +258,7 @@ class TestDatabaseInit(unittest.TestCase):
                 INSERT INTO stories_fts(rowid, title, author_name, content)
                 VALUES (new.id, new.title, new.author_name, new.content);
             END;
-            """
+            """,
         )
         legacy_conn.execute(
             """
@@ -307,7 +307,7 @@ class TestDatabaseInit(unittest.TestCase):
             self.assertEqual(row["created_at"], "2024-01-16 12:34:56")
 
             fts_count = conn.execute(
-                "SELECT COUNT(*) FROM stories_fts WHERE stories_fts MATCH 'legacy'"
+                "SELECT COUNT(*) FROM stories_fts WHERE stories_fts MATCH 'legacy'",
             ).fetchone()[0]
             self.assertEqual(fts_count, 1)
         finally:
@@ -483,7 +483,7 @@ class TestFTSSearch(unittest.TestCase):
             rows = conn.execute(
                 "SELECT s.title, snippet(stories_fts, 1, '<b>', '</b>', '...', 30) "
                 "FROM stories s JOIN stories_fts ON s.id = stories_fts.rowid "
-                "WHERE stories_fts MATCH 'vampire' ORDER BY rank"
+                "WHERE stories_fts MATCH 'vampire' ORDER BY rank",
             ).fetchall()
             self.assertEqual(len(rows), 1)
             self.assertEqual(rows[0]["title"], "Vampire Love")
@@ -491,7 +491,7 @@ class TestFTSSearch(unittest.TestCase):
             rows = conn.execute(
                 "SELECT s.title FROM stories s "
                 "JOIN stories_fts ON s.id = stories_fts.rowid "
-                "WHERE stories_fts MATCH 'werewolf' ORDER BY rank"
+                "WHERE stories_fts MATCH 'werewolf' ORDER BY rank",
             ).fetchall()
             self.assertEqual(len(rows), 1)
             self.assertEqual(rows[0]["title"], "Werewolf Moon")
@@ -527,7 +527,7 @@ class TestFTSSearch(unittest.TestCase):
             rows = conn.execute(
                 "SELECT COUNT(*) FROM stories s "
                 "JOIN stories_fts ON s.id = stories_fts.rowid "
-                "WHERE stories_fts MATCH 'vampire'"
+                "WHERE stories_fts MATCH 'vampire'",
             ).fetchone()[0]
             self.assertEqual(rows, 0)
 
@@ -535,7 +535,7 @@ class TestFTSSearch(unittest.TestCase):
             rows = conn.execute(
                 "SELECT s.title FROM stories s "
                 "JOIN stories_fts ON s.id = stories_fts.rowid "
-                "WHERE stories_fts MATCH 'werewolf'"
+                "WHERE stories_fts MATCH 'werewolf'",
             ).fetchall()
             self.assertEqual(len(rows), 1)
             self.assertEqual(rows[0]["title"], "Updated")
@@ -573,7 +573,6 @@ class TestFTSSearch(unittest.TestCase):
         self.assertEqual(len(results), 2)
 
 
-
 class TestParseHeader(unittest.TestCase):
     """Tests for parse_header in import_to_sqlite.py."""
 
@@ -585,8 +584,7 @@ class TestParseHeader(unittest.TestCase):
 
     def _write_story_file(self, fname, content):
         path = os.path.join(self.temp_dir, fname)
-        with open(path, "w", encoding="utf-8") as f:
-            f.write(content)
+        Path(path).write_text(content, encoding="utf-8")
         return path
 
     def test_standard_header(self):
@@ -677,9 +675,10 @@ class TestParseHeader(unittest.TestCase):
         # Actually, empty content + title = not None since we check "not content and not title"
         self.assertIsNotNone(result)
         self.assertEqual(result["content"], "")
+
+
 class TestMonolithicDatabase(unittest.TestCase):
     """Tests for monolithic SQLModel-based database in db.py."""
-
 
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
@@ -694,7 +693,7 @@ class TestMonolithicDatabase(unittest.TestCase):
         from storybuilder.downloader import db
         conn = db.init_db(self.db_path)
         self.assertIsNotNone(conn)
-        
+
         # Verify stories table exists
         cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='stories'")
         self.assertIsNotNone(cursor.fetchone())
@@ -727,7 +726,6 @@ class TestMonolithicDatabase(unittest.TestCase):
         self.assertEqual(story["author"], "Author Name <author@example.com>")
         self.assertEqual(story["story_date"], "2026-07-05")
         self.assertEqual(story["content"], "This is the content of my special test story with unique word banana.")
-
 
     def test_execute_query(self):
         from storybuilder.downloader import db
@@ -763,12 +761,10 @@ class TestMonolithicDatabase(unittest.TestCase):
         self.assertIn("banana", results[0]["snippet"])
 
 
-
 class TestImportToSQLite(unittest.TestCase):
     def _write_story_file(self, filename, content):
         path = os.path.join(self.temp_dir, filename)
-        with open(path, "w", encoding="utf-8") as f:
-            f.write(content)
+        Path(path).write_text(content, encoding="utf-8")
         return path
 
     def setUp(self):
@@ -801,7 +797,7 @@ class TestImportToSQLite(unittest.TestCase):
         self.assertEqual(result["publication_date"], "2024-01-01")
         self.assertEqual(result["url"], "http://example.com/story")
         self.assertEqual(
-            result["content"], "This is the body of the story.\nIt has multiple lines."
+            result["content"], "This is the body of the story.\nIt has multiple lines.",
         )
 
     def test_parse_header_missing_fields(self):

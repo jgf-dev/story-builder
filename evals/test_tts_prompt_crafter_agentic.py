@@ -20,8 +20,6 @@ Run with:
 
 import pytest
 
-
-
 from evals.agentic.reflection_evaluator import ReflectionEvaluator
 from evals.agentic.rubric_evaluator import RubricDimension
 from evals.agentic.rubric_evaluator import RubricEvaluator
@@ -140,7 +138,6 @@ class TestTTSPromptCrafterGreetings:
         """Agent should respond appropriately to greetings."""
         events = adk_events(query)
 
-
         assert len(events) > 0, f"No events returned for query: {query}"
 
         # Get the final response
@@ -162,7 +159,6 @@ class TestTTSPromptCrafterGreetings:
                                 "args": dict(part.function_call.args) if part.function_call.args else {},
                             },
                         )
-
 
         # Evaluate using rubric
         evaluator = RubricEvaluator(dimensions=TTS_EVALUATION_RUBRIC, threshold=0.5)
@@ -190,7 +186,6 @@ class TestTTSPromptCrafterPipeline:
         """Agent should process a story through the full pipeline."""
         events = adk_events(query)
 
-
         assert len(events) > 0, "No events returned"
 
         # Check for tool calls (should call read_story at minimum)
@@ -203,7 +198,6 @@ class TestTTSPromptCrafterPipeline:
 
         # Should have at least attempted tool usage
         assert len(tool_calls_made) > 0, "No tool calls made during pipeline execution"
-
 
         # Get final response
         final_events = [e for e in events if e.is_final_response()]
@@ -219,7 +213,6 @@ class TestTTSPromptCrafterEdgeCases:
         """Agent should handle non-existent story paths gracefully."""
         query = "Process the story at stories/text/nonexistent.md"
         events = adk_events(query)
-
 
         final_events = [e for e in events if e.is_final_response()]
         if not final_events:
@@ -238,7 +231,6 @@ class TestTTSPromptCrafterEdgeCases:
     def test_empty_query(self, adk_events):
         """Agent should handle empty queries gracefully."""
         events = adk_events("")
-
 
         assert len(events) > 0, "No events for empty query"
 
@@ -270,7 +262,6 @@ class TestTTSPromptCrafterReflection:
     def test_self_reflection_on_greetings(self, adk_events, query):
         """Verify agent outputs pass self-reflection criteria."""
         events = adk_events(query)
-
 
         final_events = [e for e in events if e.is_final_response()]
         if not final_events:

@@ -10,7 +10,6 @@ def natural_sort_key(s: str) -> list[object]:
     return [int(text) if text.isdigit() else text.lower() for text in re.split(r"(\d+)", s)]
 
 
-
 def get_audio_player() -> list[str]:
     if sys.platform == "darwin":
         return ["afplay"]
@@ -26,7 +25,6 @@ def play_sequence(directory: str) -> None:
         [str(p) for p in dir_path.glob("*-part.wav")],
         key=natural_sort_key,
     )
-
 
     if not files:
         print(f"No audio files found in {directory}")

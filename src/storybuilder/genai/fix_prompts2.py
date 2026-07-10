@@ -29,12 +29,11 @@ PROMPT_INSTRUCTION = (
 )
 
 
-
 def extract_markdown_block(content: str) -> str:
     content = content.strip()
     # Match ```markdown ... ``` or ``` ... ```
     match = re.match(
-        r"^```(?:markdown)?\s*\n(.*?)\n```$", content, re.DOTALL | re.IGNORECASE
+        r"^```(?:markdown)?\s*\n(.*?)\n```$", content, re.DOTALL | re.IGNORECASE,
     )
     if match:
         return match.group(1).strip()
@@ -105,9 +104,6 @@ def fix_prompts(directory: str) -> None:
             print("  Fixed and saved.")
         except Exception as e:  # noqa: BLE001
             print(f"  Error processing {path.name}: {e}")
-
-
-
 
 
 if __name__ == "__main__":

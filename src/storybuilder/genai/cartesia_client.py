@@ -172,7 +172,7 @@ def generate_segment_audio(api_key, text, voice_id, rate=24000):
             if response.status_code == 429:
                 wait_time = 10 * (attempt + 1)
                 print(
-                    f"  Cartesia Rate Limit (429). Retrying in {wait_time}s... ({attempt + 1}/{max_retries})"
+                    f"  Cartesia Rate Limit (429). Retrying in {wait_time}s... ({attempt + 1}/{max_retries})",
                 )
                 time.sleep(wait_time)
             else:
@@ -209,7 +209,7 @@ def process_file_cartesia(md_file, wav_file, api_key, rate=24000):
 
     for idx, (voice_id, text) in enumerate(segments):
         print(
-            f"  Synthesizing segment {idx + 1}/{len(segments)} (Voice ID: {voice_id[:8]}...): {text[:40]}..."
+            f"  Synthesizing segment {idx + 1}/{len(segments)} (Voice ID: {voice_id[:8]}...): {text[:40]}...",
         )
         try:
             segment_pcm = generate_segment_audio(api_key, text, voice_id, rate=rate)

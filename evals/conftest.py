@@ -10,8 +10,6 @@ Fixtures:
 """
 
 import json
-
-
 from pathlib import Path
 
 import pytest
@@ -67,7 +65,6 @@ def tts_agent():
     """
     try:
         from storybuilder.agents.tts_prompt_crafter.agent import root_agent
-
 
         return root_agent
     except ImportError:

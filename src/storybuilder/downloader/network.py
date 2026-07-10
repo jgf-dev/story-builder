@@ -34,7 +34,7 @@ def rotate_windscribe_ip():
         )
         if result.returncode == 0:
             safe_print(
-                "Successfully rotated IP. Waiting 10 seconds for connection to stabilize..."
+                "Successfully rotated IP. Waiting 10 seconds for connection to stabilize...",
             )
             time.sleep(10)
             return True
@@ -79,13 +79,13 @@ def fetch_page(url, delay, headers=None, max_retries=3):
                 )
         except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
             safe_print(
-                f"Warning: Connection/Timeout error on attempt {attempt + 1}/{max_retries} for {url}: {e}"
+                f"Warning: Connection/Timeout error on attempt {attempt + 1}/{max_retries} for {url}: {e}",
             )
             if ENABLE_ROTATION:
                 rotate_windscribe_ip()
         except Exception as e:
             safe_print(
-                f"Warning: Unexpected error on attempt {attempt + 1}/{max_retries} for {url}: {e}"
+                f"Warning: Unexpected error on attempt {attempt + 1}/{max_retries} for {url}: {e}",
             )
 
         if attempt < max_retries - 1:

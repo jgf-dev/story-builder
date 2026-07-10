@@ -10,6 +10,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+
 # Ensure src and scripts are importable
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 _scripts_dir = str(Path(__file__).resolve().parents[2] / "scripts")
@@ -23,7 +24,7 @@ class TestDashboard(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
         self.db_dir = os.path.join(self.temp_dir, "db")
-        os.makedirs(self.db_dir, exist_ok=True)
+        Path(self.db_dir).mkdir(exist_ok=True, parents=True)
 
         self.nlp_db_path = os.path.join(self.temp_dir, "nlp_analysis.db")
         self.meta_db_path = os.path.join(self.temp_dir, "dashboard_metadata.db")
@@ -48,11 +49,13 @@ class TestDashboard(unittest.TestCase):
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _create_mock_partition(
-        self, year, category, title, author, date, word_count, path, content
+        self, year, category, title, author, date, word_count, path, content,
     ):
+        from sqlmodel import Session
+        from sqlmodel import select
+
         from storybuilder.downloader import db as sb_db
-        from sqlmodel import Session, select
-        
+
         sb_db.insert_story(
             output_path=path,
             title=title,
@@ -79,7 +82,7 @@ class TestDashboard(unittest.TestCase):
                 filepath TEXT UNIQUE,
                 processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-            """
+            """,
         )
         conn.execute(
             """
@@ -91,13 +94,13 @@ class TestDashboard(unittest.TestCase):
                 frequency INTEGER,
                 FOREIGN KEY(story_id) REFERENCES stories(id)
             )
-            """
+            """,
         )
         conn.execute(
-            "INSERT OR REPLACE INTO stories (filepath) VALUES (?)", (filepath,)
+            "INSERT OR REPLACE INTO stories (filepath) VALUES (?)", (filepath,),
         )
         story_id = conn.execute(
-            "SELECT id FROM stories WHERE filepath = ?", (filepath,)
+            "SELECT id FROM stories WHERE filepath = ?", (filepath,),
         ).fetchone()[0]
         conn.execute(
             "INSERT INTO entities (story_id, text, label, frequency) VALUES (?, ?, ?, 1)",
@@ -112,21 +115,23 @@ class TestDashboard(unittest.TestCase):
         self.assertEqual(get_db_files(), [])
 
         # Create mock db files
-        open(os.path.join(self.db_dir, "2025.db"), "w").close()
-        open(os.path.join(self.db_dir, "2026.db"), "w").close()
+        Path(os.path.join(self.db_dir, "2025.db")).open("w").close()
+        Path(os.path.join(self.db_dir, "2026.db")).open("w").close()
 
         files = [os.path.basename(f) for f in get_db_files()]
         self.assertEqual(files, ["2025.db", "2026.db"])
 
     def test_favorites_crud(self):
-        from dashboard import add_favorite, get_favorites, remove_favorite
+        from dashboard import add_favorite
+        from dashboard import get_favorites
+        from dashboard import remove_favorite
 
         # Initial empty
         self.assertEqual(get_favorites(), [])
 
         # Add favorite
         success = add_favorite(
-            "test_path.txt", "Test Story", "Test Author", "tag1,tag2", "Some notes"
+            "test_path.txt", "Test Story", "Test Author", "tag1,tag2", "Some notes",
         )
         self.assertTrue(success)
 

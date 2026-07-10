@@ -1,5 +1,4 @@
 import logging as std_logging
-
 import os
 import re
 import sqlite3
@@ -15,7 +14,6 @@ from sqlmodel import SQLModel
 from sqlmodel import create_engine
 from sqlmodel import select
 from sqlmodel import text
-
 
 
 logging = getLogger(__name__)
@@ -148,6 +146,8 @@ _lock = threading.Lock()
 _EMAIL_AUTHOR_RE = re.compile(r"^(.+?)\s*<([^>]+)>\s*$")
 _CHAPTER_SUFFIX_RE = re.compile(r"^(.+?)-(\d+)$")
 
+_MIN_PATH_PARTS = 3
+
 
 
 # -- Author parsing -----------------------------------------------------
@@ -185,9 +185,7 @@ def _parse_output_path(output_path: str) -> "tuple[str, str, str, int | None]":
     story_slug = parts[-2] if len(parts) >= _MIN_PATH_PARTS + 2 else Path(parts[-1]).stem
 
     chapter_num = None
-    if m := _CHAPTER_SUFFIX_RE.match(story_slug):
-        chapter_num = int(m.group(2))
-    elif m := _CHAPTER_SUFFIX_RE.match(Path(parts[-1]).stem):
+    if (m := _CHAPTER_SUFFIX_RE.match(story_slug)) or (m := _CHAPTER_SUFFIX_RE.match(Path(parts[-1]).stem)):
         chapter_num = int(m.group(2))
 
     return orientation, category, story_slug, chapter_num
@@ -275,7 +273,6 @@ def migrate_legacy_schema(conn: sqlite3.Connection) -> bool:
         logging.debug("Skipping stories_fts rebuild during migration: %s", exc)
 
 
-
 def _migrate_schema(conn: "sqlite3.Connection") -> None:
     """Apply schema migrations to an existing partition or database file."""
     migrate_legacy_schema(conn)
@@ -288,7 +285,6 @@ def init_db(db_path: str) -> "sqlite3.Connection":
     """Initialize the database (idempotent). Returns the connection."""
     global _conn, _is_partitioned, _db_dir, _monolithic_db_path, _engine, _db_path_global
 
-
     is_dir = Path(db_path).is_dir() or (not db_path.endswith(".db") and not Path(db_path).suffix)
 
     if is_dir:
@@ -297,7 +293,6 @@ def init_db(db_path: str) -> "sqlite3.Connection":
     else:
         Path(os.path.dirname(db_path) or ".").mkdir(exist_ok=True, parents=True)
         resolved_path = db_path
-
 
     _is_partitioned = False
     _db_dir = os.path.dirname(resolved_path)
@@ -369,7 +364,6 @@ def search_stories(
     engine = _engine
     if not engine:
         return []
-
 
     with Session(engine) as session:
         try:
@@ -467,7 +461,6 @@ def search_stories(
         except Exception as e:
             std_logging.exception("Error executing search_stories", exc_info=e)
             return []
-
 
 
 # -- Insert -------------------------------------------------------------
@@ -604,4 +597,3 @@ def close_db() -> None:
         _db_dir = None
         _monolithic_db_path = None
         _db_path_global = None
-

@@ -232,3 +232,13 @@ Typical observed order for analysis work:
 - All root analysis scripts follow the "argparse + GPU flag + idempotent skip if already processed" pattern per QWEN.
 
 When adding features or fixing bugs, cross-check the exact behaviors exercised in `tests/test_downloader.py`, `tests/test_genai.py`, and `tests/test_split_prompts.py` — they encode the contract for cache logic, date parsing, dummy padding, chunking, and warning semantics.
+
+## Linear Integration
+
+- **Workflow**: `.github/workflows/auto-linear.yml` runs on every PR, finds-or-creates a Linear issue (team key `PRO`, title prefix `GIT-`), and prefixes the PR title. Uses `ctriolo/action-find-or-create-linear-issue@v0.60`.
+- **Task tracking**: The canonical task list is [`tasks/TASKS.md`](tasks/TASKS.md). Unchecked `- [ ]` items under "Active" are candidates for Linear issue creation.
+- **Secret**: `LINEAR_API_KEY` is stored in GitHub Secrets (not in `.env`). For local Linear API calls, the user must export it.
+- **Prompt**: Use `/linear-assistant` (`.github/prompts/linear-assistant.prompt.md`) to create, find, or sync Linear issues from chat.
+- **Convention**: All Linear issue titles are prefixed with `GIT-` to match the auto-linear workflow. Use the `PRO` team key.
+
+- **API**: Linear GraphQL endpoint is `https://api.linear.app/graphql`. Prefer GraphQL over REST.

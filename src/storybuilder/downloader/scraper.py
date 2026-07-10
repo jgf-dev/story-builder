@@ -38,12 +38,7 @@ def _extract_subcategories_from_html(soup, url):
         safe_print("No list-group-item elements found. Searching all links...")
         for a_tag in soup.find_all("a"):
             href = a_tag.get("href", "")
-            if (
-                href
-                and not href.startswith("http")
-                and not href.startswith("/")
-                and href.endswith("/")
-            ):
+            if href and not href.startswith("http") and not href.startswith("/") and href.endswith("/"):
                 sub_url = urllib.parse.urljoin(url, href)
                 sub_name = a_tag.get_text(strip=True) or href.rstrip("/")
                 subcategories.append({"name": sub_name, "url": sub_url})
@@ -151,7 +146,12 @@ def _get_cached_subcategory(sub_url):
 
 
 def _scrape_subcategory_pages(
-    sub_url, start_date, delay, force_scan, use_cache, cached_lookup,
+    sub_url,
+    start_date,
+    delay,
+    force_scan,
+    use_cache,
+    cached_lookup,
 ):
     scraped_stories = []
     current_url = sub_url
@@ -238,7 +238,11 @@ def _scrape_subcategory_pages(
 
 
 def _merge_and_save_stories(
-    sub_url, scraped_stories, cached_stories, is_complete, reached_end,
+    sub_url,
+    scraped_stories,
+    cached_stories,
+    is_complete,
+    reached_end,
 ):
     # Merge scraped stories with cached stories
     scraped_urls = {s["url"] for s in scraped_stories}
@@ -310,11 +314,20 @@ def scrape_subcategory(sub_url, start_date, end_date, delay, force_scan=False):
     cached_lookup = {s["url"]: s for s in cached_stories}
 
     scraped_stories, reached_end = _scrape_subcategory_pages(
-        sub_url, start_date, delay, force_scan, use_cache, cached_lookup,
+        sub_url,
+        start_date,
+        delay,
+        force_scan,
+        use_cache,
+        cached_lookup,
     )
 
     merged_stories = _merge_and_save_stories(
-        sub_url, scraped_stories, cached_stories, is_complete, reached_end,
+        sub_url,
+        scraped_stories,
+        cached_stories,
+        is_complete,
+        reached_end,
     )
 
     return _filter_stories_by_date(merged_stories, start_date, end_date)
@@ -379,12 +392,7 @@ def _fetch_and_parse_chapters(folder_url, start_date, end_date, delay):
         name = row["name"]
         href = row["href"]
 
-        if (
-            name == "Parent Directory"
-            or href == "../"
-            or size == "Dir"
-            or href.endswith("/")
-        ):
+        if name == "Parent Directory" or href == "../" or size == "Dir" or href.endswith("/"):
             continue
 
         chapter_date = parse_nifty_date(date_str)
@@ -407,7 +415,12 @@ def _fetch_and_parse_chapters(folder_url, start_date, end_date, delay):
 
 
 def scrape_multi_chapter_folder(
-    folder_url, folder_date, start_date, end_date, delay, force_scan=False,
+    folder_url,
+    folder_date,
+    start_date,
+    end_date,
+    delay,
+    force_scan=False,
 ):
     """
     Crawls a multi-chapter folder (represented by a 'Dir' entry).
@@ -417,7 +430,10 @@ def scrape_multi_chapter_folder(
     """
     if not force_scan:
         chapters, has_matching = _get_cached_chapters(
-            folder_url, folder_date, start_date, end_date,
+            folder_url,
+            folder_date,
+            start_date,
+            end_date,
         )
         if chapters is not None:
             if has_matching:
@@ -432,7 +448,10 @@ def scrape_multi_chapter_folder(
 
     # If cache miss or outdated, fetch the page
     chapters, scraped_chapters, has_matching = _fetch_and_parse_chapters(
-        folder_url, start_date, end_date, delay,
+        folder_url,
+        start_date,
+        end_date,
+        delay,
     )
 
     if not chapters and not scraped_chapters:
@@ -497,7 +516,11 @@ def _process_directory_story(s, start_date, end_date, args, sub_folder):
             filename += ".txt"
 
         output_path = os.path.join(
-            args.output_dir, args.category, sub_folder, story_slug, filename,
+            args.output_dir,
+            args.category,
+            sub_folder,
+            story_slug,
+            filename,
         )
         targets.append(
             {
@@ -538,7 +561,11 @@ def process_subcategory(sub, start_date, end_date, args):
     safe_print("=" * 50)
 
     stories = scrape_subcategory(
-        sub_url, start_date, end_date, force_scan=args.force, delay=args.delay,
+        sub_url,
+        start_date,
+        end_date,
+        force_scan=args.force,
+        delay=args.delay,
     )
     safe_print(f"Found {len(stories)} stories in {sub_name} matching date criteria.")
 

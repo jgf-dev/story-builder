@@ -15,7 +15,10 @@ def main():
         help="Path to the Chroma database.",
     )
     parser.add_argument(
-        "--n-results", type=int, default=5, help="Number of similar stories to return.",
+        "--n-results",
+        type=int,
+        default=5,
+        help="Number of similar stories to return.",
     )
     args = parser.parse_args()
 
@@ -31,11 +34,7 @@ def main():
 
     result = collection_averages.get(ids=[args.target_story], include=["embeddings"])
 
-    if (
-        result is None
-        or result.get("embeddings") is None
-        or len(result["embeddings"]) == 0
-    ):
+    if result is None or result.get("embeddings") is None or len(result["embeddings"]) == 0:
         print(f"Error: Story '{args.target_story}' not found in the database.")
         print("Please ensure you use the exact filepath used during generation.")
         return
@@ -45,7 +44,8 @@ def main():
     print(f"Finding top {args.n_results} stories similar to: {args.target_story}\n")
 
     query_results = collection_averages.query(
-        query_embeddings=[target_embedding], n_results=args.n_results + 1,
+        query_embeddings=[target_embedding],
+        n_results=args.n_results + 1,
     )
 
     for idx, (filepath, distance) in enumerate(

@@ -279,7 +279,9 @@ def main():
         help="Import only N files (for testing, default: all)",
     )
     parser.add_argument(
-        "--force", action="store_true", help="Force insert even on integrity errors",
+        "--force",
+        action="store_true",
+        help="Force insert even on integrity errors",
     )
     args = parser.parse_args()
 

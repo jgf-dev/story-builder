@@ -27,7 +27,8 @@ def render_favorites_tags() -> None:
 
         # Tag filter selector
         filter_tag = st.selectbox(
-            "Filter Favorites by Tag", ["All"] + sorted(list(all_tags)),
+            "Filter Favorites by Tag",
+            ["All"] + sorted(list(all_tags)),
         )
 
         st.write("---")

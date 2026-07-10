@@ -17,7 +17,9 @@ def generate_speech(text: str, voice: str):
         transcript=text,
         voice=VoiceSpecifierParam(id=voice, mode="id"),
         output_format=WAVOutputFormatParam(
-            sample_rate=48000, encoding="pcm_f32le", container="wav",
+            sample_rate=48000,
+            encoding="pcm_f32le",
+            container="wav",
         ),
         language="en",
     )

@@ -62,7 +62,11 @@ def print_eval_set_summary(eval_set: dict) -> None:
         eval_id = case.get("eval_id", f"case_{i}")
         turns = len(conv)
         first_msg = conv[0].get("user_content", {}).get("parts", [{}])[0].get("text", "")[:80] if conv else ""
-        print(f'  [{i + 1}] {eval_id}: {turns} turn(s) — "{first_msg}..."' if first_msg else f"  [{i + 1}] {eval_id}: {turns} turn(s)")
+        print(
+            f'  [{i + 1}] {eval_id}: {turns} turn(s) — "{first_msg}..."'
+            if first_msg
+            else f"  [{i + 1}] {eval_id}: {turns} turn(s)"
+        )
     print(f"{'=' * 60}")
 
 
@@ -100,7 +104,8 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
         try:
             # Load using ADK's file loader (handles both new and old formats)
             pydantic_eval_set = load_eval_set_from_file(
-                str(eval_path), eval_name,
+                str(eval_path),
+                eval_name,
             )
 
             # Determine agent module path relative to the agent's directory
@@ -129,7 +134,8 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
                         score = getattr(metric, "score", None)
                         status = getattr(metric, "eval_status", None)
                         status_label = {1: "PASS", 2: "FAIL", 3: "SKIP", 4: "ERROR"}.get(
-                            status, str(status or "?"),
+                            status,
+                            str(status or "?"),
                         )
                         if score is not None:
                             print(f"    {metric_name}: {score:.4f} [{status_label}]")

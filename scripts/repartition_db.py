@@ -36,7 +36,9 @@ def get_db_filename_from_date(story_date) -> str:
 
 
 def get_or_create_connection(
-    temp_dir: Path, filename: str, new_conns: dict,
+    temp_dir: Path,
+    filename: str,
+    new_conns: dict,
 ) -> sqlite3.Connection:
     """Retrieve an existing connection or create and initialize a new database connection."""
     target_path = str(temp_dir / filename)

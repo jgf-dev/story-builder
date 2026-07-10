@@ -196,9 +196,7 @@ def tts_sse_with_match(client: Cartesia) -> None:
 
     import datetime
 
-    filename = (
-        f"tts_sse_with_match_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pcm"
-    )
+    filename = f"tts_sse_with_match_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pcm"
 
     with pathlib.Path(filename).open("wb") as f:
         for event in stream:
@@ -387,9 +385,7 @@ def tts_websocket_emotion(client: Cartesia) -> None:
 
         import datetime
 
-        filename = (
-            f"tts_emotion_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pcm"
-        )
+        filename = f"tts_emotion_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pcm"
 
         with pathlib.Path(filename).open("wb") as f:
             for response in ctx.receive():
@@ -767,9 +763,7 @@ def stt_auto_finalize_websocket(client: Cartesia, *args: str) -> None:
         }
         encoding = output_format["encoding"]
         sample_rate = output_format["sample_rate"]
-        generation_transcript = (
-            "Hello, world! The quick brown fox jumps over the lazy dog."
-        )
+        generation_transcript = "Hello, world! The quick brown fox jumps over the lazy dog."
         print(
             f"No WAV file provided — synthesizing audio with TTS: {generation_transcript!r}",
         )
@@ -950,9 +944,7 @@ if __name__ == "__main__":
     available_functions = {
         name: obj
         for name, obj in globals().items()
-        if inspect.isfunction(obj)
-        and obj.__module__ == __name__
-        and obj != create_client
+        if inspect.isfunction(obj) and obj.__module__ == __name__ and obj != create_client
     }
 
     if len(sys.argv) < 2:
@@ -960,9 +952,7 @@ if __name__ == "__main__":
         available_functions = [
             name
             for name, obj in globals().items()
-            if inspect.isfunction(obj)
-            and obj.__module__ == __name__
-            and obj != create_client
+            if inspect.isfunction(obj) and obj.__module__ == __name__ and obj != create_client
         ]
         print(f"Available functions: {', '.join(available_functions)}")
         sys.exit(1)

@@ -3,6 +3,14 @@ title: Storybuilder dev changelog
 description: Explanantion of changes per commits
 ---
 
+## 10/07/2026
+
+### Resolved merge conflicts with palette/fix-duplicate-file-input
+
+- Config files: Maintained local space indentation, dependency overrides (`sqlmodel`), and integrations (Linear, SonarLint) from HEAD.
+- Monolithic DB preservation: Kept the monolithic database architecture (`stories.db`) and SQLModel refactoring from HEAD, rejecting the incoming branch's legacy database partitioning.
+- Verified and formatted: All 169 unit tests passed successfully, and files were styled with `ruff format`.
+
 ## 04/07/2026
   
 ### restored the compatibility contract for the  {table}  formatting alias in  execute_all_partitions

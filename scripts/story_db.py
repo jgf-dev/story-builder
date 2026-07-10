@@ -265,10 +265,7 @@ def cmd_get(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None)
         if not args.no_content:
             content = row["content"]
             if args.max_chars and len(content) > args.max_chars:
-                content = (
-                    content[: args.max_chars]
-                    + f"\n\n… (truncated, {row['char_count']:,} total chars)"
-                )
+                content = content[: args.max_chars] + f"\n\n… (truncated, {row['char_count']:,} total chars)"
             print(content)
 
 
@@ -399,17 +396,20 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
 
     else:
         total = conn.execute(
-            f"SELECT COUNT(*) FROM stories {where}", params,
+            f"SELECT COUNT(*) FROM stories {where}",
+            params,
         ).fetchone()[0]
         total_chars = (
             conn.execute(
-                f"SELECT SUM(char_count) FROM stories {where}", params,
+                f"SELECT SUM(char_count) FROM stories {where}",
+                params,
             ).fetchone()[0]
             or 0
         )
         total_words = (
             conn.execute(
-                f"SELECT SUM(word_count) FROM stories {where}", params,
+                f"SELECT SUM(word_count) FROM stories {where}",
+                params,
             ).fetchone()[0]
             or 0
         )
@@ -468,10 +468,7 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
             name = row["author_name"] or "Unknown"
             auth_counter[name] += row["cnt"]
             auth_words[name] += row["total_words"] or 0
-        authors = [
-            {"author_name": k, "cnt": v, "total_words": auth_words[k]}
-            for k, v in auth_counter.most_common(15)
-        ]
+        authors = [{"author_name": k, "cnt": v, "total_words": auth_words[k]} for k, v in auth_counter.most_common(15)]
     else:
         authors = conn.execute(
             f"""
@@ -521,7 +518,9 @@ def main():
         help="Database directory or file. Searches all .db files if a directory.",
     )
     parser.add_argument(
-        "--db-dir", default=None, help="Directory with split .db files (overrides --db)",
+        "--db-dir",
+        default=None,
+        help="Directory with split .db files (overrides --db)",
     )
 
     sub = parser.add_subparsers(dest="command", required=True)
@@ -557,7 +556,9 @@ def main():
         help="Export directory (default: exported_stories/)",
     )
     p.add_argument(
-        "--no-content", action="store_true", help="Show metadata only, not story text",
+        "--no-content",
+        action="store_true",
+        help="Show metadata only, not story text",
     )
     p.add_argument(
         "--max-chars",

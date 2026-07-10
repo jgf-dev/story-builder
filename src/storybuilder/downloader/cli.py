@@ -112,7 +112,8 @@ def _setup_network(args: argparse.Namespace) -> bool:
 
 
 def _parse_dates(
-    start_date_str: str, end_date_str: str | None,
+    start_date_str: str,
+    end_date_str: str | None,
 ) -> tuple[datetime.date | None, datetime.date | None]:
     try:
         start_date = datetime.datetime.strptime(start_date_str, "%Y-%m-%d").date()
@@ -133,7 +134,9 @@ def _parse_dates(
 
 
 def _print_config(
-    args: argparse.Namespace, start_date: datetime.date, end_date: datetime.date,
+    args: argparse.Namespace,
+    start_date: datetime.date,
+    end_date: datetime.date,
 ) -> None:
     print("Starting downloader...")
     if args.db:
@@ -164,10 +167,7 @@ def _scrape_subcategories(
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=args.max_scraping,
         ) as executor:
-            futures = [
-                executor.submit(process_subcategory, sub, start_date, end_date, args)
-                for sub in subcategories
-            ]
+            futures = [executor.submit(process_subcategory, sub, start_date, end_date, args) for sub in subcategories]
             for future in concurrent.futures.as_completed(futures):
                 try:
                     sub_targets = future.result()
@@ -200,7 +200,8 @@ def _scrape_subcategories(
 
 
 def _download_stories(
-    all_story_targets: dict[str, dict], args: argparse.Namespace,
+    all_story_targets: dict[str, dict],
+    args: argparse.Namespace,
 ) -> int:
     total_downloads = len(all_story_targets)
     print("\n" + "=" * 50)
@@ -291,7 +292,10 @@ def main():
 
     try:
         all_story_targets = _scrape_subcategories(
-            subcategories, start_date, end_date, args,
+            subcategories,
+            start_date,
+            end_date,
+            args,
         )
     finally:
         save_cache(args.output_dir)

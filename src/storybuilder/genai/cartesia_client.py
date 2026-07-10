@@ -62,7 +62,8 @@ def parse_speech_config_cartesia(markdown_content):
         line = line.strip()
         if line.startswith("*") or line.startswith("-"):
             match = re.search(
-                r"[\*\-]\s*([A-Za-z0-9_-]+)\s*\(Voice:\s*([A-Za-z0-9_-]+)\)", line,
+                r"[\*\-]\s*([A-Za-z0-9_-]+)\s*\(Voice:\s*([A-Za-z0-9_-]+)\)",
+                line,
             )
             if match:
                 speaker = match.group(1)
@@ -77,7 +78,8 @@ def parse_speech_config_cartesia(markdown_content):
                 else:
                     # Resolve common voice names
                     resolved_voice_id = VOICE_MAP.get(
-                        voice_ref.lower(), NAME_FALLBACK_MAP["default"],
+                        voice_ref.lower(),
+                        NAME_FALLBACK_MAP["default"],
                     )
                     speaker_to_voice_id[speaker] = resolved_voice_id
 
@@ -201,11 +203,7 @@ def process_file_cartesia(md_file, wav_file, api_key, rate=24000):
     speaker_to_voice_id = parse_speech_config_cartesia(content)
 
     # Determine default narrator voice (first defined, or Maya fallback)
-    default_voice_id = (
-        list(speaker_to_voice_id.values())[0]
-        if speaker_to_voice_id
-        else NAME_FALLBACK_MAP["narrator"]
-    )
+    default_voice_id = list(speaker_to_voice_id.values())[0] if speaker_to_voice_id else NAME_FALLBACK_MAP["narrator"]
 
     # Parse dialogue segments
     segments = parse_transcript_segments(content, speaker_to_voice_id, default_voice_id)

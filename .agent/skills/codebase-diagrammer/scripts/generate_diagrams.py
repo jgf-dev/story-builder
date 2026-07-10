@@ -200,9 +200,7 @@ class CodebaseAnalyzer:
                     if isinstance(body_item, ast.AnnAssign):
                         if isinstance(body_item.target, ast.Name):
                             field_name = body_item.target.id
-                            field_type = (
-                                get_annotation_str(body_item.annotation) or "Any"
-                            )
+                            field_type = get_annotation_str(body_item.annotation) or "Any"
                             fields.append((field_name, field_type))
                     elif isinstance(body_item, ast.Assign):
                         for target in body_item.targets:
@@ -242,9 +240,7 @@ class CodebaseAnalyzer:
 
                 if callee and self.current_func:
                     caller_context = (
-                        f"{self.current_class}.{self.current_func}"
-                        if self.current_class
-                        else self.current_func
+                        f"{self.current_class}.{self.current_func}" if self.current_class else self.current_func
                     )
                     self.analyzer.calls.append((str(rel_path), caller_context, callee))
                 self.generic_visit(node)
@@ -285,7 +281,8 @@ class CodebaseAnalyzer:
 
         local_imports = []
         imports_matches = re.findall(
-            r'import\s+.*?\s+from\s+[\'"](\./.*?)[\'"]', content,
+            r'import\s+.*?\s+from\s+[\'"](\./.*?)[\'"]',
+            content,
         )
         imports_matches += re.findall(r'require\(\s*[\'"](\./.*?)[\'"]\s*\)', content)
 
@@ -325,7 +322,8 @@ class CodebaseAnalyzer:
         runs = []
         for line in content.splitlines():
             matches = re.findall(
-                r"(python\d?|uv run|sh|bash)\s+([a-zA-Z0-9_\-\./]+)", line,
+                r"(python\d?|uv run|sh|bash)\s+([a-zA-Z0-9_\-\./]+)",
+                line,
             )
             for _, run_script in matches:
                 if (self.root_dir / run_script).is_file():
@@ -525,7 +523,9 @@ def main():
         description="Analyze a codebase and output structured Mermaid diagrams.",
     )
     parser.add_argument(
-        "--root-dir", default=".", help="Root directory of the codebase to analyze.",
+        "--root-dir",
+        default=".",
+        help="Root directory of the codebase to analyze.",
     )
     parser.add_argument(
         "--output-file",

@@ -64,6 +64,7 @@ def tts_agent():
     """
     try:
         from storybuilder.agents.tts_prompt_crafter.agent import root_agent
+
         return root_agent
     except ImportError:
         pytest.skip("TTS Prompt Crafter agent module not available")

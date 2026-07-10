@@ -153,10 +153,12 @@ class TestTTSPromptCrafterGreetings:
             if event.content and event.content.parts:
                 for part in event.content.parts:
                     if part.function_call:
-                        tool_calls.append({
-                            "name": part.function_call.name,
-                            "args": dict(part.function_call.args) if part.function_call.args else {},
-                        })
+                        tool_calls.append(
+                            {
+                                "name": part.function_call.name,
+                                "args": dict(part.function_call.args) if part.function_call.args else {},
+                            }
+                        )
 
         # Evaluate using rubric
         evaluator = RubricEvaluator(dimensions=TTS_EVALUATION_RUBRIC, threshold=0.5)
@@ -169,11 +171,8 @@ class TestTTSPromptCrafterGreetings:
         assert result.passed, (
             f"Rubric evaluation FAILED for '{query}':\n"
             f"  Overall score: {result.overall_score:.2f} (threshold: {result.threshold})\n"
-            f"  Dimensions:\n" +
-            "\n".join(
-                f"    {s.dimension}: {s.score}/5.0 (weight: {s.weight})"
-                for s in result.dimension_scores
-            )
+            f"  Dimensions:\n"
+            + "\n".join(f"    {s.dimension}: {s.score}/5.0 (weight: {s.weight})" for s in result.dimension_scores)
         )
 
 
@@ -197,9 +196,7 @@ class TestTTSPromptCrafterPipeline:
                         tool_calls_made.add(part.function_call.name)
 
         # Should have at least attempted tool usage
-        assert len(tool_calls_made) > 0, (
-            "No tool calls made during pipeline execution"
-        )
+        assert len(tool_calls_made) > 0, "No tool calls made during pipeline execution"
 
         # Get final response
         final_events = [e for e in events if e.is_final_response()]
@@ -228,9 +225,7 @@ class TestTTSPromptCrafterEdgeCases:
         # Should mention the error or inability to find the file
         error_indicators = ["not found", "doesn't exist", "cannot", "unable", "error", "sorry"]
         has_error_response = any(indicator in response.lower() for indicator in error_indicators)
-        assert has_error_response, (
-            f"Agent should acknowledge the missing file.\nResponse: {response[:200]}"
-        )
+        assert has_error_response, f"Agent should acknowledge the missing file.\nResponse: {response[:200]}"
 
     def test_empty_query(self, adk_events):
         """Agent should handle empty queries gracefully."""

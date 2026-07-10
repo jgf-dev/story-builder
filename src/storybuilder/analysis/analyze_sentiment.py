@@ -122,10 +122,16 @@ def parse_args():
         help="Max number of multi-chapter stories to process.",
     )
     parser.add_argument(
-        "--db-path", type=str, default=DB_PATH, help="Path to SQLite DB.",
+        "--db-path",
+        type=str,
+        default=DB_PATH,
+        help="Path to SQLite DB.",
     )
     parser.add_argument(
-        "--spacy-model", type=str, default="en_core_web_sm", help="spaCy model.",
+        "--spacy-model",
+        type=str,
+        default="en_core_web_sm",
+        help="spaCy model.",
     )
     parser.add_argument(
         "--sentiment-model",
@@ -184,23 +190,13 @@ def load_models(spacy_model_name, sentiment_model_name, use_gpu):
     )
     return nlp, sentiment_pipe
 
-    return nlp, sentiment_pipe
-
 
 def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe):
-    text = Path(filepath).read_text(encoding="utf-8")
+    with open(filepath, "r", encoding="utf-8") as f:
+        text = f.read()
     text = re.sub(r"\s+", " ", text).strip()
     if not text:
         return
-    text = re.sub(r"\s+", " ", text).strip()
-    if not text:
-        return
-    try:
-        doc = nlp(text)
-    except Exception as e:
-        print(f"spaCy error on {filepath}: {e}")
-        return
-
     try:
         doc = nlp(text)
     except Exception as e:
@@ -360,7 +356,12 @@ def main():
             break
 
         was_processed = process_story(
-            story_dir, filepaths, cursor, conn, nlp, sentiment_pipe,
+            story_dir,
+            filepaths,
+            cursor,
+            conn,
+            nlp,
+            sentiment_pipe,
         )
         if was_processed:
             processed_stories += 1

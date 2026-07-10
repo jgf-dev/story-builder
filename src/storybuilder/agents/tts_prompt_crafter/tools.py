@@ -16,7 +16,11 @@ _PROJECT_ROOT = os.path.abspath(
 )
 _STORIES_DIR = os.path.join(_PROJECT_ROOT, "stories", "text")
 _SPLIT_SCRIPT_DIR = os.path.join(
-    _PROJECT_ROOT, ".agent", "skills", "tts-prompt-crafter", "scripts",
+    _PROJECT_ROOT,
+    ".agent",
+    "skills",
+    "tts-prompt-crafter",
+    "scripts",
 )
 if _SPLIT_SCRIPT_DIR not in sys.path:
     sys.path.insert(0, _SPLIT_SCRIPT_DIR)
@@ -38,9 +42,7 @@ def _resolve_story_path(story_path_or_name: str) -> str | None:
 
     # Keep explicit relative paths rejected so callers do not accidentally
     # depend on the current working directory.
-    if os.path.sep in story_path_or_name or (
-        os.path.altsep and os.path.altsep in story_path_or_name
-    ):
+    if os.path.sep in story_path_or_name or (os.path.altsep and os.path.altsep in story_path_or_name):
         return None
 
     candidates = [story_path_or_name]
@@ -69,9 +71,7 @@ def _resolve_output_dir(story_path_or_dir: str) -> str | None:
             return None
         return story_path_or_dir
 
-    if os.path.sep in story_path_or_dir or (
-        os.path.altsep and os.path.altsep in story_path_or_dir
-    ):
+    if os.path.sep in story_path_or_dir or (os.path.altsep and os.path.altsep in story_path_or_dir):
         return None
 
     story_path = _resolve_story_path(story_path_or_dir)
@@ -94,9 +94,7 @@ def read_story(story_path: str) -> str:
     if not resolved:
         if pathlib.Path(story_path).is_absolute():
             return f"Error: Story file not found at {story_path}"
-        if os.path.sep in story_path or (
-            os.path.altsep and os.path.altsep in story_path
-        ):
+        if os.path.sep in story_path or (os.path.altsep and os.path.altsep in story_path):
             return f"Error: story_path must be an absolute path. Got: {story_path}"
         return f"Error: Story file not found for name '{story_path}' in {_STORIES_DIR}"
 
@@ -132,9 +130,7 @@ def _get_validated_output_dir(story_path: str) -> tuple[str | None, str | None]:
     """Validate story_path and return (output_dir, error_message)."""
     output_dir = _resolve_output_dir(story_path)
     if not output_dir:
-        if os.path.sep in story_path or (
-            os.path.altsep and os.path.altsep in story_path
-        ):
+        if os.path.sep in story_path or (os.path.altsep and os.path.altsep in story_path):
             return (
                 None,
                 f"Error: story_path must be an absolute path. Got: {story_path}",

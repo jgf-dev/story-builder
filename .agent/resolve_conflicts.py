@@ -29,7 +29,10 @@ def resolve_file(filepath):
     content = pathlib.Path(filepath).read_text(encoding="utf-8")
 
     # Highly robust pattern to find conflict blocks matching <<<<<<< ... ======= ... >>>>>>> without crossing boundaries
-    pattern = re.compile(r"<<<<<<< [^\n]+\n((?:(?!<<<<<<<|=======|>>>>>>>).)*?)=======\n((?:(?!<<<<<<<|=======|>>>>>>>).)*?)>>>>>>> [^\n]+", re.DOTALL)
+    pattern = re.compile(
+        r"<<<<<<< [^\n]+\n((?:(?!<<<<<<<|=======|>>>>>>>).)*?)=======\n((?:(?!<<<<<<<|=======|>>>>>>>).)*?)>>>>>>> [^\n]+",
+        re.DOTALL,
+    )
 
     basename = os.path.basename(filepath)
 

@@ -171,9 +171,9 @@ def default_llm_judge_scorer(
         prompt = f"""You are an expert evaluator. Score the following agent response
 on a scale of 1 (worst) to 5 (best).
 
-Task: {context.get('task', 'N/A')}
+Task: {context.get("task", "N/A")}
 
-Agent Response: {context.get('response', 'N/A')}
+Agent Response: {context.get("response", "N/A")}
 
 Return only a number from 1 to 5."""
         try:

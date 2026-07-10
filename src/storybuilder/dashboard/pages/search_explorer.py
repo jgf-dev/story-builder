@@ -16,20 +16,23 @@ def render_search_explorer(filters: dict) -> None:
     st.write("Browse, search and filter the narrative archives.")
 
     fts_input = st.text_input(
-        "Full-Text Search (FTS5 syntax, e.g. vampire OR werewolf)", "",
+        "Full-Text Search (FTS5 syntax, e.g. vampire OR werewolf)",
+        "",
     )
 
     st.markdown("---")
 
     with st.spinner("Searching records..."):
-        search_results = query_stories(StorySearchQuery(
-            fts_query=fts_input,
-            category=filters["category"],
-            author=filters["author"],
-            year_range=filters["year_range"],
-            entity_text=filters["entity_text"],
-            entity_label=filters["entity_label"],
-        ))
+        search_results = query_stories(
+            StorySearchQuery(
+                fts_query=fts_input,
+                category=filters["category"],
+                author=filters["author"],
+                year_range=filters["year_range"],
+                entity_text=filters["entity_text"],
+                entity_label=filters["entity_label"],
+            )
+        )
 
     st.subheader(f"Found {len(search_results)} Result(s)")
 
@@ -46,7 +49,7 @@ def render_search_explorer(filters: dict) -> None:
                 <b>Author:</b> {safe_author} |
                 <b>Category:</b> {safe_category} |
                 <b>Published:</b> {safe_pub_date} |
-                <b>Words:</b> {res['word_count']:,}
+                <b>Words:</b> {res["word_count"]:,}
             </p>
         """
 
@@ -55,7 +58,8 @@ def render_search_explorer(filters: dict) -> None:
             # Escape the snippet first, then replace the placeholder highlight markers with actual HTML span tags
             snippet_escaped = html.escape(res["snippet"])
             snippet_cleaned = snippet_escaped.replace(
-                "___HIGHLIGHT_START___", "<span class='highlight'>",
+                "___HIGHLIGHT_START___",
+                "<span class='highlight'>",
             ).replace("___HIGHLIGHT_END___", "</span>")
             card_html += "<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; padding: 8px;"
             card_html += f" background: rgba(0, 0, 0, 0.2); border-radius: 6px;'>... {snippet_cleaned} ...</p>"

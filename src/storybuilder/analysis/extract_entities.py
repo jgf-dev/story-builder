@@ -79,16 +79,27 @@ def parse_args():
         help="Directory containing the text files.",
     )
     parser.add_argument(
-        "--db-path", type=str, default=DB_PATH, help="Path to the SQLite database.",
+        "--db-path",
+        type=str,
+        default=DB_PATH,
+        help="Path to the SQLite database.",
     )
     parser.add_argument(
-        "--force", action="store_true", help="Force reprocessing of all files.",
+        "--force",
+        action="store_true",
+        help="Force reprocessing of all files.",
     )
     parser.add_argument(
-        "--model", type=str, default="en_core_web_lg", help="spaCy model to use.",
+        "--model",
+        type=str,
+        default="en_core_web_lg",
+        help="spaCy model to use.",
     )
     parser.add_argument(
-        "--gpu", action="store_true", default=True, help="Use GPU for spaCy model.",
+        "--gpu",
+        action="store_true",
+        default=True,
+        help="Use GPU for spaCy model.",
     )
     return parser.parse_args()
 
@@ -121,19 +132,14 @@ def process_file(filepath_str, nlp, cursor):
 
     doc = nlp(text)
     entities = Counter(
-        (ent.text.strip(), ent.label_)
-        for ent in doc.ents
-        if ent.label_ in ALLOWED_LABELS and ent.text.strip()
+        (ent.text.strip(), ent.label_) for ent in doc.ents if ent.label_ in ALLOWED_LABELS and ent.text.strip()
     )
 
     query = "INSERT INTO stories (filepath) VALUES (?)"
     cursor.execute(query, (filepath_str,))
     story_id = cursor.lastrowid
 
-    entity_records = [
-        (story_id, ent_text, label, count)
-        for (ent_text, label), count in entities.items()
-    ]
+    entity_records = [(story_id, ent_text, label, count) for (ent_text, label), count in entities.items()]
 
     cursor.executemany(
         """

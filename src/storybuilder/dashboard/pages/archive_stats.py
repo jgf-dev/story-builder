@@ -36,7 +36,9 @@ def render_archive_stats() -> None:
         markers=True,
     )
     fig_line.update_layout(
-        template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f",
+        template="plotly_dark",
+        plot_bgcolor="#09101f",
+        paper_bgcolor="#09101f",
     )
     st.plotly_chart(fig_line, use_container_width=True)
 
@@ -86,6 +88,8 @@ def render_archive_stats() -> None:
         title="Story Word Count Distribution Bracket",
     )
     fig_words.update_layout(
-        template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f",
+        template="plotly_dark",
+        plot_bgcolor="#09101f",
+        paper_bgcolor="#09101f",
     )
     st.plotly_chart(fig_words, use_container_width=True)

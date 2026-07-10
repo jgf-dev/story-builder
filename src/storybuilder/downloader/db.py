@@ -304,8 +304,31 @@ def get_all_partition_paths() -> list[str]:
     return sorted(p for p in db_files if os.path.basename(p) not in excluded)
 
 
+import concurrent.futures
+
+
+def _execute_single_partition(args):
+    db_path, sql, params = args
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    try:
+        formatted_sql = sql.format(table="stories")
+        cursor = conn.execute(formatted_sql, params)
+        return [dict(r) for r in cursor.fetchall()]
+    except sqlite3.OperationalError as e:
+        print(f"Error executing across partition {db_path}: {e}")
+        return []
+    finally:
+        conn.close()
+
+
 def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
+<<<<<<< HEAD
     """Execute a SELECT query across all database partitions concurrently.
+=======
+    """Execute a SELECT query across all database partitions concurrently
+    using a ThreadPoolExecutor to improve latency.
+>>>>>>> bolt-parallelize-partitions-9285815848419465447
 
     The SQL must use {table} where the target table name goes.
     Returns a list of dictionaries.
@@ -323,6 +346,7 @@ def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
         return []
 
     all_rows = []
+<<<<<<< HEAD
 
     def _execute_single_db(db_path: str) -> list[dict]:
         try:
@@ -343,6 +367,13 @@ def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(db_paths), 10)) as executor:
         for res in executor.map(_execute_single_db, db_paths):
+=======
+    with concurrent.futures.ThreadPoolExecutor(
+        max_workers=min(len(db_paths), 10)
+    ) as executor:
+        args_list = [(path, sql, params) for path in db_paths]
+        for res in executor.map(_execute_single_partition, args_list):
+>>>>>>> bolt-parallelize-partitions-9285815848419465447
             all_rows.extend(res)
 
     return all_rows
@@ -476,15 +507,6 @@ def search_all_partitions(
             if need_close and conn:
                 conn.close()
         return results
-
-    if db_paths:
-        if len(db_paths) == 1 and db_paths[0] is None:
-             # Monolithic DB: no need for thread pool
-             all_results.extend(_search_single_db(None))
-        else:
-            with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(db_paths), 10)) as executor:
-                for res in executor.map(_search_single_db, db_paths):
-                    all_results.extend(res)
 
     if db_paths:
         if len(db_paths) == 1 and db_paths[0] is None:

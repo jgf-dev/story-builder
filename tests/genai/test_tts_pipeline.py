@@ -85,7 +85,6 @@ class TestTTSPipeline(unittest.TestCase):
                 base_name = os.path.basename(md_file).replace("-part.md", "")
                 wav_file = os.path.join(tmp_dir, f"{base_name}.wav")
 
-<<<<<<< HEAD
                 # Sanitize voice names to valid Gemini voices for the integration test
                 with open(md_file, "r", encoding="utf-8") as f:
                     content = f.read()
@@ -100,8 +99,6 @@ class TestTTSPipeline(unittest.TestCase):
                 print(
                     f"\n[{i + 1}/{len(self.prompt_files)}] Processing: {os.path.basename(md_file)}"
                 )
-=======
->>>>>>> decisive-hoverfly
                 if previous_id:
                     print(
                         f"  Linking to previous_interaction_id={previous_id[:12]}... for voice continuity"

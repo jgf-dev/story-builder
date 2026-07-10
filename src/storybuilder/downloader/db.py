@@ -400,7 +400,6 @@ def search_stories(
                 if entity_suffixes:
                     from sqlalchemy import or_
 
-<<<<<<< HEAD
                     or_clauses = [Story.path.like(f"%{suffix}") for suffix in entity_suffixes]
                     query_stmt = query_stmt.where(or_(*or_clauses))
 

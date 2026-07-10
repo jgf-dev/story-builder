@@ -44,7 +44,7 @@ def _parse_voice_mappings(markdown_content):
                 if speaker not in speakers:
                     speakers.append(speaker)
 
-    return speaker_to_voice, speakers if not transcript else transcript
+    return speaker_to_voice, transcript
 
 
 def _extract_active_speakers(transcript):

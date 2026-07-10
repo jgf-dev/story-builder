@@ -132,22 +132,33 @@ def _parse_author(raw: "str | None") -> "tuple[str | None, str | None]":
 def _parse_output_path(output_path: str) -> "tuple[str, str, str, int | None]":
     """Extract (orientation, category, story_slug, chapter_num) from a path.
 
+    Path structure (3 parts):  <output_dir>/<orientation>/<file>
     Path structure (4 parts):  <output_dir>/<orientation>/<category>/<file>
     Path structure (5+ parts): <output_dir>/<orientation>/<category>/<story_slug>/<file>
     """
     parts = Path(output_path).parts
-    if len(parts) <= _MIN_PATH_PARTS:
-        message = f"Invalid output path: {output_path}. Must have at least 4 parts."
+    if len(parts) < _MIN_PATH_PARTS:
+        message = f"Invalid output path: {output_path}. Must have at least 3 parts."
         raise ValueError(message)
 
-    story_slug = parts[-2] if len(parts) >= _MIN_PATH_PARTS + 2 else Path(parts[-1]).stem
+    orientation = parts[1]
+    
+    if len(parts) == 3:
+        category = parts[2]
+        story_slug = Path(parts[2]).stem
+    elif len(parts) == 4:
+        category = parts[2]
+        story_slug = Path(parts[3]).stem
+    else:
+        category = parts[2]
+        story_slug = parts[-2]
 
+    filename_stem = Path(parts[-1]).stem
     chapter_num = None
-
-    if m := _CHAPTER_SUFFIX_RE.match(story_slug):
+    if m := _CHAPTER_SUFFIX_RE.match(filename_stem):
         chapter_num = int(m.group(2))
 
-    return _BASE_TOPIC, parts[_MIN_PATH_PARTS - 1], story_slug, chapter_num
+    return orientation, category, story_slug, chapter_num
 
 
 # -- Schema migrations --------------------------------------------------
@@ -349,7 +360,7 @@ def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
             cursor.execute(formatted_sql, params)
             results = [dict(r) for r in cursor.fetchall()]
         except sqlite3.Error as e:
-            message = "Error querying %{message}: "
+            message = "Error querying %s: "
             logging.exception(message, db_path or "monolithic db", exc_info=e)
         finally:
             if cursor:
@@ -480,7 +491,7 @@ def search_all_partitions(
             results = [dict(r) for r in cursor.fetchall()]
 
         except sqlite3.Error as e:
-            message = "Error querying %{message}: "
+            message = "Error querying %s: "
             logging.exception(message, db_path or "monolithic db", exc_info=e)
         finally:
             if cursor:
@@ -495,11 +506,6 @@ def search_all_partitions(
             all_results.extend(_search_single_db(None))
         else:
             with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(db_paths), 10)) as executor:
-                for res in executor.map(_search_single_db, db_paths):
-                    all_results.extend(res)
-            with concurrent.futures.ThreadPoolExecutor(
-                max_workers=min(len(db_paths), 10)
-            ) as executor:
                 for res in executor.map(_search_single_db, db_paths):
                     all_results.extend(res)
     # Sort aggregated results
@@ -611,17 +617,17 @@ def insert_story(
             return True
         except sqlite3.IntegrityError as e:
             conn.rollback()
-            message = "Integrity error inserting story at %{message}: "
+            message = "Integrity error inserting story at %s: "
             logging.exception(message, output_path, exc_info=e)
             return False
         except sqlite3.OperationalError as e:
             conn.rollback()
-            message = "Operational error inserting story at %{message}: "
+            message = "Operational error inserting story at %s: "
             logging.exception(message, output_path, exc_info=e)
             return False
         except Exception as e:
             conn.rollback()
-            message = "Unexpected error inserting story at %{message}: "
+            message = "Unexpected error inserting story at %s: "
             logging.exception(message, output_path, exc_info=e)
             return False
 

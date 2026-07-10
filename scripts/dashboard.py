@@ -28,23 +28,24 @@ NLP_DB_PATH = "stories/db/nlp_analysis.db"
 META_DB_PATH = "stories/db/dashboard_metadata.db"
 
 # Rerouting rendering to modular components
-from storybuilder.dashboard.config import init_session_state  # noqa: E402
-from storybuilder.dashboard.config import inject_custom_css  # noqa: E402
-from storybuilder.dashboard.config import setup_page  # noqa: E402
+from storybuilder.dashboard.config import init_session_state
+from storybuilder.dashboard.config import inject_custom_css
+from storybuilder.dashboard.config import setup_page
 
 # Expose key data operations at module level to satisfy test imports
-from storybuilder.dashboard.data import add_favorite  # noqa: E402, F401
-from storybuilder.dashboard.data import get_db_files  # noqa: E402, F401
-from storybuilder.dashboard.data import get_favorites  # noqa: E402, F401
-from storybuilder.dashboard.data import get_story_by_path  # noqa: E402, F401
-from storybuilder.dashboard.data import remove_favorite  # noqa: E402, F401
+from storybuilder.dashboard.data import add_favorite  # noqa: F401
+from storybuilder.dashboard.data import get_db_files  # noqa: F401
+from storybuilder.dashboard.data import get_favorites  # noqa: F401
+from storybuilder.dashboard.data import get_story_by_path  # noqa: F401
+from storybuilder.dashboard.data import query_stories  # noqa: F401
+from storybuilder.dashboard.data import remove_favorite  # noqa: F401
 
 # Expose pages
-from storybuilder.dashboard.pages.archive_stats import render_archive_stats  # noqa: E402
-from storybuilder.dashboard.pages.favorites_tags import render_favorites_tags  # noqa: E402
-from storybuilder.dashboard.pages.read_story import render_read_story  # noqa: E402
-from storybuilder.dashboard.pages.search_explorer import render_search_explorer  # noqa: E402
-from storybuilder.dashboard.ui.sidebar import render_sidebar  # noqa: E402
+from storybuilder.dashboard.pages.archive_stats import render_archive_stats
+from storybuilder.dashboard.pages.favorites_tags import render_favorites_tags
+from storybuilder.dashboard.pages.read_story import render_read_story
+from storybuilder.dashboard.pages.search_explorer import render_search_explorer
+from storybuilder.dashboard.ui.sidebar import render_sidebar
 
 
 def main() -> None:
@@ -72,10 +73,10 @@ if __name__ == "__main__":
 
     for res in search_results:
         # Create a container for the card styling
-        safe_title = html.escape(res['title'] or '')
-        safe_author = html.escape(res['author_name'] or 'Unknown')
-        safe_category = html.escape(res['category'] or '')
-        safe_pub_date = html.escape(str(res['publication_date'] or 'Unknown'))
+        safe_title = html.escape(res["title"] or "")
+        safe_author = html.escape(res["author_name"] or "Unknown")
+        safe_category = html.escape(res["category"] or "")
+        safe_pub_date = html.escape(str(res["publication_date"] or "Unknown"))
         card_html = f"""
         <div class="story-card">
             <h4>{safe_title}</h4>

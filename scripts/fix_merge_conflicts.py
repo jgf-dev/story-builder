@@ -21,14 +21,14 @@ def resolve_file(path: Path) -> bool:
     while i < n:
             line = lines[i]
             # detect markers anywhere in the line (allow leading/trailing spaces)
-            if '<<<<<<<' in line:
+            if "<<<<<<<" in line:
                 # collect HEAD side
                 i += 1
                 head_lines = []
-                while i < n and '>>>>>>>' not in lines[i]:
+                while i < n and ">>>>>>>" not in lines[i]:
                     i += 1
                 # skip the >>>>>>> marker
-                if i < n and '>>>>>>>' in lines[i]:
+                if i < n and ">>>>>>>" in lines[i]:
                     i += 1
                 out_lines.extend(head_lines)
                 changed = True

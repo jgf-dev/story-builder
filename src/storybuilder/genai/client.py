@@ -43,8 +43,10 @@ def _parse_voice_mappings(markdown_content):
                 speaker_to_voice[speaker] = voice
                 if speaker not in speakers:
                     speakers.append(speaker)
-
-    return speaker_to_voice, speakers if not transcript else transcript
+    # Always return the transcript as text (possibly empty). Tests expect an
+    # empty string when only mappings are present in the preamble.
+    transcript_text = transcript.strip() if isinstance(transcript, str) else ""
+    return speaker_to_voice, transcript_text
 
 
 def _extract_active_speakers(transcript):
@@ -123,8 +125,7 @@ def process_file(md_file, wav_file, client, previous_id, api_keys, current_key_i
     key_name = api_keys[current_key_idx][0]
 
     print(f"Processing {os.path.basename(md_file)}...")
-    with open(md_file, "r") as f:
-        content = f.read()
+    content = pathlib.Path(md_file).read_text()
 
     speech_config = parse_speech_config(content)
     print(f"  Speech config: {speech_config}")
@@ -152,12 +153,12 @@ def process_file(md_file, wav_file, client, previous_id, api_keys, current_key_i
                     and interaction.output_audio.mime_type
                 ):
                     rate_match = re.search(
-                        r"rate=(\d+)", interaction.output_audio.mime_type
+                        r"rate=(\d+)", interaction.output_audio.mime_type,
                     )
                     if rate_match:
                         sample_rate = int(rate_match.group(1))
                         print(
-                            f"  Extracted sample rate from mime_type: {sample_rate}Hz"
+                            f"  Extracted sample rate from mime_type: {sample_rate}Hz",
                         )
 
                 wave_file_writer(wav_file, audio_bytes, rate=sample_rate)
@@ -189,13 +190,13 @@ def process_file(md_file, wav_file, client, previous_id, api_keys, current_key_i
 
             if is_session_not_found and previous_id is not None:
                 print(
-                    f"  Session ID {previous_id} not found or expired. Retrying without session history."
+                    f"  Session ID {previous_id} not found or expired. Retrying without session history.",
                 )
                 previous_id = None
                 continue
 
             if (is_invalid_key or is_quota) and keys_tried < len(
-                api_keys
+                api_keys,
             ) - 1:  # TODO: Move key management out of the function
                 print(f"  Error processing {os.path.basename(md_file)} for {key_name}")
                 keys_tried += 1
@@ -212,7 +213,7 @@ def process_file(md_file, wav_file, client, previous_id, api_keys, current_key_i
             if is_quota:
                 wait_time = 15 * (attempt + 1)
                 print(
-                    f"  Rate limit/Quota hit on all keys. Retrying in {wait_time}s... (Attempt {attempt + 1}/{max_retries})"
+                    f"  Rate limit/Quota hit on all keys. Retrying in {wait_time}s... (Attempt {attempt + 1}/{max_retries})",
                 )
                 time.sleep(wait_time)
                 attempt += 1
@@ -222,7 +223,7 @@ def process_file(md_file, wav_file, client, previous_id, api_keys, current_key_i
                 raise e
     else:
         print(
-            f"  Failed to process {os.path.basename(md_file)} after {max_retries} attempts."
+            f"  Failed to process {os.path.basename(md_file)} after {max_retries} attempts.",
         )
 
     return client, current_key_idx, previous_id
@@ -256,7 +257,7 @@ def process_directory(directory):
             continue
 
         client, current_key_idx, previous_id = process_file(
-            md_file, wav_file, client, previous_id, api_keys, current_key_idx
+            md_file, wav_file, client, previous_id, api_keys, current_key_idx,
         )
 
         # Slight delay to respect rate limits

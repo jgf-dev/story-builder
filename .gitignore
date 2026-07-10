@@ -43,3 +43,5 @@ test_dbs/
 .context-engine
 .bt
 test.db
+
+*.diff

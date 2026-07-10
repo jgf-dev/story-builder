@@ -490,8 +490,8 @@ def search_all_partitions(
 
     if db_paths:
         if len(db_paths) == 1 and db_paths[0] is None:
-             # Monolithic DB: no need for thread pool
-             all_results.extend(_search_single_db(None))
+            # Monolithic DB: no need for thread pool
+            all_results.extend(_search_single_db(None))
         else:
             with concurrent.futures.ThreadPoolExecutor(
                 max_workers=min(len(db_paths), 10)

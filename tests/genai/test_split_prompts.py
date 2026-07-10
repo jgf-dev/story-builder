@@ -31,7 +31,7 @@ from storybuilder.downloader.db import (
 from storybuilder.downloader.scraper import parse_listing_rows
 
 
-class TestDateParser(unittest.TestCase):
+class TestDateParsingLogic(unittest.TestCase):
     def test_parse_with_year(self):
         # MMM DD YYYY
         self.assertEqual(parse_nifty_date("Dec  4  2025"), datetime.date(2025, 12, 4))
@@ -54,7 +54,7 @@ class TestDateParser(unittest.TestCase):
         self.assertEqual(parse_nifty_date("Jun 6", ref_date), datetime.date(2026, 6, 6))
 
 
-class TestScraper(unittest.TestCase):
+class TestScrapingHTML(unittest.TestCase):
     def test_parse_listing_rows_ftr(self):
         from bs4 import BeautifulSoup
 

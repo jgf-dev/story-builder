@@ -34,7 +34,6 @@ def rotate_windscribe_ip():
         )
         if result.returncode == 0:
             safe_print(
-<<<<<<< HEAD
                 "Successfully rotated IP. Waiting 10 seconds for connection to stabilize...",
             )
             time.sleep(10)
@@ -43,17 +42,6 @@ def rotate_windscribe_ip():
             f"Failed to rotate IP: {result.stdout.strip() or result.stderr.strip()}",
         )
         return False
-=======
-                "Successfully rotated IP. Waiting 10 seconds for connection to stabilize..."
-            )
-            time.sleep(10)
-            return True
-        else:
-            safe_print(
-                f"Failed to rotate IP: {result.stdout.strip() or result.stderr.strip()}"
-            )
-            return False
->>>>>>> palette/save-button-tooltip-16022957350325416287
     except Exception as e:
         safe_print(f"Error running windscribe-cli ip rotate: {e}")
         return False
@@ -66,11 +54,7 @@ def fetch_page(url, delay, headers=None, max_retries=3):
     """
     if not headers:
         headers = {
-<<<<<<< HEAD
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-=======
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
->>>>>>> palette/save-button-tooltip-16022957350325416287
         }
 
     for attempt in range(max_retries):
@@ -81,43 +65,25 @@ def fetch_page(url, delay, headers=None, max_retries=3):
             if response.status_code == 404:
                 safe_print(f"Error 404: Not Found - {url}")
                 return None
-<<<<<<< HEAD
             if response.status_code in (403, 429, 503):
                 safe_print(
                     f"Warning: Fetching {url} returned status code {response.status_code} (Attempt {attempt + 1}/{max_retries})",
-=======
-            elif response.status_code in (403, 429, 503):
-                safe_print(
-                    f"Warning: Fetching {url} returned status code {response.status_code} (Attempt {attempt + 1}/{max_retries})"
->>>>>>> palette/save-button-tooltip-16022957350325416287
                 )
                 if ENABLE_ROTATION:
                     rotate_windscribe_ip()
             else:
                 safe_print(
-<<<<<<< HEAD
                     f"Warning: Fetching {url} returned status code {response.status_code} (Attempt {attempt + 1}/{max_retries})",
                 )
         except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
             safe_print(
                 f"Warning: Connection/Timeout error on attempt {attempt + 1}/{max_retries} for {url}: {e}",
-=======
-                    f"Warning: Fetching {url} returned status code {response.status_code} (Attempt {attempt + 1}/{max_retries})"
-                )
-        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
-            safe_print(
-                f"Warning: Connection/Timeout error on attempt {attempt + 1}/{max_retries} for {url}: {e}"
->>>>>>> palette/save-button-tooltip-16022957350325416287
             )
             if ENABLE_ROTATION:
                 rotate_windscribe_ip()
         except Exception as e:
             safe_print(
-<<<<<<< HEAD
                 f"Warning: Unexpected error on attempt {attempt + 1}/{max_retries} for {url}: {e}",
-=======
-                f"Warning: Unexpected error on attempt {attempt + 1}/{max_retries} for {url}: {e}"
->>>>>>> palette/save-button-tooltip-16022957350325416287
             )
 
         if attempt < max_retries - 1:

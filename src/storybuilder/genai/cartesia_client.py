@@ -178,11 +178,7 @@ def generate_segment_audio(api_key, text, voice_id, rate=24000):
             if response.status_code == 429:
                 wait_time = 10 * (attempt + 1)
                 print(
-<<<<<<< HEAD
                     f"  Cartesia Rate Limit (429). Retrying in {wait_time}s... ({attempt + 1}/{max_retries})",
-=======
-                    f"  Cartesia Rate Limit (429). Retrying in {wait_time}s... ({attempt + 1}/{max_retries})"
->>>>>>> palette/save-button-tooltip-16022957350325416287
                 )
                 time.sleep(wait_time)
             else:
@@ -219,11 +215,7 @@ def process_file_cartesia(md_file, wav_file, api_key, rate=24000):
 
     for idx, (voice_id, text) in enumerate(segments):
         print(
-<<<<<<< HEAD
             f"  Synthesizing segment {idx + 1}/{len(segments)} (Voice ID: {voice_id[:8]}...): {text[:40]}...",
-=======
-            f"  Synthesizing segment {idx + 1}/{len(segments)} (Voice ID: {voice_id[:8]}...): {text[:40]}..."
->>>>>>> palette/save-button-tooltip-16022957350325416287
         )
         try:
             segment_pcm = generate_segment_audio(api_key, text, voice_id, rate=rate)
@@ -263,15 +255,9 @@ def process_directory_cartesia(directory, rate=24000):
         wav_file = os.path.join(directory, f"{base_name}.wav")
 
         # Check if already generated
-<<<<<<< HEAD
         if pathlib.Path(wav_file).exists():
             print(
                 f"Skipping {os.path.basename(md_file)}, {os.path.basename(wav_file)} already exists.",
-=======
-        if os.path.exists(wav_file):
-            print(
-                f"Skipping {os.path.basename(md_file)}, {os.path.basename(wav_file)} already exists."
->>>>>>> palette/save-button-tooltip-16022957350325416287
             )
             continue
 
@@ -282,11 +268,7 @@ def process_directory_cartesia(directory, rate=24000):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-<<<<<<< HEAD
         description="Process TTS prompt files using Cartesia API.",
-=======
-        description="Process TTS prompt files using Cartesia API."
->>>>>>> palette/save-button-tooltip-16022957350325416287
     )
     parser.add_argument(
         "--dir",

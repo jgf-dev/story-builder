@@ -26,22 +26,12 @@ def load_cache(cache_dir):
     cache_path = os.path.join(cache_dir, "metadata_cache.json")
     if pathlib.Path(cache_path).exists():
         try:
-<<<<<<< HEAD
             with pathlib.Path(cache_path).open("r", encoding="utf-8") as f, cache_lock:
                 data = json.load(f)
                 metadata_cache.clear()
                 metadata_cache.update(data)
             safe_print(
                 f"Loaded cache from {cache_path} with {len(metadata_cache)} entries.",
-=======
-            with open(cache_path, "r", encoding="utf-8") as f:
-                with cache_lock:
-                    data = json.load(f)
-                    metadata_cache.clear()
-                    metadata_cache.update(data)
-            safe_print(
-                f"Loaded cache from {cache_path} with {len(metadata_cache)} entries."
->>>>>>> palette/save-button-tooltip-16022957350325416287
             )
         except Exception as e:
             safe_print(f"Warning: Failed to load cache: {e}")

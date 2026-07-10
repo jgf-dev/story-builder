@@ -265,7 +265,6 @@ class TestDatabaseInit(unittest.TestCase):
                 "2024-01-16 12:34:56",
             ),
         )
->>>>>>> palette/save-button-tooltip-16022957350325416287
         legacy_conn.commit()
         legacy_conn.close()
 

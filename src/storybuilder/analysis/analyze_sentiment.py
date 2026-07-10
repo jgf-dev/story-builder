@@ -60,14 +60,7 @@ def init_db(db_path):
             entity_label TEXT,
             FOREIGN KEY(sentence_id) REFERENCES sentences(id)
         )
-<<<<<<< HEAD
     """,
-=======
-    """
-    )
-    cursor.execute(
-        "CREATE INDEX IF NOT EXISTS idx_sentences_story ON sentences(story_id)"
->>>>>>> palette/save-button-tooltip-16022957350325416287
     )
     cursor.execute(
         "CREATE INDEX IF NOT EXISTS idx_sentences_story ON sentences(story_id)",

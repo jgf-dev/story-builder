@@ -1,13 +1,8 @@
 import sys
-<<<<<<< HEAD
 
 import streamlit as st
 
 
-=======
-import streamlit as st
-
->>>>>>> palette/save-button-tooltip-16022957350325416287
 # Shared Constants
 LONG_YEAR = 4
 BRACKET_LABELS = [

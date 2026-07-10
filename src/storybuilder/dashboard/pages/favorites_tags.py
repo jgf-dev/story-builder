@@ -1,5 +1,4 @@
 import html
-<<<<<<< HEAD
 import sqlite3
 from pathlib import Path
 
@@ -7,13 +6,6 @@ import streamlit as st
 
 from storybuilder.dashboard.data import get_db_files
 from storybuilder.dashboard.data import get_favorites
-=======
-from pathlib import Path
-import sqlite3
-import streamlit as st
-
-from storybuilder.dashboard.data import get_favorites, get_db_files
->>>>>>> palette/save-button-tooltip-16022957350325416287
 
 
 def render_favorites_tags() -> None:
@@ -24,32 +16,19 @@ def render_favorites_tags() -> None:
     favorites = get_favorites()
     if not favorites:
         st.info(
-<<<<<<< HEAD
             "You haven't bookmarked any stories yet. Read a story and add it to favorites!",
-=======
-            "You haven't bookmarked any stories yet. Read a story and add it to favorites!"
->>>>>>> palette/save-button-tooltip-16022957350325416287
         )
     else:
         # Get unique tags
         all_tags = set()
         for f in favorites:
             if f["tags"]:
-<<<<<<< HEAD
                 all_tags.update(t.strip() for t in f["tags"].split(","))
 
         # Tag filter selector
         filter_tag = st.selectbox(
             "Filter Favorites by Tag",
             ["All"] + sorted(list(all_tags)),
-=======
-                for t in f["tags"].split(","):
-                    all_tags.add(t.strip())
-
-        # Tag filter selector
-        filter_tag = st.selectbox(
-            "Filter Favorites by Tag", ["All"] + sorted(list(all_tags))
->>>>>>> palette/save-button-tooltip-16022957350325416287
         )
 
         st.write("---")
@@ -83,11 +62,7 @@ def render_favorites_tags() -> None:
                             path_to_db_year[p] = y
                 except sqlite3.Error as e:
                     st.warning(
-<<<<<<< HEAD
                         f"Could not resolve story paths from database '{y_db}': {e}",
-=======
-                        f"Could not resolve story paths from database '{y_db}': {e}"
->>>>>>> palette/save-button-tooltip-16022957350325416287
                     )
                 finally:
                     conn.close()
@@ -103,17 +78,10 @@ def render_favorites_tags() -> None:
                 continue
 
             with st.container():
-<<<<<<< HEAD
                 safe_fav_title = html.escape(f["title"] or "")
                 safe_fav_author = html.escape(f["author"] or "Unknown")
                 safe_fav_tags = html.escape(f["tags"] or "None")
                 safe_fav_notes = html.escape(f["notes"] or "None")
-=======
-                safe_fav_title = html.escape(f['title'] or '')
-                safe_fav_author = html.escape(f['author'] or 'Unknown')
-                safe_fav_tags = html.escape(f['tags'] or 'None')
-                safe_fav_notes = html.escape(f['notes'] or 'None')
->>>>>>> palette/save-button-tooltip-16022957350325416287
                 st.markdown(
                     f"""
                     <div class='story-card'>
@@ -135,7 +103,3 @@ def render_favorites_tags() -> None:
                         st.query_params["nav_page"] = "📖 Read Story"
                         st.rerun()
                 st.write("")
-<<<<<<< HEAD
-=======
-
->>>>>>> palette/save-button-tooltip-16022957350325416287

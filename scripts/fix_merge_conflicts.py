@@ -11,7 +11,10 @@ ROOT = Path(__file__).resolve().parent.parent
 
 
 def resolve_file(path: Path) -> bool:
-    text = path.read_text(encoding="utf-8")
+    try:
+        text = path.read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        return False
         return False
     out_lines = []
     i = 0
@@ -40,7 +43,13 @@ def resolve_file(path: Path) -> bool:
 
 
 def main():
-    files = list(ROOT.rglob("*"))
+    dirs_to_scan = ["src", "tests", "evals", "scripts", ".agent"]
+    files = []
+    for d in dirs_to_scan:
+        dir_path = ROOT / d
+        if dir_path.exists():
+            files.extend(dir_path.rglob("*"))
+    files.extend(ROOT.glob("*"))
     skipped = []
     fixed = []
     for f in files:

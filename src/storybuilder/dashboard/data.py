@@ -6,7 +6,6 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-<<<<<<< HEAD
 from storybuilder.dashboard.config import BRACKET_LABELS
 from storybuilder.dashboard.config import LONG_YEAR
 from storybuilder.dashboard.config import get_db_dir
@@ -14,16 +13,6 @@ from storybuilder.dashboard.config import get_meta_db_path
 from storybuilder.dashboard.config import get_nlp_db_path
 from storybuilder.downloader import db as storybuilder_db
 
-=======
-from storybuilder.downloader import db as storybuilder_db
-from storybuilder.dashboard.config import (
-    BRACKET_LABELS,
-    LONG_YEAR,
-    get_db_dir,
-    get_meta_db_path,
-    get_nlp_db_path,
-)
->>>>>>> palette/save-button-tooltip-16022957350325416287
 
 logger = getLogger(__name__)
 
@@ -76,11 +65,7 @@ def get_filter_options() -> tuple[list[str], list[str]]:
     """Compile distinct categories and authors across all partitions for filters."""
     categories = set()
     authors = set()
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> palette/save-button-tooltip-16022957350325416287
     # Get unique categories
     cat_results = storybuilder_db.execute_all_partitions("SELECT DISTINCT category FROM {table}")
     for r in cat_results:
@@ -92,20 +77,13 @@ def get_filter_options() -> tuple[list[str], list[str]]:
     for r in author_results:
         if r.get("author_name"):
             authors.add(r["author_name"])
-<<<<<<< HEAD
 
-=======
-            
->>>>>>> palette/save-button-tooltip-16022957350325416287
     return sorted(categories), sorted(authors)
 
 
 # ── Archive-stats helpers ───────────────────────────────────────────────
 
-<<<<<<< HEAD
 
-=======
->>>>>>> palette/save-button-tooltip-16022957350325416287
 def _init_aggregators() -> dict:
     """Return fresh accumulator dicts for a full aggregation pass."""
     return {
@@ -197,21 +175,11 @@ def _process_partition(db_path: str, year_name: int, ag: dict) -> None:
 def _format_stats_dataframes(ag: dict) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Convert aggregator dicts into the four final DataFrames."""
     df_years = pd.DataFrame(ag["year_stats"])
-<<<<<<< HEAD
     df_cats = pd.DataFrame(list(ag["category_counts"].items()), columns=["Category", "Count"]).sort_values(
         "Count", ascending=False
     )
     df_auths = pd.DataFrame(list(ag["author_counts"].items()), columns=["Author", "Count"]).sort_values(
         "Count", ascending=False
-=======
-    df_cats = (
-        pd.DataFrame(list(ag["category_counts"].items()), columns=["Category", "Count"])
-        .sort_values("Count", ascending=False)
-    )
-    df_auths = (
-        pd.DataFrame(list(ag["author_counts"].items()), columns=["Author", "Count"])
-        .sort_values("Count", ascending=False)
->>>>>>> palette/save-button-tooltip-16022957350325416287
     )
     df_words = pd.DataFrame(
         [
@@ -251,12 +219,8 @@ class StorySearchQuery:
 
 
 def _resolve_entity_suffixes(
-<<<<<<< HEAD
     entity_text: str,
     entity_label: str,
-=======
-    entity_text: str, entity_label: str,
->>>>>>> palette/save-button-tooltip-16022957350325416287
 ) -> list[str] | None:
     """Query NLP database for story-path suffixes matching entity text + label.
 
@@ -307,12 +271,8 @@ def _extract_db_year(pub_date: str | int | None) -> int:
 
 
 def _filter_by_entity_suffixes(
-<<<<<<< HEAD
     results: list[dict],
     entity_suffixes: list[str] | None,
-=======
-    results: list[dict], entity_suffixes: list[str] | None,
->>>>>>> palette/save-button-tooltip-16022957350325416287
 ) -> list[dict]:
     """Remove results whose path doesn't match any entity suffix."""
     if entity_suffixes is None:
@@ -373,11 +333,7 @@ def query_stories(
 
     results = _enrich_with_db_year(raw_results)
     results = _filter_by_entity_suffixes(results, entity_suffixes)
-<<<<<<< HEAD
     return results[: params.limit]
-=======
-    return results[:params.limit]
->>>>>>> palette/save-button-tooltip-16022957350325416287
 
 
 def get_story_by_path(story_path: str, db_year: int | str | None = None) -> dict | None:

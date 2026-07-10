@@ -10,7 +10,6 @@ import html
 
 # Ensure src layout package is importable
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from storybuilder.downloader import db as storybuilder_db
 
 # Define paths
 DB_DIR = "stories/db"
@@ -120,7 +119,6 @@ def get_nlp_conn():
 @st.cache_data
 def get_filter_options():
     """Compile distinct categories and authors across all partitions for filters."""
-    from storybuilder.downloader import db as storybuilder_db
 
     # Expected optimization impact: Resolving categories and authors across M year partitions
     # O(2 * M) individual DB queries -> 2 queries using ATTACH DATABASE.
@@ -283,7 +281,6 @@ def query_stories(
                 if len(parts) >= 3:
                     entity_suffixes.append("/".join(parts[-3:]))
 
-    from storybuilder.downloader import db as storybuilder_db
 
     date_from = None
     date_to = None
@@ -502,15 +499,11 @@ if page == "🔍 Search & Explorer":
 
         # Display highlighted snippets if any
         if res.get("snippet"):
-<<<<<<< HEAD
             # Escape the snippet first, then replace the placeholder highlight markers with actual HTML span tags
-=======
->>>>>>> fix-failing-tests-16749664909518946067
             snippet_escaped = html.escape(res["snippet"])
             snippet_cleaned = snippet_escaped.replace("___HIGHLIGHT_START___", "<span class='highlight'>").replace("___HIGHLIGHT_END___", "</span>")
             card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
 
-            card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
         card_html += "</div>"
         st.markdown(card_html, unsafe_allow_html=True)
 

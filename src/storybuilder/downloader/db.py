@@ -305,8 +305,7 @@ def get_all_partition_paths() -> list[str]:
 
 
 def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
-    """Execute a SELECT query across all database partitions sequentially
-    using ATTACH DATABASE to avoid hitting the SQLITE_MAX_ATTACHED limit.
+    """Execute a SELECT query across all database partitions concurrently.
 
     The SQL must use {table} where the target table name goes.
     Returns a list of dictionaries.
@@ -323,29 +322,28 @@ def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
     if not db_paths:
         return []
 
-    conn = sqlite3.connect(":memory:")
-    conn.row_factory = sqlite3.Row
     all_rows = []
 
-    try:
-        for db_path in db_paths:
-            try:
-                conn.execute("ATTACH DATABASE ? AS curr_db", (db_path,))
-                curs = conn.cursor()
-                formatted_sql = sql.format(table="curr_db.stories")
-                curs.execute(formatted_sql, params)
-                all_rows.extend([dict(r) for r in curs.fetchall()])
-                curs.close()
-            except sqlite3.Error as e:
-                print(f"Error querying {db_path}: {e}")
-            finally:
-                try:
-                    conn.execute("DETACH DATABASE curr_db")
-                except sqlite3.Error as e:
-                    # Best-effort cleanup: if detach fails, continue processing other partitions.
-                    print(f"Warning: failed to detach database {db_path}: {e}")
-    finally:
-        conn.close()
+    def _execute_single_db(db_path: str) -> list[dict]:
+        try:
+            conn = sqlite3.connect(db_path)
+            conn.row_factory = sqlite3.Row
+            curs = conn.cursor()
+            formatted_sql = sql.format(table="stories")
+            curs.execute(formatted_sql, params)
+            res = [dict(r) for r in curs.fetchall()]
+            conn.close()
+            return res
+        except sqlite3.OperationalError as e:
+            print(f"OperationalError querying {db_path}: {e}")
+            return []
+        except sqlite3.Error as e:
+            print(f"Error querying {db_path}: {e}")
+            return []
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(db_paths), 10)) as executor:
+        for res in executor.map(_execute_single_db, db_paths):
+            all_rows.extend(res)
 
     return all_rows
 
@@ -388,20 +386,6 @@ def search_all_partitions(
         db_paths = [None]
     else:
         partition_dir = db_dir or _db_dir
-        if not partition_dir:
-            return []
-        if partition_dir == _db_dir:
-            db_paths = get_all_partition_paths()
-        else:
-            import glob
-
-            excluded = {"stories.db", "dashboard_metadata.db"}
-            db_files = glob.glob(os.path.join(partition_dir, "*.db"))
-            db_paths = sorted(
-                p for p in db_files if os.path.basename(p) not in excluded
-            )
-        if not db_paths:
-            return []
         if not partition_dir:
             return []
         if partition_dir == _db_dir:
@@ -481,6 +465,7 @@ def search_all_partitions(
 
     if db_paths:
         if len(db_paths) == 1 and db_paths[0] is None:
+<<<<<<< HEAD
             # Monolithic DB: no need for thread pool
             all_results.extend(_search_single_db(None))
         else:
@@ -492,6 +477,8 @@ def search_all_partitions(
 
     if db_paths:
         if len(db_paths) == 1 and db_paths[0] is None:
+=======
+>>>>>>> fix-failing-tests-and-merge-conflicts-12002815600740782470
             # Monolithic DB: no need for thread pool
             all_results.extend(_search_single_db(None))
         else:

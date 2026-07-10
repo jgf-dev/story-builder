@@ -33,7 +33,13 @@ def extract_markdown_block(content: str) -> str:
     content = content.strip()
     # Match ```markdown ... ``` or ``` ... ```
     match = re.match(
+<<<<<<< Updated upstream
         r"^```(?:markdown)?\s*\n(.*?)\n```$", content, re.DOTALL | re.IGNORECASE,
+=======
+        r"^```(?:markdown)?\s*\n(.*?)\n```$",
+        content,
+        re.DOTALL | re.IGNORECASE,
+>>>>>>> Stashed changes
     )
     if match:
         return match.group(1).strip()
@@ -55,6 +61,10 @@ def extract_markdown_block(content: str) -> str:
 def fix_prompts(directory: str) -> None:
     dir_path = pathlib.Path(directory)
     files = sorted([str(p) for p in dir_path.glob("*-part.md")])
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
     if not files:
         print(f"No prompt files found in {directory}")
         return
@@ -98,11 +108,18 @@ def fix_prompts(directory: str) -> None:
             fixed_content = extract_markdown_block(response.text)
 
             path.write_text(fixed_content, encoding="utf-8")
+<<<<<<< Updated upstream
 
             print("  Fixed and saved.")
         except Exception as e:  # noqa: BLE001
             print(f"  Error processing {path.name}: {e}")
 
+=======
+
+            print("  Fixed and saved.")
+        except Exception as e:  # noqa: BLE001
+            print(f"  Error processing {path.name}: {e}")
+>>>>>>> Stashed changes
 
 if __name__ == "__main__":
     import argparse

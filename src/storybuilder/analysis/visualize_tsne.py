@@ -9,9 +9,13 @@ from sklearn.manifold import TSNE
 
 
 def parse_args() -> argparse.Namespace:
+<<<<<<< Updated upstream
     parser = argparse.ArgumentParser(
         description="Visualize story embeddings using t-SNE.",
     )
+=======
+    parser = argparse.ArgumentParser(description="Visualize story embeddings using t-SNE.")
+>>>>>>> Stashed changes
     parser.add_argument(
         "--db-path",
         type=str,
@@ -39,9 +43,13 @@ def fetch_embeddings(db_path: str) -> tuple[list[str], np.ndarray, list[dict]]:
     try:
         collection_averages = chroma_client.get_collection(name="story_averages")
     except Exception:
+<<<<<<< Updated upstream
         print(
             "Error: Could not find 'story_averages' collection. Run generate_embeddings.py first.",
         )
+=======
+        print("Error: Could not find 'story_averages' collection. Run generate_embeddings.py first.")
+>>>>>>> Stashed changes
         return [], np.array([]), []
 
     print("Fetching embeddings from database...")

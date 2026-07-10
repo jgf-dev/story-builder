@@ -153,6 +153,10 @@ def cmd_get(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None)
         print(
             f"Author:   {row['author_name'] or 'Unknown'}"
             + (f" <{row['author_email']}>" if row["author_email"] else ""),
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
         )
         print(f"Date:     {row['publication_date'] or 'Unknown'}")
         print(f"URL:      {row['url'] or 'N/A'}")
@@ -217,6 +221,10 @@ def cmd_list(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None
     # Column widths
     print(
         f"{'ID':>6}  {'Title':<45}  {'Author':<25}  {'Date':>10}  {'Words':>8}  Category",
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
     )
     print("-" * 120)
     for row in rows:
@@ -224,6 +232,10 @@ def cmd_list(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None
         author = (row["author_name"] or "")[:24]
         print(
             f"{row['id']:>6}  {title:<45}  {author:<25}  {row['publication_date'] or '':>10}  {row['word_count']:>8,}  {row['category']}",
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
         )
 
 
@@ -244,6 +256,10 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
 
     print(
         f"\n=== Database Stats{' for ' + args.category if args.category else ''} ===\n",
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
     )
     print(f"  Stories:     {total:,}")
     print(f"  Total chars: {total_chars:,}")
@@ -275,6 +291,10 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
         """,
         params if where else [],
     ).fetchall()
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
     for a in authors:
         name = (a["author_name"] or "Unknown")[:30]
         print(f"    {name:<30} {a['cnt']:>5} stories  ({a['total_words']:,} words)")
@@ -304,6 +324,10 @@ def main():
     )
     parser.add_argument(
         "--db-dir", default=None, help="Directory with split .db files (overrides --db)",
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
     )
 
     sub = parser.add_subparsers(dest="command", required=True)
@@ -340,6 +364,10 @@ def main():
     )
     p.add_argument(
         "--no-content", action="store_true", help="Show metadata only, not story text",
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
     )
     p.add_argument(
         "--max-chars",

@@ -165,9 +165,13 @@ def tts_sse_with_phoneme_timestamps(client: Cartesia) -> None:
             if event.type == "phoneme_timestamps":
                 pt = event.phoneme_timestamps
                 if pt:
+<<<<<<< Updated upstream
                     print(
                         f"Phonemes: {pt.phonemes}, Starts: {pt.start}, Ends: {pt.end}",
                     )
+=======
+                    print(f"Phonemes: {pt.phonemes}, Starts: {pt.start}, Ends: {pt.end}")
+>>>>>>> Stashed changes
             elif event.type == "chunk":
                 if event.audio:
                     f.write(event.audio)
@@ -632,9 +636,13 @@ def infill_create(client: Cartesia, *args: str) -> None:
     from pathlib import Path
 
     if len(args) < 3:
+<<<<<<< Updated upstream
         print(
             "Usage: stt_transcribe <audio_file_before> <audio_file_after> <transcript>",
         )
+=======
+        print("Usage: stt_transcribe <audio_file_before> <audio_file_after> <transcript>")
+>>>>>>> Stashed changes
         sys.exit(1)
 
     left_file, right_file, *transcript_parts = args
@@ -744,9 +752,13 @@ def stt_auto_finalize_websocket(client: Cartesia, *args: str) -> None:
             elif sample_width == 4:
                 encoding = "pcm_s32le"
             else:
+<<<<<<< Updated upstream
                 print(
                     f"Error: unsupported sample width {sample_width} bytes (expected 2 or 4).",
                 )
+=======
+                print(f"Error: unsupported sample width {sample_width} bytes (expected 2 or 4).")
+>>>>>>> Stashed changes
                 sys.exit(1)
             sample_rate = wf.getframerate()
             chunks = []
@@ -764,9 +776,13 @@ def stt_auto_finalize_websocket(client: Cartesia, *args: str) -> None:
         encoding = output_format["encoding"]
         sample_rate = output_format["sample_rate"]
         generation_transcript = "Hello, world! The quick brown fox jumps over the lazy dog."
+<<<<<<< Updated upstream
         print(
             f"No WAV file provided — synthesizing audio with TTS: {generation_transcript!r}",
         )
+=======
+        print(f"No WAV file provided — synthesizing audio with TTS: {generation_transcript!r}")
+>>>>>>> Stashed changes
         audio = client.tts.generate(
             model_id="sonic-latest",
             transcript=generation_transcript,
@@ -792,9 +808,13 @@ def stt_auto_finalize_websocket(client: Cartesia, *args: str) -> None:
     ) as connection:
         for chunk in chunks:
             connection.send_raw(chunk)
+<<<<<<< Updated upstream
             time.sleep(
                 0.1,
             )  # each chunk is 100ms of audio — pace sends to match real time
+=======
+            time.sleep(0.1)  # each chunk is 100ms of audio — pace sends to match real time
+>>>>>>> Stashed changes
 
         # Flush remaining audio and close the session cleanly.
         connection.send({"type": "close"})
@@ -869,9 +889,13 @@ def stt_manual_finalize_websocket(client: Cartesia, *args: str) -> None:
             chunk_bytes = (sample_rate * 2) // 10  # 100ms of pcm_s16le (2 bytes/sample)
             for i in range(0, len(audio), chunk_bytes):
                 connection.send_raw(audio[i : i + chunk_bytes])
+<<<<<<< Updated upstream
                 time.sleep(
                     0.1,
                 )  # each chunk is 100ms of audio — pace sends to match real time
+=======
+                time.sleep(0.1)  # each chunk is 100ms of audio — pace sends to match real time
+>>>>>>> Stashed changes
             # Triggers transcription of buffered audio.
             connection.send("finalize")
 

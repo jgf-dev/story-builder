@@ -71,6 +71,10 @@ def get_filter_options() -> tuple[list[str], list[str]]:
 
     # Get unique categories
     cat_results = storybuilder_db.execute_query("SELECT DISTINCT category FROM {table}")
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
     for r in cat_results:
         if r.get("category"):
             categories.add(r["category"])
@@ -107,6 +111,10 @@ def _format_stats_dataframes(ag: dict) -> tuple[pd.DataFrame, pd.DataFrame, pd.D
     df_auths = pd.DataFrame(list(ag["author_counts"].items()), columns=["Author", "Count"]).sort_values(
         "Count",
         ascending=False,
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
     )
     df_words = pd.DataFrame(
         [
@@ -205,6 +213,10 @@ class StorySearchQuery:
 def _resolve_entity_suffixes(
     entity_text: str,
     entity_label: str,
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 ) -> list[str] | None:
     """Query NLP database for story-path suffixes matching entity text + label.
 
@@ -251,12 +263,20 @@ def _extract_db_year(pub_date: str | int | None) -> int:
             return int(str(pub_date)[:4])
     except (ValueError, TypeError) as exc:
         logger.debug("Failed to extract year from publication_date=%r: %s", pub_date, exc)
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
     return 2026
 
 
 def _filter_by_entity_suffixes(
     results: list[dict],
     entity_suffixes: list[str] | None,
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 ) -> list[dict]:
     """Remove results whose path doesn't match any entity suffix."""
     if entity_suffixes is None:
@@ -293,6 +313,10 @@ def query_stories(
 ) -> list[dict]:
     """Search the archive with FTS, filters, and entity-based narrowing."""
     _ensure_db()
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
     if params is None:
         params = StorySearchQuery(
             fts_query=fts_query,
@@ -307,6 +331,10 @@ def query_stories(
     date_from, date_to = _build_date_range(params.year_range)
 
     raw_results = storybuilder_db.search_stories(
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
         fts_query=params.fts_query,
         category=params.category,
         author=params.author,

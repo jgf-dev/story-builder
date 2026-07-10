@@ -173,6 +173,10 @@ def generate_segment_audio(api_key, text, voice_id, rate=24000):
                 wait_time = 10 * (attempt + 1)
                 print(
                     f"  Cartesia Rate Limit (429). Retrying in {wait_time}s... ({attempt + 1}/{max_retries})",
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
                 )
                 time.sleep(wait_time)
             else:
@@ -210,6 +214,10 @@ def process_file_cartesia(md_file, wav_file, api_key, rate=24000):
     for idx, (voice_id, text) in enumerate(segments):
         print(
             f"  Synthesizing segment {idx + 1}/{len(segments)} (Voice ID: {voice_id[:8]}...): {text[:40]}...",
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
         )
         try:
             segment_pcm = generate_segment_audio(api_key, text, voice_id, rate=rate)
@@ -251,6 +259,7 @@ def process_directory_cartesia(directory, rate=24000):
         # Check if already generated
         if pathlib.Path(wav_file).exists():
             print(f"Skipping {os.path.basename(md_file)}, {os.path.basename(wav_file)} already exists.")
+
             continue
 
         process_file_cartesia(md_file, wav_file, api_key, rate=rate)
@@ -260,6 +269,10 @@ def process_directory_cartesia(directory, rate=24000):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process TTS prompt files using Cartesia API.")
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
     parser.add_argument(
         "--dir",
         default="stories/the_secret_vacation",

@@ -41,6 +41,9 @@ benchmark.db
 .bt
 test.db
 gh_2.40.1_linux_amd64/
+<<<<<<< Updated upstream
 *.diff
+=======
+>>>>>>> Stashed changes
 
 *.diff

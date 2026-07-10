@@ -35,11 +35,15 @@ def get_db_filename_from_date(story_date) -> str:
     return "unknown.db"
 
 
+<<<<<<< Updated upstream
 def get_or_create_connection(
     temp_dir: Path,
     filename: str,
     new_conns: dict,
 ) -> sqlite3.Connection:
+=======
+def get_or_create_connection(temp_dir: Path, filename: str, new_conns: dict) -> sqlite3.Connection:
+>>>>>>> Stashed changes
     """Retrieve an existing connection or create and initialize a new database connection."""
     target_path = str(temp_dir / filename)
     if target_path not in new_conns:

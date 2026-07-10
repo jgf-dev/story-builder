@@ -40,6 +40,10 @@ def rotate_windscribe_ip():
             return True
         safe_print(f"Failed to rotate IP: {result.stdout.strip() or result.stderr.strip()}")
         return False
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
     except Exception as e:
         safe_print(f"Error running windscribe-cli ip rotate: {e}")
         return False
@@ -53,6 +57,10 @@ def fetch_page(url, delay, headers=None, max_retries=3):
     if not headers:
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
         }
 
     for attempt in range(max_retries):
@@ -66,22 +74,38 @@ def fetch_page(url, delay, headers=None, max_retries=3):
             if response.status_code in (403, 429, 503):
                 safe_print(
                     f"Warning: Fetching {url} returned status code {response.status_code} (Attempt {attempt + 1}/{max_retries})",
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
                 )
                 if ENABLE_ROTATION:
                     rotate_windscribe_ip()
             else:
                 safe_print(
                     f"Warning: Fetching {url} returned status code {response.status_code} (Attempt {attempt + 1}/{max_retries})",
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
                 )
         except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
             safe_print(
                 f"Warning: Connection/Timeout error on attempt {attempt + 1}/{max_retries} for {url}: {e}",
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
             )
             if ENABLE_ROTATION:
                 rotate_windscribe_ip()
         except Exception as e:
             safe_print(
                 f"Warning: Unexpected error on attempt {attempt + 1}/{max_retries} for {url}: {e}",
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
             )
 
         if attempt < max_retries - 1:

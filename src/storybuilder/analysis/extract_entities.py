@@ -63,9 +63,13 @@ def is_processed(cursor, filepath):
 
 def parse_args():
     """Parse command line arguments."""
+<<<<<<< Updated upstream
     parser = argparse.ArgumentParser(
         description="Extract Named Entities from stories using spaCy.",
     )
+=======
+    parser = argparse.ArgumentParser(description="Extract Named Entities from stories using spaCy.")
+>>>>>>> Stashed changes
     parser.add_argument(
         "--limit",
         type=int,
@@ -78,6 +82,7 @@ def parse_args():
         default="nifty_stories",
         help="Directory containing the text files.",
     )
+<<<<<<< Updated upstream
     parser.add_argument(
         "--db-path",
         type=str,
@@ -101,6 +106,12 @@ def parse_args():
         default=True,
         help="Use GPU for spaCy model.",
     )
+=======
+    parser.add_argument("--db-path", type=str, default=DB_PATH, help="Path to the SQLite database.")
+    parser.add_argument("--force", action="store_true", help="Force reprocessing of all files.")
+    parser.add_argument("--model", type=str, default="en_core_web_lg", help="spaCy model to use.")
+    parser.add_argument("--gpu", action="store_true", default=True, help="Use GPU for spaCy model.")
+>>>>>>> Stashed changes
     return parser.parse_args()
 
 

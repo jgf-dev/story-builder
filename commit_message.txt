@@ -1,0 +1,8 @@
+Code Health: Combine workflow improvements and fixes
+
+This PR combines the following open code health PRs into a single PR:
+- PRO-75: Update workflow triggers to include issues and discussions (#210)
+- PRO-73: Enhance PR agent job with timeout and concurrency (#207)
+- PRO-70: [Fix] Summarize new issues workflow fails in AI Improve Title step (#204, #202)
+
+It also includes a fix for a pre-existing indentation error in `tests/genai/test_tts_pipeline.py`.

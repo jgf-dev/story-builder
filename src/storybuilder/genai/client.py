@@ -23,6 +23,7 @@ def wave_file(filename, pcm, channels=1, rate=24000, sample_width=2):
 def _parse_voice_mappings(markdown_content):
     """Parses the markdown content to extract speaker to voice mappings and the transcript."""
     speaker_to_voice = {}
+    speakers = []
 
     parts = markdown_content.split("#### TRANSCRIPT")
     if len(parts) == 2:
@@ -40,13 +41,18 @@ def _parse_voice_mappings(markdown_content):
                 speaker = match.group(1)
                 voice = match.group(2)
                 speaker_to_voice[speaker] = voice
+                if speaker not in speakers:
+                    speakers.append(speaker)
 
-    return speaker_to_voice, transcript
+    return speaker_to_voice, speakers if not transcript else transcript
 
 
 def _extract_active_speakers(transcript):
     """Extracts active speakers actually speaking in the transcript in order of appearance."""
     active_speakers = []
+    if isinstance(transcript, list):
+        # We got the speakers list back instead of a text transcript
+        return transcript
     for line in transcript.split("\n"):
         line = line.strip()
         match = re.match(r"^([A-Za-z0-9_-]+):", line)

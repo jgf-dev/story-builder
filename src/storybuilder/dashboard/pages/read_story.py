@@ -1,24 +1,11 @@
 import streamlit as st
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 from storybuilder.dashboard.data import (
     get_story_by_path,
     get_favorites,
     add_favorite,
     remove_favorite,
 )
-<<<<<<< HEAD
-=======
-from storybuilder.dashboard.data import add_favorite
-from storybuilder.dashboard.data import get_favorites
-from storybuilder.dashboard.data import get_story_by_path
-from storybuilder.dashboard.data import remove_favorite
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 
 
 def render_read_story() -> None:
@@ -55,21 +42,11 @@ def render_read_story() -> None:
                         "favorite"
                         if not is_fav
                         else next(
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
                             (
                                 f["tags"]
                                 for f in favorites
                                 if f["story_path"] == story["path"]
                             ),
-<<<<<<< HEAD
-=======
-                            (f["tags"] for f in favorites if f["story_path"] == story["path"]),
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
                             "",
                         ),
                     )
@@ -78,21 +55,11 @@ def render_read_story() -> None:
                         ""
                         if not is_fav
                         else next(
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
                             (
                                 f["notes"] or ""
                                 for f in favorites
                                 if f["story_path"] == story["path"]
                             ),
-<<<<<<< HEAD
-=======
-                            (f["notes"] or "" for f in favorites if f["story_path"] == story["path"]),
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
                             "",
                         ),
                     )
@@ -111,10 +78,6 @@ def render_read_story() -> None:
                             remove_favorite(story["path"])
                             st.success("Removed!")
                             st.rerun()
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
                     else:
                         if st.button("Add to Favorites"):
                             add_favorite(
@@ -126,21 +89,6 @@ def render_read_story() -> None:
                             )
                             st.success("Added!")
                             st.rerun()
-<<<<<<< HEAD
-=======
-                    elif st.button("Add to Favorites"):
-                        add_favorite(
-                            story["path"],
-                            story["title"],
-                            story["author_name"],
-                            fav_tags,
-                            fav_notes,
-                        )
-                        st.success("Added!")
-                        st.rerun()
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 
                 # Export to Markdown Button
                 md_content = f"""# {story["title"]}
@@ -161,15 +109,7 @@ def render_read_story() -> None:
                 )
 
             st.write(
-<<<<<<< HEAD
-<<<<<<< HEAD
                 f"**Category:** `{story['category']}` | **Published:** `{story['publication_date'] or 'Unknown'}` | **Words:** `{story['word_count']:,}`"
-=======
-                f"**Category:** `{story['category']}` | **Published:** `{story['publication_date'] or 'Unknown'}` | **Words:** `{story['word_count']:,}`",
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
-                f"**Category:** `{story['category']}` | **Published:** `{story['publication_date'] or 'Unknown'}` | **Words:** `{story['word_count']:,}`"
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
             )
             st.markdown("---")
 

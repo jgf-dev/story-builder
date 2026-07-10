@@ -1,18 +1,6 @@
 import sys
-<<<<<<< HEAD
-<<<<<<< HEAD
 import streamlit as st
 
-=======
-
-import streamlit as st
-
-
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
-import streamlit as st
-
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 # Shared Constants
 LONG_YEAR = 4
 BRACKET_LABELS = [

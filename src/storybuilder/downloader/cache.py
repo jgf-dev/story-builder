@@ -1,9 +1,7 @@
 import json
 import os
-import pathlib
 import threading
 import time
-
 
 # Thread locks to serialize stdout print statements and cache access
 print_lock = threading.Lock()
@@ -24,9 +22,8 @@ def load_cache(cache_dir):
     Loads the metadata cache from cache_dir/metadata_cache.json.
     """
     cache_path = os.path.join(cache_dir, "metadata_cache.json")
-    if pathlib.Path(cache_path).exists():
+    if os.path.exists(cache_path):
         try:
-<<<<<<< HEAD
             with open(cache_path, "r", encoding="utf-8") as f:
                 with cache_lock:
                     data = json.load(f)
@@ -35,16 +32,6 @@ def load_cache(cache_dir):
             safe_print(
                 f"Loaded cache from {cache_path} with {len(metadata_cache)} entries."
             )
-<<<<<<< HEAD
-=======
-            with pathlib.Path(cache_path).open("r", encoding="utf-8") as f, cache_lock:
-                data = json.load(f)
-                metadata_cache.clear()
-                metadata_cache.update(data)
-            safe_print(f"Loaded cache from {cache_path} with {len(metadata_cache)} entries.")
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
         except Exception as e:
             safe_print(f"Warning: Failed to load cache: {e}")
     else:
@@ -52,7 +39,7 @@ def load_cache(cache_dir):
     for _ in range(10):
         time.sleep(1)
         print(".", end="", flush=True)
-    print()
+    print("")
 
 
 def save_cache(cache_dir):
@@ -61,9 +48,10 @@ def save_cache(cache_dir):
     """
     cache_path = os.path.join(cache_dir, "metadata_cache.json")
     try:
-        pathlib.Path(os.path.dirname(cache_path)).mkdir(exist_ok=True, parents=True)
-        with pathlib.Path(cache_path).open("w", encoding="utf-8") as f, cache_lock:
-            json.dump(metadata_cache, f, indent=2)
+        os.makedirs(os.path.dirname(cache_path), exist_ok=True)
+        with open(cache_path, "w", encoding="utf-8") as f:
+            with cache_lock:
+                json.dump(metadata_cache, f, indent=2)
         safe_print(f"Saved metadata cache to {cache_path}")
     except Exception as e:
         safe_print(f"Warning: Failed to save cache: {e}")

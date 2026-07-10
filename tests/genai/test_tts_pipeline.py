@@ -10,7 +10,6 @@ Run manually with:
 """
 
 import glob
-
 import os
 import shutil
 import tempfile
@@ -34,23 +33,15 @@ class TestTTSPipeline(unittest.TestCase):
 
         cls.api_key = os.getenv("GEMINI_API_KEY")
         if not cls.api_key:
-            raise unittest.SkipTest(
-                "GEMINI_API_KEY not configured — skipping TTS pipeline test"
-            )
+            raise unittest.SkipTest("GEMINI_API_KEY not configured — skipping TTS pipeline test")
 
         # Find up to MAX_API_CALLS real prompt files from the repo
-        all_parts = sorted(
-            glob.glob(
-                str(project_root / "stories" / "**" / "*-part.md"), recursive=True
-            )
-        )
+        all_parts = sorted(glob.glob(str(project_root / "stories" / "**" / "*-part.md"), recursive=True))
         # Exclude archive directories
         all_parts = [p for p in all_parts if "archive" not in p]
 
         if not all_parts:
-            raise unittest.SkipTest(
-                "No *-part.md prompt files found — skipping TTS pipeline test"
-            )
+            raise unittest.SkipTest("No *-part.md prompt files found — skipping TTS pipeline test")
 
         # Take at most MAX_API_CALLS files
         cls.prompt_files = all_parts[:MAX_API_CALLS]
@@ -82,13 +73,8 @@ class TestTTSPipeline(unittest.TestCase):
             generated = []
 
             for i, md_file in enumerate(self.prompt_files):
-                base_name = Path(md_file).stem
+                base_name = os.path.basename(md_file).replace("-part.md", "")
                 wav_file = os.path.join(tmp_dir, f"{base_name}.wav")
-
-=======
-                base_name = os.path.splitext(os.path.basename(md_file))[0]
-                wav_file = os.path.join(tmp_dir, f"{base_name}.wav")
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
                 # Sanitize voice names to valid Gemini voices for the integration test
                 with open(md_file, "r", encoding="utf-8") as f:
                     content = f.read()
@@ -100,13 +86,9 @@ class TestTTSPipeline(unittest.TestCase):
                 temp_md_file = os.path.join(tmp_dir, f"{base_name}.md")
                 with open(temp_md_file, "w", encoding="utf-8") as f:
                     f.write(content)
-                print(
-                    f"\n[{i + 1}/{len(self.prompt_files)}] Processing: {os.path.basename(md_file)}"
-                )
+                print(f"\n[{i + 1}/{len(self.prompt_files)}] Processing: {os.path.basename(md_file)}")
                 if previous_id:
-                    print(
-                        f"  Linking to previous_interaction_id={previous_id[:12]}... for voice continuity"
-                    )
+                    print(f"  Linking to previous_interaction_id={previous_id[:12]}... for voice continuity")
 
                 try:
                     client, current_key_idx, previous_id = process_file(
@@ -129,27 +111,19 @@ class TestTTSPipeline(unittest.TestCase):
                             "permission",
                         )
                     ):
-                        self.skipTest(
-                            f"Skipped due to API/quota issue on file {i + 1}: {e}"
-                        )
+                        self.skipTest(f"Skipped due to API/quota issue on file {i + 1}: {e}")
                     else:
-                        self.fail(
-                            f"process_file failed on {os.path.basename(md_file)}: {e}"
-                        )
+                        self.fail(f"process_file failed on {os.path.basename(md_file)}: {e}")
 
                 if os.path.exists(wav_file):
                     size = os.path.getsize(wav_file)
-                    self.assertGreater(
-                        size, 0, f"WAV file for {os.path.basename(md_file)} is empty"
-                    )
+                    self.assertGreater(size, 0, f"WAV file for {os.path.basename(md_file)} is empty")
                     generated.append(wav_file)
                     print(f"  ✓ WAV written ({size} bytes)")
                 else:
                     print("  ⚠ No WAV output — API returned no audio (non-fatal)")
 
-            print(
-                f"\nTTS pipeline test complete: {len(generated)}/{len(self.prompt_files)} files generated audio."
-            )
+            print(f"\nTTS pipeline test complete: {len(generated)}/{len(self.prompt_files)} files generated audio.")
 
         finally:
             shutil.rmtree(tmp_dir, ignore_errors=True)

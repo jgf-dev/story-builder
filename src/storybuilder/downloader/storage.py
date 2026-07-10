@@ -2,8 +2,7 @@ import glob
 import os
 from pathlib import Path
 
-from google.cloud.storage import Client
-from google.cloud.storage import transfer_manager
+from google.cloud.storage import Client, transfer_manager
 
 
 def upload_many(
@@ -21,18 +20,7 @@ def upload_many(
     bucket = storage_client.bucket(bucket_name)
 
     results = transfer_manager.upload_many_from_filenames(
-<<<<<<< HEAD
-<<<<<<< HEAD
         bucket, filenames, source_directory=source_directory, max_workers=workers
-=======
-        bucket,
-        filenames,
-        source_directory=source_directory,
-        max_workers=workers,
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
-        bucket, filenames, source_directory=source_directory, max_workers=workers
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
     )
 
     for name, result in zip(filenames, results):
@@ -40,9 +28,9 @@ def upload_many(
         # the input list, in order.
 
         if isinstance(result, Exception):
-            print(f"Failed to upload {name} due to exception: {result}")
+            print("Failed to upload {} due to exception: {}".format(name, result))
         else:
-            print(f"Uploaded {name} to {bucket.name}.")
+            print("Uploaded {} to {}.".format(name, bucket.name))
 
 
 if __name__ == "__main__":

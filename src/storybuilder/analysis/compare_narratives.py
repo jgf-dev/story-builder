@@ -10,17 +10,29 @@ from sklearn.cluster import KMeans
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Compare and cluster narrative trajectories.")
+    parser = argparse.ArgumentParser(
+        description="Compare and cluster narrative trajectories.",
+    )
     parser.add_argument("--db-path", default="sentiment_analysis.db")
-    parser.add_argument("--clusters", type=int, default=4, help="Number of narrative archetypes to find")
+    parser.add_argument(
+        "--clusters",
+        type=int,
+        default=4,
+        help="Number of narrative archetypes to find",
+    )
     args = parser.parse_args()
 
     conn = sqlite3.connect(args.db_path)
 
-    df_stories = pd.read_sql_query("SELECT id, story_dir, subcategory FROM stories", conn)
+    df_stories = pd.read_sql_query(
+        "SELECT id, story_dir, subcategory FROM stories",
+        conn,
+    )
 
     if len(df_stories) < args.clusters:
-        print(f"Error: Not enough stories ({len(df_stories)}) to form {args.clusters} clusters.")
+        print(
+            f"Error: Not enough stories ({len(df_stories)}) to form {args.clusters} clusters.",
+        )
         return
 
     print(f"Loaded {len(df_stories)} processed stories. Normalizing trajectories...")
@@ -98,7 +110,11 @@ def main():
             if lbl == i:
                 subcats[story_metadata[j]["subcategory"]] += 1
 
-        for subcat, count in sorted(subcats.items(), key=lambda item: item[1], reverse=True):
+        for subcat, count in sorted(
+            subcats.items(),
+            key=lambda item: item[1],
+            reverse=True,
+        ):
             print(f"  - {subcat}: {count} stories")
 
     fig.update_layout(

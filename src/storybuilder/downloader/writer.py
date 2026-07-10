@@ -53,7 +53,11 @@ def _parse_text_story(raw_text):
     story_text = raw_text
 
     # Try to parse headers (Subject, From)
-    subject_match = re.search(r"^Subject:\s*(.*)$", raw_text, re.IGNORECASE | re.MULTILINE)
+    subject_match = re.search(
+        r"^Subject:\s*(.*)$",
+        raw_text,
+        re.IGNORECASE | re.MULTILINE,
+    )
     if subject_match:
         title = subject_match.group(1).strip()
 

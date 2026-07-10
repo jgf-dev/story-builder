@@ -33,7 +33,10 @@ def filter_preamble_speakers(preamble, active_speakers):
     new_lines = []
     for line in lines:
         # Match lines like: - Jace (Voice: Algenib): Intimate, deep.
-        match = re.search(r"^\s*[\*\-]\s*([A-Za-z0-9_-]+)\s*\(Voice:\s*([A-Za-z0-9_-]+)\)", line)
+        match = re.search(
+            r"^\s*[\*\-]\s*([A-Za-z0-9_-]+)\s*\(Voice:\s*([A-Za-z0-9_-]+)\)",
+            line,
+        )
         if match:
             speaker = match.group(1)
             if speaker in active_speakers:

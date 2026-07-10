@@ -11,9 +11,17 @@ import sys
 
 
 # Add the project root so we can import split_prompts
-_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
+_PROJECT_ROOT = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."),
+)
 _STORIES_DIR = os.path.join(_PROJECT_ROOT, "stories", "text")
-_SPLIT_SCRIPT_DIR = os.path.join(_PROJECT_ROOT, ".agent", "skills", "tts-prompt-crafter", "scripts")
+_SPLIT_SCRIPT_DIR = os.path.join(
+    _PROJECT_ROOT,
+    ".agent",
+    "skills",
+    "tts-prompt-crafter",
+    "scripts",
+)
 if _SPLIT_SCRIPT_DIR not in sys.path:
     sys.path.insert(0, _SPLIT_SCRIPT_DIR)
 
@@ -142,7 +150,9 @@ def _format_split_results(output_dir: str) -> str:
     for pf in part_files:
         result_lines.append(f"  - {os.path.basename(pf)}")
     if archived:
-        result_lines.append(f"Archived {len(archived)} original scene file(s) to output/archive/")
+        result_lines.append(
+            f"Archived {len(archived)} original scene file(s) to output/archive/",
+        )
 
     return "\n".join(result_lines)
 

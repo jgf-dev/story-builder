@@ -32,3 +32,6 @@
 
 **Learning:** Sequentially looping over multiple SQLite partition databases to execute individual queries introduces a significant O(N) latency bottleneck, especially for search queries across many years. Since read queries in WAL-mode SQLite do not block each other, reading from independent partition files concurrently is completely safe.
 **Action:** When querying separate SQLite partition databases (e.g. `search_all_partitions`), use `concurrent.futures.ThreadPoolExecutor` to map the read query across the database paths concurrently. This reduces execution latency from O(N) to O(1).
+## 2026-07-08 - Concurrent Execution of Queries across SQLite Partitions
+**Learning:** Sequential `ATTACH DATABASE` ... `DETACH DATABASE` for querying across independent SQLite partition files (like in `execute_all_partitions`) is an I/O bottleneck and doesn't scale well with the number of partitions. The codebase's architecture supports independent queries on each partition.
+**Action:** Replace sequential looping with `concurrent.futures.ThreadPoolExecutor` opening independent connections to run queries concurrently. Always pass `check_same_thread=False` if not strictly required, wrap in `try/except sqlite3.OperationalError` for safety, and use a `finally` block to guarantee `conn.close()`.

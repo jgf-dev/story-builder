@@ -1,9 +1,12 @@
-import os
 import glob
+import os
+import pathlib
 import re
+
+from dotenv import load_dotenv
 from google import genai
 from google.genai import types
-from dotenv import load_dotenv
+
 
 load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
@@ -27,7 +30,7 @@ def extract_markdown_block(content: str) -> str:
     content = content.strip()
     # Match ```markdown ... ``` or ``` ... ```
     match = re.match(
-        r"^```(?:markdown)?\s*\n(.*?)\n```$", content, re.DOTALL | re.IGNORECASE
+        r"^```(?:markdown)?\s*\n(.*?)\n```$", content, re.DOTALL | re.IGNORECASE,
     )
     if match:
         return match.group(1).strip()
@@ -54,8 +57,7 @@ def fix_prompts(directory):
 
     print(f"Found {len(files)} prompt files to process.")
     for md_file in files:
-        with open(md_file, "r") as f:
-            content = f.read()
+        content = pathlib.Path(md_file).read_text()
 
         # Skip if already fixed (contains quotes in the transcript)
         if '"' in content.split("#### TRANSCRIPT")[-1]:
@@ -85,13 +87,12 @@ def fix_prompts(directory):
                             category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
                             threshold=types.HarmBlockThreshold.BLOCK_NONE,
                         ),
-                    ]
+                    ],
                 ),
             )
             fixed_content = extract_markdown_block(response.text)
 
-            with open(md_file, "w") as f:
-                f.write(fixed_content)
+            pathlib.Path(md_file).write_text(fixed_content)
 
             print("  Fixed and saved.")
         except Exception as e:

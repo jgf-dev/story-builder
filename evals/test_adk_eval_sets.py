@@ -62,7 +62,7 @@ def _validate_eval_set_structure(data: dict, name: str) -> list[str]:
                 if not part.get("text") and not part.get("inline_data"):
                     issues.append(
                         f"[{case_id}] turn[{j}] user_content.parts[{k}]: "
-                        "Missing 'text' or 'inline_data'"
+                        "Missing 'text' or 'inline_data'",
                     )
 
     return issues
@@ -109,7 +109,7 @@ class TestEvalSetStructure:
         """Each eval set must have valid structure."""
         assert eval_path.exists(), f"Eval set not found: {eval_path}"
 
-        with open(eval_path) as f:
+        with Path(eval_path).open() as f:
             data = json.load(f)
 
         issues = _validate_eval_set_structure(data, eval_path.stem)
@@ -124,7 +124,7 @@ class TestEvalSetStructure:
         all_evals = discover_eval_sets(TTS_AGENT_DIR) + discover_eval_sets(CARTESIA_AGENT_DIR)
 
         for eval_path in all_evals:
-            with open(eval_path) as f:
+            with Path(eval_path).open() as f:
                 data = json.load(f)
             eval_id = data.get("eval_set_id", eval_path.stem)
             if eval_id not in seen_ids:
@@ -164,4 +164,3 @@ class TestEvalRunViaADK:
     @pytest.mark.skip(reason="Cartesia TTS agent tools not yet implemented")
     def test_run_cartesia_eval_set(self):
         """Cartesia eval sets can be run once tools are implemented."""
-        pass

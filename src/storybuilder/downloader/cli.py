@@ -111,7 +111,9 @@ def _setup_network(args: argparse.Namespace) -> bool:
     return True
 
 
-def _parse_dates(start_date_str: str, end_date_str: str | None) -> tuple[datetime.date | None, datetime.date | None]:
+def _parse_dates(
+    start_date_str: str, end_date_str: str | None,
+) -> tuple[datetime.date | None, datetime.date | None]:
     try:
         start_date = datetime.datetime.strptime(start_date_str, "%Y-%m-%d").date()
     except ValueError:
@@ -130,7 +132,9 @@ def _parse_dates(start_date_str: str, end_date_str: str | None) -> tuple[datetim
     return start_date, end_date
 
 
-def _print_config(args: argparse.Namespace, start_date: datetime.date, end_date: datetime.date) -> None:
+def _print_config(
+    args: argparse.Namespace, start_date: datetime.date, end_date: datetime.date,
+) -> None:
     print("Starting downloader...")
     if args.db:
         print(f"Database: {args.db}")
@@ -157,8 +161,13 @@ def _scrape_subcategories(
 ) -> dict[str, dict]:
     all_story_targets: dict[str, dict] = {}
     if args.max_scraping > 1:
-        with concurrent.futures.ThreadPoolExecutor(max_workers=args.max_scraping) as executor:
-            futures = [executor.submit(process_subcategory, sub, start_date, end_date, args) for sub in subcategories]
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=args.max_scraping,
+        ) as executor:
+            futures = [
+                executor.submit(process_subcategory, sub, start_date, end_date, args)
+                for sub in subcategories
+            ]
             for future in concurrent.futures.as_completed(futures):
                 try:
                     sub_targets = future.result()
@@ -170,7 +179,9 @@ def _scrape_subcategories(
                                 "output_paths": [],
                                 "date": target["date"],
                             }
-                        all_story_targets[key]["output_paths"].append(target["output_path"])
+                        all_story_targets[key]["output_paths"].append(
+                            target["output_path"],
+                        )
                 except Exception as e:
                     safe_print(f"Error occurred in scraping worker thread: {e}")
     else:
@@ -188,7 +199,9 @@ def _scrape_subcategories(
     return all_story_targets
 
 
-def _download_stories(all_story_targets: dict[str, dict], args: argparse.Namespace) -> int:
+def _download_stories(
+    all_story_targets: dict[str, dict], args: argparse.Namespace,
+) -> int:
     total_downloads = len(all_story_targets)
     print("\n" + "=" * 50)
     print(f"Total unique stories/chapters to download: {total_downloads}")
@@ -197,7 +210,9 @@ def _download_stories(all_story_targets: dict[str, dict], args: argparse.Namespa
     successful_downloads = 0
 
     if args.max_workers > 1:
-        with concurrent.futures.ThreadPoolExecutor(max_workers=args.max_workers) as executor:
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=args.max_workers,
+        ) as executor:
             futures = []
             for idx, (key, target) in enumerate(all_story_targets.items()):
                 idx_str = f"{idx + 1}/{total_downloads}"
@@ -275,7 +290,9 @@ def main():
     load_cache(args.output_dir)
 
     try:
-        all_story_targets = _scrape_subcategories(subcategories, start_date, end_date, args)
+        all_story_targets = _scrape_subcategories(
+            subcategories, start_date, end_date, args,
+        )
     finally:
         save_cache(args.output_dir)
 

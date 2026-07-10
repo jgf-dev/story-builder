@@ -165,7 +165,9 @@ def tts_sse_with_phoneme_timestamps(client: Cartesia) -> None:
             if event.type == "phoneme_timestamps":
                 pt = event.phoneme_timestamps
                 if pt:
-                    print(f"Phonemes: {pt.phonemes}, Starts: {pt.start}, Ends: {pt.end}")
+                    print(
+                        f"Phonemes: {pt.phonemes}, Starts: {pt.start}, Ends: {pt.end}",
+                    )
             elif event.type == "chunk":
                 if event.audio:
                     f.write(event.audio)
@@ -194,7 +196,9 @@ def tts_sse_with_match(client: Cartesia) -> None:
 
     import datetime
 
-    filename = f"tts_sse_with_match_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pcm"
+    filename = (
+        f"tts_sse_with_match_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pcm"
+    )
 
     with pathlib.Path(filename).open("wb") as f:
         for event in stream:
@@ -383,7 +387,9 @@ def tts_websocket_emotion(client: Cartesia) -> None:
 
         import datetime
 
-        filename = f"tts_emotion_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pcm"
+        filename = (
+            f"tts_emotion_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pcm"
+        )
 
         with pathlib.Path(filename).open("wb") as f:
             for response in ctx.receive():
@@ -630,7 +636,9 @@ def infill_create(client: Cartesia, *args: str) -> None:
     from pathlib import Path
 
     if len(args) < 3:
-        print("Usage: stt_transcribe <audio_file_before> <audio_file_after> <transcript>")
+        print(
+            "Usage: stt_transcribe <audio_file_before> <audio_file_after> <transcript>",
+        )
         sys.exit(1)
 
     left_file, right_file, *transcript_parts = args
@@ -740,7 +748,9 @@ def stt_auto_finalize_websocket(client: Cartesia, *args: str) -> None:
             elif sample_width == 4:
                 encoding = "pcm_s32le"
             else:
-                print(f"Error: unsupported sample width {sample_width} bytes (expected 2 or 4).")
+                print(
+                    f"Error: unsupported sample width {sample_width} bytes (expected 2 or 4).",
+                )
                 sys.exit(1)
             sample_rate = wf.getframerate()
             chunks = []
@@ -757,8 +767,12 @@ def stt_auto_finalize_websocket(client: Cartesia, *args: str) -> None:
         }
         encoding = output_format["encoding"]
         sample_rate = output_format["sample_rate"]
-        generation_transcript = "Hello, world! The quick brown fox jumps over the lazy dog."
-        print(f"No WAV file provided — synthesizing audio with TTS: {generation_transcript!r}")
+        generation_transcript = (
+            "Hello, world! The quick brown fox jumps over the lazy dog."
+        )
+        print(
+            f"No WAV file provided — synthesizing audio with TTS: {generation_transcript!r}",
+        )
         audio = client.tts.generate(
             model_id="sonic-latest",
             transcript=generation_transcript,
@@ -784,7 +798,9 @@ def stt_auto_finalize_websocket(client: Cartesia, *args: str) -> None:
     ) as connection:
         for chunk in chunks:
             connection.send_raw(chunk)
-            time.sleep(0.1)  # each chunk is 100ms of audio — pace sends to match real time
+            time.sleep(
+                0.1,
+            )  # each chunk is 100ms of audio — pace sends to match real time
 
         # Flush remaining audio and close the session cleanly.
         connection.send({"type": "close"})
@@ -859,7 +875,9 @@ def stt_manual_finalize_websocket(client: Cartesia, *args: str) -> None:
             chunk_bytes = (sample_rate * 2) // 10  # 100ms of pcm_s16le (2 bytes/sample)
             for i in range(0, len(audio), chunk_bytes):
                 connection.send_raw(audio[i : i + chunk_bytes])
-                time.sleep(0.1)  # each chunk is 100ms of audio — pace sends to match real time
+                time.sleep(
+                    0.1,
+                )  # each chunk is 100ms of audio — pace sends to match real time
             # Triggers transcription of buffered audio.
             connection.send("finalize")
 
@@ -942,7 +960,9 @@ if __name__ == "__main__":
         available_functions = [
             name
             for name, obj in globals().items()
-            if inspect.isfunction(obj) and obj.__module__ == __name__ and obj != create_client
+            if inspect.isfunction(obj)
+            and obj.__module__ == __name__
+            and obj != create_client
         ]
         print(f"Available functions: {', '.join(available_functions)}")
         sys.exit(1)

@@ -10,7 +10,6 @@ Fixtures:
 """
 
 import json
-import os
 from pathlib import Path
 
 import pytest
@@ -46,7 +45,7 @@ def load_jsonl(request):
         if not filepath.exists():
             pytest.skip(f"Dataset file not found: {filepath}")
         records = []
-        with open(filepath) as f:
+        with Path(filepath).open() as f:
             for line in f:
                 line = line.strip()
                 if line:

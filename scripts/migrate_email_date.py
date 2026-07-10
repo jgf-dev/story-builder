@@ -40,7 +40,9 @@ def _iter_db_files(path: Path) -> list[Path]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Migrate legacy story SQLite databases that still have email_date.")
+    parser = argparse.ArgumentParser(
+        description="Migrate legacy story SQLite databases that still have email_date.",
+    )
     parser.add_argument(
         "path",
         nargs="?",

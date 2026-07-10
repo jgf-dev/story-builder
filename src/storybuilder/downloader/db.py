@@ -133,7 +133,6 @@ CREATE INDEX IF NOT EXISTS idx_stories_char_count      ON stories(char_count);
 
 _conn: "sqlite3.Connection | None" = None
 _engine: "create_engine | None" = None
-_db_path_global: "str | None" = None
 _connections: dict[str, sqlite3.Connection] = {}
 _is_partitioned = False
 _db_dir: "str | None" = None

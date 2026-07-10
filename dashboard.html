@@ -342,6 +342,7 @@
       if (isDirty === dirty) return;
       isDirty = dirty;
       saveBtn.disabled = !isDirty;
+      saveBtn.title = isDirty ? 'Save (Ctrl+S / Cmd+S)' : 'No unsaved changes';
       if (isDirty) {
         document.title = '* ' + document.title.replace(/^\*\s*/, '');
       } else {

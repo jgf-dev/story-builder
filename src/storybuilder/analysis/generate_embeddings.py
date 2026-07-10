@@ -151,10 +151,6 @@ def main():
         args.db_path,
     )
 
-
-
-
-
     print(f"Loading SentenceTransformer model: {args.model}")
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Using device: {device}")

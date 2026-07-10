@@ -39,10 +39,6 @@ from .tools import split_scene_files
 from .tools import write_scene_file
 
 
-
-
-
-
 dotenv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", ".env"))
 load_dotenv(dotenv_path)
 

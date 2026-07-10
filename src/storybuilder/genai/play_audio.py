@@ -5,10 +5,6 @@ import subprocess  # noqa: S404
 import sys
 
 
-
-
-
-
 def natural_sort_key(s: str) -> list[object]:
     """Sort strings containing numbers naturally."""
     return [int(text) if text.isdigit() else text.lower() for text in re.split(r"(\d+)", s)]
@@ -29,9 +25,6 @@ def play_sequence(directory: str) -> None:
         [str(p) for p in dir_path.glob("*-part.wav")],
         key=natural_sort_key,
     )
-
-
-
 
     if not files:
         print(f"No audio files found in {directory}")

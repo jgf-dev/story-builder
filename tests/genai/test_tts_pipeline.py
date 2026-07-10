@@ -65,7 +65,7 @@ class TestTTSPipeline(unittest.TestCase):
         """
         from google import genai
 
-        from storybuilder.genai.client import get_gemini_api_keys
+        from storybuilder.genai.client import get_gemini_configured_api_keys
         from storybuilder.genai.client import process_file
 
         configured_api_keys = get_gemini_api_keys()

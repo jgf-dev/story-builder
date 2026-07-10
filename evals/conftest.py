@@ -10,8 +10,6 @@ Fixtures:
 """
 
 import json
-
-
 from pathlib import Path
 
 import pytest
@@ -73,7 +71,6 @@ def tts_agent():
         raise pytest.skip.Exception("TTS Prompt Crafter agent module not available")
 
 
-
 @pytest.fixture(scope="session")
 def tts_runner(tts_agent):
     """Return an ADK Runner configured for the TTS agent.
@@ -98,7 +95,6 @@ def tts_runner(tts_agent):
         return runner
     except ImportError as e:
         raise pytest.skip.Exception(f"ADK runner creation failed: {e}")
-
 
 
 @pytest.fixture

@@ -370,6 +370,7 @@ def search_stories(
 
     with Session(engine) as session:
         try:
+
             if fts_query:
                 # Compile Join query for FTS virtual table and Story
                 fts_table = stories_fts

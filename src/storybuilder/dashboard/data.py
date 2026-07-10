@@ -22,7 +22,6 @@ def _ensure_db() -> None:
     storybuilder_db.init_db(get_db_dir())
 
 
-
 def get_db_files() -> list[Path]:
     """Retrieve all year-partitioned databases, sorted."""
     db_dir = get_db_dir()
@@ -87,7 +86,6 @@ def get_filter_options() -> tuple[list[str], list[str]]:
 
 
 # ── Archive-stats helpers ───────────────────────────────────────────────
-
 
 
 def _init_aggregators() -> dict:
@@ -349,7 +347,6 @@ def get_story_by_path(story_path: str, db_year: int | str | None = None) -> dict
     except Exception:
         logger.exception("Failed to retrieve story by path: %s", story_path)
         return None
-
 
 
 # ------------------------------------------------------------------------------

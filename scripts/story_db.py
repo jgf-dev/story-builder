@@ -94,9 +94,6 @@ def cmd_search(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = No
     params.append(args.limit)
     rows = conn.execute(sql, params).fetchall()
 
-
-
-
     if not rows:
         print(f"No results for '{args.query}'")
         return
@@ -282,10 +279,6 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
         """,
         params if where else [],
     ).fetchall()
-
-
-
-
 
     for a in authors:
         name = (a["author_name"] or "Unknown")[:30]

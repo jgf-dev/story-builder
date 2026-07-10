@@ -5,7 +5,8 @@ import sys
 import time
 from pathlib import Path
 
-from storybuilder.downloader.storage import upload_many_gcs, upload_many_s3
+from storybuilder.downloader.storage import upload_many_gcs
+from storybuilder.downloader.storage import upload_many_s3
 
 
 

@@ -137,7 +137,7 @@ def get_filter_options():
     for r in author_results:
         if r.get("author_name"):
             authors.add(r["author_name"])
-    return sorted(list(categories)), sorted(list(authors))
+    return sorted(categories), sorted(authors)
 
 
 @st.cache_data

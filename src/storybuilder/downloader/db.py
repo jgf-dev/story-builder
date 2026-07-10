@@ -272,7 +272,6 @@ def migrate_legacy_schema(conn: sqlite3.Connection) -> bool:
         raise
 
     conn.executescript(INDEXES)
-    conn.executescript(INDEXES)
     try:
         conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('rebuild')")
     except sqlite3.OperationalError:

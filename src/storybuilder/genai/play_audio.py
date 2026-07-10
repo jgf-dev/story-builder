@@ -9,7 +9,13 @@ import sys
 
 def natural_sort_key(s):
     """Sort strings containing numbers naturally."""
+<<<<<<< HEAD
     return [int(text) if text.isdigit() else text.lower() for text in re.split(r"(\d+)", s)]
+=======
+    return [
+        int(text) if text.isdigit() else text.lower() for text in re.split(r"(\d+)", s)
+    ]
+>>>>>>> palette/save-button-tooltip-16022957350325416287
 
 
 def get_audio_player():
@@ -19,6 +25,7 @@ def get_audio_player():
         return ["powershell", "-c", "(New-Object Media.SoundPlayer '{0}').PlaySync();"]
     # Assuming linux
     return ["aplay", "-q"]
+
 
 
 def play_sequence(directory):

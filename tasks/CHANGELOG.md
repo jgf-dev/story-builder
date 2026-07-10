@@ -56,6 +56,7 @@ Preventing any resource leaks in long-running processes like the Streamlit works
 
 ### What to do next
 Please refresh/reload your browser tab running the Streamlit app. This will force a script rerun, which now dynamically reloads all submodules, initializes the database partition engine, and displays the stories.
+<<<<<<< HEAD
 
 ## 10/07/2026
 
@@ -66,3 +67,5 @@ Please refresh/reload your browser tab running the Streamlit app. This will forc
 - **Resolved `src/storybuilder/genai/client.py` conflicts**: Resolved conflicts in `_parse_voice_mappings` and `_extract_active_speakers`. Fixed a bug where `_parse_voice_mappings` returned a list of speakers instead of `""` when there is no transcript section, allowing tests expecting empty transcripts to pass successfully.
 - **Resolved conflicts in tests**: Resolved minor merge conflicts in `tests/downloader/test_database.py` and `tests/genai/test_tts_pipeline.py`.
 - **Verified Codebase Health**: Reformatted all changed files with Ruff and ran the test suite (`pytest`) successfully.
+=======
+>>>>>>> palette/save-button-tooltip-16022957350325416287

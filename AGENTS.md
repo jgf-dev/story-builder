@@ -233,6 +233,7 @@ Typical observed order for analysis work:
 
 When adding features or fixing bugs, cross-check the exact behaviors exercised in `tests/test_downloader.py`, `tests/test_genai.py`, and `tests/test_split_prompts.py` — they encode the contract for cache logic, date parsing, dummy padding, chunking, and warning semantics.
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 ## Linear Integration
 
@@ -242,3 +243,5 @@ When adding features or fixing bugs, cross-check the exact behaviors exercised i
 - **Prompt**: Use `/linear-assistant` (`.github/prompts/linear-assistant.prompt.md`) to create, find, or sync Linear issues from chat.
 - **Convention**: All Linear issue titles are prefixed with `GIT-` to match the auto-linear workflow. Use the `PRO` team key.
 - **API**: Linear GraphQL endpoint is `https://api.linear.app/graphql`. Prefer GraphQL over REST.
+=======
+>>>>>>> palette/save-button-tooltip-16022957350325416287

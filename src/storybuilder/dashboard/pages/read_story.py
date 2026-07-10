@@ -1,9 +1,18 @@
 import streamlit as st
 
+<<<<<<< HEAD
 from storybuilder.dashboard.data import add_favorite
 from storybuilder.dashboard.data import get_favorites
 from storybuilder.dashboard.data import get_story_by_path
 from storybuilder.dashboard.data import remove_favorite
+=======
+from storybuilder.dashboard.data import (
+    get_story_by_path,
+    get_favorites,
+    add_favorite,
+    remove_favorite,
+)
+>>>>>>> palette/save-button-tooltip-16022957350325416287
 
 
 def render_read_story() -> None:
@@ -40,7 +49,15 @@ def render_read_story() -> None:
                         "favorite"
                         if not is_fav
                         else next(
+<<<<<<< HEAD
                             (f["tags"] for f in favorites if f["story_path"] == story["path"]),
+=======
+                            (
+                                f["tags"]
+                                for f in favorites
+                                if f["story_path"] == story["path"]
+                            ),
+>>>>>>> palette/save-button-tooltip-16022957350325416287
                             "",
                         ),
                     )
@@ -49,7 +66,15 @@ def render_read_story() -> None:
                         ""
                         if not is_fav
                         else next(
+<<<<<<< HEAD
                             (f["notes"] or "" for f in favorites if f["story_path"] == story["path"]),
+=======
+                            (
+                                f["notes"] or ""
+                                for f in favorites
+                                if f["story_path"] == story["path"]
+                            ),
+>>>>>>> palette/save-button-tooltip-16022957350325416287
                             "",
                         ),
                     )
@@ -68,6 +93,7 @@ def render_read_story() -> None:
                             remove_favorite(story["path"])
                             st.success("Removed!")
                             st.rerun()
+<<<<<<< HEAD
                     elif st.button("Add to Favorites"):
                         add_favorite(
                             story["path"],
@@ -78,6 +104,19 @@ def render_read_story() -> None:
                         )
                         st.success("Added!")
                         st.rerun()
+=======
+                    else:
+                        if st.button("Add to Favorites"):
+                            add_favorite(
+                                story["path"],
+                                story["title"],
+                                story["author_name"],
+                                fav_tags,
+                                fav_notes,
+                            )
+                            st.success("Added!")
+                            st.rerun()
+>>>>>>> palette/save-button-tooltip-16022957350325416287
 
                 # Export to Markdown Button
                 md_content = f"""# {story["title"]}
@@ -98,7 +137,11 @@ def render_read_story() -> None:
                 )
 
             st.write(
+<<<<<<< HEAD
                 f"**Category:** `{story['category']}` | **Published:** `{story['publication_date'] or 'Unknown'}` | **Words:** `{story['word_count']:,}`",
+=======
+                f"**Category:** `{story['category']}` | **Published:** `{story['publication_date'] or 'Unknown'}` | **Words:** `{story['word_count']:,}`"
+>>>>>>> palette/save-button-tooltip-16022957350325416287
             )
             st.markdown("---")
 

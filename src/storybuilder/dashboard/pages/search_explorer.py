@@ -1,9 +1,15 @@
 import html
+<<<<<<< HEAD
 
 import streamlit as st
 
 from storybuilder.dashboard.data import StorySearchQuery
 from storybuilder.dashboard.data import query_stories
+=======
+import streamlit as st
+
+from storybuilder.dashboard.data import query_stories, StorySearchQuery
+>>>>>>> palette/save-button-tooltip-16022957350325416287
 
 
 def render_search_explorer(filters: dict) -> None:
@@ -16,13 +22,18 @@ def render_search_explorer(filters: dict) -> None:
     st.write("Browse, search and filter the narrative archives.")
 
     fts_input = st.text_input(
+<<<<<<< HEAD
         "Full-Text Search (FTS5 syntax, e.g. vampire OR werewolf)",
         "",
+=======
+        "Full-Text Search (FTS5 syntax, e.g. vampire OR werewolf)", "",
+>>>>>>> palette/save-button-tooltip-16022957350325416287
     )
 
     st.markdown("---")
 
     with st.spinner("Searching records..."):
+<<<<<<< HEAD
         search_results = query_stories(
             StorySearchQuery(
                 fts_query=fts_input,
@@ -33,6 +44,16 @@ def render_search_explorer(filters: dict) -> None:
                 entity_label=filters["entity_label"],
             )
         )
+=======
+        search_results = query_stories(StorySearchQuery(
+            fts_query=fts_input,
+            category=filters["category"],
+            author=filters["author"],
+            year_range=filters["year_range"],
+            entity_text=filters["entity_text"],
+            entity_label=filters["entity_label"],
+        ))
+>>>>>>> palette/save-button-tooltip-16022957350325416287
 
     st.subheader(f"Found {len(search_results)} Result(s)")
 
@@ -49,7 +70,11 @@ def render_search_explorer(filters: dict) -> None:
                 <b>Author:</b> {safe_author} |
                 <b>Category:</b> {safe_category} |
                 <b>Published:</b> {safe_pub_date} |
+<<<<<<< HEAD
                 <b>Words:</b> {res["word_count"]:,}
+=======
+                <b>Words:</b> {res['word_count']:,}
+>>>>>>> palette/save-button-tooltip-16022957350325416287
             </p>
         """
 
@@ -58,8 +83,12 @@ def render_search_explorer(filters: dict) -> None:
             # Escape the snippet first, then replace the placeholder highlight markers with actual HTML span tags
             snippet_escaped = html.escape(res["snippet"])
             snippet_cleaned = snippet_escaped.replace(
+<<<<<<< HEAD
                 "___HIGHLIGHT_START___",
                 "<span class='highlight'>",
+=======
+                "___HIGHLIGHT_START___", "<span class='highlight'>"
+>>>>>>> palette/save-button-tooltip-16022957350325416287
             ).replace("___HIGHLIGHT_END___", "</span>")
             card_html += "<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; padding: 8px;"
             card_html += f" background: rgba(0, 0, 0, 0.2); border-radius: 6px;'>... {snippet_cleaned} ...</p>"

@@ -29,9 +29,13 @@ def extract_markdown_block(content: str) -> str:
     content = content.strip()
     # Match ```markdown ... ``` or ``` ... ```
     match = re.match(
+<<<<<<< HEAD
         r"^```(?:markdown)?\s*\n(.*?)\n```$",
         content,
         re.DOTALL | re.IGNORECASE,
+=======
+        r"^```(?:markdown)?\s*\n(.*?)\n```$", content, re.DOTALL | re.IGNORECASE
+>>>>>>> palette/save-button-tooltip-16022957350325416287
     )
     if match:
         return match.group(1).strip()

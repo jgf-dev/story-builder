@@ -32,7 +32,10 @@ dummy_stories/
 test_dbs/
 *.db.sql
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> palette/save-button-tooltip-16022957350325416287
 # Agent scratch folders
 .qwen
 .qoder

@@ -46,7 +46,12 @@ def _parse_voice_mappings(markdown_content):
                 speaker_to_voice[speaker] = voice
                 if speaker not in speakers:
                     speakers.append(speaker)
+<<<<<<< HEAD
     return speaker_to_voice, transcript
+=======
+
+    return speaker_to_voice, speakers if not transcript else transcript
+>>>>>>> palette/save-button-tooltip-16022957350325416287
 
 
 def _extract_active_speakers(transcript):

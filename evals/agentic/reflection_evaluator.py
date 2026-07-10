@@ -7,6 +7,10 @@ and refines until all criteria pass or the iteration limit is reached.
 Based on the agentic-eval skill patterns.
 """
 
+<<<<<<< HEAD
+=======
+import json
+>>>>>>> palette/save-button-tooltip-16022957350325416287
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -202,6 +206,10 @@ class LLMJudgeReflectionEvaluator(ReflectionEvaluator):
                         status="FAIL",
                         score=0.0,
                         feedback=f"Judge error: {e}",
+<<<<<<< HEAD
                     ),
+=======
+                    )
+>>>>>>> palette/save-button-tooltip-16022957350325416287
                 )
         return results

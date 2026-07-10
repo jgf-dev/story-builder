@@ -213,8 +213,8 @@ def load_archive_stats():
                 if bracket in bracket_counts:
                     bracket_counts[bracket] += count
             conn.close()
-        except sqlite3.Error:
-            pass
+        except sqlite3.Error as e:
+            st.warning(f"Failed to read database {db}: {e}")
 
     df_years = pd.DataFrame(year_stats)
     df_cats = pd.DataFrame(

@@ -327,13 +327,10 @@ def execute_query(sql: str, params: tuple = ()) -> list[dict]:
         try:
             result = session.execute(text(formatted_sql), params)
             return [dict(r) for r in result.mappings()]
-        except Exception as e:
-            std_logging.exception("Error executing query: %s", formatted_sql, exc_info=e)
-            return []
-    return all_rows
->>>>>>> origin/bolt-parallelize-partitions-9285815848419465447
-
-
+            except Exception as e:
+                std_logging.exception("Error executing query: %s", formatted_sql, exc_info=e)
+                return []
+    # removed stray merge marker and unreachable return
 def search_stories(
     fts_query: str = "",
     category: "str | None" = None,

@@ -111,17 +111,28 @@ def adk_events(tts_runner):
     # Store runner reference for the inner function
     runner = tts_runner
 
-    async def _run_query(query: str) -> list:
-        from google.adk.sessions import InMemorySessionService
+    # Use a fresh, per-call InMemorySessionService so each test starts
+    # with a clean session. Also enable ``auto_create_session`` so the
+    # runner auto-creates a session on first call instead of raising
+    # ``SessionNotFoundError``.
+    runner.auto_create_session = True
 
-        session_service = InMemorySessionService()
-        runner._session_service = session_service
+    async def _run_query(query: str) -> list:
+        from google.genai import types as genai_types
+
+        # ADK's ``run_async`` expects ``new_message`` to be a
+        # ``google.genai.types.Content`` (with at least one Part),
+        # not a raw string. Wrap the query accordingly.
+        new_message = genai_types.Content(
+            role="user",
+            parts=[genai_types.Part(text=query)],
+        )
 
         events = []
         async for event in runner.run_async(
             user_id="eval_user",
             session_id=f"eval_session_{id(query)}",
-            new_message=query,
+            new_message=new_message,
         ):
             events.append(event)
         return events

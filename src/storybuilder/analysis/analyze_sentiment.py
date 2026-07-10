@@ -59,8 +59,7 @@ def init_db(db_path):
             entity_label TEXT,
             FOREIGN KEY(sentence_id) REFERENCES sentences(id)
         )
-    """
-    )
+    """)
     cursor.execute(
         "CREATE INDEX IF NOT EXISTS idx_sentences_story ON sentences(story_id)"
     )
@@ -156,12 +155,9 @@ def find_multi_chapter_stories(stories_dir, subcategory=None):
 
 
 def load_models(spacy_model_name, sentiment_model_name, use_gpu):
-    print(f"Loading models (spaCy: {spacy_model_name}, HF: {sentiment_model_name})...")
-    device = 0 if use_gpu else -1
-
-
-def load_models(spacy_model_name, sentiment_model_name, use_gpu):
-    print(f"Loading models (spaCy: {spacy_model_name}, HF: {sentiment_model_name})...")
+    print(
+        f"Loading models (spaCy: {spacy_model_name}, HF: {sentiment_model_name})..."
+    )
     device = 0 if use_gpu else -1
 
     if use_gpu:
@@ -185,7 +181,6 @@ def load_models(spacy_model_name, sentiment_model_name, use_gpu):
     return nlp, sentiment_pipe
 
     return nlp, sentiment_pipe
-
 
 def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe):
     with open(filepath, "r", encoding="utf-8") as f:
@@ -293,42 +288,6 @@ def process_story(story_dir, filepaths, cursor, conn, nlp, sentiment_pipe):
         """
         INSERT INTO stories (story_dir, subcategory) VALUES (?, ?)
     """,
-        (story_dir, subcat),
-    )
-    story_id = cursor.lastrowid
-
-    for chapter_idx, filepath in enumerate(tqdm(filepaths, desc="Chapters")):
-        process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe)
-        conn.commit()
-
-    return True
-
-
-def main():
-    args = parse_args()
-
-    multi_stories = find_multi_chapter_stories(args.stories_dir, args.subcategory)
-
-    if not multi_stories:
-        print("No multi-chapter stories found. Exiting.")
-        return
-
-    conn = init_db(args.db_path)
-    cursor = conn.cursor()
-
-    print(f"\nProcessing Story: {story_dir} ({len(filepaths)} chapters)")
-
-    filepaths.sort(key=lambda x: extract_chapter_number(x.name))
-
-    parts = Path(story_dir).parts
-    subcat = "unknown"
-    if "test_stories" in parts:
-        idx = parts.index("test_stories")
-        if len(parts) > idx + 2:
-            subcat = f"{parts[idx + 1]}/{parts[idx + 2]}"
-
-    cursor.execute(
-        "INSERT INTO stories (story_dir, subcategory) VALUES (?, ?)",
         (story_dir, subcat),
     )
     story_id = cursor.lastrowid

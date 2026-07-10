@@ -1,11 +1,9 @@
 import streamlit as st
 
-from storybuilder.dashboard.data import (
-    get_story_by_path,
-    get_favorites,
-    add_favorite,
-    remove_favorite,
-)
+from storybuilder.dashboard.data import add_favorite
+from storybuilder.dashboard.data import get_favorites
+from storybuilder.dashboard.data import get_story_by_path
+from storybuilder.dashboard.data import remove_favorite
 
 
 def render_read_story() -> None:
@@ -42,11 +40,8 @@ def render_read_story() -> None:
                         "favorite"
                         if not is_fav
                         else next(
-                            (
-                                f["tags"]
-                                for f in favorites
-                                if f["story_path"] == story["path"]
-                            ),
+                            (f["tags"] for f in favorites if f["story_path"] == story["path"]),
+
                             "",
                         ),
                     )
@@ -55,11 +50,8 @@ def render_read_story() -> None:
                         ""
                         if not is_fav
                         else next(
-                            (
-                                f["notes"] or ""
-                                for f in favorites
-                                if f["story_path"] == story["path"]
-                            ),
+                            (f["notes"] or "" for f in favorites if f["story_path"] == story["path"]),
+
                             "",
                         ),
                     )
@@ -78,17 +70,16 @@ def render_read_story() -> None:
                             remove_favorite(story["path"])
                             st.success("Removed!")
                             st.rerun()
-                    else:
-                        if st.button("Add to Favorites"):
-                            add_favorite(
-                                story["path"],
-                                story["title"],
-                                story["author_name"],
-                                fav_tags,
-                                fav_notes,
-                            )
-                            st.success("Added!")
-                            st.rerun()
+                    elif st.button("Add to Favorites"):
+                        add_favorite(
+                            story["path"],
+                            story["title"],
+                            story["author_name"],
+                            fav_tags,
+                            fav_notes,
+                        )
+                        st.success("Added!")
+                        st.rerun()
 
                 # Export to Markdown Button
                 md_content = f"""# {story["title"]}
@@ -109,7 +100,8 @@ def render_read_story() -> None:
                 )
 
             st.write(
-                f"**Category:** `{story['category']}` | **Published:** `{story['publication_date'] or 'Unknown'}` | **Words:** `{story['word_count']:,}`"
+                f"**Category:** `{story['category']}` | **Published:** `{story['publication_date'] or 'Unknown'}` | **Words:** `{story['word_count']:,}`",
+
             )
             st.markdown("---")
 

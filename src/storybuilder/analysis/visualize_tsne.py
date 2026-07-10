@@ -1,5 +1,4 @@
 import argparse
-from typing import List, Tuple
 
 import chromadb
 import numpy as np
@@ -11,7 +10,7 @@ from sklearn.manifold import TSNE
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Visualize story embeddings using t-SNE."
+        description="Visualize story embeddings using t-SNE.",
     )
     parser.add_argument(
         "--db-path",
@@ -34,14 +33,14 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def fetch_embeddings(db_path: str) -> Tuple[List[str], np.ndarray, List[dict]]:
+def fetch_embeddings(db_path: str) -> tuple[list[str], np.ndarray, list[dict]]:
     chroma_client = chromadb.PersistentClient(path=db_path)
 
     try:
         collection_averages = chroma_client.get_collection(name="story_averages")
     except Exception:
         print(
-            "Error: Could not find 'story_averages' collection. Run generate_embeddings.py first."
+            "Error: Could not find 'story_averages' collection. Run generate_embeddings.py first.",
         )
         return [], np.array([]), []
 
@@ -69,7 +68,7 @@ def run_tsne(embeddings: np.ndarray, perplexity_arg: float) -> np.ndarray:
     return embeddings_2d
 
 
-def extract_labels(ids: List[str]) -> Tuple[List[str], List[str]]:
+def extract_labels(ids: list[str]) -> tuple[list[str], list[str]]:
     short_names = []
     subcategories = []
     for filepath in ids:
@@ -84,9 +83,9 @@ def extract_labels(ids: List[str]) -> Tuple[List[str], List[str]]:
 
 def create_and_save_plot(
     embeddings_2d: np.ndarray,
-    ids: List[str],
-    short_names: List[str],
-    subcategories: List[str],
+    ids: list[str],
+    short_names: list[str],
+    subcategories: list[str],
     output_path: str,
 ) -> None:
     print("Generating interactive plot...")
@@ -108,12 +107,12 @@ def create_and_save_plot(
 
     fig.update_traces(marker=dict(size=8, line=dict(width=1, color="DarkSlateGrey")))
 
-    df = pd.DataFrame(
+    df = pd.DataFrame.from_records(
         {
             "x": embeddings_2d[:, 0],
             "y": embeddings_2d[:, 1],
             "subcategory": subcategories,
-        }
+        },
     )
     centroids = df.groupby("subcategory")[["x", "y"]].mean().reset_index()
 

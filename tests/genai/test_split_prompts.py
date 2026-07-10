@@ -7,6 +7,7 @@ import unittest
 import unittest.mock
 from pathlib import Path
 
+
 # Add project root to sys.path to enable absolute imports when run directly as a script
 if __name__ == "__main__" and __package__ is None:
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
@@ -15,24 +16,21 @@ if __name__ == "__main__" and __package__ is None:
 sys.path.insert(
     0,
     str(
-        Path(__file__).resolve().parents[2] / ".agent/skills/tts-prompt-crafter/scripts"
+        Path(__file__).resolve().parents[2] / ".agent/skills/tts-prompt-crafter/scripts",
     ),
 )
 import split_prompts  # pyrefly: ignore [missing-import]
 
 from storybuilder.downloader import cache
 from storybuilder.downloader.date_parser import parse_nifty_date
-from storybuilder.downloader.db import (
-    close_db,
-    get_conn,
-    init_db,
-    insert_story,
-)
+from storybuilder.downloader.db import close_db
+from storybuilder.downloader.db import get_conn
+from storybuilder.downloader.db import init_db
+from storybuilder.downloader.db import insert_story
 from storybuilder.downloader.scraper import parse_listing_rows
-from storybuilder.genai.client import parse_speech_config
 
 
-class TestDateParser(unittest.TestCase):
+class TestDateParsingLogic(unittest.TestCase):
     def test_parse_with_year(self):
         # MMM DD YYYY
         self.assertEqual(parse_nifty_date("Dec  4  2025"), datetime.date(2025, 12, 4))
@@ -43,11 +41,13 @@ class TestDateParser(unittest.TestCase):
         ref_date = datetime.datetime(2026, 6, 10, 12, 0)
         # In past relative to ref_date, so stays 2026
         self.assertEqual(
-            parse_nifty_date("Jun  6 08:55", ref_date), datetime.date(2026, 6, 6)
+            parse_nifty_date("Jun  6 08:55", ref_date),
+            datetime.date(2026, 6, 6),
         )
         # In future relative to ref_date (e.g. Dec), so gets previous year (2025)
         self.assertEqual(
-            parse_nifty_date("Dec 12 19:52", ref_date), datetime.date(2025, 12, 12)
+            parse_nifty_date("Dec 12 19:52", ref_date),
+            datetime.date(2025, 12, 12),
         )
 
     def test_fallback_parsing(self):
@@ -55,7 +55,7 @@ class TestDateParser(unittest.TestCase):
         self.assertEqual(parse_nifty_date("Jun 6", ref_date), datetime.date(2026, 6, 6))
 
 
-class TestScraper(unittest.TestCase):
+class TestScrapingHTML(unittest.TestCase):
     def test_parse_listing_rows_ftr(self):
         from bs4 import BeautifulSoup
 
@@ -150,7 +150,9 @@ class TestNetwork(unittest.TestCase):
             mock_get.return_value = mock_response_fail
 
             res = network.fetch_page(
-                "https://example.com/blocked", delay=0, max_retries=2
+                "https://example.com/blocked",
+                delay=0,
+                max_retries=2,
             )
             self.assertIsNone(res)
             self.assertEqual(mock_rotate.call_count, 2)
@@ -164,15 +166,18 @@ class TestDBIntegration(unittest.TestCase):
     def setUp(self):
         # Use a temporary database for tests
         self.db_path = "/tmp/test_downloader_integration.db"
-        if os.path.exists(self.db_path):
-            os.remove(self.db_path)
+        if Path(self.db_path).exists():
+            Path(self.db_path).unlink()
+        for ext in ["-wal", "-shm"]:
+            if Path(self.db_path + ext).exists():
+                Path(self.db_path + ext).unlink()
         init_db(self.db_path)
         # Ensure download simulation uses the test DB
         self.original_db_path = None
         try:
             # Monkey patch cli.parse_args to return our test DB path
             self.patcher = unittest.mock.patch(
-                "storybuilder.downloader.cli.argparse.ArgumentParser.parse_args"
+                "storybuilder.downloader.cli.argparse.ArgumentParser.parse_args",
             )
             self.mock_parse_args = self.patcher.start()
             self.mock_parse_args.return_value = unittest.mock.Mock(
@@ -190,24 +195,25 @@ class TestDBIntegration(unittest.TestCase):
             )
             # Monkey patch the writer's save_story to bypass network fetch
             self.patcher_writer = unittest.mock.patch(
-                "storybuilder.downloader.writer.save_story"
+                "storybuilder.downloader.writer.save_story",
             )
             self.mock_save_story = self.patcher_writer.start()
             # Monkey patch db.init_db to ensure it uses the test DB path
             self.patcher_db = unittest.mock.patch(
-                "storybuilder.downloader.db.init_db", return_value=get_conn()
+                "storybuilder.downloader.db.init_db",
+                return_value=get_conn(),
             )
             self.mock_init_db = self.patcher_db.start()
 
             # Monkey patch scraper functions to avoid hitting network/Nifty site during tests
             self.patcher_get_subcats = unittest.mock.patch(
-                "storybuilder.downloader.cli.get_subcategories"
+                "storybuilder.downloader.cli.get_subcategories",
             )
             self.mock_get_subcategories = self.patcher_get_subcats.start()
             self.mock_get_subcategories.return_value = ["mock-subcat"]
 
             self.patcher_proc_subcat = unittest.mock.patch(
-                "storybuilder.downloader.cli.process_subcategory"
+                "storybuilder.downloader.cli.process_subcategory",
             )
             self.mock_process_subcategory = self.patcher_proc_subcat.start()
             self.mock_process_subcategory.return_value = [
@@ -216,12 +222,12 @@ class TestDBIntegration(unittest.TestCase):
                     "url": "https://example.com/test-story.html",
                     "output_path": "/tmp/test_downloader_integration/gay/mock-subcat/test-story.txt",
                     "date": datetime.date(2026, 6, 12),
-                }
+                },
             ]
 
             # Monkey patch upload_many to avoid hitting GCS during unit test
             self.patcher_upload = unittest.mock.patch(
-                "storybuilder.downloader.cli.upload_many"
+                "storybuilder.downloader.cli.upload_many_gcs"
             )
             self.mock_upload = self.patcher_upload.start()
         except Exception as e:
@@ -235,9 +241,12 @@ class TestDBIntegration(unittest.TestCase):
         self.patcher_get_subcats.stop()
         self.patcher_proc_subcat.stop()
         self.patcher_upload.stop()
-        if os.path.exists(self.db_path):
-            os.remove(self.db_path)
         close_db()
+        if Path(self.db_path).exists():
+            Path(self.db_path).unlink()
+        for ext in ["-wal", "-shm"]:
+            if Path(self.db_path + ext).exists():
+                Path(self.db_path + ext).unlink()
 
     def test_downloader_integration_saves_to_db(self):
         """Verify that downloader saves stories to the specified DB."""
@@ -245,9 +254,8 @@ class TestDBIntegration(unittest.TestCase):
 
         # Mock save_story to simulate successful download and return metadata
         def mock_save(url, output_path, story_date, delay):
-            os.makedirs(os.path.dirname(output_path), exist_ok=True)
-            with open(output_path, "w", encoding="utf-8") as f:
-                f.write(f"Mock content for {output_path}")
+            Path(os.path.dirname(output_path)).mkdir(exist_ok=True, parents=True)
+            Path(output_path).write_text(f"Mock content for {output_path}", encoding="utf-8")
             # Insert into SQLite database to verify integration
             if get_conn() is not None:
                 insert_story(
@@ -281,70 +289,14 @@ class TestDBIntegration(unittest.TestCase):
 
         # Check a specific inserted record
         row = conn.execute(
-            "SELECT * FROM stories WHERE path LIKE ?", ("%test-story.txt",)
+            "SELECT * FROM stories WHERE path LIKE ?",
+            ("%test-story.txt",),
         ).fetchone()
         self.assertIsNotNone(row)
         self.assertEqual(row["title"], "Test Story")
         self.assertEqual(row["author_name"], "Test Author")
         self.assertEqual(row["publication_date"], "2026-06-12")
         conn.close()
-
-
-class TestGenAIClient(unittest.TestCase):
-    def test_parse_speech_config_max_two_voices(self):
-        # It should ignore any voices beyond the first two
-        markdown_content = """
-        ### DIRECTOR'S NOTES
-        Style:
-        - Speaker1 (Voice: VoiceA): ...
-        - Speaker2 (Voice: VoiceB): ...
-        - Speaker3 (Voice: VoiceC): ...
-        """
-        config = parse_speech_config(markdown_content)
-        self.assertEqual(len(config), 2)
-        self.assertEqual(config[0]["speaker"], "Speaker1")
-        self.assertEqual(config[0]["voice"], "VoiceA")
-        self.assertEqual(config[1]["speaker"], "Speaker2")
-        self.assertEqual(config[1]["voice"], "VoiceB")
-
-    def test_parse_speech_config_multi_speaker(self):
-        markdown_content = """
-        ### DIRECTOR'S NOTES
-        Style:
-        - Jace (Voice: Algenib): 27-year-old.
-        - Levi (Voice: Zubenelgenubi): 20-year-old.
-        """
-        config = parse_speech_config(markdown_content)
-        self.assertEqual(len(config), 2)
-        self.assertEqual(config[0]["speaker"], "Jace")
-        self.assertEqual(config[0]["voice"], "Algenib")
-        self.assertEqual(config[1]["speaker"], "Levi")
-        self.assertEqual(config[1]["voice"], "Zubenelgenubi")
-
-    def test_parse_speech_config_no_speakers(self):
-        # When no speakers are found, it should fallback to a single generic voice
-        markdown_content = """
-        ### DIRECTOR'S NOTES
-        Style: Just talk normally.
-        """
-        config = parse_speech_config(markdown_content)
-        self.assertEqual(len(config), 1)
-        self.assertNotIn("speaker", config[0])
-        self.assertEqual(config[0]["voice"], "Kore")
-
-    def test_parse_speech_config_single_speaker(self):
-        # A single speaker should be padded with a Dummy speaker to force multi-speaker mode
-        markdown_content = """
-        ### DIRECTOR'S NOTES
-        Style:
-        * Narrator (Voice: Kore): The narrator voice.
-        """
-        config = parse_speech_config(markdown_content)
-        self.assertEqual(len(config), 2)
-        self.assertEqual(config[0]["speaker"], "Narrator")
-        self.assertEqual(config[0]["voice"], "Kore")
-        self.assertEqual(config[1]["speaker"], "Dummy")
-        self.assertEqual(config[1]["voice"], "Puck")
 
 
 class TestSplitPrompts(unittest.TestCase):
@@ -402,27 +354,25 @@ Narrator: Third line introduces a third speaker.
 Jace: Fourth line.
 """
             scene_file = os.path.join(temp_dir, "01-scene1.md")
-            with open(scene_file, "w") as f:
-                f.write(scene_content)
+            Path(scene_file).write_text(scene_content)
 
             split_prompts.process_files(temp_dir)
 
             # Check that scene file was archived
-            self.assertFalse(os.path.exists(scene_file))
+            self.assertFalse(Path(scene_file).exists())
             self.assertTrue(
-                os.path.exists(os.path.join(temp_dir, "archive", "01-scene1.md"))
+                Path(os.path.join(temp_dir, "archive", "01-scene1.md")).exists(),
             )
 
             # Check output chunk files
             part1_file = os.path.join(temp_dir, "01-part.md")
             part2_file = os.path.join(temp_dir, "02-part.md")
 
-            self.assertTrue(os.path.exists(part1_file))
-            self.assertTrue(os.path.exists(part2_file))
+            self.assertTrue(Path(part1_file).exists())
+            self.assertTrue(Path(part2_file).exists())
 
             # Verify part1 has only Jace and Levi
-            with open(part1_file, "r") as f:
-                p1_content = f.read()
+            p1_content = Path(part1_file).read_text()
             self.assertIn("Jace (Voice: Algenib)", p1_content)
             self.assertIn("Levi (Voice: Enceladus)", p1_content)
             self.assertNotIn("Narrator (Voice: Kore)", p1_content)
@@ -431,8 +381,7 @@ Jace: Fourth line.
             self.assertNotIn("Narrator: Third line", p1_content)
 
             # Verify part2 has Narrator and Jace
-            with open(part2_file, "r") as f:
-                p2_content = f.read()
+            p2_content = Path(part2_file).read_text()
             self.assertIn("Narrator (Voice: Kore)", p2_content)
             self.assertIn("Jace (Voice: Algenib)", p2_content)
             self.assertNotIn("Levi (Voice: Enceladus)", p2_content)
@@ -459,18 +408,16 @@ Jace: [sighs][whispers] I missed you.
 Levi: [gasp] [adoration] Me too.
 """
             scene_file = os.path.join(temp_dir, "01-scene1.md")
-            with open(scene_file, "w") as f:
-                f.write(scene_content)
+            Path(scene_file).write_text(scene_content)
 
             # Should print a warning but not crash
             split_prompts.process_files(temp_dir)
 
             # Verify output files were still created
             part1_file = os.path.join(temp_dir, "01-part.md")
-            self.assertTrue(os.path.exists(part1_file))
+            self.assertTrue(Path(part1_file).exists())
 
-            with open(part1_file, "r") as f:
-                content = f.read()
+            content = Path(part1_file).read_text()
             # The adjacent-tag line should still be in the output
             self.assertIn("[sighs][whispers]", content)
 

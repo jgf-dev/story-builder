@@ -1,10 +1,11 @@
 import argparse
+
 import chromadb
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Find similar stories based on average plot embeddings."
+        description="Find similar stories based on average plot embeddings.",
     )
     parser.add_argument("target_story", type=str, help="Filepath of the target story.")
     parser.add_argument(
@@ -13,9 +14,7 @@ def main():
         default="./chroma_db",
         help="Path to the Chroma database.",
     )
-    parser.add_argument(
-        "--n-results", type=int, default=5, help="Number of similar stories to return."
-    )
+    parser.add_argument("--n-results", type=int, default=5, help="Number of similar stories to return.")
     args = parser.parse_args()
 
     chroma_client = chromadb.PersistentClient(path=args.db_path)
@@ -24,7 +23,7 @@ def main():
         collection_averages = chroma_client.get_collection(name="story_averages")
     except Exception:
         print(
-            "Error: Could not find 'story_averages' collection. Run generate_embeddings.py first."
+            "Error: Could not find 'story_averages' collection. Run generate_embeddings.py first.",
         )
         return
 
@@ -43,12 +42,10 @@ def main():
 
     print(f"Finding top {args.n_results} stories similar to: {args.target_story}\n")
 
-    query_results = collection_averages.query(
-        query_embeddings=[target_embedding], n_results=args.n_results + 1
-    )
+    query_results = collection_averages.query(query_embeddings=[target_embedding], n_results=args.n_results + 1)
 
     for idx, (filepath, distance) in enumerate(
-        zip(query_results["ids"][0], query_results["distances"][0])
+        zip(query_results["ids"][0], query_results["distances"][0]),
     ):
         if filepath == args.target_story:
             continue

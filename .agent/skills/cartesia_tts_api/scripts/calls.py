@@ -7,11 +7,15 @@ Run an example:
 
 from __future__ import annotations
 
+import pathlib
+from typing import TYPE_CHECKING
+
 from cartesia import Cartesia
-from typing_extensions import TYPE_CHECKING
+
 
 if TYPE_CHECKING:
-    from cartesia.types import Voice, VoiceMetadata
+    from cartesia.types import Voice
+    from cartesia.types import VoiceMetadata
 
 # =============================================================================
 # Client Initialization
@@ -56,9 +60,8 @@ def tts_bytes_to_file(client: Cartesia) -> None:
         },
         language="en",
     )
-    with open("output.wav", "wb") as f:
-        for chunk in response:
-            f.write(chunk)
+    with pathlib.Path("output.wav").open("wb") as f:
+        f.writelines(response)
     print("Saved audio to output.wav")
     print("Play with: ffplay -f wav output.wav")
 
@@ -86,7 +89,7 @@ def tts_sse_basic(client: Cartesia) -> None:
 
     filename = f"tts_sse_basic_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pcm"
 
-    with open(filename, "wb") as f:
+    with pathlib.Path(filename).open("wb") as f:
         for event in stream:
             if event.type == "chunk":
                 # v3.x returns raw bytes in event.audio
@@ -120,7 +123,7 @@ def tts_sse_with_timestamps(client: Cartesia) -> None:
 
     filename = f"tts_sse_with_timestamps_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pcm"
 
-    with open(filename, "wb") as f:
+    with pathlib.Path(filename).open("wb") as f:
         for event in stream:
             if event.type == "timestamps":
                 wt = event.word_timestamps
@@ -157,13 +160,13 @@ def tts_sse_with_phoneme_timestamps(client: Cartesia) -> None:
 
     filename = f"tts_sse_with_phoneme_timestamps_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pcm"
 
-    with open(filename, "wb") as f:
+    with pathlib.Path(filename).open("wb") as f:
         for event in stream:
             if event.type == "phoneme_timestamps":
                 pt = event.phoneme_timestamps
                 if pt:
                     print(
-                        f"Phonemes: {pt.phonemes}, Starts: {pt.start}, Ends: {pt.end}"
+                        f"Phonemes: {pt.phonemes}, Starts: {pt.start}, Ends: {pt.end}",
                     )
             elif event.type == "chunk":
                 if event.audio:
@@ -193,11 +196,9 @@ def tts_sse_with_match(client: Cartesia) -> None:
 
     import datetime
 
-    filename = (
-        f"tts_sse_with_match_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pcm"
-    )
+    filename = f"tts_sse_with_match_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pcm"
 
-    with open(filename, "wb") as f:
+    with pathlib.Path(filename).open("wb") as f:
         for event in stream:
             if event.type == "chunk":
                 # Audio chunk - event.audio contains bytes
@@ -244,7 +245,7 @@ def tts_websocket_basic(client: Cartesia) -> None:
 
         # Write chunks to file as they arrive.
         # You could also send chunks over the network, play them in real-time, etc.
-        with open(filename, "wb") as f:
+        with pathlib.Path(filename).open("wb") as f:
             for response in ctx.receive():
                 if response.type == "chunk" and response.audio:
                     f.write(response.audio)
@@ -281,7 +282,7 @@ def tts_websocket_continuations(client: Cartesia) -> None:
 
         # Write chunks to file as they arrive.
         # You could also send chunks over the network, play them in real-time, etc.
-        with open(filename, "wb") as f:
+        with pathlib.Path(filename).open("wb") as f:
             for response in ctx.receive():
                 if response.type == "chunk" and response.audio:
                     f.write(response.audio)
@@ -294,7 +295,7 @@ def tts_websocket_continuations(client: Cartesia) -> None:
 
 def tts_websocket_flushing(client: Cartesia) -> None:
     """Demonstrates manual flushing to separate audio from different transcripts."""
-    from typing_extensions import IO
+    from typing import IO
 
     transcripts = ["Stay hungry, ", "stay foolish."]
 
@@ -339,7 +340,7 @@ def tts_websocket_flushing(client: Cartesia) -> None:
 
                 if flush_id not in files:
                     filename = f"tts_flush_{flush_id}_{timestamp}.pcm"
-                    files[flush_id] = open(filename, "wb")
+                    files[flush_id] = pathlib.Path(filename).open("wb")
                     print(f"Created new file for flush_id {flush_id}: {filename}")
 
                 files[flush_id].write(response.audio)
@@ -384,11 +385,9 @@ def tts_websocket_emotion(client: Cartesia) -> None:
 
         import datetime
 
-        filename = (
-            f"tts_emotion_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pcm"
-        )
+        filename = f"tts_emotion_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pcm"
 
-        with open(filename, "wb") as f:
+        with pathlib.Path(filename).open("wb") as f:
             for response in ctx.receive():
                 if response.type == "chunk" and response.audio:
                     f.write(response.audio)
@@ -426,7 +425,7 @@ def tts_websocket_speed(client: Cartesia) -> None:
 
         filename = f"tts_speed_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pcm"
 
-        with open(filename, "wb") as f:
+        with pathlib.Path(filename).open("wb") as f:
             for response in ctx.receive():
                 if response.type == "chunk" and response.audio:
                     f.write(response.audio)
@@ -466,12 +465,12 @@ def tts_websocket_concurrent_receives(client: Cartesia) -> None:
 
         # Send to both contexts before receiving
         ctx1.push(
-            "Context one is speaking now. This is a longer transcript to ensure that audio chunks from both contexts are interleaved on the wire. The quick brown fox jumps over the lazy dog."
+            "Context one is speaking now. This is a longer transcript to ensure that audio chunks from both contexts are interleaved on the wire. The quick brown fox jumps over the lazy dog.",
         )
         ctx1.no_more_inputs()
 
         ctx2.push(
-            "Context two has a different message. We want to verify that the routing logic correctly separates the audio streams. Pack my box with five dozen liquor jugs."
+            "Context two has a different message. We want to verify that the routing logic correctly separates the audio streams. Pack my box with five dozen liquor jugs.",
         )
         ctx2.no_more_inputs()
 
@@ -481,7 +480,7 @@ def tts_websocket_concurrent_receives(client: Cartesia) -> None:
 
         # Receive from ctx1 — any ctx2 events read from the wire get queued
         filename1 = f"tts_concurrent_ctx1_{timestamp}.pcm"
-        with open(filename1, "wb") as f:
+        with pathlib.Path(filename1).open("wb") as f:
             for response in ctx1.receive():
                 if response.type == "chunk" and response.audio:
                     f.write(response.audio)
@@ -490,7 +489,7 @@ def tts_websocket_concurrent_receives(client: Cartesia) -> None:
 
         # Receive from ctx2 — picks up queued events first
         filename2 = f"tts_concurrent_ctx2_{timestamp}.pcm"
-        with open(filename2, "wb") as f:
+        with pathlib.Path(filename2).open("wb") as f:
             for response in ctx2.receive():
                 if response.type == "chunk" and response.audio:
                     f.write(response.audio)
@@ -528,7 +527,7 @@ def tts_websocket_response_handling(client: Cartesia) -> None:
 
         # Write chunks to file as they arrive.
         # You could also send chunks over the network, play them in real-time, etc.
-        with open(filename, "wb") as f:
+        with pathlib.Path(filename).open("wb") as f:
             for response in ctx.receive():
                 if response.type == "chunk" and response.audio:
                     f.write(response.audio)
@@ -569,7 +568,7 @@ def voices_list(client: Cartesia) -> None:
     print([voices[0], "..."])
 
 
-def voices_get(client: Cartesia, *args: str) -> "Voice":
+def voices_get(client: Cartesia, *args: str) -> Voice:
     """Get a specific voice."""
     voice_id = args[0] if args else "6ccbfb76-1fc6-48f7-b71d-91ac6298247b"
     voice = client.voices.get(voice_id)
@@ -579,19 +578,19 @@ def voices_get(client: Cartesia, *args: str) -> "Voice":
     return voice
 
 
-def voices_clone(client: Cartesia, *args: str) -> "VoiceMetadata":
+def voices_clone(client: Cartesia, *args: str) -> VoiceMetadata:
     """Clone a voice from an audio clip."""
     import sys
 
     if len(args) < 2:
         print("Usage: voices_clone <path to audio file> <language> [<name>]")
         print(
-            "See https://docs.cartesia.ai/build-with-cartesia/tts-models/latest for supported languages: en, fr, de, es, ..."
+            "See https://docs.cartesia.ai/build-with-cartesia/tts-models/latest for supported languages: en, fr, de, es, ...",
         )
         sys.exit(1)
     clip_path, language, *name_parts = args
     name = " ".join(name_parts) if name_parts else "My Voice"
-    with open(clip_path, "rb") as clip:
+    with pathlib.Path(clip_path).open("rb") as clip:
         voice = client.voices.clone(
             clip=clip,
             language=language,
@@ -634,7 +633,7 @@ def infill_create(client: Cartesia, *args: str) -> None:
 
     if len(args) < 3:
         print(
-            "Usage: stt_transcribe <audio_file_before> <audio_file_after> <transcript>"
+            "Usage: stt_transcribe <audio_file_before> <audio_file_after> <transcript>",
         )
         sys.exit(1)
 
@@ -700,7 +699,7 @@ def stt_transcribe(client: Cartesia, *args: str) -> None:
     else:
         file_path, language = generate_sample_wav()
 
-    with open(file_path, "rb") as f:
+    with pathlib.Path(file_path).open("rb") as f:
         response = client.stt.transcribe(
             file=f,
             model="ink-whisper",
@@ -726,7 +725,8 @@ def stt_auto_finalize_websocket(client: Cartesia, *args: str) -> None:
     import time
     import wave
 
-    from cartesia.types import RawOutputFormatParam, STTEncoding
+    from cartesia.types import RawOutputFormatParam
+    from cartesia.types import STTEncoding
 
     encoding: STTEncoding
     chunks: list[bytes]
@@ -745,7 +745,7 @@ def stt_auto_finalize_websocket(client: Cartesia, *args: str) -> None:
                 encoding = "pcm_s32le"
             else:
                 print(
-                    f"Error: unsupported sample width {sample_width} bytes (expected 2 or 4)."
+                    f"Error: unsupported sample width {sample_width} bytes (expected 2 or 4).",
                 )
                 sys.exit(1)
             sample_rate = wf.getframerate()
@@ -763,11 +763,9 @@ def stt_auto_finalize_websocket(client: Cartesia, *args: str) -> None:
         }
         encoding = output_format["encoding"]
         sample_rate = output_format["sample_rate"]
-        generation_transcript = (
-            "Hello, world! The quick brown fox jumps over the lazy dog."
-        )
+        generation_transcript = "Hello, world! The quick brown fox jumps over the lazy dog."
         print(
-            f"No WAV file provided — synthesizing audio with TTS: {generation_transcript!r}"
+            f"No WAV file provided — synthesizing audio with TTS: {generation_transcript!r}",
         )
         audio = client.tts.generate(
             model_id="sonic-latest",
@@ -795,7 +793,7 @@ def stt_auto_finalize_websocket(client: Cartesia, *args: str) -> None:
         for chunk in chunks:
             connection.send_raw(chunk)
             time.sleep(
-                0.1
+                0.1,
             )  # each chunk is 100ms of audio — pace sends to match real time
 
         # Flush remaining audio and close the session cleanly.
@@ -838,8 +836,7 @@ def stt_manual_finalize_websocket(client: Cartesia, *args: str) -> None:
     """
     import re
     import time
-
-    from typing_extensions import Literal
+    from typing import Literal
 
     encoding: Literal["pcm_s16le"] = "pcm_s16le"
     sample_rate: Literal[16000] = 16000
@@ -873,7 +870,7 @@ def stt_manual_finalize_websocket(client: Cartesia, *args: str) -> None:
             for i in range(0, len(audio), chunk_bytes):
                 connection.send_raw(audio[i : i + chunk_bytes])
                 time.sleep(
-                    0.1
+                    0.1,
                 )  # each chunk is 100ms of audio — pace sends to match real time
             # Triggers transcription of buffered audio.
             connection.send("finalize")
@@ -910,13 +907,11 @@ def stt_manual_finalize_websocket(client: Cartesia, *args: str) -> None:
 
 def error_handling_example(client: Cartesia) -> None:
     """Example of error handling with SDK exceptions."""
-    from cartesia import (
-        APIError,
-        AuthenticationError,
-        BadRequestError,
-        NotFoundError,
-        RateLimitError,
-    )
+    from cartesia import APIError
+    from cartesia import AuthenticationError
+    from cartesia import BadRequestError
+    from cartesia import NotFoundError
+    from cartesia import RateLimitError
 
     try:
         client.tts.generate(
@@ -959,9 +954,7 @@ if __name__ == "__main__":
         available_functions = [
             name
             for name, obj in globals().items()
-            if inspect.isfunction(obj)
-            and obj.__module__ == __name__
-            and obj != create_client
+            if inspect.isfunction(obj) and obj.__module__ == __name__ and obj != create_client
         ]
         print(f"Available functions: {', '.join(available_functions)}")
         sys.exit(1)

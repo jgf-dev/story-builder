@@ -6,8 +6,10 @@ from collections import Counter
 from pathlib import Path
 
 import spacy
-from thinc.api import require_gpu, set_gpu_allocator
+from thinc.api import require_gpu
+from thinc.api import set_gpu_allocator
 from tqdm import tqdm
+
 
 DB_PATH = "nlp_analysis.db"
 ALLOWED_LABELS = {
@@ -62,7 +64,7 @@ def is_processed(cursor, filepath):
 def parse_args():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
-        description="Extract Named Entities from stories using spaCy."
+        description="Extract Named Entities from stories using spaCy.",
     )
     parser.add_argument(
         "--limit",
@@ -77,16 +79,27 @@ def parse_args():
         help="Directory containing the text files.",
     )
     parser.add_argument(
-        "--db-path", type=str, default=DB_PATH, help="Path to the SQLite database."
+        "--db-path",
+        type=str,
+        default=DB_PATH,
+        help="Path to the SQLite database.",
     )
     parser.add_argument(
-        "--force", action="store_true", help="Force reprocessing of all files."
+        "--force",
+        action="store_true",
+        help="Force reprocessing of all files.",
     )
     parser.add_argument(
-        "--model", type=str, default="en_core_web_lg", help="spaCy model to use."
+        "--model",
+        type=str,
+        default="en_core_web_lg",
+        help="spaCy model to use.",
     )
     parser.add_argument(
-        "--gpu", action="store_true", default=True, help="Use GPU for spaCy model."
+        "--gpu",
+        action="store_true",
+        default=True,
+        help="Use GPU for spaCy model.",
     )
     return parser.parse_args()
 
@@ -115,24 +128,18 @@ def load_spacy_model(model_name, use_gpu):
 
 def process_file(filepath_str, nlp, cursor):
     """Extract entities from a text file and save them to the database."""
-    with open(filepath_str, "r", encoding="utf-8") as f:
-        text = f.read()
+    text = Path(filepath_str).read_text(encoding="utf-8")
 
     doc = nlp(text)
     entities = Counter(
-        (ent.text.strip(), ent.label_)
-        for ent in doc.ents
-        if ent.label_ in ALLOWED_LABELS and ent.text.strip()
+        (ent.text.strip(), ent.label_) for ent in doc.ents if ent.label_ in ALLOWED_LABELS and ent.text.strip()
     )
 
     query = "INSERT INTO stories (filepath) VALUES (?)"
     cursor.execute(query, (filepath_str,))
     story_id = cursor.lastrowid
 
-    entity_records = [
-        (story_id, ent_text, label, count)
-        for (ent_text, label), count in entities.items()
-    ]
+    entity_records = [(story_id, ent_text, label, count) for (ent_text, label), count in entities.items()]
 
     cursor.executemany(
         """

@@ -130,14 +130,9 @@ class TestAnalyzeSentiment(unittest.TestCase):
         mock_pipe_instance.return_value = [{"label": "POSITIVE", "score": 0.99}]
         mock_pipeline.return_value = mock_pipe_instance
 
-        # Mock the open() function for reading files
-        from unittest.mock import mock_open
-
-        m = mock_open(read_data="This is a sentence.")
-
         with (
             patch("pathlib.Path.rglob", return_value=fake_files),
-            patch("builtins.open", m),
+            patch("pathlib.Path.read_text", return_value="This is a sentence."),
         ):
             main()
 

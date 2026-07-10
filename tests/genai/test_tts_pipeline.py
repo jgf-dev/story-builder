@@ -10,6 +10,7 @@ Run manually with:
 """
 
 import glob
+
 import os
 import shutil
 import tempfile
@@ -17,6 +18,7 @@ import unittest
 from pathlib import Path
 
 from dotenv import load_dotenv
+
 
 # Maximum number of real audio API calls to make during the test.
 MAX_API_CALLS = 3
@@ -62,7 +64,9 @@ class TestTTSPipeline(unittest.TestCase):
         process_directory() does in production.
         """
         from google import genai
-        from storybuilder.genai.client import get_gemini_api_keys, process_file
+
+        from storybuilder.genai.client import get_gemini_api_keys
+        from storybuilder.genai.client import process_file
 
         api_keys = get_gemini_api_keys()
         self.assertGreater(len(api_keys), 0, "No GEMINI_API_KEY found in environment")
@@ -78,8 +82,9 @@ class TestTTSPipeline(unittest.TestCase):
             generated = []
 
             for i, md_file in enumerate(self.prompt_files):
-                base_name = os.path.splitext(os.path.basename(md_file))[0]
+                base_name = os.path.basename(md_file).replace("-part.md", "")
                 wav_file = os.path.join(tmp_dir, f"{base_name}.wav")
+
                 # Sanitize voice names to valid Gemini voices for the integration test
                 with open(md_file, "r", encoding="utf-8") as f:
                     content = f.read()

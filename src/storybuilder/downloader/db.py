@@ -404,24 +404,6 @@ def search_stories(
                 query_stmt = query_stmt.where(literal_column("stories_fts").op("MATCH")(fts_query))
                 query_stmt = query_stmt.order_by(literal_column("rank"))
                 query_stmt = query_stmt.limit(limit)
-    if db_paths:
-        if len(db_paths) == 1 and db_paths[0] is None:
-            # Monolithic DB: no need for thread pool
-            all_results.extend(_search_single_db(None))
-        else:
-            with concurrent.futures.ThreadPoolExecutor(
-                max_workers=min(len(db_paths), 10)
-            ) as executor:
-                for res in executor.map(_search_single_db, db_paths):
-                    all_results.extend(res)
-    # Sort aggregated results
-    if fts_query:
-        # Sort by date desc (since rank order is lost when combined, or we could sort by a score if we fetched it)
-        all_results.sort(key=lambda x: x.get("publication_date") or "", reverse=True)
-    else:
-        all_results.sort(key=lambda x: x.get("publication_date") or "", reverse=True)
->>>>>>> origin/bolt-parallelize-partitions-9285815848419465447
-
                 results = session.exec(query_stmt).all()
                 output = []
                 for row in results:

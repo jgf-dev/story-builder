@@ -18,6 +18,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+
 # Maximum number of real audio API calls to make during the test.
 MAX_API_CALLS = 3
 
@@ -83,8 +84,7 @@ class TestTTSPipeline(unittest.TestCase):
                 wav_file = os.path.join(temp_genai_dir, f"{base_name}.wav")
 
                 # Sanitize voice names to valid Gemini voices for the integration test
-                with open(md_file, "r", encoding="utf-8") as f:
-                    content = f.read()
+                content = Path(md_file).read_text(encoding="utf-8")
                 content = (
                     content.replace("en-US-Journey-F", "Aoede")
                     .replace("en-US-Journey-D", "Charon")

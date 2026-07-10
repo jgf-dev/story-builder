@@ -1,7 +1,8 @@
-import os
-import glob
-import re
 import argparse
+import glob
+import os
+import pathlib
+import re
 import shutil
 
 
@@ -32,9 +33,7 @@ def filter_preamble_speakers(preamble, active_speakers):
     new_lines = []
     for line in lines:
         # Match lines like: - Jace (Voice: Algenib): Intimate, deep.
-        match = re.search(
-            r"^\s*[\*\-]\s*([A-Za-z0-9_-]+)\s*\(Voice:\s*([A-Za-z0-9_-]+)\)", line
-        )
+        match = re.search(r"^\s*[\*\-]\s*([A-Za-z0-9_-]+)\s*\(Voice:\s*([A-Za-z0-9_-]+)\)", line)
         if match:
             speaker = match.group(1)
             if speaker in active_speakers:
@@ -54,11 +53,10 @@ def process_files(input_dir):
 
     # Ensure archive directory exists
     archive_dir = os.path.join(input_dir, "archive")
-    os.makedirs(archive_dir, exist_ok=True)
+    pathlib.Path(archive_dir).mkdir(exist_ok=True, parents=True)
 
     for filepath in files:
-        with open(filepath, "r") as f:
-            content = f.read()
+        content = pathlib.Path(filepath).read_text()
 
         parts = re.split(r"^#### TRANSCRIPT\s*$", content, flags=re.MULTILINE)
         if len(parts) != 2:
@@ -89,7 +87,7 @@ def process_files(input_dir):
             if adjacent_tags:
                 print(
                     f"WARNING: Adjacent tags detected (will cause TTS API error). "
-                    f"Separate with space or punctuation: {line}"
+                    f"Separate with space or punctuation: {line}",
                 )
 
             # Extract speaker prefix
@@ -143,7 +141,7 @@ def process_files(input_dir):
             # Reconstruct preamble filtering only active speakers
             new_preamble = filter_preamble_speakers(preamble, speakers)
 
-            with open(out_filename, "w") as f:
+            with pathlib.Path(out_filename).open("w") as f:
                 f.write(new_preamble)
                 f.write("#### TRANSCRIPT\n")
                 f.write("\n".join(t_lines) + "\n")
@@ -156,7 +154,7 @@ def process_files(input_dir):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Split TTS scene prompts to respect the 2-voice limit and output length constraints."
+        description="Split TTS scene prompts to respect the 2-voice limit and output length constraints.",
     )
     parser.add_argument("input_dir", help="Directory containing the *-scene*.md files")
     args = parser.parse_args()

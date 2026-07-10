@@ -9,6 +9,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+
 # Ensure the src package is importable
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 # Also make scripts/ importable (they don't have __init__.py but we can still import
@@ -16,8 +17,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 _scripts_dir = str(Path(__file__).resolve().parents[2] / "scripts")
 if _scripts_dir not in sys.path:
     sys.path.insert(0, _scripts_dir)
-
-
 
 
 class TestParseAuthor(unittest.TestCase):
@@ -73,7 +72,7 @@ class TestParseOutputPath(unittest.TestCase):
         from storybuilder.downloader.db import _parse_output_path
 
         orientation, category, slug, num = _parse_output_path(
-            "nifty_stories/gay/adult-friends/my-story/my-story-3.txt"
+            "nifty_stories/gay/adult-friends/my-story/my-story-3.txt",
         )
         self.assertEqual(orientation, "gay")
         self.assertEqual(category, "adult-friends")
@@ -84,7 +83,7 @@ class TestParseOutputPath(unittest.TestCase):
         from storybuilder.downloader.db import _parse_output_path
 
         orientation, category, slug, num = _parse_output_path(
-            "nifty_stories/gay/adult-friends/my-story.txt"
+            "nifty_stories/gay/adult-friends/my-story.txt",
         )
         self.assertEqual(orientation, "gay")
         self.assertEqual(category, "adult-friends")
@@ -96,7 +95,7 @@ class TestParseOutputPath(unittest.TestCase):
 
         # 3-part path: only output_dir/orientation/file — category = parts[2] = filename
         orientation, category, slug, num = _parse_output_path(
-            "nifty_stories/gay/story.txt"
+            "nifty_stories/gay/story.txt",
         )
         self.assertEqual(orientation, "gay")
         # With 3 parts, category = parts[2] which is the filename 'story.txt'
@@ -108,7 +107,7 @@ class TestParseOutputPath(unittest.TestCase):
         from storybuilder.downloader.db import _parse_output_path
 
         orientation, category, slug, num = _parse_output_path(
-            "nifty_stories/lesbian/college/title/title-1.txt"
+            "nifty_stories/lesbian/college/title/title-1.txt",
         )
         self.assertEqual(orientation, "lesbian")
         self.assertEqual(category, "college")
@@ -121,7 +120,7 @@ class TestParseOutputPath(unittest.TestCase):
         # 5-part path: downloads/gay/adult-friends/multi/my-story.txt
         # parts[3] = 'multi' is the story_slug directory, not the filename
         orientation, category, slug, num = _parse_output_path(
-            "downloads/gay/adult-friends/multi/my-story.txt"
+            "downloads/gay/adult-friends/multi/my-story.txt",
         )
         self.assertEqual(orientation, "gay")
         self.assertEqual(category, "adult-friends")
@@ -132,7 +131,7 @@ class TestParseOutputPath(unittest.TestCase):
         from storybuilder.downloader.db import _parse_output_path
 
         orientation, category, slug, num = _parse_output_path(
-            "nifty_stories/gay/college/slug/story-5.html"
+            "nifty_stories/gay/college/slug/story-5.html",
         )
         self.assertEqual(orientation, "gay")
         self.assertEqual(category, "college")
@@ -155,12 +154,13 @@ class TestDatabaseInit(unittest.TestCase):
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_init_db_creates_tables(self):
-        from storybuilder.downloader.db import init_db, close_db
+        from storybuilder.downloader.db import close_db
+        from storybuilder.downloader.db import init_db
 
         conn = init_db(self.db_path)
         try:
             tables = conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
+                "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name",
             ).fetchall()
             table_names = [r[0] for r in tables]
             self.assertIn("stories", table_names)
@@ -171,12 +171,13 @@ class TestDatabaseInit(unittest.TestCase):
             close_db()
 
     def test_init_db_creates_indexes(self):
-        from storybuilder.downloader.db import init_db, close_db
+        from storybuilder.downloader.db import close_db
+        from storybuilder.downloader.db import init_db
 
         conn = init_db(self.db_path)
         try:
             indexes = conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='index' ORDER BY name"
+                "SELECT name FROM sqlite_master WHERE type='index' ORDER BY name",
             ).fetchall()
             index_names = [r[0] for r in indexes]
             self.assertIn("idx_stories_category", index_names)
@@ -187,7 +188,8 @@ class TestDatabaseInit(unittest.TestCase):
             close_db()
 
     def test_init_db_has_orientation_column(self):
-        from storybuilder.downloader.db import init_db, close_db
+        from storybuilder.downloader.db import close_db
+        from storybuilder.downloader.db import init_db
 
         conn = init_db(self.db_path)
         try:
@@ -202,7 +204,8 @@ class TestDatabaseInit(unittest.TestCase):
             close_db()
 
     def test_init_db_wal_mode(self):
-        from storybuilder.downloader.db import init_db, close_db
+        from storybuilder.downloader.db import close_db
+        from storybuilder.downloader.db import init_db
 
         conn = init_db(self.db_path)
         try:
@@ -212,7 +215,8 @@ class TestDatabaseInit(unittest.TestCase):
             close_db()
 
     def test_init_db_migrates_email_date_column(self):
-        from storybuilder.downloader.db import close_db, init_db
+        from storybuilder.downloader.db import close_db
+        from storybuilder.downloader.db import init_db
 
         legacy_conn = sqlite3.connect(self.db_path)
         legacy_conn.execute(
@@ -235,7 +239,7 @@ class TestDatabaseInit(unittest.TestCase):
                 content TEXT,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
-            """
+            """,
         )
         legacy_conn.execute(
             """
@@ -246,7 +250,7 @@ class TestDatabaseInit(unittest.TestCase):
                 content=stories,
                 content_rowid=id
             )
-            """
+            """,
         )
         legacy_conn.execute(
             """
@@ -254,16 +258,16 @@ class TestDatabaseInit(unittest.TestCase):
                 INSERT INTO stories_fts(rowid, title, author_name, content)
                 VALUES (new.id, new.title, new.author_name, new.content);
             END;
-            """
+            """,
         )
         legacy_conn.execute(
             """
             INSERT INTO stories (
                 path, orientation, category, story_slug, chapter_num,
-                title, author_name, author_email,
+                title, author_name, author_email, email_date,
                 publication_date, url,
                 char_count, word_count, content, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 "nifty_stories/gay/test/legacy.txt",
@@ -274,30 +278,15 @@ class TestDatabaseInit(unittest.TestCase):
                 "Legacy Story",
                 "Legacy Author",
                 "legacy@example.com",
-                "2024-01-15",
-                "2024-01-15",
+                "2024-01-15",  # email_date
+                "2024-01-15",  # publication_date
+
                 "https://example.com/legacy",
                 123,
                 20,
                 "Legacy content here.",
                 "2024-01-16 12:34:56",
             ),
-        )
-        legacy_conn.execute(
-            """
-            CREATE VIRTUAL TABLE IF NOT EXISTS stories_fts USING fts5(
-                title,
-                author_name,
-                category,
-                content
-            )
-            """
-        )
-        legacy_conn.execute(
-            """
-            INSERT INTO stories_fts (rowid, title, author_name, category, content)
-            VALUES (1, 'Legacy Story', 'Legacy Author', 'test', 'Legacy content here.')
-            """
         )
         legacy_conn.commit()
         legacy_conn.close()
@@ -307,9 +296,8 @@ class TestDatabaseInit(unittest.TestCase):
         try:
             cols = conn.execute("PRAGMA table_info(stories)").fetchall()
             col_names = [c[1] for c in cols]
-            self.assertIn("email_date", col_names)
+            self.assertNotIn("email_date", col_names)
             self.assertIn("created_at", col_names)
-
 
             row = conn.execute("SELECT * FROM stories").fetchone()
             self.assertIsNotNone(row)
@@ -318,12 +306,14 @@ class TestDatabaseInit(unittest.TestCase):
             self.assertEqual(row["publication_date"], "2024-01-15")
             self.assertEqual(row["created_at"], "2024-01-16 12:34:56")
 
-            # fts_count = conn.execute(
-            #     "SELECT COUNT(*) FROM stories_fts WHERE stories_fts MATCH 'legacy'"
-            # ).fetchone()[0]
-            # self.assertEqual(fts_count, 1)
+            fts_count = conn.execute(
+                "SELECT COUNT(*) FROM stories_fts WHERE stories_fts MATCH 'legacy'",
+
+            ).fetchone()[0]
+            self.assertEqual(fts_count, 1)
         finally:
             close_db()
+
 
 class TestInsertStory(unittest.TestCase):
     """Tests for insert_story function."""
@@ -339,7 +329,9 @@ class TestInsertStory(unittest.TestCase):
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_insert_and_retrieve(self):
-        from storybuilder.downloader.db import init_db, insert_story, close_db
+        from storybuilder.downloader.db import close_db
+        from storybuilder.downloader.db import init_db
+        from storybuilder.downloader.db import insert_story
 
         conn = init_db(self.db_path)
         conn.row_factory = sqlite3.Row
@@ -375,7 +367,9 @@ class TestInsertStory(unittest.TestCase):
             close_db()
 
     def test_insert_no_author(self):
-        from storybuilder.downloader.db import init_db, insert_story, close_db
+        from storybuilder.downloader.db import close_db
+        from storybuilder.downloader.db import init_db
+        from storybuilder.downloader.db import insert_story
 
         conn = init_db(self.db_path)
         conn.row_factory = sqlite3.Row
@@ -396,7 +390,9 @@ class TestInsertStory(unittest.TestCase):
             close_db()
 
     def test_replace_on_duplicate_path(self):
-        from storybuilder.downloader.db import init_db, insert_story, close_db
+        from storybuilder.downloader.db import close_db
+        from storybuilder.downloader.db import init_db
+        from storybuilder.downloader.db import insert_story
 
         conn = init_db(self.db_path)
         conn.row_factory = sqlite3.Row
@@ -425,7 +421,9 @@ class TestInsertStory(unittest.TestCase):
             close_db()
 
     def test_char_and_word_count(self):
-        from storybuilder.downloader.db import init_db, insert_story, close_db
+        from storybuilder.downloader.db import close_db
+        from storybuilder.downloader.db import init_db
+        from storybuilder.downloader.db import insert_story
 
         conn = init_db(self.db_path)
         conn.row_factory = sqlite3.Row
@@ -459,7 +457,9 @@ class TestFTSSearch(unittest.TestCase):
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_fts_search_finds_content(self):
-        from storybuilder.downloader.db import init_db, insert_story, close_db
+        from storybuilder.downloader.db import close_db
+        from storybuilder.downloader.db import init_db
+        from storybuilder.downloader.db import insert_story
 
         conn = init_db(self.db_path)
         conn.row_factory = sqlite3.Row
@@ -484,7 +484,7 @@ class TestFTSSearch(unittest.TestCase):
             rows = conn.execute(
                 "SELECT s.title, snippet(stories_fts, 1, '<b>', '</b>', '...', 30) "
                 "FROM stories s JOIN stories_fts ON s.id = stories_fts.rowid "
-                "WHERE stories_fts MATCH 'vampire' ORDER BY rank"
+                "WHERE stories_fts MATCH 'vampire' ORDER BY rank",
             ).fetchall()
             self.assertEqual(len(rows), 1)
             self.assertEqual(rows[0]["title"], "Vampire Love")
@@ -492,7 +492,7 @@ class TestFTSSearch(unittest.TestCase):
             rows = conn.execute(
                 "SELECT s.title FROM stories s "
                 "JOIN stories_fts ON s.id = stories_fts.rowid "
-                "WHERE stories_fts MATCH 'werewolf' ORDER BY rank"
+                "WHERE stories_fts MATCH 'werewolf' ORDER BY rank",
             ).fetchall()
             self.assertEqual(len(rows), 1)
             self.assertEqual(rows[0]["title"], "Werewolf Moon")
@@ -500,7 +500,9 @@ class TestFTSSearch(unittest.TestCase):
             close_db()
 
     def test_fts_update_on_replace(self):
-        from storybuilder.downloader.db import init_db, insert_story, close_db
+        from storybuilder.downloader.db import close_db
+        from storybuilder.downloader.db import init_db
+        from storybuilder.downloader.db import insert_story
 
         conn = init_db(self.db_path)
         conn.row_factory = sqlite3.Row
@@ -526,7 +528,7 @@ class TestFTSSearch(unittest.TestCase):
             rows = conn.execute(
                 "SELECT COUNT(*) FROM stories s "
                 "JOIN stories_fts ON s.id = stories_fts.rowid "
-                "WHERE stories_fts MATCH 'vampire'"
+                "WHERE stories_fts MATCH 'vampire'",
             ).fetchone()[0]
             self.assertEqual(rows, 0)
 
@@ -534,7 +536,7 @@ class TestFTSSearch(unittest.TestCase):
             rows = conn.execute(
                 "SELECT s.title FROM stories s "
                 "JOIN stories_fts ON s.id = stories_fts.rowid "
-                "WHERE stories_fts MATCH 'werewolf'"
+                "WHERE stories_fts MATCH 'werewolf'",
             ).fetchall()
             self.assertEqual(len(rows), 1)
             self.assertEqual(rows[0]["title"], "Updated")
@@ -544,10 +546,10 @@ class TestFTSSearch(unittest.TestCase):
     def test_optimize_fts_all(self):
         from storybuilder.downloader import db
 
-        # Initialize with directory path
-        db.init_db(self.temp_dir)
+        # Initialize with monolithic database path
+        db.init_db(self.db_path)
 
-        # Insert stories to create multiple partition DBs
+        # Insert stories
         db.insert_story(
             output_path="nifty_stories/gay/adult-friends/story1.txt",
             title="2012 Story",
@@ -565,26 +567,11 @@ class TestFTSSearch(unittest.TestCase):
             content="Content for story 2.",
         )
 
-        # We need to simulate that `optimize_fts` will process all databases in `self.temp_dir`.
         db.optimize_fts()
 
-        # Since FTS optimization runs PRAGMA equivalent or just executes an INSERT on a virtual table,
-        # verifying execution isn't as simple as checking a flag. But we can ensure no errors are
-        # raised, and that we can still search afterwards.
-
-        conn1 = sqlite3.connect(os.path.join(self.temp_dir, "2012.db"))
-        row1 = conn1.execute(
-            "SELECT COUNT(*) FROM stories_fts WHERE stories_fts MATCH 'Content'"
-        ).fetchone()[0]
-        self.assertEqual(row1, 1)
-        conn1.close()
-
-        conn2 = sqlite3.connect(os.path.join(self.temp_dir, "2025.db"))
-        row2 = conn2.execute(
-            "SELECT COUNT(*) FROM stories_fts WHERE stories_fts MATCH 'Content'"
-        ).fetchone()[0]
-        self.assertEqual(row2, 1)
-        conn2.close()
+        # Verify search works after optimize
+        results = db.search_stories(fts_query="Content")
+        self.assertEqual(len(results), 2)
 
 
 class TestParseHeader(unittest.TestCase):
@@ -598,8 +585,7 @@ class TestParseHeader(unittest.TestCase):
 
     def _write_story_file(self, fname, content):
         path = os.path.join(self.temp_dir, fname)
-        with open(path, "w", encoding="utf-8") as f:
-            f.write(content)
+        Path(path).write_text(content, encoding="utf-8")
         return path
 
     def test_standard_header(self):
@@ -616,6 +602,7 @@ class TestParseHeader(unittest.TestCase):
         )
         path = self._write_story_file("test.txt", content)
         import import_to_sqlite
+
         result = import_to_sqlite.parse_header(path)
         self.assertIsNotNone(result)
         self.assertEqual(result["title"], "My Story")
@@ -636,6 +623,7 @@ class TestParseHeader(unittest.TestCase):
         )
         path = self._write_story_file("email.txt", content)
         import import_to_sqlite
+
         result = import_to_sqlite.parse_header(path)
         self.assertIsNotNone(result)
         self.assertEqual(result["title"], "Email Story")
@@ -644,6 +632,7 @@ class TestParseHeader(unittest.TestCase):
 
     def test_missing_file(self):
         import import_to_sqlite
+
         result = import_to_sqlite.parse_header("/nonexistent/file.txt")
         self.assertIsNone(result)
 
@@ -651,11 +640,13 @@ class TestParseHeader(unittest.TestCase):
         content = "Just plain text without any header markers.\n"
         path = self._write_story_file("noheader.txt", content)
         import import_to_sqlite
+
         result = import_to_sqlite.parse_header(path)
         self.assertIsNone(result)
 
     def test_minimal_header(self):
         import import_to_sqlite
+
         content = (
             "=" * 80 + "\n"
             "Title: Minimal\n"
@@ -671,6 +662,7 @@ class TestParseHeader(unittest.TestCase):
 
     def test_empty_content(self):
         import import_to_sqlite
+
         content = (
             "=" * 80 + "\n"
             "Title: Empty\n"
@@ -686,263 +678,100 @@ class TestParseHeader(unittest.TestCase):
         self.assertEqual(result["content"], "")
 
 
-class TestMultiDBConnect(unittest.TestCase):
-    """Tests for connect_multi in story_db.py."""
+class TestMonolithicDatabase(unittest.TestCase):
+    """Tests for monolithic SQLModel-based database in db.py."""
+
 
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
-
-    def tearDown(self):
-        shutil.rmtree(self.temp_dir, ignore_errors=True)
-
-    def _create_test_db(self, fname):
-        path = os.path.join(self.temp_dir, fname)
-        conn = sqlite3.connect(path)
-        conn.execute("""
-            CREATE TABLE stories (
-                id INTEGER PRIMARY KEY,
-                title TEXT,
-                word_count INTEGER
-            )
-        """)
-        conn.execute(
-            "INSERT INTO stories (title, word_count) VALUES (?, ?)", ("Story A", 100)
-        )
-        conn.commit()
-        conn.close()
-        return path
-
-    def test_connect_multi(self):
-        import story_db
-        self._create_test_db("db1.db")
-        self._create_test_db("db2.db")
-
-        conn, db_paths = story_db.connect_multi(self.temp_dir)
-        self.assertEqual(len(db_paths), 2)
-        self.assertTrue(any("db1.db" in p for p in db_paths))
-        self.assertTrue(any("db2.db" in p for p in db_paths))
-        conn.close()
-
-    def test_execute_all_partitions(self):
-        import storybuilder.downloader.db as sb_db
-
-        self._create_test_db("2020.db")
-        self._create_test_db("2021.db")
-
-        old_dir = sb_db._db_dir
-        old_part = sb_db._is_partitioned
-        sb_db._db_dir = self.temp_dir
-        sb_db._is_partitioned = True
-
-        try:
-            rows = sb_db.execute_all_partitions("SELECT COUNT(*) FROM {table}")
-            self.assertEqual(len(rows), 2)
-            # each partition has 1 row returning count=0 because tables are empty initially?
-            # actually we don't insert, so count is 0
-            self.assertEqual(rows[0]["COUNT(*)"], 1)
-        finally:
-            sb_db._db_dir = old_dir
-            sb_db._is_partitioned = old_part
-
-    def test_empty_dir_raises(self):
-        empty_dir = os.path.join(self.temp_dir, "empty")
-        os.makedirs(empty_dir)
-        with self.assertRaises(SystemExit):
-            import story_db
-            story_db.connect_multi(empty_dir)
-
-    def test_skips_stories_db(self):
-        import story_db
-        self._create_test_db("stories.db")  # should be skipped
-        self._create_test_db("real.db")
-
-        conn, db_paths = story_db.connect_multi(self.temp_dir)
-        self.assertEqual(len(db_paths), 1)  # only real.db
-        self.assertTrue(any("real.db" in p for p in db_paths))
-        conn.close()
-
-
-class TestDatabasePartitioning(unittest.TestCase):
-    """Tests for year-range partitioning in db.py."""
-
-    def setUp(self):
-        self.temp_dir = tempfile.mkdtemp()
+        self.db_path = os.path.join(self.temp_dir, "stories.db")
 
     def tearDown(self):
         from storybuilder.downloader import db
-
         db.close_db()
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def test_get_partition_path(self):
+    def test_init_db_creates_schema(self):
         from storybuilder.downloader import db
+        conn = db.init_db(self.db_path)
+        self.assertIsNotNone(conn)
 
-        # Force set the directory
-        db._db_dir = "/dummy/dir"
+        # Verify stories table exists
+        cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='stories'")
+        self.assertIsNotNone(cursor.fetchone())
 
-        # Strings
-        self.assertEqual(
-            os.path.basename(db.get_partition_path("1999-12-31")), "1999.db"
-        )
-        self.assertEqual(
-            os.path.basename(db.get_partition_path("2000-05-10")), "2000.db"
-        )
-        self.assertEqual(
-            os.path.basename(db.get_partition_path("2002-05-10")), "2002.db"
-        )
-        self.assertEqual(
-            os.path.basename(db.get_partition_path("2004-05-10")), "2004.db"
-        )
-        self.assertEqual(
-            os.path.basename(db.get_partition_path("2007-06-15")), "2007.db"
-        )
-        self.assertEqual(
-            os.path.basename(db.get_partition_path("2012-08-20")), "2012.db"
-        )
-        self.assertEqual(
-            os.path.basename(db.get_partition_path("2017-09-25")), "2017.db"
-        )
-        self.assertEqual(
-            os.path.basename(db.get_partition_path("2022-10-30")), "2022.db"
-        )
-        self.assertEqual(
-            os.path.basename(db.get_partition_path("2025-05-10")), "2025.db"
-        )
-        self.assertEqual(
-            os.path.basename(db.get_partition_path("2026-06-12")), "2026.db"
-        )
-        self.assertEqual(os.path.basename(db.get_partition_path("")), "unknown.db")
+        # Verify stories_fts exists
+        cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='stories_fts'")
+        self.assertIsNotNone(cursor.fetchone())
 
-        # datetime.date objects
-        import datetime
-
-        self.assertEqual(
-            os.path.basename(db.get_partition_path(datetime.date(1995, 1, 1))),
-            "1995.db",
-        )
-        self.assertEqual(
-            os.path.basename(db.get_partition_path(datetime.date(2025, 5, 10))),
-            "2025.db",
-        )
-        self.assertEqual(
-            os.path.basename(db.get_partition_path(datetime.date(2026, 6, 12))),
-            "2026.db",
-        )
-
-    def test_insert_story_partitioned(self):
+    def test_insert_and_retrieve_story(self):
         from storybuilder.downloader import db
+        db.init_db(self.db_path)
 
-        # Initialize with directory path
-        db.init_db(self.temp_dir)
-        self.assertTrue(db._is_partitioned)
-        self.assertEqual(db._db_dir, self.temp_dir)
-        self.assertIsNotNone(db.get_conn())
-
-        # Insert a 2012 story (should route to 2012.db)
         success = db.insert_story(
-            output_path="nifty_stories/gay/adult-friends/story1/story1.txt",
-            title="2012 Story",
-            author="Author One",
-            story_date="2012-05-14",
-            url="http://example.com/1",
-            content="Content for story 1.",
+            output_path="nifty_stories/gay/adult-friends/test-story.txt",
+            title="My Special Test Story",
+            author="Author Name <author@example.com>",
+            story_date="2026-07-05",
+            url="http://example.com/test",
+            content="This is the content of my special test story with unique word banana.",
         )
         self.assertTrue(success)
 
-        # Insert a 2025 story (should route to 2025.db)
-        success2 = db.insert_story(
-            output_path="nifty_stories/gay/college/story2/story2.txt",
-            title="2025 Story",
-            author="Author Two",
-            story_date="2025-05-10",
-            url="http://example.com/2",
-            content="Content for story 2.",
-        )
-        self.assertTrue(success2)
+        # Check story_exists
+        self.assertTrue(db.story_exists("nifty_stories/gay/adult-friends/test-story.txt"))
 
-        # Insert a 2026 story (should route to 2026.db)
-        success3 = db.insert_story(
-            output_path="nifty_stories/gay/college/story3/story3.txt",
-            title="2026 Story",
-            author="Author Three",
-            story_date="2026-06-12",
-            url="http://example.com/3",
-            content="Content for story 3.",
-        )
-        self.assertTrue(success3)
+        # Retrieve story
+        story = db.get_story("nifty_stories/gay/adult-friends/test-story.txt")
+        self.assertIsNotNone(story)
+        self.assertEqual(story["title"], "My Special Test Story")
+        self.assertEqual(story["author"], "Author Name <author@example.com>")
+        self.assertEqual(story["story_date"], "2026-07-05")
+        self.assertEqual(story["content"], "This is the content of my special test story with unique word banana.")
 
-        # Verify physical files are created in the folder
-        db1_path = os.path.join(self.temp_dir, "2012.db")
-        db2_path = os.path.join(self.temp_dir, "2025.db")
-        db3_path = os.path.join(self.temp_dir, "2026.db")
-        self.assertTrue(os.path.exists(db1_path))
-        self.assertTrue(os.path.exists(db2_path))
-        self.assertTrue(os.path.exists(db3_path))
-
-        # Query them directly to confirm the data was routed correctly
-        conn1 = sqlite3.connect(db1_path)
-        row1 = conn1.execute("SELECT title, content FROM stories").fetchone()
-        self.assertEqual(row1[0], "2012 Story")
-        self.assertEqual(row1[1], "Content for story 1.")
-        conn1.close()
-
-        conn2 = sqlite3.connect(db2_path)
-        row2 = conn2.execute("SELECT title, content FROM stories").fetchone()
-        self.assertEqual(row2[0], "2025 Story")
-        self.assertEqual(row2[1], "Content for story 2.")
-        conn2.close()
-
-        conn3 = sqlite3.connect(db3_path)
-        row3 = conn3.execute("SELECT title, content FROM stories").fetchone()
-        self.assertEqual(row3[0], "2026 Story")
-        self.assertEqual(row3[1], "Content for story 3.")
-        conn3.close()
-
-    def test_optimize_fts_all(self):
+    def test_execute_query(self):
         from storybuilder.downloader import db
-        # Initialize with directory path
-        db.init_db(self.temp_dir)
+        db.init_db(self.db_path)
 
-        # Insert stories to create multiple partition DBs
+
         db.insert_story(
-            output_path="nifty_stories/gay/adult-friends/story1.txt",
-            title="2012 Story",
-            author="Author One",
-            story_date="2012-05-14",
-            url="http://example.com/1",
-            content="Content for story 1.",
-        )
-        db.insert_story(
-            output_path="nifty_stories/gay/college/story2.txt",
-            title="2025 Story",
-            author="Author Two",
-            story_date="2025-05-10",
-            url="http://example.com/2",
-            content="Content for story 2.",
+            output_path="nifty_stories/gay/adult-friends/test-story.txt",
+            title="Test Story",
+            author="Author",
+            story_date="2026-07-05",
+            url="http://example.com",
+            content="Content",
         )
 
-        # We need to simulate that `optimize_fts` will process all databases in `self.temp_dir`.
-        db.optimize_fts()
+        rows = db.execute_query("SELECT COUNT(*) as cnt FROM {table}")
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["cnt"], 1)
 
-        # Since FTS optimization runs PRAGMA equivalent or just executes an INSERT on a virtual table,
-        # verifying execution isn't as simple as checking a flag. But we can ensure no errors are
-        # raised, and that we can still search afterwards.
+    def test_search_stories_fts(self):
+        from storybuilder.downloader import db
+        db.init_db(self.db_path)
+        db.insert_story(
+            output_path="nifty_stories/gay/adult-friends/test-story.txt",
+            title="Banana Story",
+            author="Monkey",
+            story_date="2026-07-05",
+            url="http://example.com",
+            content="Monkey loves eating fresh sweet banana fruit everyday.",
+        )
 
-        conn1 = sqlite3.connect(os.path.join(self.temp_dir, "2012.db"))
-        row1 = conn1.execute("SELECT COUNT(*) FROM stories_fts WHERE stories_fts MATCH 'Content'").fetchone()[0]
-        self.assertEqual(row1, 1)
-        conn1.close()
+        # Full-text search matching banana
+        results = db.search_stories(fts_query="banana", snippets=True)
+        self.assertEqual(len(results), 1)
+        self.assertIn("banana", results[0]["snippet"])
 
-        conn2 = sqlite3.connect(os.path.join(self.temp_dir, "2025.db"))
-        row2 = conn2.execute("SELECT COUNT(*) FROM stories_fts WHERE stories_fts MATCH 'Content'").fetchone()[0]
-        self.assertEqual(row2, 1)
-        conn2.close()
+
+
+
 
 class TestImportToSQLite(unittest.TestCase):
     def _write_story_file(self, filename, content):
         path = os.path.join(self.temp_dir, filename)
-        with open(path, "w", encoding="utf-8") as f:
-            f.write(content)
+        Path(path).write_text(content, encoding="utf-8")
         return path
 
     def setUp(self):
@@ -974,7 +803,10 @@ class TestImportToSQLite(unittest.TestCase):
         self.assertEqual(result["author_email"], "john@example.com")
         self.assertEqual(result["publication_date"], "2024-01-01")
         self.assertEqual(result["url"], "http://example.com/story")
-        self.assertEqual(result["content"], "This is the body of the story.\nIt has multiple lines.")
+        self.assertEqual(
+            result["content"], "This is the body of the story.\nIt has multiple lines.",
+
+        )
 
     def test_parse_header_missing_fields(self):
         import import_to_sqlite
@@ -1018,9 +850,7 @@ class TestImportToSQLite(unittest.TestCase):
             "Title: Minimal\n"
             "Author: Min\n"
             "Publication Date: 2024-01-01\n"
-            "URL: http://x.com\n"
-            + "=" * 80 + "\n\n"
-            + "body"
+            "URL: http://x.com\n" + "=" * 80 + "\n\n" + "body"
         )
         path = self._write_story_file("min.txt", content)
         result = import_to_sqlite.parse_header(path)
@@ -1036,12 +866,13 @@ class TestImportToSQLite(unittest.TestCase):
             "Title: Empty\n"
             "Author: Nobody\n"
             "Publication Date: 2024-01-01\n"
-            "URL: http://x.com\n"
-            + "=" * 80 + "\n\n"
+            "URL: http://x.com\n" + "=" * 80 + "\n\n"
         )
         path = self._write_story_file("empty.txt", content)
         result = import_to_sqlite.parse_header(path)
         self.assertIsNotNone(result)
         self.assertEqual(result["content"], "")
+
+
 if __name__ == "__main__":
     unittest.main()

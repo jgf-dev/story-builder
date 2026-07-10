@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from xai_sdk import Client
 from xai_sdk.sync.chat import Chat
 
+
 load_dotenv()
 
 client: Client = Client(

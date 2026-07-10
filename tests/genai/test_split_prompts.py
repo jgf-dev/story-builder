@@ -165,6 +165,9 @@ class TestDBIntegration(unittest.TestCase):
         self.db_path = "/tmp/test_downloader_integration.db"
         if os.path.exists(self.db_path):
             os.remove(self.db_path)
+        for ext in ['-wal', '-shm']:
+            if os.path.exists(self.db_path + ext):
+                os.remove(self.db_path + ext)
         init_db(self.db_path)
         # Ensure download simulation uses the test DB
         self.original_db_path = None
@@ -234,9 +237,12 @@ class TestDBIntegration(unittest.TestCase):
         self.patcher_get_subcats.stop()
         self.patcher_proc_subcat.stop()
         self.patcher_upload.stop()
+        close_db()
         if os.path.exists(self.db_path):
             os.remove(self.db_path)
-        close_db()
+        for ext in ['-wal', '-shm']:
+            if os.path.exists(self.db_path + ext):
+                os.remove(self.db_path + ext)
 
     def test_downloader_integration_saves_to_db(self):
         """Verify that downloader saves stories to the specified DB."""

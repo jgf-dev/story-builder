@@ -116,5 +116,9 @@
         ".",
         "--cache-mode=session"
     ],
-    "python.testing.autoTestDiscoverOnSaveEnabled": true
+    "python.testing.autoTestDiscoverOnSaveEnabled": true,
+    "sonarlint.connectedMode.project": {
+        "connectionId": "jgf-dev",
+        "projectKey": "jgf-dev_story-builder"
+    }
 }

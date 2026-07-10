@@ -3,6 +3,7 @@ import os
 import re
 import sqlite3
 import threading
+from logging import getLogger
 from pathlib import Path
 
 from sqlalchemy import func
@@ -169,32 +170,18 @@ def _parse_output_path(output_path: str) -> "tuple[str, str, str, int | None]":
     Path structure (5+ parts): <output_dir>/<orientation>/<category>/<story_slug>/<file>
     """
     parts = Path(output_path).parts
-    orientation = "gay"
-    category = ""
-    story_slug = ""
+    if len(parts) <= _MIN_PATH_PARTS:
+        message = f"Invalid output path: {output_path}. Must have at least 4 parts."
+        raise ValueError(message)
+
+    story_slug = parts[-2] if len(parts) >= _MIN_PATH_PARTS + 2 else Path(parts[-1]).stem
+
     chapter_num = None
 
-    filename = parts[-1]
-
-    if len(parts) >= 3:
-        orientation = parts[1]
-    if len(parts) >= 3:
-        category = parts[2]
-    if len(parts) >= 5:
-        story_slug = parts[3]
-    else:
-        story_slug = Path(filename).stem
-
-    m = _CHAPTER_SUFFIX_RE.match(filename)
-    if m:
+    if m := _CHAPTER_SUFFIX_RE.match(story_slug):
         chapter_num = int(m.group(2))
-    elif len(parts) >= 5:
-        base = Path(filename).stem
-        m2 = re.match(r"^.+?-(\d+)$", base)
-        if m2:
-            chapter_num = int(m2.group(1))
 
-    return orientation, category, story_slug, chapter_num
+    return _BASE_TOPIC, parts[_MIN_PATH_PARTS - 1], story_slug, chapter_num
 
 
 # -- Schema migrations --------------------------------------------------
@@ -327,63 +314,14 @@ def get_conn() -> "sqlite3.Connection | None":
     return _conn
 
 
-<<<<<<< HEAD
 def execute_query(sql: str, params: tuple = ()) -> list[dict]:
     """Execute a SELECT query against the monolithic database.
-=======
-# -- Partition Routing --------------------------------------------------
-
-
-def get_all_partition_paths() -> list[str]:
-    """Return paths of all partition databases.
-
-    Includes year partitions (e.g. ``2023.db``) as well as the ``unknown.db``
-    partition used for stories without a valid date (see get_partition_path).
-    Non-partition databases that may live in the same directory -- the
-    monolithic ``stories.db`` and the dashboard's ``dashboard_metadata.db``
-    (favorites/tags) -- are excluded since they lack the ``stories`` table
-    and partition queries should only touch partition files.
-    """
-    if not _db_dir or not _is_partitioned:
-        return []
-    import glob
-
-    excluded = {"stories.db", "dashboard_metadata.db"}
-    db_files = glob.glob(os.path.join(_db_dir, "*.db"))
-    return sorted(p for p in db_files if os.path.basename(p) not in excluded)
-
-
-import concurrent.futures
-
-
-def _execute_single_partition(args):
-    db_path, sql, params = args
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
-    try:
-        formatted_sql = sql.format(table="stories")
-        cursor = conn.execute(formatted_sql, params)
-        return [dict(r) for r in cursor.fetchall()]
-    except sqlite3.OperationalError as e:
-        print(f"Error executing across partition {db_path}: {e}")
-        return []
-    finally:
-        conn.close()
-
-
-def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
-    """Execute a SELECT query across all database partitions concurrently
-    using a ThreadPoolExecutor to improve latency.
-
-    The SQL must use {table} where the target table name goes.
->>>>>>> origin/bolt-parallelize-partitions-9285815848419465447
     Returns a list of dictionaries.
     """
     engine = _engine
     if not engine:
         return []
 
-<<<<<<< HEAD
     formatted_sql = sql.format(table="stories")
     with Session(engine) as session:
         try:
@@ -392,15 +330,6 @@ def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
         except Exception as e:
             std_logging.exception("Error executing query: %s", formatted_sql, exc_info=e)
             return []
-=======
-    all_rows = []
-    with concurrent.futures.ThreadPoolExecutor(
-        max_workers=min(len(db_paths), 10)
-    ) as executor:
-        args_list = [(path, sql, params) for path in db_paths]
-        for res in executor.map(_execute_single_partition, args_list):
-            all_rows.extend(res)
-
     return all_rows
 >>>>>>> origin/bolt-parallelize-partitions-9285815848419465447
 
@@ -479,7 +408,6 @@ def search_stories(
                 query_stmt = query_stmt.where(literal_column("stories_fts").op("MATCH")(fts_query))
                 query_stmt = query_stmt.order_by(literal_column("rank"))
                 query_stmt = query_stmt.limit(limit)
-=======
     if db_paths:
         if len(db_paths) == 1 and db_paths[0] is None:
             # Monolithic DB: no need for thread pool

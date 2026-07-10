@@ -1,320 +1,352 @@
+<!-- @format -->
+
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>StoryBuilder Task Dashboard</title>
-  <style>
-    :root {
-      --bg: #0b1020;
-      --panel: rgba(16, 24, 48, 0.92);
-      --panel-2: rgba(22, 34, 64, 0.92);
-      --text: #e8eefc;
-      --muted: #a9b6d8;
-      --accent: #7dd3fc;
-      --accent-2: #fbbf24;
-      --border: rgba(148, 163, 184, 0.22);
-      --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
-      --radius: 18px;
-      --radius-sm: 12px;
-      --ok: #34d399;
-    }
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>StoryBuilder Task Dashboard</title>
+		<style>
+			:root {
+				--bg: #0b1020;
+				--panel: rgba(16, 24, 48, 0.92);
+				--panel-2: rgba(22, 34, 64, 0.92);
+				--text: #e8eefc;
+				--muted: #a9b6d8;
+				--accent: #7dd3fc;
+				--accent-2: #fbbf24;
+				--border: rgba(148, 163, 184, 0.22);
+				--shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+				--radius: 18px;
+				--radius-sm: 12px;
+				--ok: #34d399;
+			}
 
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      color: var(--text);
-      font: 15px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background:
-        radial-gradient(circle at top left, rgba(125, 211, 252, 0.18), transparent 30%),
-        radial-gradient(circle at top right, rgba(251, 191, 36, 0.12), transparent 28%),
-        linear-gradient(180deg, #09101f 0%, #0b1020 100%);
-    }
+			* {
+				box-sizing: border-box;
+			}
+			body {
+				margin: 0;
+				min-height: 100vh;
+				color: var(--text);
+				font:
+					15px/1.5 Inter,
+					ui-sans-serif,
+					system-ui,
+					-apple-system,
+					BlinkMacSystemFont,
+					"Segoe UI",
+					sans-serif;
+				background:
+					radial-gradient(circle at top left, rgba(125, 211, 252, 0.18), transparent 30%),
+					radial-gradient(circle at top right, rgba(251, 191, 36, 0.12), transparent 28%),
+					linear-gradient(180deg, #09101f 0%, #0b1020 100%);
+			}
 
-    .shell {
-      max-width: 1180px;
-      margin: 0 auto;
-      padding: 32px 20px 48px;
-    }
+			.shell {
+				max-width: 1180px;
+				margin: 0 auto;
+				padding: 32px 20px 48px;
+			}
 
-    header {
-      display: grid;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
+			header {
+				display: grid;
+				gap: 12px;
+				margin-bottom: 20px;
+			}
 
-    .eyebrow {
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
-      font-size: 12px;
-      font-weight: 700;
-    }
+			.eyebrow {
+				color: var(--accent);
+				text-transform: uppercase;
+				letter-spacing: 0.16em;
+				font-size: 12px;
+				font-weight: 700;
+			}
 
-    h1 {
-      margin: 0;
-      font-size: clamp(2rem, 4vw, 3.6rem);
-      line-height: 1.02;
-      letter-spacing: -0.04em;
-    }
+			h1 {
+				margin: 0;
+				font-size: clamp(2rem, 4vw, 3.6rem);
+				line-height: 1.02;
+				letter-spacing: -0.04em;
+			}
 
-    .lede {
-      max-width: 72ch;
-      color: var(--muted);
-      margin: 0;
-    }
+			.lede {
+				max-width: 72ch;
+				color: var(--muted);
+				margin: 0;
+			}
 
-    .grid {
-      display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 20px;
-      align-items: start;
-    }
+			.grid {
+				display: grid;
+				grid-template-columns: 1.15fr 0.85fr;
+				gap: 20px;
+				align-items: start;
+			}
 
-    .card {
-      background: linear-gradient(180deg, var(--panel), rgba(10, 16, 32, 0.94));
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-    }
+			.card {
+				background: linear-gradient(180deg, var(--panel), rgba(10, 16, 32, 0.94));
+				border: 1px solid var(--border);
+				border-radius: var(--radius);
+				box-shadow: var(--shadow);
+				overflow: hidden;
+			}
 
-    .card .hd {
-      padding: 18px 20px 0;
-    }
+			.card .hd {
+				padding: 18px 20px 0;
+			}
 
-    .card h2 {
-      margin: 0 0 6px;
-      font-size: 1.05rem;
-      letter-spacing: -0.02em;
-    }
+			.card h2 {
+				margin: 0 0 6px;
+				font-size: 1.05rem;
+				letter-spacing: -0.02em;
+			}
 
-    .card p.sub {
-      margin: 0 0 16px;
-      color: var(--muted);
-      font-size: 0.95rem;
-    }
+			.card p.sub {
+				margin: 0 0 16px;
+				color: var(--muted);
+				font-size: 0.95rem;
+			}
 
-    .toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      padding: 0 20px 18px;
-    }
+			.toolbar {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 10px;
+				padding: 0 20px 18px;
+			}
 
-    button, .file-label {
-      border: 1px solid var(--border);
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--text);
-      border-radius: 999px;
-      padding: 10px 14px;
-      font: inherit;
-      cursor: pointer;
-      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
-    }
+			button,
+			.file-label {
+				border: 1px solid var(--border);
+				background: rgba(255, 255, 255, 0.05);
+				color: var(--text);
+				border-radius: 999px;
+				padding: 10px 14px;
+				font: inherit;
+				cursor: pointer;
+				transition:
+					transform 0.15s ease,
+					background 0.15s ease,
+					border-color 0.15s ease,
+					box-shadow 0.15s ease;
+			}
 
-    button:hover, .file-label:hover {
-      transform: translateY(-1px);
-      background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(125, 211, 252, 0.35);
-    }
+			button:hover,
+			.file-label:hover {
+				transform: translateY(-1px);
+				background: rgba(255, 255, 255, 0.08);
+				border-color: rgba(125, 211, 252, 0.35);
+			}
 
-    button:focus-visible,
-    input[type="file"]:focus-visible + .file-label {
-      outline: none;
-      box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--accent);
-    }
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
+			button:focus-visible,
+			input[type="file"]:focus-visible + .file-label {
+				outline: none;
+				box-shadow:
+					0 0 0 2px var(--panel),
+					0 0 0 4px var(--accent);
+			}
+			button:disabled {
+				opacity: 0.5;
+				cursor: not-allowed;
+				transform: none;
+				box-shadow: none;
+			}
 
-    .editor:focus-visible {
-      box-shadow: inset 0 0 0 1px var(--accent);
-    }
-    button.primary {
-      background: linear-gradient(180deg, rgba(125, 211, 252, 0.18), rgba(125, 211, 252, 0.08));
-      border-color: rgba(125, 211, 252, 0.35);
-    }
+			.editor:focus-visible {
+				box-shadow: inset 0 0 0 1px var(--accent);
+			}
+			button.primary {
+				background: linear-gradient(180deg, rgba(125, 211, 252, 0.18), rgba(125, 211, 252, 0.08));
+				border-color: rgba(125, 211, 252, 0.35);
+			}
 
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-    }
+			button:disabled {
+				opacity: 0.5;
+				cursor: not-allowed;
+				transform: none;
+			}
 
-    button:disabled:hover {
-      transform: none;
-      background: rgba(255, 255, 255, 0.05);
-      border-color: var(--border);
-    }
+			button:disabled:hover {
+				transform: none;
+				background: rgba(255, 255, 255, 0.05);
+				border-color: var(--border);
+			}
 
-    button.primary:disabled:hover {
-      background: linear-gradient(180deg, rgba(125, 211, 252, 0.18), rgba(125, 211, 252, 0.08));
-      border-color: rgba(125, 211, 252, 0.35);
-    }
+			button.primary:disabled:hover {
+				background: linear-gradient(180deg, rgba(125, 211, 252, 0.18), rgba(125, 211, 252, 0.08));
+				border-color: rgba(125, 211, 252, 0.35);
+			}
 
-    button.warn {
-      background: linear-gradient(180deg, rgba(251, 191, 36, 0.16), rgba(251, 191, 36, 0.08));
-      border-color: rgba(251, 191, 36, 0.32);
-    }
+			button.warn {
+				background: linear-gradient(180deg, rgba(251, 191, 36, 0.16), rgba(251, 191, 36, 0.08));
+				border-color: rgba(251, 191, 36, 0.32);
+			}
 
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border-width: 0;
-    }
+			.sr-only {
+				position: absolute;
+				width: 1px;
+				height: 1px;
+				padding: 0;
+				margin: -1px;
+				overflow: hidden;
+				clip: rect(0, 0, 0, 0);
+				white-space: nowrap;
+				border-width: 0;
+			}
 
-    .editor {
-      width: 100%;
-      min-height: 64vh;
-      border: 0;
-      outline: none;
-      resize: vertical;
-      padding: 18px 20px 20px;
-      background: transparent;
-      color: var(--text);
-      font: 14px/1.65 "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-      tab-size: 2;
-    }
+			.editor {
+				width: 100%;
+				min-height: 64vh;
+				border: 0;
+				outline: none;
+				resize: vertical;
+				padding: 18px 20px 20px;
+				background: transparent;
+				color: var(--text);
+				font:
+					14px/1.65 "SFMono-Regular",
+					Consolas,
+					"Liberation Mono",
+					Menlo,
+					monospace;
+				tab-size: 2;
+			}
 
-    .sidebar {
-      display: grid;
-      gap: 20px;
-    }
+			.sidebar {
+				display: grid;
+				gap: 20px;
+			}
 
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-      padding: 0 20px 20px;
-    }
+			.stats {
+				display: grid;
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+				gap: 12px;
+				padding: 0 20px 20px;
+			}
 
-    .stat {
-      background: var(--panel-2);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 14px;
-    }
+			.stat {
+				background: var(--panel-2);
+				border: 1px solid var(--border);
+				border-radius: var(--radius-sm);
+				padding: 14px;
+			}
 
-    .stat .k {
-      display: block;
-      color: var(--muted);
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 6px;
-    }
+			.stat .k {
+				display: block;
+				color: var(--muted);
+				font-size: 12px;
+				text-transform: uppercase;
+				letter-spacing: 0.08em;
+				margin-bottom: 6px;
+			}
 
-    .stat .v {
-      font-size: 1.25rem;
-      font-weight: 700;
-    }
+			.stat .v {
+				font-size: 1.25rem;
+				font-weight: 700;
+			}
 
-    .notes {
-      padding: 0 20px 20px;
-      display: grid;
-      gap: 12px;
-      color: var(--muted);
-    }
+			.notes {
+				padding: 0 20px 20px;
+				display: grid;
+				gap: 12px;
+				color: var(--muted);
+			}
 
-    .tip {
-      border-left: 3px solid rgba(125, 211, 252, 0.45);
-      padding: 10px 12px;
-      background: rgba(255, 255, 255, 0.03);
-      border-radius: 10px;
-    }
+			.tip {
+				border-left: 3px solid rgba(125, 211, 252, 0.45);
+				padding: 10px 12px;
+				background: rgba(255, 255, 255, 0.03);
+				border-radius: 10px;
+			}
 
-    .status {
-      padding: 0 20px 18px;
-      color: var(--ok);
-      min-height: 24px;
-      font-size: 0.95rem;
-    }
+			.status {
+				padding: 0 20px 18px;
+				color: var(--ok);
+				min-height: 24px;
+				font-size: 0.95rem;
+			}
 
-    .footer {
-      padding: 18px 20px 20px;
-      border-top: 1px solid var(--border);
-      color: var(--muted);
-      font-size: 0.92rem;
-    }
+			.footer {
+				padding: 18px 20px 20px;
+				border-top: 1px solid var(--border);
+				color: var(--muted);
+				font-size: 0.92rem;
+			}
 
-    @media (max-width: 960px) {
-      .grid { grid-template-columns: 1fr; }
-      .editor { min-height: 46vh; }
-    }
-  </style>
-</head>
-<body>
-  <div class="shell">
-    <header>
-      <div class="eyebrow">StoryBuilder Task Dashboard</div>
-      <h1>Track work in TASKS.md with a lightweight local board.</h1>
-      <p class="lede">
-        Load the task file, make edits, and save it back to disk. This file is intentionally self-contained so it works even when the packaged dashboard template is unavailable.
-      </p>
-    </header>
+			@media (max-width: 960px) {
+				.grid {
+					grid-template-columns: 1fr;
+				}
+				.editor {
+					min-height: 46vh;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<div class="shell">
+			<header>
+				<div class="eyebrow">StoryBuilder Task Dashboard</div>
+				<h1>Track work in TASKS.md with a lightweight local board.</h1>
+				<p class="lede">
+					Load the task file, make edits, and save it back to disk. This file is intentionally self-contained so it works even
+					when the packaged dashboard template is unavailable.
+				</p>
+			</header>
 
-    <div class="grid">
-      <section class="card">
-        <div class="hd">
-          <h2>TASKS.md Editor</h2>
-          <p class="sub">Open the workspace task board file, edit it directly, then save it back.</p>
-        </div>
-        <div class="toolbar">
-          <input id="fileInput" class="sr-only" type="file" accept=".md,text/markdown,text/plain">
-          <label class="file-label" for="fileInput">Load TASKS.md</label>
-          <button class="primary" id="saveBtn" title="No unsaved changes" aria-keyshortcuts="Control+S Meta+S" disabled>Save</button>
-          <button id="downloadBtn">Download Copy</button>
-          <button class="warn" id="resetBtn">Reset Template</button>
-        </div>
-        <textarea id="editor" class="editor" spellcheck="false" aria-label="TASKS.md Editor"></textarea>
-        <div id="status" class="status" role="status" aria-live="polite">Ready.</div>
-      </section>
+			<div class="grid">
+				<section class="card">
+					<div class="hd">
+						<h2>TASKS.md Editor</h2>
+						<p class="sub">Open the workspace task board file, edit it directly, then save it back.</p>
+					</div>
+					<div class="toolbar">
+						<input id="fileInput" class="sr-only" type="file" accept=".md,text/markdown,text/plain" />
+						<label class="file-label" for="fileInput">Load TASKS.md</label>
+						<button class="primary" id="saveBtn" title="No unsaved changes" aria-keyshortcuts="Control+S Meta+S" disabled>
+							Save
+						</button>
+						<button id="downloadBtn">Download Copy</button>
+						<button class="warn" id="resetBtn">Reset Template</button>
+					</div>
+					<textarea id="editor" class="editor" spellcheck="false" aria-label="TASKS.md Editor"></textarea>
+					<div id="status" class="status" role="status" aria-live="polite">Ready.</div>
+				</section>
 
-      <aside class="sidebar">
-        <section class="card">
-          <div class="hd">
-            <h2>Quick Stats</h2>
-            <p class="sub">Derived from the current file contents.</p>
-          </div>
-          <div class="stats">
-            <div class="stat"><span class="k">Active</span><span class="v" id="activeCount">0</span></div>
-            <div class="stat"><span class="k">Waiting</span><span class="v" id="waitingCount">0</span></div>
-            <div class="stat"><span class="k">Someday</span><span class="v" id="somedayCount">0</span></div>
-            <div class="stat"><span class="k">Done</span><span class="v" id="doneCount">0</span></div>
-          </div>
-        </section>
+				<aside class="sidebar">
+					<section class="card">
+						<div class="hd">
+							<h2>Quick Stats</h2>
+							<p class="sub">Derived from the current file contents.</p>
+						</div>
+						<div class="stats">
+							<div class="stat"><span class="k">Active</span><span class="v" id="activeCount">0</span></div>
+							<div class="stat"><span class="k">Waiting</span><span class="v" id="waitingCount">0</span></div>
+							<div class="stat"><span class="k">Someday</span><span class="v" id="somedayCount">0</span></div>
+							<div class="stat"><span class="k">Done</span><span class="v" id="doneCount">0</span></div>
+						</div>
+					</section>
 
-        <section class="card">
-          <div class="hd">
-            <h2>How To Use</h2>
-            <p class="sub">A quick reminder for the local workflow.</p>
-          </div>
-          <div class="notes">
-            <div class="tip">Load your `TASKS.md`, make changes, and hit Save.</div>
-            <div class="tip">If you want the full productivity setup, run `/productivity:start`.</div>
-            <div class="tip">Keep tasks in the exact markdown sections the shared task board expects.</div>
-          </div>
-          <div class="footer">
-            This dashboard does not depend on a server. It edits the file through the browser's file picker and download flow.
-          </div>
-        </section>
-      </aside>
-    </div>
-  </div>
+					<section class="card">
+						<div class="hd">
+							<h2>How To Use</h2>
+							<p class="sub">A quick reminder for the local workflow.</p>
+						</div>
+						<div class="notes">
+							<div class="tip">Load your `TASKS.md`, make changes, and hit Save.</div>
+							<div class="tip">If you want the full productivity setup, run `/productivity:start`.</div>
+							<div class="tip">Keep tasks in the exact markdown sections the shared task board expects.</div>
+						</div>
+						<div class="footer">
+							This dashboard does not depend on a server. It edits the file through the browser's file picker and download
+							flow.
+						</div>
+					</section>
+				</aside>
+			</div>
+		</div>
 
-  <script>
-    const template = `# Tasks
+		<script>
+			const template = `# Tasks
 
 ## Active
 
@@ -325,154 +357,151 @@
 ## Done
 `;
 
-    const editor = document.getElementById('editor');
-    const status = document.getElementById('status');
-    const fileInput = document.getElementById('fileInput');
-    const activeCount = document.getElementById('activeCount');
-    const waitingCount = document.getElementById('waitingCount');
-    const somedayCount = document.getElementById('somedayCount');
-    const doneCount = document.getElementById('doneCount');
-    const saveBtn = document.getElementById('saveBtn');
+			const editor = document.getElementById("editor");
+			const status = document.getElementById("status");
+			const fileInput = document.getElementById("fileInput");
+			const activeCount = document.getElementById("activeCount");
+			const waitingCount = document.getElementById("waitingCount");
+			const somedayCount = document.getElementById("somedayCount");
+			const doneCount = document.getElementById("doneCount");
+			const saveBtn = document.getElementById("saveBtn");
 
-    let currentFileName = 'TASKS.md';
-    let currentHandle = null;
-    let isDirty = null; // null so the first setDirty(false) goes through
+			let currentFileName = "TASKS.md";
+			let currentHandle = null;
+			let isDirty = null; // null so the first setDirty(false) goes through
 
-    function setDirty(dirty) {
-      if (isDirty === dirty) return;
-      isDirty = dirty;
-      saveBtn.disabled = !isDirty;
-      saveBtn.title = isDirty ? 'Save (Ctrl+S / Cmd+S)' : 'No unsaved changes';
-      if (isDirty) {
-        document.title = '* ' + document.title.replace(/^\*\s*/, '');
-      } else {
-        document.title = document.title.replace(/^\*\s*/, '');
-      }
-    }
-    function setStatus(message) {
-      status.textContent = message;
-    }
+			function setDirty(dirty) {
+				if (isDirty === dirty) return;
+				isDirty = dirty;
+				saveBtn.disabled = !isDirty;
+				saveBtn.title = isDirty ? "Save (Ctrl+S / Cmd+S)" : "No unsaved changes";
+				if (isDirty) {
+					document.title = "* " + document.title.replace(/^\*\s*/, "");
+				} else {
+					document.title = document.title.replace(/^\*\s*/, "");
+				}
+			}
+			function setStatus(message) {
+				status.textContent = message;
+			}
 
-    function countItems(text, sectionName) {
-      const regex = new RegExp(`^## ${sectionName}\\\\s*$([\\\\s\\\\S]*?)(?=^## |\\n?$)`, 'm');
-      const match = text.match(regex);
-      if (!match) return 0;
-      return match[1]
-        .split('\\n')
-        .filter((line) => /^- \\[[ x]\\]/.test(line.trim()))
-        .length;
-    }
+			function countItems(text, sectionName) {
+				const regex = new RegExp(`^## ${sectionName}\\\\s*$([\\\\s\\\\S]*?)(?=^## |\\n?$)`, "m");
+				const match = text.match(regex);
+				if (!match) return 0;
+				return match[1].split("\\n").filter((line) => /^- \\[[ x]\\]/.test(line.trim())).length;
+			}
 
-    function updateStats(text) {
-      activeCount.textContent = countItems(text, 'Active');
-      waitingCount.textContent = countItems(text, 'Waiting On');
-      somedayCount.textContent = countItems(text, 'Someday');
-      doneCount.textContent = countItems(text, 'Done');
-    }
+			function updateStats(text) {
+				activeCount.textContent = countItems(text, "Active");
+				waitingCount.textContent = countItems(text, "Waiting On");
+				somedayCount.textContent = countItems(text, "Someday");
+				doneCount.textContent = countItems(text, "Done");
+			}
 
-    function loadText(text, fileName = currentFileName) {
-      editor.value = text;
-      currentFileName = fileName;
-      updateStats(text);
-      setStatus(`Loaded ${fileName}.`);
-      setDirty(false);
-    }
+			function loadText(text, fileName = currentFileName) {
+				editor.value = text;
+				currentFileName = fileName;
+				updateStats(text);
+				setStatus(`Loaded ${fileName}.`);
+				setDirty(false);
+			}
 
-    async function saveViaHandle(handle, text) {
-      const writable = await handle.createWritable();
-      await writable.write(text);
-      await writable.close();
-      setDirty(false);
-    }
+			async function saveViaHandle(handle, text) {
+				const writable = await handle.createWritable();
+				await writable.write(text);
+				await writable.close();
+				setDirty(false);
+			}
 
-    fileInput.addEventListener('change', async () => {
-      const file = fileInput.files && fileInput.files[0];
-      if (!file) return;
-      currentHandle = null;
-      currentFileName = file.name || 'TASKS.md';
-      loadText(await file.text(), currentFileName);
-    });
+			fileInput.addEventListener("change", async () => {
+				const file = fileInput.files && fileInput.files[0];
+				if (!file) return;
+				currentHandle = null;
+				currentFileName = file.name || "TASKS.md";
+				loadText(await file.text(), currentFileName);
+			});
 
-    saveBtn.addEventListener('click', async () => {
-      if (!isDirty || saveBtn.disabled) return;
+			saveBtn.addEventListener("click", async () => {
+				if (!isDirty || saveBtn.disabled) return;
 
-      const originalText = saveBtn.textContent;
-      const originalTitle = saveBtn.title;
-      saveBtn.textContent = 'Saving...';
-      saveBtn.title = 'Saving in progress...';
-      saveBtn.disabled = true;
-      document.body.style.cursor = 'wait';
+				const originalText = saveBtn.textContent;
+				const originalTitle = saveBtn.title;
+				saveBtn.textContent = "Saving...";
+				saveBtn.title = "Saving in progress...";
+				saveBtn.disabled = true;
+				document.body.style.cursor = "wait";
 
-      try {
-        if (currentHandle && window.showSaveFilePicker) {
-          await saveViaHandle(currentHandle, editor.value);
-          setStatus(`Saved ${currentFileName}.`);
-          setDirty(false);
-          return;
-        }
+				try {
+					if (currentHandle && window.showSaveFilePicker) {
+						await saveViaHandle(currentHandle, editor.value);
+						setStatus(`Saved ${currentFileName}.`);
+						setDirty(false);
+						return;
+					}
 
-        const blob = new Blob([editor.value], { type: 'text/markdown;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = currentFileName || 'TASKS.md';
-        a.click();
-        URL.revokeObjectURL(url);
-        setStatus(`Downloaded ${a.download}.`);
-        setDirty(false);
-      } catch (error) {
-        setStatus(`Save failed: ${error.message}`);
-      } finally {
-        saveBtn.textContent = originalText;
-        // setDirty handles the disabled state and title, but in case of failure:
-        if (isDirty) {
-          saveBtn.title = originalTitle;
-          saveBtn.disabled = false;
-        }
-        document.body.style.cursor = '';
-      }
-    });
+					const blob = new Blob([editor.value], { type: "text/markdown;charset=utf-8" });
+					const url = URL.createObjectURL(blob);
+					const a = document.createElement("a");
+					a.href = url;
+					a.download = currentFileName || "TASKS.md";
+					a.click();
+					URL.revokeObjectURL(url);
+					setStatus(`Downloaded ${a.download}.`);
+					setDirty(false);
+				} catch (error) {
+					setStatus(`Save failed: ${error.message}`);
+				} finally {
+					saveBtn.textContent = originalText;
+					// setDirty handles the disabled state and title, but in case of failure:
+					if (isDirty) {
+						saveBtn.title = originalTitle;
+						saveBtn.disabled = false;
+					}
+					document.body.style.cursor = "";
+				}
+			});
 
-    document.getElementById('downloadBtn').addEventListener('click', () => {
-      const blob = new Blob([editor.value], { type: 'text/markdown;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = currentFileName || 'TASKS.md';
-      a.click();
-      URL.revokeObjectURL(url);
-      setStatus(`Downloaded ${a.download}.`);
-      setDirty(false);
-    });
+			document.getElementById("downloadBtn").addEventListener("click", () => {
+				const blob = new Blob([editor.value], { type: "text/markdown;charset=utf-8" });
+				const url = URL.createObjectURL(blob);
+				const a = document.createElement("a");
+				a.href = url;
+				a.download = currentFileName || "TASKS.md";
+				a.click();
+				URL.revokeObjectURL(url);
+				setStatus(`Downloaded ${a.download}.`);
+				setDirty(false);
+			});
 
-    document.getElementById('resetBtn').addEventListener('click', () => {
-      if (confirm('Reset the editor to the default TASKS.md template?')) {
-        currentHandle = null;
-        currentFileName = 'TASKS.md';
-        loadText(template, 'TASKS.md');
-      }
-    });
+			document.getElementById("resetBtn").addEventListener("click", () => {
+				if (confirm("Reset the editor to the default TASKS.md template?")) {
+					currentHandle = null;
+					currentFileName = "TASKS.md";
+					loadText(template, "TASKS.md");
+				}
+			});
 
-    editor.addEventListener('input', () => {
-      updateStats(editor.value);
-      setDirty(true);
-    });
+			editor.addEventListener("input", () => {
+				updateStats(editor.value);
+				setDirty(true);
+			});
 
-    window.addEventListener('beforeunload', (e) => {
-      if (isDirty) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    });
-    document.addEventListener('keydown', (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
-        e.preventDefault();
-        if (isDirty) {
-          saveBtn.click();
-        }
-      }
-    });
-    loadText(template, 'TASKS.md');
-  </script>
-</body>
+			window.addEventListener("beforeunload", (e) => {
+				if (isDirty) {
+					e.preventDefault();
+					e.returnValue = "";
+				}
+			});
+			document.addEventListener("keydown", (e) => {
+				if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+					e.preventDefault();
+					if (isDirty) {
+						saveBtn.click();
+					}
+				}
+			});
+			loadText(template, "TASKS.md");
+		</script>
+	</body>
 </html>

@@ -254,8 +254,8 @@ def _extract_db_year(pub_date: str | int | None) -> int:
     try:
         if pub_date and len(str(pub_date)) >= LONG_YEAR:
             return int(str(pub_date)[:4])
-    except (ValueError, TypeError):
-        pass
+    except (ValueError, TypeError) as exc:
+        logger.debug("Failed to extract year from publication_date=%r: %s", pub_date, exc)
     return 2026
 
 

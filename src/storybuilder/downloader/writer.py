@@ -157,7 +157,7 @@ def _replicate_story(primary_path, output_paths, story_date):
                 shutil.copy2(primary_path, extra_path)
             except Exception as e:
                 safe_print(
-                    f"Warning: Failed to copy {primary_path} to {extra_path}: {e}"
+                    f"Warning: Failed to copy {primary_path} to {extra_path}: {e}",
                 )
     else:
         # Retrieve from database and insert for duplicates

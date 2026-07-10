@@ -115,7 +115,7 @@ def process_story(filepath_str, collection_chunks, collection_averages, model):
             return False
 
         chunk_embeddings = model.encode(
-            chunks, convert_to_numpy=True, show_progress_bar=False
+            chunks, convert_to_numpy=True, show_progress_bar=False,
         )
         chunk_ids = [f"{filepath_str}_chunk_{i}" for i in range(len(chunks))]
         chunk_metadatas = [
@@ -148,7 +148,7 @@ def process_story(filepath_str, collection_chunks, collection_averages, model):
 def main():
     args = parse_args()
     chroma_client, collection_chunks, collection_averages = setup_collections(
-        args.db_path
+        args.db_path,
     )
 
     print(f"Loading SentenceTransformer model: {args.model}")

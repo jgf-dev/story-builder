@@ -276,7 +276,7 @@ def migrate_legacy_schema(conn: sqlite3.Connection) -> bool:
     try:
         conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('rebuild')")
     except sqlite3.OperationalError:
-        pass
+        logging.debug("Skipping FTS rebuild during legacy schema migration", exc_info=True)
     return True
 
 def _migrate_schema(conn: "sqlite3.Connection") -> None:

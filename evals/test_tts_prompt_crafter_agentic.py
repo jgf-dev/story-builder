@@ -173,6 +173,7 @@ class TestTTSPromptCrafterGreetings:
             f"  Overall score: {result.overall_score:.2f} (threshold: {result.threshold})\n"
             f"  Dimensions:\n"
             + "\n".join(f"    {s.dimension}: {s.score}/5.0 (weight: {s.weight})" for s in result.dimension_scores)
+
         )
 
 

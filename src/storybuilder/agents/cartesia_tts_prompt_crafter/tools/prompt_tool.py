@@ -2,6 +2,7 @@ import pathlib
 
 
 def save_prompts(prompts: list[str], file_path: str = "tts_prompts.txt") -> str:
+
     """Saves a list of TTS prompts to a specified text file.
 
     Args:

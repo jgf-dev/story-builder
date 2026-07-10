@@ -41,6 +41,7 @@ def render_read_story() -> None:
                         if not is_fav
                         else next(
                             (f["tags"] for f in favorites if f["story_path"] == story["path"]),
+
                             "",
                         ),
                     )
@@ -50,6 +51,7 @@ def render_read_story() -> None:
                         if not is_fav
                         else next(
                             (f["notes"] or "" for f in favorites if f["story_path"] == story["path"]),
+
                             "",
                         ),
                     )
@@ -99,6 +101,7 @@ def render_read_story() -> None:
 
             st.write(
                 f"**Category:** `{story['category']}` | **Published:** `{story['publication_date'] or 'Unknown'}` | **Words:** `{story['word_count']:,}`",
+
             )
             st.markdown("---")
 

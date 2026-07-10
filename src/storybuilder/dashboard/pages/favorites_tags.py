@@ -13,6 +13,7 @@ def render_favorites_tags() -> None:
     favorites = get_favorites()
     if not favorites:
         st.info("You haven't bookmarked any stories yet. Read a story and add it to favorites!")
+
     else:
         # Get unique tags
         all_tags = set()
@@ -63,6 +64,7 @@ def render_favorites_tags() -> None:
                 safe_fav_author = html.escape(f["author"] or "Unknown")
                 safe_fav_tags = html.escape(f["tags"] or "None")
                 safe_fav_notes = html.escape(f["notes"] or "None")
+
                 st.markdown(
                     f"""
                     <div class='story-card'>
@@ -82,6 +84,7 @@ def render_favorites_tags() -> None:
                         st.session_state.selected_story_path = f["story_path"]
                         st.session_state.selected_story_year = db_year
                         st.session_state["nav_page"] = "📖 Read Story"
+
                         st.query_params["nav_page"] = "📖 Read Story"
                         st.rerun()
                 st.write("")

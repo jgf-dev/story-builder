@@ -27,9 +27,7 @@ coverage.xml
 dummy_stories/
 benchmark.db
 .context-engine/git_history_cache.json
-dummy_stories/
 .kanban.db
-test_dbs/
 *.db.sql
 
 # Agent scratch folders
@@ -38,8 +36,10 @@ test_dbs/
 .jules
 .hermes
 .cursor
-
 # Temp folders
 .context-engine
 .bt
 test.db
+gh_2.40.1_linux_amd64/
+
+*.diff

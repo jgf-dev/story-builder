@@ -47,6 +47,7 @@ def discover_eval_sets(agent_dir: Path) -> list[Path]:
 def load_eval_set(eval_set_path: Path) -> dict:
     """Load an ADK eval set JSON file."""
     with Path(eval_set_path).open() as f:
+
         return json.load(f)
 
 
@@ -55,6 +56,7 @@ def print_eval_set_summary(eval_set: dict) -> None:
     name = eval_set.get("name", eval_set.get("eval_set_id", "unknown"))
     cases = eval_set.get("eval_cases", [])
     print(f"\n{'=' * 60}")
+
     print(f"Eval Set: {name}")
     print(f"  Cases: {len(cases)}")
     for i, case in enumerate(cases):
@@ -117,6 +119,7 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
                     num_runs=1,
                     print_detailed_results=verbose,
                 ),
+
             )
 
             # Print results summary
@@ -131,6 +134,7 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
                         score = getattr(metric, "score", None)
                         status = getattr(metric, "eval_status", None)
                         status_label = {1: "PASS", 2: "FAIL", 3: "SKIP", 4: "ERROR"}.get(status, str(status or "?"))
+
                         if score is not None:
                             print(f"    {metric_name}: {score:.4f} [{status_label}]")
                         else:
@@ -259,6 +263,7 @@ def main():
             eval_set = load_eval_set(eval_path)
             issues = validate_eval_set_structure(eval_set, str(eval_path))
             print(f"\n{'=' * 60}")
+
             print(f"File: {eval_path.relative_to(PROJECT_ROOT)}")
             print(f"  Cases: {len(eval_set.get('eval_cases', []))}")
             if issues:

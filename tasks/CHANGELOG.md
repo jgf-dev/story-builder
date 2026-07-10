@@ -1,4 +1,14 @@
 ---
+
+## 10/07/2026
+
+### Resolved multi-branch merge conflicts (cloud-output-adapters + parallelize-partitions)
+
+- **storage.py**: Merged both branches — adopted `upload_many_gcs` (renamed from `upload_many`) and added new `upload_many_s3` + `_upload_single_s3` from the cloud-output-adapters branch. Added type hints and docstrings.
+- **test_split_prompts.py**: Updated mock target from `upload_many` to `upload_many_gcs` to match `cli.py` imports.
+- **test_tts_pipeline.py**: Resolved 12 conflict regions — kept `get_gemini_api_keys` (matching current `client.py`), used `Path`-based operations, consistent variable naming (`configured_api_keys`, `completed_files`), and added return type hints.
+- **db.py**: No conflict markers (already resolved), staged as-is.
+- All 15 tests pass. Ran `ruff check --fix` (64 auto-fixes) and `ruff format`.
 title: Storybuilder dev changelog
 description: Explanantion of changes per commits
 ---
@@ -10,6 +20,12 @@ description: Explanantion of changes per commits
 - Config files: Maintained local space indentation, dependency overrides (`sqlmodel`), and integrations (Linear, SonarLint) from HEAD.
 - Monolithic DB preservation: Kept the monolithic database architecture (`stories.db`) and SQLModel refactoring from HEAD, rejecting the incoming branch's legacy database partitioning.
 - Verified and formatted: All 169 unit tests passed successfully, and files were styled with `ruff format`.
+
+### Resolved merge conflicts on branch implement-cloud-output-adapters
+
+- dependencies: Merged updated project dependencies from HEAD with `boto3` support from the incoming branch to enable S3 storage adapters.
+- dashboard layout: Kept the thin launcher design of `dashboard.py` from HEAD, removing duplicate legacy stats rendering blocks.
+- tests and utility files: Resolved speech config test and storage utility conflicts by retaining GCS and S3 capability updates, completing the git merge smoothly.
 
 ## 04/07/2026
   
@@ -27,6 +43,15 @@ Preventing any resource leaks in long-running processes like the Streamlit works
 - Cursor Cleanup in  _search_single_db : Added the same resource cleanup for the SQLite cursor created during concurrent/monolithic partition searches in the_search_single_db  helper in db.py.
 
 ### hardened the monolithic mode thread-safety by implementing per-call read connections for concurrent read tasks
+
+### updated both search and execution functions in  src/storybuilder/downloader/db.py  to ensure that SQLite cursors are explicitly closed 
+
+Preventing any resource leaks in long-running processes like the Streamlit workspace dashboard.
+
+- Cursor Cleanup in  _execute_single_db : Added a  cursor = None  declaration and an explicit  cursor.close()  check inside the  finally  block of the  _execute_single_db  helper in db.py.
+- Cursor Cleanup in  _search_single_db : Added the same resource cleanup for the SQLite cursor created during concurrent/monolithic partition searches in the  _search_single_db  helper in db.py.
+
+### hardened the monolithic mode thread-safety by implementing per-call read connections for concurrent read tasks.
   
   Here is a summary of the changes:
   
@@ -38,6 +63,8 @@ Preventing any resource leaks in long-running processes like the Streamlit works
   4. Cleanup: Updated db.py to reset  _monolithic_db_path  to  None .
   
   These changes completely prevent concurrent read threads from using the shared write connection ( _conn ), safely resolving the thread-safety issue without any blocking overhead (since SQLite WAL mode natively supports
+
+  These changes completely prevent concurrent read threads from using the shared write connection ( _conn ), safely resolving the thread-safety issue without any blocking overhead (since SQLite WAL mode natively supports         
   concurrent reader connections).
 
 ### The reason the search results were not displaying is due to a **Streamlit module caching behavior**
@@ -48,10 +75,13 @@ Preventing any resource leaks in long-running processes like the Streamlit works
 - However, Streamlit **caches all imported submodules** (such as `storybuilder.dashboard.data` or `storybuilder.dashboard.pages.*`) inside memory and does not automatically reload them when they are modified.
 - As a result, the active Streamlit process was still running the older version of the refactored code (which was missing the database partition engine initialization) even after we fixed it in `data.py`.
 
+* When you run a Streamlit server, it watches the main entry point script ([dashboard.py](file:///home/jgf2/git/voice/story-builder/scripts/dashboard.py)) for file changes and reruns it.
+* However, Streamlit **caches all imported submodules** (such as `storybuilder.dashboard.data` or `storybuilder.dashboard.pages.*`) inside memory and does not automatically reload them when they are modified.
+* As a result, the active Streamlit process was still running the older version of the refactored code (which was missing the database partition engine initialization) even after we fixed it in `data.py`.
+
 ### The Fix
 
 1. We modified [`dashboard.py`](file:///home/jgf2/git/voice/story-builder/scripts/dashboard.py) to explicitly reload all of its custom dashboard package dependencies on rerun:
-
    ```python
    import importlib
    import sys
@@ -60,7 +90,6 @@ Preventing any resource leaks in long-running processes like the Streamlit works
        importlib.reload(sys.modules["storybuilder.dashboard.data"])
    # ... [reloads config, sidebar, and pages similarly]
    ```
-
 2. Removed all temporary debugging logging files.
 3. Verified the changes: all 172 tests still pass perfectly.
 
@@ -104,3 +133,13 @@ uv run ruff check <resolved_files>
 ```
 
 * **Result**: All resolved files are completely clean and lint-free.
+
+## 10/07/2026
+
+### Resolved Merge Conflicts between fix/summary-workflow-ai-improve-title and topic/cleanup
+
+- **Monolithic Database Consolidation**: Maintained monolithic SQLModel database architecture (`stories.db`) and removed all year-partitioned database code conflicts from `db.py`, `story_db.py`, tests, and the Streamlit dashboard components.
+- **Code Health Integrations**: Integrated the Edge debugging configurations in `.vscode/launch.json`, new ADK evaluation framework files under `evals/`, dependency updates (`streamlit>=1.59.0`, `tqdm>=4.68.4`), and clean path handling (`Path.stem` instead of `os.path`) in `test_tts_pipeline.py`.
+- **Validation**: All 169 unit tests passed successfully.
+
+Please refresh/reload your browser tab running the Streamlit app. This will force a script rerun, which now dynamically reloads all submodules, initializes the database partition engine, and displays the stories.

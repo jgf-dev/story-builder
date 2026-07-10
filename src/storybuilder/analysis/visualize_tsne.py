@@ -103,7 +103,7 @@ def create_and_save_plot(
 
     fig.update_traces(marker=dict(size=8, line=dict(width=1, color="DarkSlateGrey")))
 
-    df = pd.DataFrame(
+    df = pd.DataFrame.from_records(
         {
             "x": embeddings_2d[:, 0],
             "y": embeddings_2d[:, 1],

@@ -43,17 +43,14 @@ def _parse_voice_mappings(markdown_content):
                 speaker_to_voice[speaker] = voice
                 if speaker not in speakers:
                     speakers.append(speaker)
-    # Always return the transcript as text (possibly empty). Tests expect an
-    # empty string when only mappings are present in the preamble.
     transcript_text = transcript.strip() if isinstance(transcript, str) else ""
-    return speaker_to_voice, transcript_text
+    return speaker_to_voice, speakers, transcript_text
 
 
 def _extract_active_speakers(transcript):
     """Extracts active speakers actually speaking in the transcript in order of appearance."""
     active_speakers = []
     if isinstance(transcript, list):
-        # We got the speakers list back instead of a text transcript
         return transcript
     for line in transcript.split("\n"):
         line = line.strip()
@@ -73,21 +70,17 @@ def _build_speech_config(active_speakers, speaker_to_voice):
         if sp in speaker_to_voice:
             speech_config.append({"speaker": sp, "voice": speaker_to_voice[sp]})
         else:
-            # Fallback if an active speaker has no voice defined
             speech_config.append({"speaker": sp, "voice": "Kore"})
         if len(speech_config) == 2:
             break
 
-    # If the transcript doesn't have active speakers, fallback to the preamble's first defined speakers
     if not speech_config:
         for sp, vc in list(speaker_to_voice.items())[:2]:
             speech_config.append({"speaker": sp, "voice": vc})
 
-    # Final validation/padding
     if not speech_config:
         speech_config.append({"voice": "Kore"})
     elif len(speech_config) == 1:
-        # Force multi-speaker mode by padding with a dummy speaker to prevent 400 Invalid Input errors
         speech_config.append({"speaker": "Dummy", "voice": "Puck"})
 
     return speech_config
@@ -95,13 +88,8 @@ def _build_speech_config(active_speakers, speaker_to_voice):
 
 def parse_speech_config(markdown_content):
     """Parses the markdown content to extract speakers and voices, dynamically matching active speakers in the transcript."""
-    # 1. Parse all voice mappings defined in the preamble
-    speaker_to_voice, transcript = _parse_voice_mappings(markdown_content)
-
-    # 2. Extract active speakers actually speaking in the transcript (in order of appearance)
+    speaker_to_voice, speakers, transcript = _parse_voice_mappings(markdown_content)
     active_speakers = _extract_active_speakers(transcript)
-
-    # 3. Build speech_config using the active speakers
     return _build_speech_config(active_speakers, speaker_to_voice)
 
 

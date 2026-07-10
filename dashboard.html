@@ -273,7 +273,7 @@
         <div class="toolbar">
           <input id="fileInput" class="sr-only" type="file" accept=".md,text/markdown,text/plain">
           <label class="file-label" for="fileInput">Load TASKS.md</label>
-          <button class="primary" id="saveBtn" title="Save (Ctrl+S / Cmd+S)" aria-keyshortcuts="Control+S Meta+S" disabled>Save</button>
+          <button class="primary" id="saveBtn" title="No unsaved changes" aria-keyshortcuts="Control+S Meta+S" disabled>Save</button>
           <button id="downloadBtn">Download Copy</button>
           <button class="warn" id="resetBtn">Reset Template</button>
         </div>
@@ -342,6 +342,7 @@
       if (isDirty === dirty) return;
       isDirty = dirty;
       saveBtn.disabled = !isDirty;
+      saveBtn.title = isDirty ? 'Save (Ctrl+S / Cmd+S)' : 'No unsaved changes';
       if (isDirty) {
         document.title = '* ' + document.title.replace(/^\*\s*/, '');
       } else {
@@ -396,7 +397,9 @@
       if (!isDirty || saveBtn.disabled) return;
 
       const originalText = saveBtn.textContent;
+      const originalTitle = saveBtn.title;
       saveBtn.textContent = 'Saving...';
+      saveBtn.title = 'Saving in progress...';
       saveBtn.disabled = true;
       document.body.style.cursor = 'wait';
 
@@ -404,7 +407,7 @@
         if (currentHandle && window.showSaveFilePicker) {
           await saveViaHandle(currentHandle, editor.value);
           setStatus(`Saved ${currentFileName}.`);
-          saveBtn.textContent = originalText;
+          setDirty(false);
           return;
         }
 
@@ -421,7 +424,11 @@
         setStatus(`Save failed: ${error.message}`);
       } finally {
         saveBtn.textContent = originalText;
-        saveBtn.disabled = !isDirty;
+        // setDirty handles the disabled state and title, but in case of failure:
+        if (isDirty) {
+          saveBtn.title = originalTitle;
+          saveBtn.disabled = false;
+        }
         document.body.style.cursor = '';
       }
     });

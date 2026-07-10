@@ -81,14 +81,9 @@ class TestTTSPipeline(unittest.TestCase):
             generated = []
 
             for i, md_file in enumerate(self.prompt_files):
-<<<<<<< HEAD
                 base_name = os.path.basename(md_file).replace("-part.md", "")
                 wav_file = os.path.join(tmp_dir, f"{base_name}.wav")
 
-=======
-                base_name = os.path.splitext(os.path.basename(md_file))[0]
-                wav_file = os.path.join(tmp_dir, f"{base_name}.wav")
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
                 # Sanitize voice names to valid Gemini voices for the integration test
                 with open(md_file, "r", encoding="utf-8") as f:
                     content = f.read()

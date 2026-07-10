@@ -70,7 +70,6 @@ def main() -> None:
 if __name__ == "__main__":
     main()
 
-<<<<<<< HEAD
 # Inject custom CSS for premium design
 st.markdown(
     """
@@ -550,8 +549,6 @@ if page == "🔍 Search & Explorer":
         if res.get("snippet"):
 <<<<<<< HEAD
             # Escape the snippet first, then replace the placeholder highlight markers with actual HTML span tags
-=======
->>>>>>> fix-failing-tests-16749664909518946067
             snippet_escaped = html.escape(res["snippet"])
             snippet_cleaned = snippet_escaped.replace("___HIGHLIGHT_START___", "<span class='highlight'>").replace("___HIGHLIGHT_END___", "</span>")
             card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"

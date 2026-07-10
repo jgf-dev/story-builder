@@ -1,0 +1,11 @@
+# EditorConfig is awesome: http://EditorConfig.org
+
+root = true
+
+[*]
+indent_style = tabs
+trim_trailing_whitespace = true
+insert_final_newline = true
+end_of_line = lf
+tab_width = 4
+use_tabs = true

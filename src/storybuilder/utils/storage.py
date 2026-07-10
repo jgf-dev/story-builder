@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(format="%(message)s", level=logging.INFO)
 
 
+
 def get_hf_client(token: str = "HF_TOKEN") -> HfApi:  # noqa
     """
     Get a Hugging Face Hub client.
@@ -94,6 +95,7 @@ def upload_directory_to_hf(
             if path.is_file():
                 rel_path = path.relative_to(directory_path)
                 target_path = f"{path_in_repo}/{rel_path}" if path_in_repo else str(rel_path)
+
                 additions.append((path, target_path))
 
         if len(additions) == 0:

@@ -68,6 +68,7 @@ def get_filter_options() -> tuple[list[str], list[str]]:
 
     # Get unique categories
     cat_results = storybuilder_db.execute_query("SELECT DISTINCT category FROM {table}")
+
     for r in cat_results:
         if r.get("category"):
             categories.add(r["category"])
@@ -82,6 +83,7 @@ def get_filter_options() -> tuple[list[str], list[str]]:
 
 
 # ── Archive-stats helpers ───────────────────────────────────────────────
+
 
 
 def _init_aggregators() -> dict:
@@ -104,6 +106,7 @@ def _format_stats_dataframes(ag: dict) -> tuple[pd.DataFrame, pd.DataFrame, pd.D
     df_auths = pd.DataFrame(list(ag["author_counts"].items()), columns=["Author", "Count"]).sort_values(
         "Count",
         ascending=False,
+
     )
     df_words = pd.DataFrame(
         [
@@ -201,6 +204,7 @@ class StorySearchQuery:
 def _resolve_entity_suffixes(
     entity_text: str,
     entity_label: str,
+
 ) -> list[str] | None:
     """Query NLP database for story-path suffixes matching entity text + label.
 
@@ -253,6 +257,7 @@ def _extract_db_year(pub_date: str | int | None) -> int:
 def _filter_by_entity_suffixes(
     results: list[dict],
     entity_suffixes: list[str] | None,
+
 ) -> list[dict]:
     """Remove results whose path doesn't match any entity suffix."""
     if entity_suffixes is None:
@@ -302,6 +307,7 @@ def query_stories(
     date_from, date_to = _build_date_range(params.year_range)
 
     raw_results = storybuilder_db.search_stories(
+
         fts_query=params.fts_query,
         category=params.category,
         author=params.author,
@@ -334,6 +340,7 @@ def get_story_by_path(story_path: str, db_year: int | str | None = None) -> dict
     except Exception:
         logger.exception("Failed to retrieve story by path: %s", story_path)
         return None
+
 
 
 # ------------------------------------------------------------------------------

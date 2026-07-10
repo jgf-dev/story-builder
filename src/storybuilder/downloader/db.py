@@ -1,4 +1,5 @@
 import logging as std_logging
+
 import os
 import re
 import sqlite3
@@ -14,6 +15,7 @@ from sqlmodel import SQLModel
 from sqlmodel import create_engine
 from sqlmodel import select
 from sqlmodel import text
+
 
 
 logging = getLogger(__name__)
@@ -146,6 +148,8 @@ _lock = threading.Lock()
 _EMAIL_AUTHOR_RE = re.compile(r"^(.+?)\s*<([^>]+)>\s*$")
 _CHAPTER_SUFFIX_RE = re.compile(r"^(.+?)-(\d+)$")
 
+
+
 # -- Author parsing -----------------------------------------------------
 
 
@@ -172,30 +176,19 @@ def _parse_output_path(output_path: str) -> "tuple[str, str, str, int | None]":
     Path structure (5+ parts): <output_dir>/<orientation>/<category>/<story_slug>/<file>
     """
     parts = Path(output_path).parts
-    orientation = "gay"
-    category = ""
-    story_slug = ""
+    if len(parts) < _MIN_PATH_PARTS:
+        message = f"Invalid output path: {output_path}. Must have at least {_MIN_PATH_PARTS} parts."
+        raise ValueError(message)
+
+    orientation = parts[1].lower()
+    category = parts[_MIN_PATH_PARTS - 1]
+    story_slug = parts[-2] if len(parts) >= _MIN_PATH_PARTS + 2 else Path(parts[-1]).stem
+
     chapter_num = None
-
-    filename = parts[-1]
-
-    if len(parts) >= 3:
-        orientation = parts[1]
-    if len(parts) >= 3:
-        category = parts[2]
-    if len(parts) >= 5:
-        story_slug = parts[3]
-    else:
-        story_slug = Path(filename).stem
-
-    m = _CHAPTER_SUFFIX_RE.match(filename)
-    if m:
+    if m := _CHAPTER_SUFFIX_RE.match(story_slug):
         chapter_num = int(m.group(2))
-    elif len(parts) >= 5:
-        base = Path(filename).stem
-        m2 = re.match(r"^.+?-(\d+)$", base)
-        if m2:
-            chapter_num = int(m2.group(1))
+    elif m := _CHAPTER_SUFFIX_RE.match(Path(parts[-1]).stem):
+        chapter_num = int(m.group(2))
 
     return orientation, category, story_slug, chapter_num
 
@@ -282,6 +275,7 @@ def migrate_legacy_schema(conn: sqlite3.Connection) -> bool:
         logging.debug("Skipping stories_fts rebuild during migration: %s", exc)
 
 
+
 def _migrate_schema(conn: "sqlite3.Connection") -> None:
     """Apply schema migrations to an existing partition or database file."""
     migrate_legacy_schema(conn)
@@ -294,6 +288,7 @@ def init_db(db_path: str) -> "sqlite3.Connection":
     """Initialize the database (idempotent). Returns the connection."""
     global _conn, _is_partitioned, _db_dir, _monolithic_db_path, _engine, _db_path_global
 
+
     is_dir = Path(db_path).is_dir() or (not db_path.endswith(".db") and not Path(db_path).suffix)
 
     if is_dir:
@@ -302,6 +297,7 @@ def init_db(db_path: str) -> "sqlite3.Connection":
     else:
         Path(os.path.dirname(db_path) or ".").mkdir(exist_ok=True, parents=True)
         resolved_path = db_path
+
 
     _is_partitioned = False
     _db_dir = os.path.dirname(resolved_path)
@@ -350,6 +346,7 @@ def execute_query(sql: str, params: tuple = ()) -> list[dict]:
 
 
 def search_stories(
+
     fts_query: str = "",
     category: "str | None" = None,
     author: "str | None" = None,
@@ -372,6 +369,7 @@ def search_stories(
     engine = _engine
     if not engine:
         return []
+
 
     with Session(engine) as session:
         try:
@@ -471,6 +469,7 @@ def search_stories(
             return []
 
 
+
 # -- Insert -------------------------------------------------------------
 
 
@@ -534,6 +533,7 @@ def insert_story(
             session.rollback()
             message = "Unexpected error inserting story at %{message}: "
             std_logging.exception(message, output_path, exc_info=e)
+
             return False
 
 
@@ -594,6 +594,7 @@ def optimize_fts() -> None:
 
 def close_db() -> None:
     global _conn, _engine, _is_partitioned, _db_dir, _monolithic_db_path, _db_path_global
+
     with _lock:
         if _conn is not None:
             _conn.close()
@@ -603,3 +604,4 @@ def close_db() -> None:
         _db_dir = None
         _monolithic_db_path = None
         _db_path_global = None
+

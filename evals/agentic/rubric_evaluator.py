@@ -7,6 +7,7 @@ configurable rubrics. Supports LLM-as-judge and deterministic scorers.
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass
+
 from typing import Any
 
 
@@ -122,6 +123,7 @@ class RubricEvaluator:
                     reason=f"Override scorer for '{dim.name}' to get detailed feedback",
                     details={"criterion_description": dim.description},
                 ),
+
             )
 
         overall_score = sum(s.weighted_score for s in dimension_scores)
@@ -174,6 +176,7 @@ on a scale of 1 (worst) to 5 (best).
 Task: {context.get("task", "N/A")}
 
 Agent Response: {context.get("response", "N/A")}
+
 
 Return only a number from 1 to 5."""
         try:

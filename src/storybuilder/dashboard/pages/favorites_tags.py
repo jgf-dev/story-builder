@@ -5,6 +5,7 @@ import streamlit as st
 from storybuilder.dashboard.data import get_favorites
 
 
+
 def render_favorites_tags() -> None:
     """Render the Favorites & Tags page."""
     st.title("⭐ Favorites & Tags")
@@ -13,6 +14,7 @@ def render_favorites_tags() -> None:
     favorites = get_favorites()
     if not favorites:
         st.info("You haven't bookmarked any stories yet. Read a story and add it to favorites!")
+
     else:
         # Get unique tags
         all_tags = set()
@@ -22,6 +24,7 @@ def render_favorites_tags() -> None:
 
         # Tag filter selector
         filter_tag = st.selectbox("Filter Favorites by Tag", ["All"] + sorted(list(all_tags)))
+
 
         st.write("---")
         # Expected optimization impact: Resolving N favorite stories in M year partitions
@@ -48,6 +51,7 @@ def render_favorites_tags() -> None:
             except Exception as e:
                 st.warning(f"Could not resolve story paths from database: {e}")
 
+
         # Display favorites
         for f in favorites:
             # Filter by tag if needed
@@ -63,6 +67,7 @@ def render_favorites_tags() -> None:
                 safe_fav_author = html.escape(f["author"] or "Unknown")
                 safe_fav_tags = html.escape(f["tags"] or "None")
                 safe_fav_notes = html.escape(f["notes"] or "None")
+
                 st.markdown(
                     f"""
                     <div class='story-card'>
@@ -85,3 +90,4 @@ def render_favorites_tags() -> None:
                         st.query_params["nav_page"] = "📖 Read Story"
                         st.rerun()
                 st.write("")
+

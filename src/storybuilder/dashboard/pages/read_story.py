@@ -6,6 +6,7 @@ from storybuilder.dashboard.data import get_story_by_path
 from storybuilder.dashboard.data import remove_favorite
 
 
+
 def render_read_story() -> None:
     """Render the Read Story page."""
     st.title("📖 Story Reader")
@@ -41,6 +42,7 @@ def render_read_story() -> None:
                         if not is_fav
                         else next(
                             (f["tags"] for f in favorites if f["story_path"] == story["path"]),
+
                             "",
                         ),
                     )
@@ -50,6 +52,7 @@ def render_read_story() -> None:
                         if not is_fav
                         else next(
                             (f["notes"] or "" for f in favorites if f["story_path"] == story["path"]),
+
                             "",
                         ),
                     )
@@ -79,6 +82,7 @@ def render_read_story() -> None:
                         st.success("Added!")
                         st.rerun()
 
+
                 # Export to Markdown Button
                 md_content = f"""# {story["title"]}
                     **Author:** {story["author_name"] or "Unknown"}
@@ -99,6 +103,7 @@ def render_read_story() -> None:
 
             st.write(
                 f"**Category:** `{story['category']}` | **Published:** `{story['publication_date'] or 'Unknown'}` | **Words:** `{story['word_count']:,}`",
+
             )
             st.markdown("---")
 

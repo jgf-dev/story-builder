@@ -60,6 +60,7 @@ class TestDashboard(unittest.TestCase):
             story_date=date,
             url="http://test",
             content=content,
+
         )
         if word_count is not None:
             with Session(sb_db._engine) as session:

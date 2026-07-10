@@ -6,6 +6,7 @@ from storybuilder.dashboard.data import StorySearchQuery
 from storybuilder.dashboard.data import query_stories
 
 
+
 def render_search_explorer(filters: dict) -> None:
     """Render the Search & Explorer page.
 
@@ -18,6 +19,7 @@ def render_search_explorer(filters: dict) -> None:
     fts_input = st.text_input(
         "Full-Text Search (FTS5 syntax, e.g. vampire OR werewolf)",
         "",
+
     )
 
     st.markdown("---")
@@ -33,6 +35,7 @@ def render_search_explorer(filters: dict) -> None:
                 entity_label=filters["entity_label"],
             ),
         )
+
 
     st.subheader(f"Found {len(search_results)} Result(s)")
 
@@ -50,6 +53,7 @@ def render_search_explorer(filters: dict) -> None:
                 <b>Category:</b> {safe_category} |
                 <b>Published:</b> {safe_pub_date} |
                 <b>Words:</b> {res["word_count"]:,}
+
             </p>
         """
 
@@ -61,6 +65,7 @@ def render_search_explorer(filters: dict) -> None:
                 "___HIGHLIGHT_END___",
                 "</span>",
             )
+
             card_html += "<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; padding: 8px;"
             card_html += f" background: rgba(0, 0, 0, 0.2); border-radius: 6px;'>... {snippet_cleaned} ...</p>"
         card_html += "</div>"
@@ -74,6 +79,7 @@ def render_search_explorer(filters: dict) -> None:
                 st.session_state.selected_story_year = res["db_year"]
                 # Programmatically update radio key by modifying query params and session state navigation
                 st.session_state["nav_page"] = "📖 Read Story"
+
                 st.query_params["nav_page"] = "📖 Read Story"
                 st.rerun()
         st.write("")

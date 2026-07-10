@@ -15,6 +15,7 @@ def main():
         help="Path to the Chroma database.",
     )
     parser.add_argument("--n-results", type=int, default=5, help="Number of similar stories to return.")
+
     args = parser.parse_args()
 
     chroma_client = chromadb.PersistentClient(path=args.db_path)
@@ -43,6 +44,7 @@ def main():
     print(f"Finding top {args.n_results} stories similar to: {args.target_story}\n")
 
     query_results = collection_averages.query(query_embeddings=[target_embedding], n_results=args.n_results + 1)
+
 
     for idx, (filepath, distance) in enumerate(
         zip(query_results["ids"][0], query_results["distances"][0])

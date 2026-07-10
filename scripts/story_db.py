@@ -94,6 +94,7 @@ def cmd_search(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = No
     params.append(args.limit)
     rows = conn.execute(sql, params).fetchall()
 
+
     if not rows:
         print(f"No results for '{args.query}'")
         return
@@ -153,6 +154,7 @@ def cmd_get(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None)
         print(
             f"Author:   {row['author_name'] or 'Unknown'}"
             + (f" <{row['author_email']}>" if row["author_email"] else ""),
+
         )
         print(f"Date:     {row['publication_date'] or 'Unknown'}")
         print(f"URL:      {row['url'] or 'N/A'}")
@@ -164,7 +166,10 @@ def cmd_get(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None)
         if not args.no_content:
             content = row["content"]
             if args.max_chars and len(content) > args.max_chars:
-                content = content[: args.max_chars] + f"\n\n… (truncated, {row['char_count']:,} total chars)"
+                content = (
+                    content[: args.max_chars]
+                    + f"\n\n… (truncated, {row['char_count']:,} total chars)"
+                )
             print(content)
 
 
@@ -212,13 +217,16 @@ def cmd_list(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None
         return
 
     # Column widths
-    print(f"{'ID':>6}  {'Title':<45}  {'Author':<25}  {'Date':>10}  {'Words':>8}  Category")
+    print(
+        f"{'ID':>6}  {'Title':<45}  {'Author':<25}  {'Date':>10}  {'Words':>8}  Category"
+    )
     print("-" * 120)
     for row in rows:
         title = row["title"][:44] if row["title"] else ""
         author = (row["author_name"] or "")[:24]
         print(
             f"{row['id']:>6}  {title:<45}  {author:<25}  {row['publication_date'] or '':>10}  {row['word_count']:>8,}  {row['category']}",
+
         )
 
 
@@ -237,7 +245,10 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
     total_chars = conn.execute(f"SELECT SUM(char_count) FROM stories {where}", params).fetchone()[0] or 0
     total_words = conn.execute(f"SELECT SUM(word_count) FROM stories {where}", params).fetchone()[0] or 0
 
-    print(f"\n=== Database Stats{' for ' + args.category if args.category else ''} ===\n")
+
+    print(
+        f"\n=== Database Stats{' for ' + args.category if args.category else ''} ===\n"
+    )
     print(f"  Stories:     {total:,}")
     print(f"  Total chars: {total_chars:,}")
     print(f"  Total words: {total_words:,}")
@@ -268,6 +279,7 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
         """,
         params if where else [],
     ).fetchall()
+
     for a in authors:
         name = (a["author_name"] or "Unknown")[:30]
         print(f"    {name:<30} {a['cnt']:>5} stories  ({a['total_words']:,} words)")
@@ -295,7 +307,9 @@ def main():
         default="stories/db",
         help="Database directory or file. Searches all .db files if a directory.",
     )
-    parser.add_argument("--db-dir", default=None, help="Directory with split .db files (overrides --db)")
+    parser.add_argument(
+        "--db-dir", default=None, help="Directory with split .db files (overrides --db)"
+    )
 
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -329,7 +343,9 @@ def main():
         default="exported_stories",
         help="Export directory (default: exported_stories/)",
     )
-    p.add_argument("--no-content", action="store_true", help="Show metadata only, not story text")
+    p.add_argument(
+        "--no-content", action="store_true", help="Show metadata only, not story text"
+    )
     p.add_argument(
         "--max-chars",
         type=int,

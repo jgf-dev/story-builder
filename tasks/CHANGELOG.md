@@ -19,6 +19,7 @@ Preventing any resource leaks in long-running processes like the Streamlit works
 - Cursor Cleanup in  _search_single_db : Added the same resource cleanup for the SQLite cursor created during concurrent/monolithic partition searches in the_search_single_db  helper in db.py.
 
 ### hardened the monolithic mode thread-safety by implementing per-call read connections for concurrent read tasks
+
   
   Here is a summary of the changes:
   
@@ -30,6 +31,7 @@ Preventing any resource leaks in long-running processes like the Streamlit works
   4. Cleanup: Updated db.py to reset  _monolithic_db_path  to  None .
   
   These changes completely prevent concurrent read threads from using the shared write connection ( _conn ), safely resolving the thread-safety issue without any blocking overhead (since SQLite WAL mode natively supports
+
   concurrent reader connections).
 
 ### The reason the search results were not displaying is due to a **Streamlit module caching behavior**
@@ -40,9 +42,11 @@ Preventing any resource leaks in long-running processes like the Streamlit works
 - However, Streamlit **caches all imported submodules** (such as `storybuilder.dashboard.data` or `storybuilder.dashboard.pages.*`) inside memory and does not automatically reload them when they are modified.
 - As a result, the active Streamlit process was still running the older version of the refactored code (which was missing the database partition engine initialization) even after we fixed it in `data.py`.
 
+
 ### The Fix
 
 1. We modified [`dashboard.py`](file:///home/jgf2/git/voice/story-builder/scripts/dashboard.py) to explicitly reload all of its custom dashboard package dependencies on rerun:
+
 
    ```python
    import importlib
@@ -52,6 +56,7 @@ Preventing any resource leaks in long-running processes like the Streamlit works
        importlib.reload(sys.modules["storybuilder.dashboard.data"])
    # ... [reloads config, sidebar, and pages similarly]
    ```
+
 
 2. Removed all temporary debugging logging files.
 3. Verified the changes: all 172 tests still pass perfectly.
@@ -96,3 +101,13 @@ uv run ruff check <resolved_files>
 ```
 
 * **Result**: All resolved files are completely clean and lint-free.
+
+## 10/07/2026
+
+### Resolved Merge Conflicts between fix/summary-workflow-ai-improve-title and topic/cleanup
+
+- **Monolithic Database Consolidation**: Maintained monolithic SQLModel database architecture (`stories.db`) and removed all year-partitioned database code conflicts from `db.py`, `story_db.py`, tests, and the Streamlit dashboard components.
+- **Code Health Integrations**: Integrated the Edge debugging configurations in `.vscode/launch.json`, new ADK evaluation framework files under `evals/`, dependency updates (`streamlit>=1.59.0`, `tqdm>=4.68.4`), and clean path handling (`Path.stem` instead of `os.path`) in `test_tts_pipeline.py`.
+- **Validation**: All 169 unit tests passed successfully.
+
+

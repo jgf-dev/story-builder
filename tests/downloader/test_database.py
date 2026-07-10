@@ -280,6 +280,7 @@ class TestDatabaseInit(unittest.TestCase):
                 "legacy@example.com",
                 "2024-01-15",  # email_date
                 "2024-01-15",  # publication_date
+
                 "https://example.com/legacy",
                 123,
                 20,
@@ -679,6 +680,7 @@ class TestParseHeader(unittest.TestCase):
 class TestMonolithicDatabase(unittest.TestCase):
     """Tests for monolithic SQLModel-based database in db.py."""
 
+
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
         self.db_path = os.path.join(self.temp_dir, "stories.db")
@@ -726,6 +728,7 @@ class TestMonolithicDatabase(unittest.TestCase):
         self.assertEqual(story["story_date"], "2026-07-05")
         self.assertEqual(story["content"], "This is the content of my special test story with unique word banana.")
 
+
     def test_execute_query(self):
         from storybuilder.downloader import db
         db.init_db(self.db_path)
@@ -758,6 +761,7 @@ class TestMonolithicDatabase(unittest.TestCase):
         results = db.search_stories(fts_query="banana", snippets=True)
         self.assertEqual(len(results), 1)
         self.assertIn("banana", results[0]["snippet"])
+
 
 
 class TestImportToSQLite(unittest.TestCase):

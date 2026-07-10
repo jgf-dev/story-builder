@@ -1,7 +1,6 @@
 import importlib
 import sys
 from pathlib import Path
-<<<<<<< HEAD
 
 # Ensure src layout package is importable
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
@@ -28,18 +27,6 @@ NLP_DB_PATH = "stories/db/nlp_analysis.db"
 META_DB_PATH = "stories/db/dashboard_metadata.db"
 
 # Rerouting rendering to modular components
-<<<<<<< HEAD
-from storybuilder.dashboard.config import init_session_state
-from storybuilder.dashboard.config import inject_custom_css
-from storybuilder.dashboard.config import setup_page
-
-# Expose key data operations at module level to satisfy test imports
-from storybuilder.dashboard.data import add_favorite  # noqa: F401
-from storybuilder.dashboard.data import get_db_files  # noqa: F401
-from storybuilder.dashboard.data import get_favorites  # noqa: F401
-from storybuilder.dashboard.data import get_story_by_path  # noqa: F401
-from storybuilder.dashboard.data import query_stories  # noqa: F401
-from storybuilder.dashboard.data import remove_favorite  # noqa: F401
 from storybuilder.dashboard.config import init_session_state  # noqa: E402
 from storybuilder.dashboard.config import inject_custom_css  # noqa: E402
 from storybuilder.dashboard.config import setup_page  # noqa: E402
@@ -91,58 +78,60 @@ st.markdown(
         .reportview-container {
             background: #0b1020;
         }
-"""
-# Expose pages
-from storybuilder.dashboard.pages.archive_stats import render_archive_stats
-from storybuilder.dashboard.pages.favorites_tags import render_favorites_tags
-from storybuilder.dashboard.pages.read_story import render_read_story
-from storybuilder.dashboard.pages.search_explorer import render_search_explorer
-from storybuilder.dashboard.ui.sidebar import render_sidebar
+
+        /* Heading styles */
+        h1, h2, h3 {
+            font-family: 'Outfit', 'Inter', sans-serif;
+            font-weight: 700;
+            color: #e8eefc;
+        }
+
+        /* Card styling */
+        .story-card {
+            background-color: rgba(22, 34, 64, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 12px;
+            transition: all 0.2s ease-in-out;
+        }
+        .story-card:hover {
+            border-color: rgba(125, 211, 252, 0.4);
+            transform: translateY(-2px);
+            background-color: rgba(22, 34, 64, 0.85);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Snippet highlight styling */
+        .highlight {
+            background-color: rgba(251, 191, 36, 0.25);
+            color: #fbbf24;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        /* Sidebar styling custom overrides */
+        .css-1d391kg {
+            background-color: #09101f;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+# ------------------------------------------------------------------------------
+# DATABASE & DATA LOADING ENGINE
+# ------------------------------------------------------------------------------
 
 
-def main() -> None:
-    # Setup page configurations as the first Streamlit instruction
-    setup_page()
-    inject_custom_css()
-    init_session_state()
+def get_db_files():
+    """Retrieve all year-partitioned databases, sorted."""
+    if not os.path.exists(DB_DIR):
+        return []
+    db_files = sorted(glob.glob(os.path.join(DB_DIR, "[0-9][0-9][0-9][0-9].db")))
+    return db_files
 
-    # Render sidebar and retrieve routing & filter inputs
-    page, filters = render_sidebar()
-
-    # Route and render pages
-    if page == "🔍 Search & Explorer":
-        render_search_explorer(filters)
-    elif page == "📖 Read Story":
-        render_read_story()
-    elif page == "⭐ Favorites & Tags":
-        render_favorites_tags()
-    elif page == "📊 Archive Stats":
-        render_archive_stats()
-
-
-<<<<<<< HEAD
-if __name__ == "__main__":
-    main()
-=======
-def get_meta_conn():
-    """Establish connection to local dashboard metadata (favorites & tags)."""
-    os.makedirs(os.path.dirname(META_DB_PATH) or ".", exist_ok=True)
-    conn = sqlite3.connect(META_DB_PATH, check_same_thread=False)
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS favorites (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            story_path TEXT UNIQUE,
-            title TEXT,
-            author TEXT,
-            tags TEXT,
-            notes TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-        """
-    )
-    conn.commit()
-    return conn
 
 def get_meta_conn():
     """Establish connection to local dashboard metadata (favorites & tags)."""
@@ -539,37 +528,31 @@ if page == "🔍 Search & Explorer":
 
     for res in search_results:
         # Create a container for the card styling
-        safe_title = html.escape(res["title"] or "")
-        safe_author = html.escape(res["author_name"] or "Unknown")
-        safe_category = html.escape(res["category"] or "")
-        safe_pub_date = html.escape(str(res["publication_date"] or "Unknown"))
+        safe_title = html.escape(res['title'] or '')
+        safe_author = html.escape(res['author_name'] or 'Unknown')
+        safe_category = html.escape(res['category'] or '')
+        safe_pub_date = html.escape(str(res['publication_date'] or 'Unknown'))
         card_html = f"""
         <div class="story-card">
+            <h4>{safe_title}</h4>
+            <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 8px;'>
             <h4>{safe_title}</h4>
             <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 8px;'>
                 <b>Author:</b> {safe_author} |
                 <b>Category:</b> {safe_category} |
                 <b>Published:</b> {safe_pub_date} |
-                <b>Words:</b> {res["word_count"]:,}
+                <b>Words:</b> {res['word_count']:,}
             </p>
         """
 
         # Display highlighted snippets if any
         if res.get("snippet"):
-<<<<<<< HEAD
             # Escape the snippet first, then replace the placeholder highlight markers with actual HTML span tags
-=======
-<<<<<<< HEAD
-            # Escape the snippet first, then replace the placeholder highlight markers with actual HTML span tags
-=======
->>>>>>> fix-failing-tests-16749664909518946067
->>>>>>> palette/save-button-tooltip-16022957350325416287
             snippet_escaped = html.escape(res["snippet"])
-            snippet_cleaned = snippet_escaped.replace("___HIGHLIGHT_START___", "<span class='highlight'>").replace(
-                "___HIGHLIGHT_END___", "</span>"
-            )
+            snippet_cleaned = snippet_escaped.replace("___HIGHLIGHT_START___", "<span class='highlight'>").replace("___HIGHLIGHT_END___", "</span>")
             card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
 
+            card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
         card_html += "</div>"
         st.markdown(card_html, unsafe_allow_html=True)
 
@@ -583,8 +566,6 @@ if page == "🔍 Search & Explorer":
                 st.query_params["nav_page"] = "📖 Read Story"
                 st.rerun()
         st.write("")
-<<<<<<< HEAD
-=======
 
 # -- PAGE 2: READ STORY --
 elif page == "📖 Read Story":

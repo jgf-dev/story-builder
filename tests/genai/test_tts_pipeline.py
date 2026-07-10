@@ -38,15 +38,7 @@ class TestTTSPipeline(unittest.TestCase):
             )
 
         # Find up to MAX_API_CALLS real prompt files from the repo
-<<<<<<< HEAD
         all_parts = sorted(glob.glob(str(project_root / "stories" / "**" / "*-part.md"), recursive=True))
-=======
-        all_parts = sorted(
-            glob.glob(
-                str(project_root / "stories" / "**" / "*-part.md"), recursive=True
-            )
-        )
->>>>>>> palette/save-button-tooltip-16022957350325416287
         # Exclude archive directories
         all_parts = [p for p in all_parts if "archive" not in p]
 
@@ -85,16 +77,8 @@ class TestTTSPipeline(unittest.TestCase):
             generated = []
 
             for i, md_file in enumerate(self.prompt_files):
-<<<<<<< HEAD
                 base_name = os.path.basename(md_file).replace("-part.md", "")
                 wav_file = os.path.join(tmp_dir, f"{base_name}.wav")
-<<<<<<< HEAD
-=======
-
-=======
-                base_name = os.path.splitext(os.path.basename(md_file))[0]
-                wav_file = os.path.join(tmp_dir, f"{base_name}.wav")
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 >>>>>>> palette/save-button-tooltip-16022957350325416287
                 # Sanitize voice names to valid Gemini voices for the integration test
                 with open(md_file, "r", encoding="utf-8") as f:
@@ -107,13 +91,7 @@ class TestTTSPipeline(unittest.TestCase):
                 temp_md_file = os.path.join(tmp_dir, f"{base_name}.md")
                 with open(temp_md_file, "w", encoding="utf-8") as f:
                     f.write(content)
-<<<<<<< HEAD
                 print(f"\n[{i + 1}/{len(self.prompt_files)}] Processing: {os.path.basename(md_file)}")
-=======
-                print(
-                    f"\n[{i + 1}/{len(self.prompt_files)}] Processing: {os.path.basename(md_file)}"
-                )
->>>>>>> palette/save-button-tooltip-16022957350325416287
                 if previous_id:
                     print(
                         f"  Linking to previous_interaction_id={previous_id[:12]}... for voice continuity"
@@ -140,13 +118,7 @@ class TestTTSPipeline(unittest.TestCase):
                             "permission",
                         )
                     ):
-<<<<<<< HEAD
                         self.skipTest(f"Skipped due to API/quota issue on file {i + 1}: {e}")
-=======
-                        self.skipTest(
-                            f"Skipped due to API/quota issue on file {i + 1}: {e}"
-                        )
->>>>>>> palette/save-button-tooltip-16022957350325416287
                     else:
                         self.fail(
                             f"process_file failed on {os.path.basename(md_file)}: {e}"

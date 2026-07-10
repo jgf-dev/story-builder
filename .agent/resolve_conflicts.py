@@ -10,7 +10,6 @@ def run_git_cmd(args):
 
 def find_files_with_conflict_markers():
     # Scan files in src/, scripts/, tests/, evals/, tasks/, etc. or use grep
-    res = subprocess.run(["grep", "-rl", "^<<<<<<< ", "."], capture_output=True, text=True)
     files = res.stdout.strip().split("\n")
     valid_files = []
     for f in files:
@@ -28,9 +27,7 @@ def resolve_file(filepath):
     print(f"Resolving conflicts in: {filepath}")
     content = pathlib.Path(filepath).read_text(encoding="utf-8")
 
-    # Highly robust pattern to find conflict blocks matching <<<<<<< ... ======= ... >>>>>>> without crossing boundaries
     pattern = re.compile(
-        r"<<<<<<< [^\n]+\n((?:(?!<<<<<<<|=======|>>>>>>>).)*?)=======\n((?:(?!<<<<<<<|=======|>>>>>>>).)*?)>>>>>>> [^\n]+",
         re.DOTALL,
     )
 

@@ -12,7 +12,6 @@ ROOT = Path(__file__).resolve().parent.parent
 
 def resolve_file(path: Path) -> bool:
     text = path.read_text(encoding="utf-8")
-    if "<<<<<<<" not in text:
         return False
     out_lines = []
     i = 0
@@ -26,7 +25,6 @@ def resolve_file(path: Path) -> bool:
             # collect HEAD side
             i += 1
             head_lines = []
-            while i < n and ">>>>>>>" not in lines[i]:
                 i += 1
             # skip the >>>>>>> marker
             if i < n and ">>>>>>>" in lines[i]:

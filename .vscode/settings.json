@@ -116,13 +116,9 @@
         ".",
         "--cache-mode=session"
     ],
-<<<<<<< HEAD
     "python.testing.autoTestDiscoverOnSaveEnabled": true,
     "sonarlint.connectedMode.project": {
         "connectionId": "jgf-dev",
         "projectKey": "jgf-dev_story-builder"
     }
-=======
-    "python.testing.autoTestDiscoverOnSaveEnabled": true
->>>>>>> palette/save-button-tooltip-16022957350325416287
 }

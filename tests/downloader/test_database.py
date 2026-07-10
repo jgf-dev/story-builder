@@ -287,6 +287,7 @@ class TestDatabaseInit(unittest.TestCase):
                 "2024-01-16 12:34:56",
             ),
         )
+
         legacy_conn.commit()
         legacy_conn.close()
 

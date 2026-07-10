@@ -4,7 +4,7 @@
 
 ### Priority
 
-- [ ] **Reduce the number of audio files generated during tests** Not more than 2-3 files generated, if absolutely necessary.  - #ISSUE
+- [x] **Reduce the number of audio files generated during tests** Not more than 2-3 files generated, if absolutely necessary.  - #ISSUE
 
 ### Testability and Agent Benchmarks
 

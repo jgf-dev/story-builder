@@ -41,12 +41,16 @@ def _parse_voice_mappings(markdown_content):
                 voice = match.group(2)
                 speaker_to_voice[speaker] = voice
 
-    return speaker_to_voice, transcript
+    return speaker_to_voice, list(speaker_to_voice.keys()) if speaker_to_voice and not transcript else transcript
 
 
 def _extract_active_speakers(transcript):
     """Extracts active speakers actually speaking in the transcript in order of appearance."""
     active_speakers = []
+    if transcript is None:
+        return active_speakers
+    if isinstance(transcript, list):
+        return transcript
     for line in transcript.split("\n"):
         line = line.strip()
         match = re.match(r"^([A-Za-z0-9_-]+):", line)

@@ -4,12 +4,11 @@ import sqlite3
 from collections import defaultdict
 from pathlib import Path
 
+
 import spacy
-from thinc.api import require_gpu
-from thinc.api import set_gpu_allocator
+from thinc.api import require_gpu, set_gpu_allocator
 from tqdm import tqdm
 from transformers import pipeline
-
 
 DB_PATH = "sentiment_analysis.db"
 ALLOWED_LABELS = {
@@ -35,7 +34,7 @@ def init_db(db_path):
             story_dir TEXT UNIQUE,
             subcategory TEXT
         )
-    """,
+    """
     )
     cursor.execute(
         """
@@ -49,7 +48,7 @@ def init_db(db_path):
             sentiment_score REAL,
             FOREIGN KEY(story_id) REFERENCES stories(id)
         )
-    """,
+    """
     )
     cursor.execute(
         """
@@ -60,12 +59,16 @@ def init_db(db_path):
             entity_label TEXT,
             FOREIGN KEY(sentence_id) REFERENCES sentences(id)
         )
-    """,
-
+    """)
+    cursor.execute(
+        "CREATE INDEX IF NOT EXISTS idx_sentences_story ON sentences(story_id)"
     )
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_sentences_story ON sentences(story_id)")
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_entities_sentence ON sentence_entities(sentence_id)")
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_entities_text ON sentence_entities(entity_text)")
+    cursor.execute(
+        "CREATE INDEX IF NOT EXISTS idx_entities_sentence ON sentence_entities(sentence_id)"
+    )
+    cursor.execute(
+        "CREATE INDEX IF NOT EXISTS idx_entities_text ON sentence_entities(entity_text)"
+    )
 
     conn.commit()
     return conn
@@ -76,9 +79,10 @@ def get_sentiment_value(result):
     score = result["score"]
     if "positive" in label:
         return score
-    if "negative" in label:
+    elif "negative" in label:
         return -score
-    return 0.0
+    else:
+        return 0.0
 
 
 def extract_chapter_number(filename):
@@ -95,7 +99,9 @@ def extract_chapter_number(filename):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Analyze narrative sentiment and entity interactions.")
+    parser = argparse.ArgumentParser(
+        description="Analyze narrative sentiment and entity interactions."
+    )
     parser.add_argument(
         "--stories-dir",
         type=str,
@@ -114,8 +120,12 @@ def parse_args():
         default=1,
         help="Max number of multi-chapter stories to process.",
     )
-    parser.add_argument("--db-path", type=str, default=DB_PATH, help="Path to SQLite DB.")
-    parser.add_argument("--spacy-model", type=str, default="en_core_web_sm", help="spaCy model.")
+    parser.add_argument(
+        "--db-path", type=str, default=DB_PATH, help="Path to SQLite DB."
+    )
+    parser.add_argument(
+        "--spacy-model", type=str, default="en_core_web_sm", help="spaCy model."
+    )
     parser.add_argument(
         "--sentiment-model",
         type=str,
@@ -145,12 +155,9 @@ def find_multi_chapter_stories(stories_dir, subcategory=None):
 
 
 def load_models(spacy_model_name, sentiment_model_name, use_gpu):
-    print(f"Loading models (spaCy: {spacy_model_name}, HF: {sentiment_model_name})...")
-    device = 0 if use_gpu else -1
-
-
-def load_models(spacy_model_name, sentiment_model_name, use_gpu):
-    print(f"Loading models (spaCy: {spacy_model_name}, HF: {sentiment_model_name})...")
+    print(
+        f"Loading models (spaCy: {spacy_model_name}, HF: {sentiment_model_name})..."
+    )
     device = 0 if use_gpu else -1
 
     if use_gpu:
@@ -175,9 +182,9 @@ def load_models(spacy_model_name, sentiment_model_name, use_gpu):
 
     return nlp, sentiment_pipe
 
-
 def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe):
-    text = Path(filepath).read_text(encoding="utf-8")
+    with open(filepath, "r", encoding="utf-8") as f:
+        text = f.read()
     text = re.sub(r"\s+", " ", text).strip()
     if not text:
         return
@@ -236,7 +243,9 @@ def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe
 
     for sent_idx, (sent, sent_result) in enumerate(zip(sentences, sentiments)):
         score = get_sentiment_value(sent_result)
-        sentence_batch.append((story_id, filepath.name, chapter_idx, sent_idx, sent.text, score))
+        sentence_batch.append(
+            (story_id, filepath.name, chapter_idx, sent_idx, sent.text, score)
+        )
         sentence_id = last_id_before + 1 + sent_idx
         for ent in sent.ents:
             if ent.label_ in ALLOWED_LABELS:
@@ -297,42 +306,6 @@ def main():
 
     if not multi_stories:
         print("No multi-chapter stories found. Exiting.")
-        return None
-
-    conn = init_db(args.db_path)
-    cursor = conn.cursor()
-
-    print(f"\nProcessing Story: {story_dir} ({len(filepaths)} chapters)")
-
-    filepaths.sort(key=lambda x: extract_chapter_number(x.name))
-
-    parts = Path(story_dir).parts
-    subcat = "unknown"
-    if "test_stories" in parts:
-        idx = parts.index("test_stories")
-        if len(parts) > idx + 2:
-            subcat = f"{parts[idx + 1]}/{parts[idx + 2]}"
-
-    cursor.execute(
-        "INSERT INTO stories (story_dir, subcategory) VALUES (?, ?)",
-        (story_dir, subcat),
-    )
-    story_id = cursor.lastrowid
-
-    for chapter_idx, filepath in enumerate(tqdm(filepaths, desc="Chapters")):
-        process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe)
-        conn.commit()
-
-    return True
-
-
-def main():
-    args = parse_args()
-
-    multi_stories = find_multi_chapter_stories(args.stories_dir, args.subcategory)
-
-    if not multi_stories:
-        print("No multi-chapter stories found. Exiting.")
         return
 
     conn = init_db(args.db_path)
@@ -346,7 +319,9 @@ def main():
         if args.limit_stories and processed_stories >= args.limit_stories:
             break
 
-        was_processed = process_story(story_dir, filepaths, cursor, conn, nlp, sentiment_pipe)
+        was_processed = process_story(
+            story_dir, filepaths, cursor, conn, nlp, sentiment_pipe
+        )
         if was_processed:
             processed_stories += 1
     conn.close()

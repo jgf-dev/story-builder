@@ -44,7 +44,7 @@ def _parse_voice_mappings(markdown_content):
                 if speaker not in speakers:
                     speakers.append(speaker)
 
-    return speaker_to_voice, transcript
+    return speaker_to_voice, speakers, transcript
 
 
 def _extract_active_speakers(transcript):
@@ -94,7 +94,7 @@ def _build_speech_config(active_speakers, speaker_to_voice):
 def parse_speech_config(markdown_content):
     """Parses the markdown content to extract speakers and voices, dynamically matching active speakers in the transcript."""
     # 1. Parse all voice mappings defined in the preamble
-    speaker_to_voice, transcript = _parse_voice_mappings(markdown_content)
+    speaker_to_voice, speakers, transcript = _parse_voice_mappings(markdown_content)
 
     # 2. Extract active speakers actually speaking in the transcript (in order of appearance)
     active_speakers = _extract_active_speakers(transcript)

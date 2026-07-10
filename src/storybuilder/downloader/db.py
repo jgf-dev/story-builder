@@ -477,6 +477,8 @@ def search_all_partitions(
 
             cursor.execute(sql, query_params)
             results = [dict(r) for r in cursor.fetchall()]
+            import traceback; traceback.print_stack()
+            print("SINGLE DB RESULTS FOR", db_path, ":", [r["title"] for r in results])
 
         except sqlite3.Error as e:
             print(f"Error querying {db_path or 'monolithic db'}: {e}")

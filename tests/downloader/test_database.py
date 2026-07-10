@@ -308,6 +308,7 @@ class TestDatabaseInit(unittest.TestCase):
 
             fts_count = conn.execute(
                 "SELECT COUNT(*) FROM stories_fts WHERE stories_fts MATCH 'legacy'",
+
             ).fetchone()[0]
             self.assertEqual(fts_count, 1)
         finally:
@@ -680,6 +681,7 @@ class TestParseHeader(unittest.TestCase):
 class TestMonolithicDatabase(unittest.TestCase):
     """Tests for monolithic SQLModel-based database in db.py."""
 
+
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
         self.db_path = os.path.join(self.temp_dir, "stories.db")
@@ -730,6 +732,7 @@ class TestMonolithicDatabase(unittest.TestCase):
     def test_execute_query(self):
         from storybuilder.downloader import db
         db.init_db(self.db_path)
+
         db.insert_story(
             output_path="nifty_stories/gay/adult-friends/test-story.txt",
             title="Test Story",
@@ -759,6 +762,7 @@ class TestMonolithicDatabase(unittest.TestCase):
         results = db.search_stories(fts_query="banana", snippets=True)
         self.assertEqual(len(results), 1)
         self.assertIn("banana", results[0]["snippet"])
+
 
 
 class TestImportToSQLite(unittest.TestCase):
@@ -798,6 +802,7 @@ class TestImportToSQLite(unittest.TestCase):
         self.assertEqual(result["url"], "http://example.com/story")
         self.assertEqual(
             result["content"], "This is the body of the story.\nIt has multiple lines.",
+
         )
 
     def test_parse_header_missing_fields(self):

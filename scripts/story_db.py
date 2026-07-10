@@ -94,6 +94,7 @@ def cmd_search(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = No
     params.append(args.limit)
     rows = conn.execute(sql, params).fetchall()
 
+
     if not rows:
         print(f"No results for '{args.query}'")
         return
@@ -218,6 +219,7 @@ def cmd_list(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None
     # Column widths
     print(
         f"{'ID':>6}  {'Title':<45}  {'Author':<25}  {'Date':>10}  {'Words':>8}  Category",
+
     )
     print("-" * 120)
     for row in rows:
@@ -246,6 +248,7 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
 
     print(
         f"\n=== Database Stats{' for ' + args.category if args.category else ''} ===\n",
+
     )
     print(f"  Stories:     {total:,}")
     print(f"  Total chars: {total_chars:,}")
@@ -278,6 +281,8 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
         params if where else [],
     ).fetchall()
 
+
+
     for a in authors:
         name = (a["author_name"] or "Unknown")[:30]
         print(f"    {name:<30} {a['cnt']:>5} stories  ({a['total_words']:,} words)")
@@ -307,6 +312,7 @@ def main():
     )
     parser.add_argument(
         "--db-dir", default=None, help="Directory with split .db files (overrides --db)",
+
     )
 
     sub = parser.add_subparsers(dest="command", required=True)
@@ -343,6 +349,7 @@ def main():
     )
     p.add_argument(
         "--no-content", action="store_true", help="Show metadata only, not story text",
+
     )
     p.add_argument(
         "--max-chars",

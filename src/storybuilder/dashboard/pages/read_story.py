@@ -6,6 +6,7 @@ from storybuilder.dashboard.data import get_story_by_path
 from storybuilder.dashboard.data import remove_favorite
 
 
+
 def render_read_story() -> None:
     """Render the Read Story page."""
     st.title("📖 Story Reader")
@@ -80,6 +81,7 @@ def render_read_story() -> None:
                         )
                         st.success("Added!")
                         st.rerun()
+
 
                 # Export to Markdown Button
                 md_content = f"""# {story["title"]}

@@ -80,12 +80,14 @@ def fetch_page(url, delay, headers=None, max_retries=3):
         except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
             safe_print(
                 f"Warning: Connection/Timeout error on attempt {attempt + 1}/{max_retries} for {url}: {e}",
+
             )
             if ENABLE_ROTATION:
                 rotate_windscribe_ip()
         except Exception as e:
             safe_print(
                 f"Warning: Unexpected error on attempt {attempt + 1}/{max_retries} for {url}: {e}",
+
             )
 
         if attempt < max_retries - 1:

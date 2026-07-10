@@ -31,7 +31,6 @@ dummy_stories/
 .kanban.db
 test_dbs/
 *.db.sql
-test.db
 
 
 # Agent scratch folders

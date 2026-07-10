@@ -3,6 +3,7 @@ import sys
 from pathlib import Path
 
 
+
 # Ensure src layout package is importable
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
@@ -32,11 +33,11 @@ from storybuilder.dashboard.config import init_session_state  # noqa: E402
 from storybuilder.dashboard.config import inject_custom_css  # noqa: E402
 from storybuilder.dashboard.config import setup_page  # noqa: E402
 
-# Expose key data operations at module level to satisfy test imports
 from storybuilder.dashboard.data import add_favorite  # noqa: E402, F401
 from storybuilder.dashboard.data import get_db_files  # noqa: E402, F401
 from storybuilder.dashboard.data import get_favorites  # noqa: E402, F401
 from storybuilder.dashboard.data import get_story_by_path  # noqa: E402, F401
+from storybuilder.dashboard.data import query_stories  # noqa: E402, F401
 from storybuilder.dashboard.data import remove_favorite  # noqa: E402, F401
 
 # Expose pages
@@ -69,3 +70,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+

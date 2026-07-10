@@ -20,6 +20,8 @@ Run with:
 
 import pytest
 
+
+
 from evals.agentic.reflection_evaluator import ReflectionEvaluator
 from evals.agentic.rubric_evaluator import RubricDimension
 from evals.agentic.rubric_evaluator import RubricEvaluator
@@ -160,6 +162,7 @@ class TestTTSPromptCrafterGreetings:
                             },
                         )
 
+
         # Evaluate using rubric
         evaluator = RubricEvaluator(dimensions=TTS_EVALUATION_RUBRIC, threshold=0.5)
         result = evaluator.evaluate(
@@ -199,6 +202,7 @@ class TestTTSPromptCrafterPipeline:
         # Should have at least attempted tool usage
         assert len(tool_calls_made) > 0, "No tool calls made during pipeline execution"
 
+
         # Get final response
         final_events = [e for e in events if e.is_final_response()]
         if final_events:
@@ -227,6 +231,7 @@ class TestTTSPromptCrafterEdgeCases:
         error_indicators = ["not found", "doesn't exist", "cannot", "unable", "error", "sorry"]
         has_error_response = any(indicator in response.lower() for indicator in error_indicators)
         assert has_error_response, f"Agent should acknowledge the missing file.\nResponse: {response[:200]}"
+
 
     def test_empty_query(self, adk_events):
         """Agent should handle empty queries gracefully."""

@@ -6,6 +6,7 @@ from storybuilder.dashboard.data import StorySearchQuery
 from storybuilder.dashboard.data import query_stories
 
 
+
 def render_search_explorer(filters: dict) -> None:
     """Render the Search & Explorer page.
 
@@ -34,6 +35,7 @@ def render_search_explorer(filters: dict) -> None:
                 entity_label=filters["entity_label"],
             ),
         )
+
 
     st.subheader(f"Found {len(search_results)} Result(s)")
 

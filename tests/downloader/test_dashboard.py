@@ -54,6 +54,7 @@ class TestDashboard(unittest.TestCase):
         from sqlmodel import Session
         from sqlmodel import select
 
+
         from storybuilder.downloader import db as sb_db
 
         sb_db.insert_story(
@@ -63,6 +64,8 @@ class TestDashboard(unittest.TestCase):
             story_date=date,
             url="http://test",
             content=content,
+
+
 
         )
         if word_count is not None:
@@ -106,6 +109,8 @@ class TestDashboard(unittest.TestCase):
             "INSERT INTO entities (story_id, text, label, frequency) VALUES (?, ?, ?, 1)",
             (story_id, text, label),
         )
+
+
         conn.commit()
         conn.close()
 
@@ -132,6 +137,7 @@ class TestDashboard(unittest.TestCase):
         # Add favorite
         success = add_favorite(
             "test_path.txt", "Test Story", "Test Author", "tag1,tag2", "Some notes",
+
         )
         self.assertTrue(success)
 

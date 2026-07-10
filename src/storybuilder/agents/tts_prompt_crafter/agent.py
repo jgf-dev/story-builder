@@ -39,6 +39,8 @@ from .tools import split_scene_files
 from .tools import write_scene_file
 
 
+
+
 dotenv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", ".env"))
 load_dotenv(dotenv_path)
 
@@ -336,6 +338,8 @@ runner = Runner(
 )
 
 logging.getLogger(__name__).info(f"Runner created for agent '{runner.agent.name}'.")
+
+
 logging.getLogger(__name__).info(
     f"  Sub-agents: {story_analyzer.name}, {scene_writer.name}",
 )

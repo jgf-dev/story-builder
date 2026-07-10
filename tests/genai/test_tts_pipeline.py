@@ -35,6 +35,7 @@ class TestTTSPipeline(unittest.TestCase):
         if not cls.api_key:
             raise unittest.SkipTest(
                 "GEMINI_API_KEY not configured — skipping TTS pipeline test",
+
             )
 
         # Find up to MAX_API_CALLS real prompt files from the repo
@@ -42,6 +43,7 @@ class TestTTSPipeline(unittest.TestCase):
             glob.glob(
                 str(project_root / "stories" / "**" / "*-part.md"), recursive=True,
             ),
+
         )
         # Exclude archive directories
         all_parts = [p for p in all_parts if "archive" not in p]
@@ -49,6 +51,7 @@ class TestTTSPipeline(unittest.TestCase):
         if not all_parts:
             raise unittest.SkipTest(
                 "No *-part.md prompt files found — skipping TTS pipeline test",
+
             )
 
         # Take at most MAX_API_CALLS files
@@ -100,6 +103,7 @@ class TestTTSPipeline(unittest.TestCase):
                 if previous_id:
                     print(
                         f"  Linking to previous_interaction_id={previous_id[:12]}... for voice continuity",
+
                     )
 
                 try:
@@ -135,6 +139,7 @@ class TestTTSPipeline(unittest.TestCase):
                     size = Path(wav_file).stat().st_size
                     self.assertGreater(
                         size, 0, f"WAV file for {os.path.basename(md_file)} is empty",
+
                     )
                     generated.append(wav_file)
                     print(f"  ✓ WAV written ({size} bytes)")
@@ -143,6 +148,7 @@ class TestTTSPipeline(unittest.TestCase):
 
             print(
                 f"\nTTS pipeline test complete: {len(generated)}/{len(self.prompt_files)} files generated audio.",
+
             )
 
         finally:

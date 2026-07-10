@@ -75,8 +75,6 @@ if __name__ == "__main__":
 
 
 
-<<<<<<< HEAD
-=======
 
 @st.cache_data
 def get_filter_options():
@@ -464,6 +462,7 @@ if page == "🔍 Search & Explorer":
                 "___HIGHLIGHT_START___", "<span class='highlight'>"
             ).replace("___HIGHLIGHT_END___", "</span>")
             card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
+
         card_html += "</div>"
         st.markdown(card_html, unsafe_allow_html=True)
 
@@ -762,4 +761,3 @@ elif page == "📊 Archive Stats":
         template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f"
     )
     st.plotly_chart(fig_words, use_container_width=True)
->>>>>>> origin/implement-cloud-output-adapters-6981127355945556911

@@ -223,11 +223,7 @@ class TestDBIntegration(unittest.TestCase):
 
             # Monkey patch upload_many to avoid hitting GCS during unit test
             self.patcher_upload = unittest.mock.patch(
-<<<<<<< HEAD
-                "storybuilder.downloader.cli.upload_many"
-=======
                 "storybuilder.downloader.cli.upload_many_gcs"
->>>>>>> origin/implement-cloud-output-adapters-6981127355945556911
             )
             self.mock_upload = self.patcher_upload.start()
         except Exception as e:

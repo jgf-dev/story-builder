@@ -8,6 +8,7 @@ from pathlib import Path
 from storybuilder.downloader.storage import upload_many_gcs, upload_many_s3
 
 
+
 # Add project root to sys.path to enable absolute imports when run directly as a script
 if __name__ == "__main__" and __package__ is None:
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))

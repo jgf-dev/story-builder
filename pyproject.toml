@@ -6,16 +6,9 @@ readme = "README.md"
 requires-python = ">=3.12,<3.13"
 system = ["linux"]
 dependencies = [
-<<<<<<< HEAD
     "beautifulsoup4>=4.15.0",
     "braintrust>=0.26.0",
     "cartesia>=3.3.0",
-=======
-    "beautifulsoup4>=4.14.3",
-    "boto3>=1.35.0",
-    "braintrust>=0.25.0",
-    "cartesia>=3.2.0",
->>>>>>> origin/implement-cloud-output-adapters-6981127355945556911
     "chromadb>=1.5.9",
     "google-adk[a2a,all,db,eval]>=2.2.0",
     "google-cloud-aiplatform[adk,ag2,agent-engines]>=1.158.0",

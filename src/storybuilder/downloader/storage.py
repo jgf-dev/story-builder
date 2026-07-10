@@ -1,19 +1,8 @@
+import concurrent.futures
 import glob
 import os
 from pathlib import Path
 
-<<<<<<< HEAD
-from google.cloud.storage import Client
-from google.cloud.storage import transfer_manager
-
-
-def upload_many(
-    bucket_name: str, filenames: list[str], source_directory: str = "", workers: int = 8,
-
-):
-    """Upload every file in a list to a bucket, concurrently in a process pool.
-=======
-import concurrent.futures
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 from google.cloud.storage import Client, transfer_manager
@@ -25,12 +14,11 @@ def upload_many_gcs(
     filenames: list[str],
     source_directory: str = "",
     workers: int = 8,
-):
-    """Upload every file in a list to a bucket, concurrently in a process pool."""
+) -> None:
+    """Upload every file in a list to a GCS bucket, concurrently in a process pool."""
     try:
         storage_client = Client()
         bucket = storage_client.bucket(bucket_name)
->>>>>>> origin/implement-cloud-output-adapters-6981127355945556911
 
         results = transfer_manager.upload_many_from_filenames(
             bucket,
@@ -50,18 +38,14 @@ def upload_many_gcs(
     except Exception as e:
         print(f"Failed to initialize GCS upload: {e}")
 
-<<<<<<< HEAD
-    results = transfer_manager.upload_many_from_filenames(
-        bucket,
-        filenames,
-        source_directory=source_directory,
-        max_workers=workers,
 
-    )
-=======
->>>>>>> origin/implement-cloud-output-adapters-6981127355945556911
-
-def _upload_single_s3(s3_client, bucket_name, object_name, file_path):
+def _upload_single_s3(
+    s3_client: "boto3.client",
+    bucket_name: str,
+    object_name: str,
+    file_path: str,
+) -> Exception | None:
+    """Upload a single file to S3. Returns None on success, or the exception on failure."""
     try:
         s3_client.upload_file(file_path, bucket_name, object_name)
         return None
@@ -70,12 +54,6 @@ def _upload_single_s3(s3_client, bucket_name, object_name, file_path):
     except Exception as e:
         return e
 
-<<<<<<< HEAD
-        if isinstance(result, Exception):
-            print(f"Failed to upload {name} due to exception: {result}")
-        else:
-            print(f"Uploaded {name} to {bucket.name}.")
-=======
 
 def upload_many_s3(
     bucket_name: str,
@@ -83,7 +61,7 @@ def upload_many_s3(
     filenames: list[str],
     source_directory: str = "",
     workers: int = 8,
-):
+) -> None:
     """Upload every file in a list to an S3 bucket, concurrently using a thread pool."""
     try:
         s3_client = boto3.client("s3")
@@ -93,7 +71,7 @@ def upload_many_s3(
             prefix += "/"
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
-            future_to_file = {}
+            future_to_file: dict[concurrent.futures.Future, str] = {}
             for filename in filenames:
                 # Calculate object name
                 rel_path = (
@@ -127,7 +105,6 @@ def upload_many_s3(
                     )
     except Exception as e:
         print(f"Failed to initialize S3 upload: {e}")
->>>>>>> origin/implement-cloud-output-adapters-6981127355945556911
 
 
 if __name__ == "__main__":

@@ -41,7 +41,9 @@ def _parse_voice_mappings(markdown_content):
                 voice = match.group(2)
                 speaker_to_voice[speaker] = voice
 
-    return speaker_to_voice, list(speaker_to_voice.keys()) if speaker_to_voice and not transcript else transcript
+    return speaker_to_voice, list(
+        speaker_to_voice.keys()
+    ) if speaker_to_voice and not transcript else transcript
 
 
 def _extract_active_speakers(transcript):

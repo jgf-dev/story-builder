@@ -236,11 +236,7 @@ def load_archive_stats():
         "Epic (>50K)",
     ]
     df_words = pd.DataFrame(
-        [
-            {"Bracket": b, "Stories": bracket_counts[b]}
-            for b in order
-            if bracket_counts[b] > 0
-        ]
+        [{"Bracket": b, "Stories": bracket_counts[b]} for b in order]
     )
 
     return df_years, df_cats, df_auths, df_words
@@ -281,6 +277,8 @@ def query_stories(
                 parts = Path(r[0]).parts
                 if len(parts) >= 3:
                     entity_suffixes.append("/".join(parts[-3:]))
+
+    from storybuilder.downloader import db as storybuilder_db
 
     date_from = None
     date_to = None

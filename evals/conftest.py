@@ -10,6 +10,10 @@ Fixtures:
 """
 
 import json
+<<<<<<< HEAD
+=======
+import os
+>>>>>>> palette/save-button-tooltip-16022957350325416287
 from pathlib import Path
 
 import pytest
@@ -45,7 +49,11 @@ def load_jsonl(request):
         if not filepath.exists():
             pytest.skip(f"Dataset file not found: {filepath}")
         records = []
+<<<<<<< HEAD
         with Path(filepath).open() as f:
+=======
+        with open(filepath) as f:
+>>>>>>> palette/save-button-tooltip-16022957350325416287
             for line in f:
                 line = line.strip()
                 if line:
@@ -64,7 +72,10 @@ def tts_agent():
     """
     try:
         from storybuilder.agents.tts_prompt_crafter.agent import root_agent
+<<<<<<< HEAD
 
+=======
+>>>>>>> palette/save-button-tooltip-16022957350325416287
         return root_agent
     except ImportError:
         pytest.skip("TTS Prompt Crafter agent module not available")
@@ -111,6 +122,7 @@ def adk_events(tts_runner):
     # Store runner reference for the inner function
     runner = tts_runner
 
+<<<<<<< HEAD
     # Use a fresh, per-call InMemorySessionService so each test starts
     # with a clean session. Also enable ``auto_create_session`` so the
     # runner auto-creates a session on first call instead of raising
@@ -127,12 +139,23 @@ def adk_events(tts_runner):
             role="user",
             parts=[genai_types.Part(text=query)],
         )
+=======
+    async def _run_query(query: str) -> list:
+        from google.adk.sessions import InMemorySessionService
+
+        session_service = InMemorySessionService()
+        runner._session_service = session_service
+>>>>>>> palette/save-button-tooltip-16022957350325416287
 
         events = []
         async for event in runner.run_async(
             user_id="eval_user",
             session_id=f"eval_session_{id(query)}",
+<<<<<<< HEAD
             new_message=new_message,
+=======
+            new_message=query,
+>>>>>>> palette/save-button-tooltip-16022957350325416287
         ):
             events.append(event)
         return events

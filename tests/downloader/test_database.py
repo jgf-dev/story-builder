@@ -265,6 +265,13 @@ class TestDatabaseInit(unittest.TestCase):
                 "2024-01-16 12:34:56",
             ),
         )
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+
+=======
+>>>>>>> palette/fix-duplicate-file-input-14315194890274537724
+>>>>>>> palette/save-button-tooltip-16022957350325416287
         legacy_conn.commit()
         legacy_conn.close()
 
@@ -283,7 +290,13 @@ class TestDatabaseInit(unittest.TestCase):
             self.assertEqual(row["publication_date"], "2024-01-15")
             self.assertEqual(row["created_at"], "2024-01-16 12:34:56")
 
+<<<<<<< HEAD
             fts_count = conn.execute("SELECT COUNT(*) FROM stories_fts WHERE stories_fts MATCH 'legacy'").fetchone()[0]
+=======
+            fts_count = conn.execute(
+                "SELECT COUNT(*) FROM stories_fts WHERE stories_fts MATCH 'legacy'"
+            ).fetchone()[0]
+>>>>>>> palette/save-button-tooltip-16022957350325416287
             self.assertEqual(fts_count, 1)
         finally:
             close_db()
@@ -874,12 +887,16 @@ class TestDatabasePartitioning(unittest.TestCase):
         # raised, and that we can still search afterwards.
 
         conn1 = sqlite3.connect(os.path.join(self.temp_dir, "2012.db"))
-        row1 = conn1.execute("SELECT COUNT(*) FROM stories_fts WHERE stories_fts MATCH 'Content'").fetchone()[0]
+        row1 = conn1.execute(
+            "SELECT COUNT(*) FROM stories_fts WHERE stories_fts MATCH 'Content'"
+        ).fetchone()[0]
         self.assertEqual(row1, 1)
         conn1.close()
 
         conn2 = sqlite3.connect(os.path.join(self.temp_dir, "2025.db"))
-        row2 = conn2.execute("SELECT COUNT(*) FROM stories_fts WHERE stories_fts MATCH 'Content'").fetchone()[0]
+        row2 = conn2.execute(
+            "SELECT COUNT(*) FROM stories_fts WHERE stories_fts MATCH 'Content'"
+        ).fetchone()[0]
         self.assertEqual(row2, 1)
         conn2.close()
 
@@ -920,7 +937,9 @@ class TestImportToSQLite(unittest.TestCase):
         self.assertEqual(result["author_email"], "john@example.com")
         self.assertEqual(result["publication_date"], "2024-01-01")
         self.assertEqual(result["url"], "http://example.com/story")
-        self.assertEqual(result["content"], "This is the body of the story.\nIt has multiple lines.")
+        self.assertEqual(
+            result["content"], "This is the body of the story.\nIt has multiple lines."
+        )
 
     def test_parse_header_missing_fields(self):
         import import_to_sqlite

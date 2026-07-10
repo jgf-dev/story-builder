@@ -165,7 +165,11 @@ def cmd_search(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = No
             key=lambda r: (
                 0 if r["snippet"] and "<b>" in (r["snippet"] or "") else 1,
                 r["id"],
+<<<<<<< HEAD
             ),
+=======
+            )
+>>>>>>> palette/save-button-tooltip-16022957350325416287
         )
         rows = all_rows[: args.limit]
     else:
@@ -253,7 +257,11 @@ def cmd_get(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None)
         print(f"Title:    {row['title']}")
         print(
             f"Author:   {row['author_name'] or 'Unknown'}"
+<<<<<<< HEAD
             + (f" <{row['author_email']}>" if row["author_email"] else ""),
+=======
+            + (f" <{row['author_email']}>" if row["author_email"] else "")
+>>>>>>> palette/save-button-tooltip-16022957350325416287
         )
         print(f"Date:     {row['publication_date'] or 'Unknown'}")
         print(f"URL:      {row['url'] or 'N/A'}")
@@ -265,7 +273,10 @@ def cmd_get(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None)
         if not args.no_content:
             content = row["content"]
             if args.max_chars and len(content) > args.max_chars:
-                content = content[: args.max_chars] + f"\n\n… (truncated, {row['char_count']:,} total chars)"
+                content = (
+                    content[: args.max_chars]
+                    + f"\n\n… (truncated, {row['char_count']:,} total chars)"
+                )
             print(content)
 
 
@@ -356,14 +367,22 @@ def cmd_list(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None
 
     # Column widths
     print(
+<<<<<<< HEAD
         f"{'ID':>6}  {'Title':<45}  {'Author':<25}  {'Date':>10}  {'Words':>8}  Category",
+=======
+        f"{'ID':>6}  {'Title':<45}  {'Author':<25}  {'Date':>10}  {'Words':>8}  Category"
+>>>>>>> palette/save-button-tooltip-16022957350325416287
     )
     print("-" * 120)
     for row in rows:
         title = row["title"][:44] if row["title"] else ""
         author = (row["author_name"] or "")[:24]
         print(
+<<<<<<< HEAD
             f"{row['id']:>6}  {title:<45}  {author:<25}  {row['publication_date'] or '':>10}  {row['word_count']:>8,}  {row['category']}",
+=======
+            f"{row['id']:>6}  {title:<45}  {author:<25}  {row['publication_date'] or '':>10}  {row['word_count']:>8,}  {row['category']}"
+>>>>>>> palette/save-button-tooltip-16022957350325416287
         )
 
 
@@ -388,7 +407,11 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
             storybuilder_db.execute_all_partitions(
                 f"SELECT COUNT(*) as cnt, SUM(char_count) as chars, SUM(word_count) as words FROM {{table}} {where}",
                 tuple(params),
+<<<<<<< HEAD
             ),
+=======
+            )
+>>>>>>> palette/save-button-tooltip-16022957350325416287
         )
         total = sum(r["cnt"] or 0 for r in rows)
         total_chars = sum(r["chars"] or 0 for r in rows)
@@ -396,6 +419,7 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
 
     else:
         total = conn.execute(
+<<<<<<< HEAD
             f"SELECT COUNT(*) FROM stories {where}",
             params,
         ).fetchone()[0]
@@ -403,19 +427,34 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
             conn.execute(
                 f"SELECT SUM(char_count) FROM stories {where}",
                 params,
+=======
+            f"SELECT COUNT(*) FROM stories {where}", params
+        ).fetchone()[0]
+        total_chars = (
+            conn.execute(
+                f"SELECT SUM(char_count) FROM stories {where}", params
+>>>>>>> palette/save-button-tooltip-16022957350325416287
             ).fetchone()[0]
             or 0
         )
         total_words = (
             conn.execute(
+<<<<<<< HEAD
                 f"SELECT SUM(word_count) FROM stories {where}",
                 params,
+=======
+                f"SELECT SUM(word_count) FROM stories {where}", params
+>>>>>>> palette/save-button-tooltip-16022957350325416287
             ).fetchone()[0]
             or 0
         )
 
     print(
+<<<<<<< HEAD
         f"\n=== Database Stats{' for ' + args.category if args.category else ''} ===\n",
+=======
+        f"\n=== Database Stats{' for ' + args.category if args.category else ''} ===\n"
+>>>>>>> palette/save-button-tooltip-16022957350325416287
     )
     print(f"  Stories:     {total:,}")
     print(f"  Total chars: {total_chars:,}")
@@ -468,7 +507,10 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
             name = row["author_name"] or "Unknown"
             auth_counter[name] += row["cnt"]
             auth_words[name] += row["total_words"] or 0
-        authors = [{"author_name": k, "cnt": v, "total_words": auth_words[k]} for k, v in auth_counter.most_common(15)]
+        authors = [
+            {"author_name": k, "cnt": v, "total_words": auth_words[k]}
+            for k, v in auth_counter.most_common(15)
+        ]
     else:
         authors = conn.execute(
             f"""
@@ -518,9 +560,13 @@ def main():
         help="Database directory or file. Searches all .db files if a directory.",
     )
     parser.add_argument(
+<<<<<<< HEAD
         "--db-dir",
         default=None,
         help="Directory with split .db files (overrides --db)",
+=======
+        "--db-dir", default=None, help="Directory with split .db files (overrides --db)"
+>>>>>>> palette/save-button-tooltip-16022957350325416287
     )
 
     sub = parser.add_subparsers(dest="command", required=True)
@@ -556,9 +602,13 @@ def main():
         help="Export directory (default: exported_stories/)",
     )
     p.add_argument(
+<<<<<<< HEAD
         "--no-content",
         action="store_true",
         help="Show metadata only, not story text",
+=======
+        "--no-content", action="store_true", help="Show metadata only, not story text"
+>>>>>>> palette/save-button-tooltip-16022957350325416287
     )
     p.add_argument(
         "--max-chars",

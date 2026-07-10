@@ -394,6 +394,12 @@ runner = Runner(
 )
 
 logging.getLogger(__name__).info(f"Runner created for agent '{runner.agent.name}'.")
+<<<<<<< HEAD
+=======
+logging.getLogger(__name__).info(
+    f"  Sub-agents: {story_analyzer.name}, {scene_writer.name}"
+)
+>>>>>>> palette/save-button-tooltip-16022957350325416287
 logging.getLogger(__name__).info(
     f"  Sub-agents: {story_analyzer.name}, {scene_writer.name}",
 )

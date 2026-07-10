@@ -61,7 +61,12 @@ def _validate_eval_set_structure(data: dict, name: str) -> list[str]:
             for k, part in enumerate(uc.get("parts", [])):
                 if not part.get("text") and not part.get("inline_data"):
                     issues.append(
+<<<<<<< HEAD
                         f"[{case_id}] turn[{j}] user_content.parts[{k}]: Missing 'text' or 'inline_data'",
+=======
+                        f"[{case_id}] turn[{j}] user_content.parts[{k}]: "
+                        "Missing 'text' or 'inline_data'"
+>>>>>>> palette/save-button-tooltip-16022957350325416287
                     )
 
     return issues
@@ -84,12 +89,24 @@ class TestEvalSetDiscovery:
     def test_tts_prompt_crafter_has_evals(self):
         """TTS Prompt Crafter should have at least one eval set."""
         evals = discover_eval_sets(TTS_AGENT_DIR)
+<<<<<<< HEAD
         assert len(evals) >= 1, f"No .evalset.json files found in {TTS_AGENT_DIR}"
+=======
+        assert len(evals) >= 1, (
+            f"No .evalset.json files found in {TTS_AGENT_DIR}"
+        )
+>>>>>>> palette/save-button-tooltip-16022957350325416287
 
     def test_cartesia_agent_has_evals(self):
         """Cartesia TTS agent should have at least one eval set."""
         evals = discover_eval_sets(CARTESIA_AGENT_DIR)
+<<<<<<< HEAD
         assert len(evals) >= 1, f"No .evalset.json files found in {CARTESIA_AGENT_DIR}"
+=======
+        assert len(evals) >= 1, (
+            f"No .evalset.json files found in {CARTESIA_AGENT_DIR}"
+        )
+>>>>>>> palette/save-button-tooltip-16022957350325416287
 
 
 class TestEvalSetStructure:
@@ -104,12 +121,22 @@ class TestEvalSetStructure:
         """Each eval set must have valid structure."""
         assert eval_path.exists(), f"Eval set not found: {eval_path}"
 
+<<<<<<< HEAD
         with Path(eval_path).open() as f:
             data = json.load(f)
 
         issues = _validate_eval_set_structure(data, eval_path.stem)
         assert not issues, f"Structural issues in {eval_path.relative_to(PROJECT_ROOT)}:\n" + "\n".join(
             f"  - {i}" for i in issues
+=======
+        with open(eval_path) as f:
+            data = json.load(f)
+
+        issues = _validate_eval_set_structure(data, eval_path.stem)
+        assert not issues, (
+            f"Structural issues in {eval_path.relative_to(PROJECT_ROOT)}:\n"
+            + "\n".join(f"  - {i}" for i in issues)
+>>>>>>> palette/save-button-tooltip-16022957350325416287
         )
 
     def test_all_eval_sets_have_unique_ids(self):
@@ -118,7 +145,11 @@ class TestEvalSetStructure:
         all_evals = discover_eval_sets(TTS_AGENT_DIR) + discover_eval_sets(CARTESIA_AGENT_DIR)
 
         for eval_path in all_evals:
+<<<<<<< HEAD
             with Path(eval_path).open() as f:
+=======
+            with open(eval_path) as f:
+>>>>>>> palette/save-button-tooltip-16022957350325416287
                 data = json.load(f)
             eval_id = data.get("eval_set_id", eval_path.stem)
             if eval_id not in seen_ids:
@@ -146,14 +177,27 @@ class TestEvalRunViaADK:
         traces and scores responses.
         """
         import sys
+<<<<<<< HEAD
 
+=======
+>>>>>>> palette/save-button-tooltip-16022957350325416287
         sys.path.insert(0, str(Path(__file__).parent.parent))
         from evals.run_adk_eval import run_eval_via_adk
 
         result = run_eval_via_adk(eval_path, verbose=False)
+<<<<<<< HEAD
         assert result.get("status") in ("completed", "validated_only"), f"Eval run failed: {result.get('error')}"
+=======
+        assert result.get("status") in ("completed", "validated_only"), (
+            f"Eval run failed: {result.get('error')}"
+        )
+>>>>>>> palette/save-button-tooltip-16022957350325416287
 
     @pytest.mark.slow
     @pytest.mark.skip(reason="Cartesia TTS agent tools not yet implemented")
     def test_run_cartesia_eval_set(self):
         """Cartesia eval sets can be run once tools are implemented."""
+<<<<<<< HEAD
+=======
+        pass
+>>>>>>> palette/save-button-tooltip-16022957350325416287

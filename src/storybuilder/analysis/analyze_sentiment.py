@@ -60,7 +60,14 @@ def init_db(db_path):
             entity_label TEXT,
             FOREIGN KEY(sentence_id) REFERENCES sentences(id)
         )
+<<<<<<< HEAD
     """,
+=======
+    """
+    )
+    cursor.execute(
+        "CREATE INDEX IF NOT EXISTS idx_sentences_story ON sentences(story_id)"
+>>>>>>> palette/save-button-tooltip-16022957350325416287
     )
     cursor.execute(
         "CREATE INDEX IF NOT EXISTS idx_sentences_story ON sentences(story_id)",
@@ -189,6 +196,7 @@ def load_models(spacy_model_name, sentiment_model_name, use_gpu):
         max_length=512,
     )
     return nlp, sentiment_pipe
+
 
 
 def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe):

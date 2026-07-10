@@ -17,10 +17,18 @@ Usage:
 """
 
 import argparse
+<<<<<<< HEAD
+=======
+import glob
+>>>>>>> palette/save-button-tooltip-16022957350325416287
 import json
 import logging
 import os
 import sys
+<<<<<<< HEAD
+=======
+import time
+>>>>>>> palette/save-button-tooltip-16022957350325416287
 from pathlib import Path
 
 
@@ -46,7 +54,11 @@ def discover_eval_sets(agent_dir: Path) -> list[Path]:
 
 def load_eval_set(eval_set_path: Path) -> dict:
     """Load an ADK eval set JSON file."""
+<<<<<<< HEAD
     with Path(eval_set_path).open() as f:
+=======
+    with open(eval_set_path) as f:
+>>>>>>> palette/save-button-tooltip-16022957350325416287
         return json.load(f)
 
 
@@ -54,7 +66,11 @@ def print_eval_set_summary(eval_set: dict) -> None:
     """Print a summary of an eval set."""
     name = eval_set.get("name", eval_set.get("eval_set_id", "unknown"))
     cases = eval_set.get("eval_cases", [])
+<<<<<<< HEAD
     print(f"\n{'=' * 60}")
+=======
+    print(f"\n{'='*60}")
+>>>>>>> palette/save-button-tooltip-16022957350325416287
     print(f"Eval Set: {name}")
     print(f"  Cases: {len(cases)}")
     for i, case in enumerate(cases):
@@ -62,12 +78,17 @@ def print_eval_set_summary(eval_set: dict) -> None:
         eval_id = case.get("eval_id", f"case_{i}")
         turns = len(conv)
         first_msg = conv[0].get("user_content", {}).get("parts", [{}])[0].get("text", "")[:80] if conv else ""
+<<<<<<< HEAD
         print(
             f'  [{i + 1}] {eval_id}: {turns} turn(s) — "{first_msg}..."'
             if first_msg
             else f"  [{i + 1}] {eval_id}: {turns} turn(s)"
         )
     print(f"{'=' * 60}")
+=======
+        print(f"  [{i+1}] {eval_id}: {turns} turn(s) — \"{first_msg}...\"" if first_msg else f"  [{i+1}] {eval_id}: {turns} turn(s)")
+    print(f"{'='*60}")
+>>>>>>> palette/save-button-tooltip-16022957350325416287
 
 
 def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
@@ -80,6 +101,10 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
     Results are automatically saved to .adk/eval_history/ by the ADK.
     """
     import asyncio
+<<<<<<< HEAD
+=======
+    import json as _json
+>>>>>>> palette/save-button-tooltip-16022957350325416287
     from pathlib import Path as _Path
 
     eval_path = _Path(eval_set_path)
@@ -104,8 +129,12 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
         try:
             # Load using ADK's file loader (handles both new and old formats)
             pydantic_eval_set = load_eval_set_from_file(
+<<<<<<< HEAD
                 str(eval_path),
                 eval_name,
+=======
+                str(eval_path), eval_name
+>>>>>>> palette/save-button-tooltip-16022957350325416287
             )
 
             # Determine agent module path relative to the agent's directory
@@ -119,7 +148,11 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
                     eval_set=pydantic_eval_set,
                     num_runs=1,
                     print_detailed_results=verbose,
+<<<<<<< HEAD
                 ),
+=======
+                )
+>>>>>>> palette/save-button-tooltip-16022957350325416287
             )
 
             # Print results summary
@@ -134,8 +167,12 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
                         score = getattr(metric, "score", None)
                         status = getattr(metric, "eval_status", None)
                         status_label = {1: "PASS", 2: "FAIL", 3: "SKIP", 4: "ERROR"}.get(
+<<<<<<< HEAD
                             status,
                             str(status or "?"),
+=======
+                            status, str(status or "?")
+>>>>>>> palette/save-button-tooltip-16022957350325416287
                         )
                         if score is not None:
                             print(f"    {metric_name}: {score:.4f} [{status_label}]")
@@ -264,7 +301,11 @@ def main():
         for eval_path in all_eval_sets:
             eval_set = load_eval_set(eval_path)
             issues = validate_eval_set_structure(eval_set, str(eval_path))
+<<<<<<< HEAD
             print(f"\n{'=' * 60}")
+=======
+            print(f"\n{'='*60}")
+>>>>>>> palette/save-button-tooltip-16022957350325416287
             print(f"File: {eval_path.relative_to(PROJECT_ROOT)}")
             print(f"  Cases: {len(eval_set.get('eval_cases', []))}")
             if issues:

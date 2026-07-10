@@ -2,6 +2,7 @@
 
 root = true
 
+<<<<<<< HEAD
 indent_style = space
 indent_size = 4
 trim_trailing_whitespace = true
@@ -12,3 +13,12 @@ end_of_line = lf
 indent_style = space
 indent_size = 4
 max_line_length = 120
+=======
+[*]
+indent_style = tabs
+trim_trailing_whitespace = true
+insert_final_newline = true
+end_of_line = lf
+tab_width = 4
+use_tabs = true
+>>>>>>> palette/save-button-tooltip-16022957350325416287

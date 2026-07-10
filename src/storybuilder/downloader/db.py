@@ -5,7 +5,6 @@ the batch import script.
 Thread-safe: uses WAL mode + a write lock.  Call init_db() once at startup,
 then insert_story() from any thread.
 """
-
 import concurrent.futures
 import os
 import re
@@ -14,6 +13,11 @@ import threading
 from logging import getLogger
 from pathlib import Path
 
+<<<<<<< HEAD
+=======
+from nltk.lm.vocabulary import _
+
+>>>>>>> palette/save-button-tooltip-16022957350325416287
 
 logging = getLogger(__name__)
 
@@ -136,6 +140,7 @@ def _parse_output_path(output_path: str) -> "tuple[str, str, str, int | None]":
     Path structure (5+ parts): <output_dir>/<orientation>/<category>/<story_slug>/<file>
     """
     parts = Path(output_path).parts
+<<<<<<< HEAD
     if len(parts) < _MIN_PATH_PARTS:
         message = f"Invalid output path: {output_path}. Must have at least {_MIN_PATH_PARTS} parts."
         raise ValueError(message)
@@ -151,9 +156,20 @@ def _parse_output_path(output_path: str) -> "tuple[str, str, str, int | None]":
 
     chapter_num = None
     if (m := _CHAPTER_SUFFIX_RE.match(story_slug)) or (m := _CHAPTER_SUFFIX_RE.match(Path(parts[-1]).stem)):
+=======
+    if len(parts) <= _MIN_PATH_PARTS:
+        message = f"Invalid output path: {output_path}. Must have at least 4 parts."
+        raise ValueError(message)
+
+    story_slug = parts[-2] if len(parts) >= _MIN_PATH_PARTS + 2 else Path(parts[-1]).stem
+
+    chapter_num = None
+
+    if m := _CHAPTER_SUFFIX_RE.match(story_slug):
+>>>>>>> palette/save-button-tooltip-16022957350325416287
         chapter_num = int(m.group(2))
 
-    return orientation, category, story_slug, chapter_num
+    return _BASE_TOPIC, parts[_MIN_PATH_PARTS - 1], story_slug, chapter_num
 
 
 # -- Schema migrations --------------------------------------------------
@@ -264,6 +280,7 @@ def init_db(db_path: str) -> "sqlite3.Connection":
         # Return a dummy connection to satisfy get_conn() is not None
         _conn = sqlite3.connect(":memory:", check_same_thread=False)
         return _conn
+<<<<<<< HEAD
     _is_partitioned = False
     _db_dir = None
     _monolithic_db_path = db_path
@@ -276,6 +293,21 @@ def init_db(db_path: str) -> "sqlite3.Connection":
     _conn.executescript(INDEXES)
     _migrate_schema(_conn)
     return _conn
+=======
+    else:
+        _is_partitioned = False
+        _db_dir = None
+        _monolithic_db_path = db_path
+        os.makedirs(os.path.dirname(db_path) or ".", exist_ok=True)
+        _conn = sqlite3.connect(db_path, check_same_thread=False)
+        _conn.execute("PRAGMA journal_mode=WAL")
+        _conn.execute("PRAGMA synchronous=NORMAL")
+        _conn.execute("PRAGMA cache_size=-64000")
+        _conn.executescript(SCHEMA)
+        _conn.executescript(INDEXES)
+        _migrate_schema(_conn)
+        return _conn
+>>>>>>> palette/save-button-tooltip-16022957350325416287
 
 
 def get_conn() -> "sqlite3.Connection | None":
@@ -306,7 +338,10 @@ def get_all_partition_paths() -> list[str]:
 
 def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
     """Execute a SELECT query across all database partitions concurrently.
+<<<<<<< HEAD
 
+=======
+>>>>>>> palette/save-button-tooltip-16022957350325416287
     The SQL must use {table} where the target table name goes.
     Returns a list of dictionaries.
     """
@@ -410,10 +445,18 @@ def search_all_partitions(
             db_paths = get_all_partition_paths()
         else:
             import glob
+<<<<<<< HEAD
 
             excluded = {"stories.db", "dashboard_metadata.db"}
             db_files = glob.glob(os.path.join(partition_dir, "*.db"))
             db_paths = sorted(p for p in db_files if os.path.basename(p) not in excluded)
+=======
+            excluded = {"stories.db", "dashboard_metadata.db"}
+            db_files = glob.glob(os.path.join(partition_dir, "*.db"))
+            db_paths = sorted(
+                p for p in db_files if os.path.basename(p) not in excluded
+            )
+>>>>>>> palette/save-button-tooltip-16022957350325416287
         if not db_paths:
             return []
 
@@ -497,7 +540,11 @@ def search_all_partitions(
             ) as executor:
                 for res in executor.map(_search_single_db, db_paths):
                     all_results.extend(res)
-
+            with concurrent.futures.ThreadPoolExecutor(
+                max_workers=min(len(db_paths), 10)
+            ) as executor:
+                for res in executor.map(_search_single_db, db_paths):
+                    all_results.extend(res)
     # Sort aggregated results
     if fts_query:
         # Sort by date desc (since rank order is lost when combined, or we could sort by a score if we fetched it)

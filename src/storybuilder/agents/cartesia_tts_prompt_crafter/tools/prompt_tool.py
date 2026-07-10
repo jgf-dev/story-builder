@@ -1,7 +1,11 @@
 import pathlib
 
 
+<<<<<<< HEAD
 def save_prompts(prompts: list[str], file_path: str = "tts_prompts.txt") -> str:
+=======
+def save_prompts(prompts: List[str], file_path: str = "tts_prompts.txt") -> str:
+>>>>>>> palette/save-button-tooltip-16022957350325416287
     """Saves a list of TTS prompts to a specified text file.
 
     Args:

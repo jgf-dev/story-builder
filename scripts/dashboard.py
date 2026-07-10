@@ -178,8 +178,8 @@ def _aggregate_db_stats(db, category_counts, author_counts, word_counts):
         word_counts.extend([r[0] for r in cursor.fetchall()])
 
         conn.close()
-    except sqlite3.Error:
-        pass
+    except sqlite3.Error as e:
+        st.warning(f"Skipping database {db} due to SQLite error: {e}")
     return year_stats
 
 

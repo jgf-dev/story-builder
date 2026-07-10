@@ -1,138 +1,40 @@
-import concurrent.futures
 import glob
 import os
 from pathlib import Path
 
-<<<<<<< Updated upstream
-=======
-import boto3
-from botocore.exceptions import BotoCoreError
-from botocore.exceptions import ClientError
->>>>>>> Stashed changes
 from google.cloud.storage import Client
 from google.cloud.storage import transfer_manager
 
 
-<<<<<<< Updated upstream
 def upload_many(
     bucket_name: str, filenames: list[str], source_directory: str = "", workers: int = 8,
 ):
     """Upload every file in a list to a bucket, concurrently in a process pool.
-=======
-def upload_many_gcs(
-    bucket_name: str,
-    prefix: str,
-    filenames: list[str],
-    source_directory: str = "",
-    workers: int = 8,
-) -> None:
-    """Upload every file in a list to a GCS bucket, concurrently in a process pool."""
-    try:
-        storage_client = Client()
-        bucket = storage_client.bucket(bucket_name)
->>>>>>> Stashed changes
 
-        results = transfer_manager.upload_many_from_filenames(
-            bucket,
-            filenames,
-            source_directory=source_directory,
-            blob_name_prefix=prefix + "/" if prefix and not prefix.endswith("/") else prefix,
-            max_workers=workers,
-        )
+    Each blob name is derived from the filename, not including the
+    `source_directory` parameter. For complete control of the blob name for each
+    file (and other aspects of individual blob metadata), use
+    transfer_manager.upload_many() instead.
+    """
 
-        for name, result in zip(filenames, results):
-            if isinstance(result, Exception):
-                print(f"Failed to upload {name} to GCS due to exception: {result}")
-            else:
-                pass  # print(f"Uploaded {name} to GCS.")
-    except Exception as e:
-        print(f"Failed to initialize GCS upload: {e}")
+    storage_client = Client()
+    bucket = storage_client.bucket(bucket_name)
 
-<<<<<<< Updated upstream
     results = transfer_manager.upload_many_from_filenames(
         bucket,
         filenames,
         source_directory=source_directory,
         max_workers=workers,
     )
-=======
->>>>>>> Stashed changes
 
-def _upload_single_s3(
-    s3_client: "boto3.client",
-    bucket_name: str,
-    object_name: str,
-    file_path: str,
-) -> Exception | None:
-    """Upload a single file to S3. Returns None on success, or the exception on failure."""
-    try:
-        s3_client.upload_file(file_path, bucket_name, object_name)
-        return None
-    except (BotoCoreError, ClientError) as e:
-        return e
-    except Exception as e:
-        return e
+    for name, result in zip(filenames, results):
+        # The results list is either `None` or an exception for each filename in
+        # the input list, in order.
 
-<<<<<<< Updated upstream
         if isinstance(result, Exception):
             print(f"Failed to upload {name} due to exception: {result}")
         else:
             print(f"Uploaded {name} to {bucket.name}.")
-=======
-
-def upload_many_s3(
-    bucket_name: str,
-    prefix: str,
-    filenames: list[str],
-    source_directory: str = "",
-    workers: int = 8,
-) -> None:
-    """Upload every file in a list to an S3 bucket, concurrently using a thread pool."""
-    try:
-        s3_client = boto3.client("s3")
-
-        # Ensure prefix ends with a slash if it's not empty
-        if prefix and not prefix.endswith("/"):
-            prefix += "/"
-
-        with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
-            future_to_file: dict[concurrent.futures.Future, str] = {}
-            for filename in filenames:
-                # Calculate object name
-                rel_path = (
-                    os.path.relpath(filename, source_directory) if source_directory else os.path.basename(filename)
-                )
-
-                # Replace Windows path separators if needed
-                rel_path = rel_path.replace(os.sep, "/")
-
-                object_name = f"{prefix}{rel_path}"
-                future = executor.submit(
-                    _upload_single_s3,
-                    s3_client,
-                    bucket_name,
-                    object_name,
-                    filename,
-                )
-                future_to_file[future] = filename
-
-            for future in concurrent.futures.as_completed(future_to_file):
-                filename = future_to_file[future]
-                try:
-                    result = future.result()
-                    if isinstance(result, Exception):
-                        print(
-                            f"Failed to upload {filename} to S3 due to exception: {result}",
-                        )
-                    else:
-                        pass  # print(f"Uploaded {filename} to S3.")
-                except Exception as exc:
-                    print(
-                        f"Failed to upload {filename} to S3 due to unhandled exception: {exc}",
-                    )
-    except Exception as e:
-        print(f"Failed to initialize S3 upload: {e}")
->>>>>>> Stashed changes
 
 
 if __name__ == "__main__":
@@ -144,4 +46,4 @@ if __name__ == "__main__":
     print(f"Found {len(files_to_upload)} files to upload.")
     print(files_to_upload)
 
-    upload_many_gcs("nifty-index", "", files_to_upload, source_directory=str(directory))
+    upload_many("nifty-index", files_to_upload, source_directory=str(directory))

@@ -15,15 +15,12 @@ description: Explanantion of changes per commits
 
 ## 10/07/2026
 
-<<<<<<< Updated upstream
 ### Resolved merge conflicts with palette/fix-duplicate-file-input
 
 - Config files: Maintained local space indentation, dependency overrides (`sqlmodel`), and integrations (Linear, SonarLint) from HEAD.
 - Monolithic DB preservation: Kept the monolithic database architecture (`stories.db`) and SQLModel refactoring from HEAD, rejecting the incoming branch's legacy database partitioning.
 - Verified and formatted: All 169 unit tests passed successfully, and files were styled with `ruff format`.
 
-=======
->>>>>>> Stashed changes
 ### Resolved merge conflicts on branch implement-cloud-output-adapters
 
 - dependencies: Merged updated project dependencies from HEAD with `boto3` support from the incoming branch to enable S3 storage adapters.

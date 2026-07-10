@@ -183,7 +183,6 @@ class CodebaseAnalyzer:
                     py_file = self.analyzer.root_dir / f"{resolved_path}.py"
                     dir_init = self.analyzer.root_dir / resolved_path / "__init__.py"
                     if py_file.is_file():
-<<<<<<< Updated upstream
                         local_imports.append(
                             str(py_file.relative_to(self.analyzer.root_dir)),
                         )
@@ -191,11 +190,6 @@ class CodebaseAnalyzer:
                         local_imports.append(
                             str(dir_init.relative_to(self.analyzer.root_dir)),
                         )
-=======
-                        local_imports.append(str(py_file.relative_to(self.analyzer.root_dir)))
-                    elif dir_init.is_file():
-                        local_imports.append(str(dir_init.relative_to(self.analyzer.root_dir)))
->>>>>>> Stashed changes
 
             def visit_ClassDef(self, node):
                 classes_in_file.append(node.name)
@@ -286,14 +280,10 @@ class CodebaseAnalyzer:
             self.uis[str(rel_path)] = ui_techs
 
         local_imports = []
-<<<<<<< Updated upstream
         imports_matches = re.findall(
             r'import\s+.*?\s+from\s+[\'"](\./.*?)[\'"]',
             content,
         )
-=======
-        imports_matches = re.findall(r'import\s+.*?\s+from\s+[\'"](\./.*?)[\'"]', content)
->>>>>>> Stashed changes
         imports_matches += re.findall(r'require\(\s*[\'"](\./.*?)[\'"]\s*\)', content)
 
         for imp in imports_matches:
@@ -319,13 +309,9 @@ class CodebaseAnalyzer:
 
         tables = re.findall(r"CREATE\s+TABLE\s+(\w+)", content, re.IGNORECASE)
         if tables:
-<<<<<<< Updated upstream
             self.databases[str(rel_path)] = [
                 f"SQL Schema (Tables: {', '.join(tables)})",
             ]
-=======
-            self.databases[str(rel_path)] = [f"SQL Schema (Tables: {', '.join(tables)})"]
->>>>>>> Stashed changes
 
     def analyze_shell(self, rel_path, abs_path):
         try:
@@ -335,14 +321,10 @@ class CodebaseAnalyzer:
 
         runs = []
         for line in content.splitlines():
-<<<<<<< Updated upstream
             matches = re.findall(
                 r"(python\d?|uv run|sh|bash)\s+([a-zA-Z0-9_\-\./]+)",
                 line,
             )
-=======
-            matches = re.findall(r"(python\d?|uv run|sh|bash)\s+([a-zA-Z0-9_\-\./]+)", line)
->>>>>>> Stashed changes
             for _, run_script in matches:
                 if (self.root_dir / run_script).is_file():
                     runs.append(run_script)
@@ -394,13 +376,9 @@ class CodebaseAnalyzer:
         # 2. Module & Script Dependency Diagram
         md.append("\n---")
         md.append("\n## 2. Module & File Dependencies")
-<<<<<<< Updated upstream
         md.append(
             "Visualizes import relationships and dependency flows between local scripts and modules.",
         )
-=======
-        md.append("Visualizes import relationships and dependency flows between local scripts and modules.")
->>>>>>> Stashed changes
         md.append("\n```mermaid")
         md.append("flowchart RL")
         has_imports = False
@@ -408,13 +386,9 @@ class CodebaseAnalyzer:
             caller_id = clean_id(caller)
             for callee in sorted(callees):
                 callee_id = clean_id(callee)
-<<<<<<< Updated upstream
                 md.append(
                     f'    {caller_id}["{clean_label(caller)}"] --> {callee_id}["{clean_label(callee)}"]',
                 )
-=======
-                md.append(f'    {caller_id}["{clean_label(caller)}"] --> {callee_id}["{clean_label(callee)}"]')
->>>>>>> Stashed changes
                 has_imports = True
         if not has_imports:
             md.append('    NoDependencies["No inter-file dependencies detected."]')
@@ -423,13 +397,9 @@ class CodebaseAnalyzer:
         # 3. Class and Function Map
         md.append("\n---")
         md.append("\n## 3. Key Classes & Functions")
-<<<<<<< Updated upstream
         md.append(
             "Outlines the primary class structures and key functions defined in each module.",
         )
-=======
-        md.append("Outlines the primary class structures and key functions defined in each module.")
->>>>>>> Stashed changes
         md.append("\n```mermaid")
         md.append("classDiagram")
         has_classes = False
@@ -488,13 +458,9 @@ class CodebaseAnalyzer:
         # 4. Storage & Data Models
         md.append("\n---")
         md.append("\n## 4. Data Storage & API Flows")
-<<<<<<< Updated upstream
         md.append(
             "Represents database connections, local caches, APIs, and external services consumed by scripts.",
         )
-=======
-        md.append("Represents database connections, local caches, APIs, and external services consumed by scripts.")
->>>>>>> Stashed changes
         md.append("\n```mermaid")
         md.append("flowchart LR")
 
@@ -515,25 +481,17 @@ class CodebaseAnalyzer:
                 has_storage = True
 
         if not has_storage:
-<<<<<<< Updated upstream
             md.append(
                 '    NoStorage["No storage integrations or local databases detected."]',
             )
-=======
-            md.append('    NoStorage["No storage integrations or local databases detected."]')
->>>>>>> Stashed changes
         md.append("```")
 
         # 5. UI and Client Interfaces
         md.append("\n---")
         md.append("\n## 5. UI & Presentation Layers")
-<<<<<<< Updated upstream
         md.append(
             "Tracks user interfaces, scripts utilizing Streamlit or plotting modules, and entrypoints.",
         )
-=======
-        md.append("Tracks user interfaces, scripts utilizing Streamlit or plotting modules, and entrypoints.")
->>>>>>> Stashed changes
         md.append("\n```mermaid")
         md.append("flowchart TD")
 
@@ -561,7 +519,6 @@ class CodebaseAnalyzer:
 
 
 def main():
-<<<<<<< Updated upstream
     parser = argparse.ArgumentParser(
         description="Analyze a codebase and output structured Mermaid diagrams.",
     )
@@ -570,10 +527,6 @@ def main():
         default=".",
         help="Root directory of the codebase to analyze.",
     )
-=======
-    parser = argparse.ArgumentParser(description="Analyze a codebase and output structured Mermaid diagrams.")
-    parser.add_argument("--root-dir", default=".", help="Root directory of the codebase to analyze.")
->>>>>>> Stashed changes
     parser.add_argument(
         "--output-file",
         default="architecture.md",

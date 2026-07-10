@@ -122,10 +122,6 @@ class RubricEvaluator:
                     reason=f"Override scorer for '{dim.name}' to get detailed feedback",
                     details={"criterion_description": dim.description},
                 ),
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
             )
 
         overall_score = sum(s.weighted_score for s in dimension_scores)
@@ -179,10 +175,6 @@ Task: {context.get("task", "N/A")}
 
 Agent Response: {context.get("response", "N/A")}
 
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
 Return only a number from 1 to 5."""
         try:
             result = llm_client.generate(prompt, model=model_name)

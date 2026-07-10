@@ -53,15 +53,11 @@ def _parse_text_story(raw_text):
     story_text = raw_text
 
     # Try to parse headers (Subject, From)
-<<<<<<< Updated upstream
     subject_match = re.search(
         r"^Subject:\s*(.*)$",
         raw_text,
         re.IGNORECASE | re.MULTILINE,
     )
-=======
-    subject_match = re.search(r"^Subject:\s*(.*)$", raw_text, re.IGNORECASE | re.MULTILINE)
->>>>>>> Stashed changes
     if subject_match:
         title = subject_match.group(1).strip()
 
@@ -166,10 +162,6 @@ def _replicate_story(primary_path, output_paths, story_date):
             except Exception as e:
                 safe_print(
                     f"Warning: Failed to copy {primary_path} to {extra_path}: {e}",
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
                 )
     else:
         # Retrieve from database and insert for duplicates

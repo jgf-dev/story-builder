@@ -119,7 +119,6 @@ def plot_narrative_arcs(story_dir, df_sentences, char_arcs):
 
 
 def main():
-<<<<<<< Updated upstream
     parser = argparse.ArgumentParser(
         description="Visualize narrative arcs from sentiment_analysis.db",
     )
@@ -131,12 +130,6 @@ def main():
         default=100,
         help="Moving average window size (sentences)",
     )
-=======
-    parser = argparse.ArgumentParser(description="Visualize narrative arcs from sentiment_analysis.db")
-    parser.add_argument("--db-path", default="stories/db/sentiment_analysis.db")
-    parser.add_argument("--story", help="Substring of story_dir to visualize")
-    parser.add_argument("--window", type=int, default=100, help="Moving average window size (sentences)")
->>>>>>> Stashed changes
     args = parser.parse_args()
 
     conn = sqlite3.connect(args.db_path)
@@ -156,7 +149,6 @@ def main():
 
     char_arcs = {}
     for char in top_chars:
-<<<<<<< Updated upstream
         char_arcs[char] = get_character_sentiment(
             conn,
             story_id,
@@ -164,9 +156,6 @@ def main():
             df_sentences,
             args.window,
         )
-=======
-        char_arcs[char] = get_character_sentiment(conn, story_id, char, df_sentences, args.window)
->>>>>>> Stashed changes
 
     fig, story_name = plot_narrative_arcs(story_dir, df_sentences, char_arcs)
 

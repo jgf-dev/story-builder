@@ -264,13 +264,9 @@ def _flush_batch(conn: sqlite3.Connection, batch: list, force: bool) -> int:
 def main():
     global _start_time
 
-<<<<<<< Updated upstream
     parser = argparse.ArgumentParser(
         description="Import Nifty story .txt files into SQLite + FTS5",
     )
-=======
-    parser = argparse.ArgumentParser(description="Import Nifty story .txt files into SQLite + FTS5")
->>>>>>> Stashed changes
     parser.add_argument(
         "--db",
         default="stories/stories.db",
@@ -282,15 +278,11 @@ def main():
         default=0,
         help="Import only N files (for testing, default: all)",
     )
-<<<<<<< Updated upstream
     parser.add_argument(
         "--force",
         action="store_true",
         help="Force insert even on integrity errors",
     )
-=======
-    parser.add_argument("--force", action="store_true", help="Force insert even on integrity errors")
->>>>>>> Stashed changes
     args = parser.parse_args()
 
     # Collect all .txt files from nifty_stories/
@@ -337,7 +329,6 @@ def main():
         optimize_fts()
 
     # Print stats
-<<<<<<< Updated upstream
     row = conn.execute(
         "SELECT COUNT(*), SUM(char_count), SUM(word_count) FROM stories",
     ).fetchone()
@@ -346,12 +337,6 @@ def main():
     print(
         f"\nDone! Imported {imported:,} stories ({skipped} skipped) in {elapsed:.1f}s ({rate:.0f}/s)",
     )
-=======
-    row = conn.execute("SELECT COUNT(*), SUM(char_count), SUM(word_count) FROM stories").fetchone()
-    conn.close()
-
-    print(f"\nDone! Imported {imported:,} stories ({skipped} skipped) in {elapsed:.1f}s ({rate:.0f}/s)")
->>>>>>> Stashed changes
     print(f"  Total stories:  {row[0]:,}")
     if row[1]:
         print(f"  Total chars:    {row[1]:,}")

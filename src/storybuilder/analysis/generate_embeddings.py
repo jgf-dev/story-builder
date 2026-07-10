@@ -63,7 +63,6 @@ def process_story(filepath_str, collection_chunks, collection_averages, model):
 
     try:
         text = Path(filepath_str).read_text(encoding="utf-8")
-<<<<<<< Updated upstream
 
         chunks = get_chunks(text, chunk_size=250)
         if not chunks:

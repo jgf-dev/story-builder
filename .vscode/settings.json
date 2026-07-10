@@ -116,13 +116,9 @@
         ".",
         "--cache-mode=session"
     ],
-<<<<<<< Updated upstream
     "python.testing.autoTestDiscoverOnSaveEnabled": true,
     "sonarlint.connectedMode.project": {
         "connectionId": "jgf-dev",
         "projectKey": "jgf-dev_story-builder"
     }
-=======
-    "python.testing.autoTestDiscoverOnSaveEnabled": true
->>>>>>> Stashed changes
 }

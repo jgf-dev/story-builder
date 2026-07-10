@@ -108,7 +108,7 @@ class TestTTSPipeline(unittest.TestCase):
                     generated.append(wav_file)
                     print(f"  ✓ WAV written ({size} bytes)")
                 else:
-                    print(f"  ⚠ No WAV output — API returned no audio (non-fatal)")
+                    print("  ⚠ No WAV output — API returned no audio (non-fatal)")
 
             print(f"\nTTS pipeline test complete: {len(generated)}/{len(self.prompt_files)} files generated audio.")
 

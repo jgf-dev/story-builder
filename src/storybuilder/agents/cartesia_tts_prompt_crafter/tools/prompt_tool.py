@@ -1,6 +1,12 @@
-from typing import List
+import pathlib
 
-def save_prompts(prompts: List[str], file_path: str = "tts_prompts.txt") -> str:
+
+def save_prompts(prompts: list[str], file_path: str = "tts_prompts.txt") -> str:
+
+
+
+
+
     """Saves a list of TTS prompts to a specified text file.
 
     Args:
@@ -11,9 +17,8 @@ def save_prompts(prompts: List[str], file_path: str = "tts_prompts.txt") -> str:
         A string confirming that the file was saved.
     """
     try:
-        with open(file_path, "w") as f:
-            for prompt in prompts:
-                f.write(prompt + "\n")
+        with pathlib.Path(file_path).open("w") as f:
+            f.writelines(prompt + "\n" for prompt in prompts)
         return f"Successfully saved {len(prompts)} prompts to {file_path}"
     except Exception as e:
         return f"Error saving prompts to {file_path}: {e}"

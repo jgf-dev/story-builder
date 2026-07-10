@@ -2,12 +2,14 @@ import argparse
 import base64
 import glob
 import os
+import pathlib
 import re
 import time
 import wave
 
 from dotenv import load_dotenv
 from google import genai
+
 
 load_dotenv()
 
@@ -33,9 +35,7 @@ def _parse_voice_mappings(markdown_content):
     for line in preamble.split("\n"):
         line = line.strip()
         if line.startswith("*") or line.startswith("-"):
-            match = re.search(
-                r"[\*\-]\s*([A-Za-z0-9_-]+)\s*\(Voice:\s*([A-Za-z0-9_-]+)\)", line
-            )
+            match = re.search(r"[\*\-]\s*([A-Za-z0-9_-]+)\s*\(Voice:\s*([A-Za-z0-9_-]+)\)", line)
             if match:
                 speaker = match.group(1)
                 voice = match.group(2)
@@ -245,10 +245,8 @@ def process_directory(directory):
         base_name = os.path.splitext(os.path.basename(md_file))[0]
         wav_file = os.path.join(directory, f"{base_name}.wav")
 
-        if os.path.exists(wav_file):
-            print(
-                f"Skipping {os.path.basename(md_file)}, {os.path.basename(wav_file)} already exists."
-            )
+        if pathlib.Path(wav_file).exists():
+            print(f"Skipping {os.path.basename(md_file)}, {os.path.basename(wav_file)} already exists.")
             continue
 
         client, current_key_idx, previous_id = process_file(
@@ -260,9 +258,7 @@ def process_directory(directory):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Process TTS prompt files to generate audio."
-    )
+    parser = argparse.ArgumentParser(description="Process TTS prompt files to generate audio.")
     parser.add_argument(
         "--dir",
         default="stories/the_secret_vacation",
@@ -270,7 +266,7 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    if os.path.isdir(args.dir):
+    if pathlib.Path(args.dir).is_dir():
         process_directory(args.dir)
     else:
         print(f"Error: Directory '{args.dir}' does not exist.")

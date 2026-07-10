@@ -237,9 +237,10 @@ It has multiple lines.
 if __name__ == "__main__":
     unittest.main()
 
+
 class TestProcessSubcategory(unittest.TestCase):
-    @unittest.mock.patch('storybuilder.downloader.scraper.scrape_subcategory')
-    @unittest.mock.patch('storybuilder.downloader.scraper.scrape_multi_chapter_folder')
+    @unittest.mock.patch("storybuilder.downloader.scraper.scrape_subcategory")
+    @unittest.mock.patch("storybuilder.downloader.scraper.scrape_multi_chapter_folder")
     def test_process_subcategory(self, mock_scrape_multi, mock_scrape_sub):
         from storybuilder.downloader.scraper import process_subcategory, seen_folders
 
@@ -258,28 +259,25 @@ class TestProcessSubcategory(unittest.TestCase):
                 "is_dir": False,
                 "name": "story1.txt",
                 "url": "http://example.com/sub/story1.txt",
-                "date": "2023-01-01"
+                "date": "2023-01-01",
             },
             {
                 "is_dir": True,
                 "name": "Story 2 folder",
                 "url": "http://example.com/sub/story2/",
-                "date": "2023-01-02"
-            }
+                "date": "2023-01-02",
+            },
         ]
 
         mock_scrape_multi.return_value = [
             {
                 "name": "ch1.txt",
                 "url": "http://example.com/sub/story2/ch1.txt",
-                "date": "2023-01-02"
+                "date": "2023-01-02",
             }
         ]
 
-        sub = {
-            "name": "Subcategory",
-            "url": "http://example.com/sub/"
-        }
+        sub = {"name": "Subcategory", "url": "http://example.com/sub/"}
 
         args = Args()
 
@@ -294,6 +292,7 @@ class TestProcessSubcategory(unittest.TestCase):
         # Multi chapter output
         self.assertEqual(results[1]["key"], ("story-2-folder", "ch1.txt"))
         import os
+
         expected_path1 = os.path.join("out", "cat", "sub", "story1.txt")
         expected_path2 = os.path.join("out", "cat", "sub", "story-2-folder", "ch1.txt")
 
@@ -303,9 +302,11 @@ class TestProcessSubcategory(unittest.TestCase):
         # Ensure it was added to seen folders
         self.assertIn("http://example.com/sub/story2/", seen_folders)
 
-    @unittest.mock.patch('storybuilder.downloader.scraper.scrape_subcategory')
-    @unittest.mock.patch('storybuilder.downloader.scraper.scrape_multi_chapter_folder')
-    def test_process_subcategory_skip_seen_folders(self, mock_scrape_multi, mock_scrape_sub):
+    @unittest.mock.patch("storybuilder.downloader.scraper.scrape_subcategory")
+    @unittest.mock.patch("storybuilder.downloader.scraper.scrape_multi_chapter_folder")
+    def test_process_subcategory_skip_seen_folders(
+        self, mock_scrape_multi, mock_scrape_sub
+    ):
         from storybuilder.downloader.scraper import process_subcategory, seen_folders
 
         # Reset and prime seen_folders
@@ -324,14 +325,11 @@ class TestProcessSubcategory(unittest.TestCase):
                 "is_dir": True,
                 "name": "Story 2 folder",
                 "url": "http://example.com/sub/story2/",
-                "date": "2023-01-02"
+                "date": "2023-01-02",
             }
         ]
 
-        sub = {
-            "name": "Subcategory",
-            "url": "http://example.com/sub/"
-        }
+        sub = {"name": "Subcategory", "url": "http://example.com/sub/"}
 
         args = Args()
 
@@ -341,7 +339,7 @@ class TestProcessSubcategory(unittest.TestCase):
         self.assertEqual(len(results), 0)
         mock_scrape_multi.assert_not_called()
 
-    @unittest.mock.patch('storybuilder.downloader.scraper.scrape_subcategory')
+    @unittest.mock.patch("storybuilder.downloader.scraper.scrape_subcategory")
     def test_process_subcategory_extension_handling(self, mock_scrape_sub):
         from storybuilder.downloader.scraper import process_subcategory, seen_folders
 
@@ -360,20 +358,17 @@ class TestProcessSubcategory(unittest.TestCase):
                 "is_dir": False,
                 "name": "story_no_ext",
                 "url": "http://example.com/sub/story_no_ext",
-                "date": "2023-01-01"
+                "date": "2023-01-01",
             },
             {
                 "is_dir": False,
                 "name": "story_with.html",
                 "url": "http://example.com/sub/story_with.html",
-                "date": "2023-01-01"
-            }
+                "date": "2023-01-01",
+            },
         ]
 
-        sub = {
-            "name": "Subcategory",
-            "url": "http://example.com/sub/"
-        }
+        sub = {"name": "Subcategory", "url": "http://example.com/sub/"}
 
         args = Args()
 

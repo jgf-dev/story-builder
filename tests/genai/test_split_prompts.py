@@ -14,7 +14,9 @@ if __name__ == "__main__" and __package__ is None:
 # Add tts-prompt-crafter scripts directory to import split_prompts
 sys.path.insert(
     0,
-    str(Path(__file__).resolve().parents[2] / ".agent/skills/tts-prompt-crafter/scripts"),
+    str(
+        Path(__file__).resolve().parents[2] / ".agent/skills/tts-prompt-crafter/scripts"
+    ),
 )
 import split_prompts  # pyrefly: ignore [missing-import]
 
@@ -40,9 +42,13 @@ class TestDateParser(unittest.TestCase):
         # MMM DD HH:MM
         ref_date = datetime.datetime(2026, 6, 10, 12, 0)
         # In past relative to ref_date, so stays 2026
-        self.assertEqual(parse_nifty_date("Jun  6 08:55", ref_date), datetime.date(2026, 6, 6))
+        self.assertEqual(
+            parse_nifty_date("Jun  6 08:55", ref_date), datetime.date(2026, 6, 6)
+        )
         # In future relative to ref_date (e.g. Dec), so gets previous year (2025)
-        self.assertEqual(parse_nifty_date("Dec 12 19:52", ref_date), datetime.date(2025, 12, 12))
+        self.assertEqual(
+            parse_nifty_date("Dec 12 19:52", ref_date), datetime.date(2025, 12, 12)
+        )
 
     def test_fallback_parsing(self):
         ref_date = datetime.datetime(2026, 6, 10, 12, 0)
@@ -143,7 +149,9 @@ class TestNetwork(unittest.TestCase):
             mock_response_fail.status_code = 403
             mock_get.return_value = mock_response_fail
 
-            res = network.fetch_page("https://example.com/blocked", delay=0, max_retries=2)
+            res = network.fetch_page(
+                "https://example.com/blocked", delay=0, max_retries=2
+            )
             self.assertIsNone(res)
             self.assertEqual(mock_rotate.call_count, 2)
         finally:
@@ -163,7 +171,9 @@ class TestDBIntegration(unittest.TestCase):
         self.original_db_path = None
         try:
             # Monkey patch cli.parse_args to return our test DB path
-            self.patcher = unittest.mock.patch("storybuilder.downloader.cli.argparse.ArgumentParser.parse_args")
+            self.patcher = unittest.mock.patch(
+                "storybuilder.downloader.cli.argparse.ArgumentParser.parse_args"
+            )
             self.mock_parse_args = self.patcher.start()
             self.mock_parse_args.return_value = unittest.mock.Mock(
                 db="/tmp/test_downloader_integration.db",
@@ -179,18 +189,26 @@ class TestDBIntegration(unittest.TestCase):
                 force=False,
             )
             # Monkey patch the writer's save_story to bypass network fetch
-            self.patcher_writer = unittest.mock.patch("storybuilder.downloader.writer.save_story")
+            self.patcher_writer = unittest.mock.patch(
+                "storybuilder.downloader.writer.save_story"
+            )
             self.mock_save_story = self.patcher_writer.start()
             # Monkey patch db.init_db to ensure it uses the test DB path
-            self.patcher_db = unittest.mock.patch("storybuilder.downloader.db.init_db", return_value=get_conn())
+            self.patcher_db = unittest.mock.patch(
+                "storybuilder.downloader.db.init_db", return_value=get_conn()
+            )
             self.mock_init_db = self.patcher_db.start()
 
             # Monkey patch scraper functions to avoid hitting network/Nifty site during tests
-            self.patcher_get_subcats = unittest.mock.patch("storybuilder.downloader.cli.get_subcategories")
+            self.patcher_get_subcats = unittest.mock.patch(
+                "storybuilder.downloader.cli.get_subcategories"
+            )
             self.mock_get_subcategories = self.patcher_get_subcats.start()
             self.mock_get_subcategories.return_value = ["mock-subcat"]
 
-            self.patcher_proc_subcat = unittest.mock.patch("storybuilder.downloader.cli.process_subcategory")
+            self.patcher_proc_subcat = unittest.mock.patch(
+                "storybuilder.downloader.cli.process_subcategory"
+            )
             self.mock_process_subcategory = self.patcher_proc_subcat.start()
             self.mock_process_subcategory.return_value = [
                 {
@@ -202,7 +220,9 @@ class TestDBIntegration(unittest.TestCase):
             ]
 
             # Monkey patch upload_many to avoid hitting GCS during unit test
-            self.patcher_upload = unittest.mock.patch("storybuilder.downloader.cli.upload_many")
+            self.patcher_upload = unittest.mock.patch(
+                "storybuilder.downloader.cli.upload_many"
+            )
             self.mock_upload = self.patcher_upload.start()
         except Exception as e:
             self.fail(f"Error setting up mocks: {e}")
@@ -260,7 +280,9 @@ class TestDBIntegration(unittest.TestCase):
         self.assertGreater(count, 0, "No stories were inserted into the database.")
 
         # Check a specific inserted record
-        row = conn.execute("SELECT * FROM stories WHERE path LIKE ?", ("%test-story.txt",)).fetchone()
+        row = conn.execute(
+            "SELECT * FROM stories WHERE path LIKE ?", ("%test-story.txt",)
+        ).fetchone()
         self.assertIsNotNone(row)
         self.assertEqual(row["title"], "Test Story")
         self.assertEqual(row["author_name"], "Test Author")
@@ -387,7 +409,9 @@ Jace: Fourth line.
 
             # Check that scene file was archived
             self.assertFalse(os.path.exists(scene_file))
-            self.assertTrue(os.path.exists(os.path.join(temp_dir, "archive", "01-scene1.md")))
+            self.assertTrue(
+                os.path.exists(os.path.join(temp_dir, "archive", "01-scene1.md"))
+            )
 
             # Check output chunk files
             part1_file = os.path.join(temp_dir, "01-part.md")

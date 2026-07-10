@@ -1,26 +1,33 @@
 import argparse
 import concurrent.futures
 import datetime
-import glob
 import sys
 import time
 from pathlib import Path
 
-from storybuilder.downloader.storage import upload_many
+from storybuilder.downloader.storage import upload_many_gcs
+from storybuilder.downloader.storage import upload_many_s3
+
+
+
 
 # Add project root to sys.path to enable absolute imports when run directly as a script
 if __name__ == "__main__" and __package__ is None:
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from storybuilder.downloader import db, network
-from storybuilder.downloader.cache import load_cache, safe_print, save_cache
-from storybuilder.downloader.scraper import get_subcategories, process_subcategory
+from storybuilder.downloader import db
+from storybuilder.downloader import network
+from storybuilder.downloader.cache import load_cache
+from storybuilder.downloader.cache import safe_print
+from storybuilder.downloader.cache import save_cache
+from storybuilder.downloader.scraper import get_subcategories
+from storybuilder.downloader.scraper import process_subcategory
 from storybuilder.downloader.writer import download_single_target
 
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Download stories from Nifty Archive based on date range and category."
+        description="Download stories from Nifty Archive based on date range and category.",
     )
     parser.add_argument(
         "--category",
@@ -82,6 +89,26 @@ def _parse_args() -> argparse.Namespace:
         default="stories/db",
         help="SQLite database path or directory. Stories are inserted into partitioned databases under this path as they download. Set to empty string to disable.",
     )
+    parser.add_argument(
+        "--s3-bucket",
+        default="",
+        help="S3 bucket to upload the output tree to.",
+    )
+    parser.add_argument(
+        "--s3-prefix",
+        default="",
+        help="S3 object prefix.",
+    )
+    parser.add_argument(
+        "--gcs-bucket",
+        default="",
+        help="GCS bucket to upload the output tree to.",
+    )
+    parser.add_argument(
+        "--gcs-prefix",
+        default="",
+        help="GCS object prefix.",
+    )
     return parser.parse_args()
 
 
@@ -106,9 +133,7 @@ def _setup_network(args: argparse.Namespace) -> bool:
     return True
 
 
-def _parse_dates(
-    start_date_str: str, end_date_str: str | None
-) -> tuple[datetime.date | None, datetime.date | None]:
+def _parse_dates(start_date_str: str, end_date_str: str | None) -> tuple[datetime.date | None, datetime.date | None]:
     try:
         start_date = datetime.datetime.strptime(start_date_str, "%Y-%m-%d").date()
     except ValueError:
@@ -127,9 +152,7 @@ def _parse_dates(
     return start_date, end_date
 
 
-def _print_config(
-    args: argparse.Namespace, start_date: datetime.date, end_date: datetime.date
-) -> None:
+def _print_config(args: argparse.Namespace, start_date: datetime.date, end_date: datetime.date) -> None:
     print("Starting downloader...")
     if args.db:
         print(f"Database: {args.db}")
@@ -156,13 +179,8 @@ def _scrape_subcategories(
 ) -> dict[str, dict]:
     all_story_targets: dict[str, dict] = {}
     if args.max_scraping > 1:
-        with concurrent.futures.ThreadPoolExecutor(
-            max_workers=args.max_scraping
-        ) as executor:
-            futures = [
-                executor.submit(process_subcategory, sub, start_date, end_date, args)
-                for sub in subcategories
-            ]
+        with concurrent.futures.ThreadPoolExecutor(max_workers=args.max_scraping) as executor:
+            futures = [executor.submit(process_subcategory, sub, start_date, end_date, args) for sub in subcategories]
             for future in concurrent.futures.as_completed(futures):
                 try:
                     sub_targets = future.result()
@@ -174,9 +192,7 @@ def _scrape_subcategories(
                                 "output_paths": [],
                                 "date": target["date"],
                             }
-                        all_story_targets[key]["output_paths"].append(
-                            target["output_path"]
-                        )
+                        all_story_targets[key]["output_paths"].append(target["output_path"])
                 except Exception as e:
                     safe_print(f"Error occurred in scraping worker thread: {e}")
     else:
@@ -194,9 +210,7 @@ def _scrape_subcategories(
     return all_story_targets
 
 
-def _download_stories(
-    all_story_targets: dict[str, dict], args: argparse.Namespace
-) -> int:
+def _download_stories(all_story_targets: dict[str, dict], args: argparse.Namespace) -> int:
     total_downloads = len(all_story_targets)
     print("\n" + "=" * 50)
     print(f"Total unique stories/chapters to download: {total_downloads}")
@@ -205,9 +219,7 @@ def _download_stories(
     successful_downloads = 0
 
     if args.max_workers > 1:
-        with concurrent.futures.ThreadPoolExecutor(
-            max_workers=args.max_workers
-        ) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=args.max_workers) as executor:
             futures = []
             for idx, (key, target) in enumerate(all_story_targets.items()):
                 idx_str = f"{idx + 1}/{total_downloads}"
@@ -252,17 +264,44 @@ def _download_stories(
     return successful_downloads
 
 
-def _upload_to_gcs(db_path_str: str) -> None:
-    db_path = Path(db_path_str)
+def _upload_to_cloud(args: argparse.Namespace) -> None:
+    db_path = Path(args.db)
     if db_path.is_dir():
-        db_files = glob.glob(str(db_path / "*.db"))
+        db_files = [str(p) for p in db_path.glob("*.db")]
         source_dir = str(db_path)
     else:
         db_files = [str(db_path)]
         source_dir = str(db_path.parent)
 
-    print("Uploading to GCS...")
-    upload_many("nifty-index", db_files, source_directory=source_dir)
+    # Output tree
+    output_dir = Path(args.output_dir)
+    output_files = (
+        [str(p) for p in output_dir.rglob("*") if p.is_file()]
+        if output_dir.exists()
+        else []
+    )
+
+    if args.s3_bucket:
+        print(f"Uploading output tree to S3 ({args.s3_bucket})...")
+        upload_many_s3(
+            args.s3_bucket,
+            args.s3_prefix,
+            output_files,
+            source_directory=str(output_dir),
+        )
+
+    if args.gcs_bucket:
+        print(f"Uploading output tree to GCS ({args.gcs_bucket})...")
+        upload_many_gcs(
+            args.gcs_bucket,
+            args.gcs_prefix,
+            output_files,
+            source_directory=str(output_dir),
+        )
+    elif not args.s3_bucket:
+        # Fallback to the original behavior: upload DB files to GCS nifty-index
+        print("Uploading to GCS...")
+        upload_many_gcs("nifty-index", "", db_files, source_directory=source_dir)
 
 
 def main():
@@ -285,9 +324,7 @@ def main():
     load_cache(args.output_dir)
 
     try:
-        all_story_targets = _scrape_subcategories(
-            subcategories, start_date, end_date, args
-        )
+        all_story_targets = _scrape_subcategories(subcategories, start_date, end_date, args)
     finally:
         save_cache(args.output_dir)
 
@@ -297,7 +334,7 @@ def main():
         db.optimize_fts()
         db.close_db()
         print(f"Stories saved to database: {args.db}")
-        _upload_to_gcs(args.db)
+        _upload_to_cloud(args)
 
 
 if __name__ == "__main__":

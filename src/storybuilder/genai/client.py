@@ -2,12 +2,14 @@ import argparse
 import base64
 import glob
 import os
+import pathlib
 import re
 import time
 import wave
 
 from dotenv import load_dotenv
 from google import genai
+
 
 load_dotenv()
 
@@ -34,9 +36,7 @@ def _parse_voice_mappings(markdown_content):
     for line in preamble.split("\n"):
         line = line.strip()
         if line.startswith("*") or line.startswith("-"):
-            match = re.search(
-                r"[\*\-]\s*([A-Za-z0-9_-]+)\s*\(Voice:\s*([A-Za-z0-9_-]+)\)", line
-            )
+            match = re.search(r"[\*\-]\s*([A-Za-z0-9_-]+)\s*\(Voice:\s*([A-Za-z0-9_-]+)\)", line)
             if match:
                 speaker = match.group(1)
                 voice = match.group(2)
@@ -50,6 +50,9 @@ def _parse_voice_mappings(markdown_content):
 def _extract_active_speakers(transcript):
     """Extracts active speakers actually speaking in the transcript in order of appearance."""
     active_speakers = []
+    if isinstance(transcript, list):
+        # We got the speakers list back instead of a text transcript
+        return transcript
     for line in transcript.split("\n"):
         line = line.strip()
         match = re.match(r"^([A-Za-z0-9_-]+):", line)
@@ -139,15 +142,12 @@ def process_directory(directory):
         base_name = os.path.splitext(os.path.basename(md_file))[0]
         wav_file = os.path.join(directory, f"{base_name}.wav")
 
-        if os.path.exists(wav_file):
-            print(
-                f"Skipping {os.path.basename(md_file)}, {os.path.basename(wav_file)} already exists."
-            )
+        if pathlib.Path(wav_file).exists():
+            print(f"Skipping {os.path.basename(md_file)}, {os.path.basename(wav_file)} already exists.")
             continue
 
         print(f"Processing {os.path.basename(md_file)}...")
-        with open(md_file, "r") as f:
-            content = f.read()
+        content = pathlib.Path(md_file).read_text()
 
         speech_config = parse_speech_config(content)
         print(f"  Speech config: {speech_config}")
@@ -170,18 +170,11 @@ def process_directory(directory):
 
                     # Dynamically extract sample rate from mime_type if available
                     sample_rate = 24000
-                    if (
-                        hasattr(interaction.output_audio, "mime_type")
-                        and interaction.output_audio.mime_type
-                    ):
-                        rate_match = re.search(
-                            r"rate=(\d+)", interaction.output_audio.mime_type
-                        )
+                    if hasattr(interaction.output_audio, "mime_type") and interaction.output_audio.mime_type:
+                        rate_match = re.search(r"rate=(\d+)", interaction.output_audio.mime_type)
                         if rate_match:
                             sample_rate = int(rate_match.group(1))
-                            print(
-                                f"  Extracted sample rate from mime_type: {sample_rate}Hz"
-                            )
+                            print(f"  Extracted sample rate from mime_type: {sample_rate}Hz")
 
                     wave_file(wav_file, audio_bytes, rate=sample_rate)
                     print(f"  Saved audio to {os.path.basename(wav_file)}")
@@ -200,9 +193,7 @@ def process_directory(directory):
                     or "400" in error_msg
                 )
                 is_quota = (
-                    "429" in error_msg
-                    or "too_many_requests" in error_msg.lower()
-                    or "quota" in error_msg.lower()
+                    "429" in error_msg or "too_many_requests" in error_msg.lower() or "quota" in error_msg.lower()
                 )
                 is_session_not_found = (
                     "404" in error_msg
@@ -211,18 +202,14 @@ def process_directory(directory):
                 )
 
                 if is_session_not_found and previous_id is not None:
-                    print(
-                        f"  Session ID {previous_id} not found or expired. Retrying without session history."
-                    )
+                    print(f"  Session ID {previous_id} not found or expired. Retrying without session history.")
                     previous_id = None
                     continue
 
                 if (is_invalid_key or is_quota) and keys_tried < len(
-                    api_keys
+                    api_keys,
                 ) - 1:  # TODO: Move key management out of the function
-                    print(
-                        f"  Error processing {os.path.basename(md_file)} for {key_name}"
-                    )
+                    print(f"  Error processing {os.path.basename(md_file)} for {key_name}")
                     keys_tried += 1
                     current_key_idx = (current_key_idx + 1) % len(api_keys)
                     key_name, api_key = api_keys[current_key_idx]
@@ -237,7 +224,7 @@ def process_directory(directory):
                 if is_quota:
                     wait_time = 15 * (attempt + 1)
                     print(
-                        f"  Rate limit/Quota hit on all keys. Retrying in {wait_time}s... (Attempt {attempt + 1}/{max_retries})"
+                        f"  Rate limit/Quota hit on all keys. Retrying in {wait_time}s... (Attempt {attempt + 1}/{max_retries})",
                     )
                     time.sleep(wait_time)
                     attempt += 1
@@ -246,18 +233,14 @@ def process_directory(directory):
                     print(f"  Error processing {os.path.basename(md_file)}: {e}")
                     break
         else:
-            print(
-                f"  Failed to process {os.path.basename(md_file)} after {max_retries} attempts."
-            )
+            print(f"  Failed to process {os.path.basename(md_file)} after {max_retries} attempts.")
 
         # Slight delay to respect rate limits
         time.sleep(2)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Process TTS prompt files to generate audio."
-    )
+    parser = argparse.ArgumentParser(description="Process TTS prompt files to generate audio.")
     parser.add_argument(
         "--dir",
         default="stories/the_secret_vacation",
@@ -265,7 +248,7 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    if os.path.isdir(args.dir):
+    if pathlib.Path(args.dir).is_dir():
         process_directory(args.dir)
     else:
         print(f"Error: Directory '{args.dir}' does not exist.")

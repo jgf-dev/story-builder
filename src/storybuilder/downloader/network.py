@@ -1,5 +1,7 @@
 import time
+
 import requests
+
 
 # Base URL for the classic Nifty Archive
 BASE_URL = "https://nifty.org/nifty/"
@@ -12,6 +14,7 @@ ENABLE_ROTATION: bool = False
 def safe_print(*args, **kwargs):
     # This will be overridden or imported from utils later, but let's import it locally inside the package
     from .cache import safe_print as cache_safe_print
+
     cache_safe_print(*args, **kwargs)
 
 
@@ -23,14 +26,21 @@ def rotate_windscribe_ip():
     try:
         import subprocess
 
-        result = subprocess.run(["windscribe-cli", "ip", "rotate"], capture_output=True, text=True, timeout=30)
+        result = subprocess.run(
+            ["windscribe-cli", "ip", "rotate"],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
         if result.returncode == 0:
-            safe_print("Successfully rotated IP. Waiting 10 seconds for connection to stabilize...")
+            safe_print(
+                "Successfully rotated IP. Waiting 10 seconds for connection to stabilize...",
+            )
             time.sleep(10)
             return True
-        else:
-            safe_print(f"Failed to rotate IP: {result.stdout.strip() or result.stderr.strip()}")
-            return False
+        safe_print(f"Failed to rotate IP: {result.stdout.strip() or result.stderr.strip()}")
+        return False
+
     except Exception as e:
         safe_print(f"Error running windscribe-cli ip rotate: {e}")
         return False
@@ -42,28 +52,43 @@ def fetch_page(url, delay, headers=None, max_retries=3):
     Optionally routes through global proxies and triggers Windscribe IP rotation on refusal.
     """
     if not headers:
-        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+
+        }
 
     for attempt in range(max_retries):
         try:
             response = requests.get(url, headers=headers, proxies=PROXIES, timeout=15)
             if response.status_code == 200:
                 return response
-            elif response.status_code == 404:
+            if response.status_code == 404:
                 safe_print(f"Error 404: Not Found - {url}")
                 return None
-            elif response.status_code in (403, 429, 503):
-                safe_print(f"Warning: Fetching {url} returned status code {response.status_code} (Attempt {attempt + 1}/{max_retries})")
+            if response.status_code in (403, 429, 503):
+                safe_print(
+                    f"Warning: Fetching {url} returned status code {response.status_code} (Attempt {attempt + 1}/{max_retries})",
+
+                )
                 if ENABLE_ROTATION:
                     rotate_windscribe_ip()
             else:
-                safe_print(f"Warning: Fetching {url} returned status code {response.status_code} (Attempt {attempt + 1}/{max_retries})")
+                safe_print(
+                    f"Warning: Fetching {url} returned status code {response.status_code} (Attempt {attempt + 1}/{max_retries})",
+
+                )
         except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
-            safe_print(f"Warning: Connection/Timeout error on attempt {attempt + 1}/{max_retries} for {url}: {e}")
+            safe_print(
+                f"Warning: Connection/Timeout error on attempt {attempt + 1}/{max_retries} for {url}: {e}",
+
+            )
             if ENABLE_ROTATION:
                 rotate_windscribe_ip()
         except Exception as e:
-            safe_print(f"Warning: Unexpected error on attempt {attempt + 1}/{max_retries} for {url}: {e}")
+            safe_print(
+                f"Warning: Unexpected error on attempt {attempt + 1}/{max_retries} for {url}: {e}",
+
+            )
 
         if attempt < max_retries - 1:
             time.sleep(delay * (attempt + 1))

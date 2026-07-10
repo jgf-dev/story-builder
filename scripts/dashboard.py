@@ -1,119 +1,77 @@
-import streamlit as st
-import sqlite3
-import os
-import glob
-import pandas as pd
-import plotly.express as px
-from pathlib import Path
+import importlib
 import sys
-import html
+from pathlib import Path
+
 
 # Ensure src layout package is importable
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-# Define paths
+# Force reload dashboard submodules to ensure Streamlit server picks up file changes on refresh
+if "storybuilder.dashboard.config" in sys.modules:
+    importlib.reload(sys.modules["storybuilder.dashboard.config"])
+if "storybuilder.dashboard.data" in sys.modules:
+    importlib.reload(sys.modules["storybuilder.dashboard.data"])
+if "storybuilder.dashboard.ui.sidebar" in sys.modules:
+    importlib.reload(sys.modules["storybuilder.dashboard.ui.sidebar"])
+if "storybuilder.dashboard.pages.search_explorer" in sys.modules:
+    importlib.reload(sys.modules["storybuilder.dashboard.pages.search_explorer"])
+if "storybuilder.dashboard.pages.read_story" in sys.modules:
+    importlib.reload(sys.modules["storybuilder.dashboard.pages.read_story"])
+if "storybuilder.dashboard.pages.favorites_tags" in sys.modules:
+    importlib.reload(sys.modules["storybuilder.dashboard.pages.favorites_tags"])
+if "storybuilder.dashboard.pages.archive_stats" in sys.modules:
+    importlib.reload(sys.modules["storybuilder.dashboard.pages.archive_stats"])
+
+# Global variables for testing patches (keep these exactly as in original to satisfy test patching)
 DB_DIR = "stories/db"
-NLP_DB_PATH = "nlp_analysis.db"
+NLP_DB_PATH = "stories/db/nlp_analysis.db"
 META_DB_PATH = "stories/db/dashboard_metadata.db"
 
-# Set up page config
-st.set_page_config(
-    page_title="StoryBuilder Workspace Dashboard",
-    page_icon="📚",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
+# Rerouting rendering to modular components
+from storybuilder.dashboard.config import init_session_state
+from storybuilder.dashboard.config import inject_custom_css
+from storybuilder.dashboard.config import setup_page
 
-# Inject custom CSS for premium design
-st.markdown(
-    """
-    <style>
-        /* Main background and container styling */
-        .reportview-container {
-            background: #0b1020;
-        }
+# Expose key data operations at module level to satisfy test imports
+from storybuilder.dashboard.data import add_favorite  # noqa: F401
+from storybuilder.dashboard.data import get_db_files  # noqa: F401
+from storybuilder.dashboard.data import get_favorites  # noqa: F401
+from storybuilder.dashboard.data import get_story_by_path  # noqa: F401
+from storybuilder.dashboard.data import query_stories  # noqa: F401
+from storybuilder.dashboard.data import remove_favorite  # noqa: F401
 
-        /* Heading styles */
-        h1, h2, h3 {
-            font-family: 'Outfit', 'Inter', sans-serif;
-            font-weight: 700;
-            color: #e8eefc;
-        }
-
-        /* Card styling */
-        .story-card {
-            background-color: rgba(22, 34, 64, 0.6);
-            border: 1px solid rgba(148, 163, 184, 0.15);
-            border-radius: 12px;
-            padding: 18px;
-            margin-bottom: 12px;
-            transition: all 0.2s ease-in-out;
-        }
-        .story-card:hover {
-            border-color: rgba(125, 211, 252, 0.4);
-            transform: translateY(-2px);
-            background-color: rgba(22, 34, 64, 0.85);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-        }
-
-        /* Snippet highlight styling */
-        .highlight {
-            background-color: rgba(251, 191, 36, 0.25);
-            color: #fbbf24;
-            padding: 2px 4px;
-            border-radius: 4px;
-            font-weight: bold;
-        }
-
-        /* Sidebar styling custom overrides */
-        .css-1d391kg {
-            background-color: #09101f;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-# ------------------------------------------------------------------------------
-# DATABASE & DATA LOADING ENGINE
-# ------------------------------------------------------------------------------
+# Expose pages
+from storybuilder.dashboard.pages.archive_stats import render_archive_stats
+from storybuilder.dashboard.pages.favorites_tags import render_favorites_tags
+from storybuilder.dashboard.pages.read_story import render_read_story
+from storybuilder.dashboard.pages.search_explorer import render_search_explorer
+from storybuilder.dashboard.ui.sidebar import render_sidebar
 
 
-def get_db_files():
-    """Retrieve all year-partitioned databases, sorted."""
-    if not os.path.exists(DB_DIR):
-        return []
-    db_files = sorted(glob.glob(os.path.join(DB_DIR, "[0-9][0-9][0-9][0-9].db")))
-    return db_files
+def main() -> None:
+    # Setup page configurations as the first Streamlit instruction
+    setup_page()
+    inject_custom_css()
+    init_session_state()
+
+    # Render sidebar and retrieve routing & filter inputs
+    page, filters = render_sidebar()
+
+    # Route and render pages
+    if page == "🔍 Search & Explorer":
+        render_search_explorer(filters)
+    elif page == "📖 Read Story":
+        render_read_story()
+    elif page == "⭐ Favorites & Tags":
+        render_favorites_tags()
+    elif page == "📊 Archive Stats":
+        render_archive_stats()
 
 
-def get_meta_conn():
-    """Establish connection to local dashboard metadata (favorites & tags)."""
-    os.makedirs(os.path.dirname(META_DB_PATH) or ".", exist_ok=True)
-    conn = sqlite3.connect(META_DB_PATH, check_same_thread=False)
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS favorites (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            story_path TEXT UNIQUE,
-            title TEXT,
-            author TEXT,
-            tags TEXT,
-            notes TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-        """
-    )
-    conn.commit()
-    return conn
+if __name__ == "__main__":
+    main()
 
 
-@st.cache_resource
-def get_nlp_conn():
-    """Establish cached connection to NLP database."""
-    if not os.path.exists(NLP_DB_PATH):
-        return None
-    return sqlite3.connect(NLP_DB_PATH, check_same_thread=False)
 
 
 @st.cache_data
@@ -126,23 +84,26 @@ def get_filter_options():
     categories = set()
     authors = set()
     # Get unique categories
-    cat_results = storybuilder_db.execute_all_partitions("SELECT DISTINCT category FROM {table}")
+    cat_results = storybuilder_db.execute_all_partitions(
+        "SELECT DISTINCT category FROM {table}"
+    )
     for r in cat_results:
         if r.get("category"):
             categories.add(r["category"])
 
     # Get unique authors
-    author_results = storybuilder_db.execute_all_partitions("SELECT DISTINCT author_name FROM {table}")
+    author_results = storybuilder_db.execute_all_partitions(
+        "SELECT DISTINCT author_name FROM {table}"
+    )
     for r in author_results:
         if r.get("author_name"):
             authors.add(r["author_name"])
-    return sorted(list(categories)), sorted(list(authors))
+    return sorted(categories), sorted(authors)
 
 
 @st.cache_data
 def load_archive_stats():
     """Pre-aggregate stats across all partition databases for the visualizations."""
-    db_files = get_db_files()
     year_stats = []
     category_counts = {}
     author_counts = {}
@@ -155,80 +116,78 @@ def load_archive_stats():
         "Long (20K-50K)": 0,
         "Epic (>50K)": 0,
     }
-    for db in db_files:
+
+    # We will still iterate get_db_files() because execute_all_partitions doesn't return the DB year name by default in its result set natively unless we query it.
+    for db in get_db_files():
         year_name = Path(db).stem
         try:
-            conn = sqlite3.connect(db)
-            cursor = conn.cursor()
+            with sqlite3.connect(db) as conn:
+                cursor = conn.cursor()
 
-            # Year level summary
-            cursor.execute("SELECT COUNT(*), SUM(word_count) FROM stories")
-            cnt, words = cursor.fetchone()
-            if cnt:
-                year_stats.append(
-                    {
-                        "Year": int(year_name),
-                        "Stories Count": cnt,
-                        "Total Words": words or 0,
-                    }
+                # Year level summary
+                cursor.execute("SELECT COUNT(*), SUM(word_count) FROM stories")
+                row = cursor.fetchone()
+                if row and row[0]:
+                    year_stats.append([int(year_name), row[0], row[1] or 0])  # noqa: E501
+
+                # Categories summary
+                for cat, count in cursor.execute(
+                    "SELECT category, COUNT(*) FROM stories GROUP BY category"
+                ):
+                    if cat:
+                        category_counts[cat] = category_counts.get(cat, 0) + count
+
+                # Top authors
+                for auth, count in cursor.execute(
+                    "SELECT author_name, COUNT(*) FROM stories GROUP BY author_name"
+                ):
+                    if auth:
+                        author_counts[auth] = author_counts.get(auth, 0) + count
+
+                # Word counts sample for distribution
+                word_counts.extend(
+                    [r[0] for r in cursor.execute("SELECT word_count FROM stories")]
                 )
-            # Categories summary
-            cursor.execute("SELECT category, COUNT(*) FROM stories GROUP BY category")
-            for cat, count in cursor.fetchall():
-                if cat:
-                    category_counts[cat] = category_counts.get(cat, 0) + count
 
-            # Top authors
-            cursor.execute(
-                "SELECT author_name, COUNT(*) FROM stories GROUP BY author_name"
-            )
-            for auth, count in cursor.fetchall():
-                if auth:
-                    author_counts[auth] = author_counts.get(auth, 0) + count
-            # Word counts sample for distribution
-            cursor.execute("SELECT word_count FROM stories")
-            word_counts.extend([r[0] for r in cursor.fetchall()])
+                # Word count bracket distribution
+                cursor.execute("""
+                    SELECT
+                        CASE
+                            WHEN word_count < 1000 THEN 'Short (<1K)'
+                            WHEN word_count < 5000 THEN 'Medium-Short (1K-5K)'
+                            WHEN word_count < 10000 THEN 'Medium (5K-10K)'
+                            WHEN word_count < 20000 THEN 'Medium-Long (10K-20K)'
+                            WHEN word_count < 50000 THEN 'Long (20K-50K)'
+                            ELSE 'Epic (>50K)'
+                        END as Bracket,
+                        COUNT(*)
+                    FROM stories
+                    WHERE word_count IS NOT NULL
+                    GROUP BY Bracket
+                """)
+                for bracket, count in cursor:
+                    if bracket in bracket_counts:
+                        bracket_counts[bracket] += count
 
-            # Word count bracket distribution (binned at SQL level; NULLs excluded)
-            cursor.execute(
-                """
-                SELECT
-                    CASE
-                        WHEN word_count < 1000 THEN 'Short (<1K)'
-                        WHEN word_count < 5000 THEN 'Medium-Short (1K-5K)'
-                        WHEN word_count < 10000 THEN 'Medium (5K-10K)'
-                        WHEN word_count < 20000 THEN 'Medium-Long (10K-20K)'
-                        WHEN word_count < 50000 THEN 'Long (20K-50K)'
-                        ELSE 'Epic (>50K)'
-                    END AS bracket,
-                    COUNT(*)
-                FROM stories
-                WHERE word_count IS NOT NULL
-                GROUP BY bracket
-                """
-            )
-            for bracket, count in cursor.fetchall():
-                if bracket in bracket_counts:
-                    bracket_counts[bracket] += count
-            conn.close()
-        except sqlite3.Error:
-            pass
+        except sqlite3.Error as e:
+            print(f"Error querying {db}: {e}")
 
-    df_years = pd.DataFrame(year_stats)
-    df_cats = pd.DataFrame(
-        list(category_counts.items()), columns=["Category", "Count"]
-    ).sort_values("Count", ascending=False)
-    df_auths = pd.DataFrame(
-        list(author_counts.items()), columns=["Author", "Count"]
-    ).sort_values("Count", ascending=False)
-    df_words = pd.DataFrame(
-        [
-            {"Bracket": bracket, "Stories": count}
-            for bracket, count in bracket_counts.items()
-            if count > 0
-        ]
+    # Build DataFrames
+    df_years = (
+        pd.DataFrame(
+            year_stats, columns=["Year", "Stories_Count", "Total_Words"]
+        ).sort_values("Year")
+        if year_stats
+        else pd.DataFrame(columns=["Year", "Stories_Count", "Total_Words"])
     )
-    return df_years, df_cats, df_auths, df_words
+
+    df_cats = pd.DataFrame(
+        [{"Category": k, "Stories": v} for k, v in category_counts.items()]
+    ).sort_values("Stories", ascending=False)
+
+    df_auths = pd.DataFrame(
+        [{"Author": k, "Stories": v} for k, v in author_counts.items()]
+    ).sort_values("Stories", ascending=False)
 
     order = [
         "Short (<1K)",
@@ -280,7 +239,6 @@ def query_stories(
                 parts = Path(r[0]).parts
                 if len(parts) >= 3:
                     entity_suffixes.append("/".join(parts[-3:]))
-
 
     date_from = None
     date_to = None
@@ -401,12 +359,9 @@ st.sidebar.write("---")
 # Page Navigation
 page = st.sidebar.radio(
     "Navigation",
-    [
-        "🔍 Search & Explorer",
-        "📖 Read Story",
-        "⭐ Favorites & Tags",
-        "📊 Archive Stats",
-    ],
+    "🔍 Search & Explorer,📖 Read Story,⭐ Favorites & Tags,📊 Archive Stats".split(
+        ","
+    ),
     key="nav_page",
 )
 
@@ -480,10 +435,10 @@ if page == "🔍 Search & Explorer":
 
     for res in search_results:
         # Create a container for the card styling
-        safe_title = html.escape(res['title'] or '')
-        safe_author = html.escape(res['author_name'] or 'Unknown')
-        safe_category = html.escape(res['category'] or '')
-        safe_pub_date = html.escape(str(res['publication_date'] or 'Unknown'))
+        safe_title = html.escape(res["title"] or "")
+        safe_author = html.escape(res["author_name"] or "Unknown")
+        safe_category = html.escape(res["category"] or "")
+        safe_pub_date = html.escape(str(res["publication_date"] or "Unknown"))
         card_html = f"""
         <div class="story-card">
             <h4>{safe_title}</h4>
@@ -493,7 +448,7 @@ if page == "🔍 Search & Explorer":
                 <b>Author:</b> {safe_author} |
                 <b>Category:</b> {safe_category} |
                 <b>Published:</b> {safe_pub_date} |
-                <b>Words:</b> {res['word_count']:,}
+                <b>Words:</b> {res["word_count"]:,}
             </p>
         """
 
@@ -501,7 +456,9 @@ if page == "🔍 Search & Explorer":
         if res.get("snippet"):
             # Escape the snippet first, then replace the placeholder highlight markers with actual HTML span tags
             snippet_escaped = html.escape(res["snippet"])
-            snippet_cleaned = snippet_escaped.replace("___HIGHLIGHT_START___", "<span class='highlight'>").replace("___HIGHLIGHT_END___", "</span>")
+            snippet_cleaned = snippet_escaped.replace(
+                "___HIGHLIGHT_START___", "<span class='highlight'>"
+            ).replace("___HIGHLIGHT_END___", "</span>")
             card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
 
         card_html += "</div>"
@@ -644,9 +601,7 @@ elif page == "⭐ Favorites & Tags":
                     all_tags.add(t.strip())
 
         # Tag filter selector
-        filter_tag = st.selectbox(
-            "Filter Favorites by Tag", ["All"] + sorted(list(all_tags))
-        )
+        filter_tag = st.selectbox("Filter Favorites by Tag", ["All"] + sorted(all_tags))
 
         st.write("---")
         # Expected optimization impact: Resolving N favorite stories in M year partitions
@@ -691,12 +646,12 @@ elif page == "⭐ Favorites & Tags":
                 continue
 
             with st.container():
-                safe_fav_title = html.escape(f['title'] or '')
-                safe_fav_author = html.escape(f['author'] or 'Unknown')
-                safe_fav_tags = html.escape(f['tags'] or 'None')
-                safe_fav_notes = html.escape(f['notes'] or 'None')
+                safe_fav_title = html.escape(f["title"] or "")
+                safe_fav_author = html.escape(f["author"] or "Unknown")
+                safe_fav_tags = html.escape(f["tags"] or "None")
+                safe_fav_notes = html.escape(f["notes"] or "None")
                 st.markdown(
-                     f"""
+                    f"""
                     <div class='story-card'>
                         <h4>{safe_fav_title}</h4>
                         <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 4px;'><b>Author:</b> {safe_fav_author}</p>
@@ -729,13 +684,16 @@ elif page == "📊 Archive Stats":
     st.markdown("---")
 
     # Overview metrics row
-    total_stories = df_years["Stories Count"].sum()
-    total_words = df_years["Total Words"].sum()
+    total_stories = df_years["Stories_Count"].sum()
+    total_words = df_years["Total_Words"].sum()
 
     col_m1, col_m2, col_m3 = st.columns(3)
     col_m1.metric("Total Stories", f"{total_stories:,}")
     col_m2.metric("Total Archive Words", f"{total_words:,}")
-    col_m3.metric("Average Story Length", f"{total_words // total_stories if total_stories > 0 else 0:,} words")
+    col_m3.metric(
+        "Average Story Length",
+        f"{total_words // total_stories if total_stories > 0 else 0:,} words",
+    )
     st.markdown("---")
 
     # 1. Timeline Chart
@@ -743,7 +701,7 @@ elif page == "📊 Archive Stats":
     fig_line = px.line(
         df_years,
         x="Year",
-        y="Stories Count",
+        y="Stories_Count",
         title="Story Publications Per Year",
         markers=True,
     )

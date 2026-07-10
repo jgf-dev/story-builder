@@ -3,11 +3,13 @@ import os
 
 import braintrust
 
+
 braintrust.auto_instrument()
 
 from dotenv import load_dotenv
 
 from storybuilder.genai import client
+
 
 load_dotenv()
 

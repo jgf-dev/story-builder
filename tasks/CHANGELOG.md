@@ -3,6 +3,14 @@ title: Storybuilder dev changelog
 description: Explanantion of changes per commits
 ---
 
+## 10/07/2026
+
+### Resolved merge conflicts on branch implement-cloud-output-adapters
+
+- dependencies: Merged updated project dependencies from HEAD with `boto3` support from the incoming branch to enable S3 storage adapters.
+- dashboard layout: Kept the thin launcher design of `dashboard.py` from HEAD, removing duplicate legacy stats rendering blocks.
+- tests and utility files: Resolved speech config test and storage utility conflicts by retaining GCS and S3 capability updates, completing the git merge smoothly.
+
 ## 04/07/2026
   
 ### restored the compatibility contract for the  {table}  formatting alias in  execute_all_partitions

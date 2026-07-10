@@ -3,7 +3,6 @@ import os
 import re
 import sqlite3
 import threading
-from logging import getLogger
 from pathlib import Path
 
 from sqlalchemy import func
@@ -16,7 +15,7 @@ from sqlmodel import select
 from sqlmodel import text
 
 
-logging = getLogger(__name__)
+logging = std_logging.getLogger(__name__)
 
 # -- Schema -------------------------------------------------------------
 
@@ -134,7 +133,6 @@ CREATE INDEX IF NOT EXISTS idx_stories_char_count      ON stories(char_count);
 
 _conn: "sqlite3.Connection | None" = None
 _engine: "create_engine | None" = None
-_db_path_global: "str | None" = None
 _connections: dict[str, sqlite3.Connection] = {}
 _is_partitioned = False
 _db_dir: "str | None" = None
@@ -157,7 +155,6 @@ def _parse_author(raw: "str | None") -> "tuple[str | None, str | None]":
     """Parse 'Name <email>' or bare email into (name, email)."""
     if not raw:
         return None, None
-    raw = raw.strip()
     m = _EMAIL_AUTHOR_RE.match(raw)
     if m:
         return m.group(1).strip(), m.group(2).strip()
@@ -268,10 +265,9 @@ def migrate_legacy_schema(conn: sqlite3.Connection) -> bool:
     conn.executescript(INDEXES)
     try:
         conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('rebuild')")
-    except sqlite3.OperationalError as exc:
-        # Best-effort FTS rebuild: some SQLite builds/configurations may not support it here.
-        logging.debug("Skipping stories_fts rebuild during migration: %s", exc)
-
+    except sqlite3.OperationalError:
+        logging.debug("Skipping FTS rebuild during legacy schema migration", exc_info=True)
+    return True
 
 def _migrate_schema(conn: "sqlite3.Connection") -> None:
     """Apply schema migrations to an existing partition or database file."""
@@ -524,9 +520,7 @@ def insert_story(
             return True
         except Exception as e:
             session.rollback()
-            message = "Unexpected error inserting story at %{message}: "
-            std_logging.exception(message, output_path, exc_info=e)
-
+            std_logging.exception("Unexpected error inserting story at %s", output_path, exc_info=e)
             return False
 
 

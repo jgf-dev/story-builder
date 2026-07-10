@@ -16,8 +16,10 @@ from storybuilder.downloader import db as storybuilder_db
 
 logger = getLogger(__name__)
 
-# Initialize the storybuilder database partition engine
-storybuilder_db.init_db(get_db_dir())
+
+def _ensure_db() -> None:
+    """Initialize the storybuilder database engine (idempotent)."""
+    storybuilder_db.init_db(get_db_dir())
 
 
 def get_db_files() -> list[Path]:
@@ -63,6 +65,7 @@ def get_nlp_conn() -> sqlite3.Connection | None:
 @st.cache_data
 def get_filter_options() -> tuple[list[str], list[str]]:
     """Compile distinct categories and authors across the database for filters."""
+    _ensure_db()
     categories = set()
     authors = set()
 
@@ -120,6 +123,7 @@ def _format_stats_dataframes(ag: dict) -> tuple[pd.DataFrame, pd.DataFrame, pd.D
 @st.cache_data
 def load_archive_stats() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Pre-aggregate stats from the monolithic database for the visualizations."""
+    _ensure_db()
     ag = _init_aggregators()
 
     conn = storybuilder_db.get_conn()
@@ -248,8 +252,8 @@ def _extract_db_year(pub_date: str | int | None) -> int:
     try:
         if pub_date and len(str(pub_date)) >= LONG_YEAR:
             return int(str(pub_date)[:4])
-    except (ValueError, TypeError):
-        pass
+    except (ValueError, TypeError) as exc:
+        logger.debug("Failed to extract year from publication_date=%r: %s", pub_date, exc)
     return 2026
 
 
@@ -292,6 +296,7 @@ def query_stories(
     limit: int = 100,
 ) -> list[dict]:
     """Search the archive with FTS, filters, and entity-based narrowing."""
+    _ensure_db()
     if params is None:
         params = StorySearchQuery(
             fts_query=fts_query,
@@ -323,6 +328,7 @@ def query_stories(
 
 def get_story_by_path(story_path: str, db_year: int | str | None = None) -> dict | None:
     """Retrieve full text and details of a single story from the monolithic database."""
+    _ensure_db()
     conn = storybuilder_db.get_conn()
     if not conn:
         return None

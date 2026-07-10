@@ -37,7 +37,6 @@ from storybuilder.dashboard.data import add_favorite  # noqa: E402, F401
 from storybuilder.dashboard.data import get_db_files  # noqa: E402, F401
 from storybuilder.dashboard.data import get_favorites  # noqa: E402, F401
 from storybuilder.dashboard.data import get_story_by_path  # noqa: E402, F401
-from storybuilder.dashboard.data import query_stories  # noqa: E402, F401
 from storybuilder.dashboard.data import remove_favorite  # noqa: E402, F401
 
 # Expose pages

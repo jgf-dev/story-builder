@@ -68,7 +68,7 @@ def tts_agent():
 
         return root_agent
     except ImportError:
-        pytest.skip("TTS Prompt Crafter agent module not available")
+        raise pytest.skip.Exception("TTS Prompt Crafter agent module not available")
 
 
 @pytest.fixture(scope="session")
@@ -94,7 +94,7 @@ def tts_runner(tts_agent):
         )
         return runner
     except ImportError as e:
-        pytest.skip(f"ADK runner creation failed: {e}")
+        raise pytest.skip.Exception(f"ADK runner creation failed: {e}")
 
 
 @pytest.fixture

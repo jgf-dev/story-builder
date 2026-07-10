@@ -13,6 +13,3 @@
 ## 2024-06-29 - Save Button UX States
 **Learning:** Users lack confidence when a save button is always enabled or when clicking it doesn't provide immediate feedback during a slow, asynchronous operation like writing to a local file system.
 **Action:** When implementing save functionality, disable the save button visually (e.g., opacity, cursor) and functionally (prevent click/keyboard shortcuts) when there are no unsaved changes. Provide explicit loading states (e.g., "Saving...", wait cursor) during asynchronous operations to improve UX feedback.
-## 2026-07-06 - Remove duplicate file input for better accessibility and UX
-**Learning:** Duplicate `id` attributes can break `label for="..."` association and confuse screen readers. Having both a visible native input and a visually-hidden, custom-styled `<input type="file">` results in a disjointed user experience and redundancy.
-**Action:** Removed the duplicate native visible `<input type="file">` in `dashboard.html` that shared the same `id` as the `.sr-only` input used for custom styling.

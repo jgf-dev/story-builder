@@ -3,7 +3,6 @@ import os
 import re
 import sqlite3
 import threading
-from logging import getLogger
 from pathlib import Path
 
 from sqlalchemy import func
@@ -170,18 +169,55 @@ def _parse_output_path(output_path: str) -> "tuple[str, str, str, int | None]":
     Path structure (5+ parts): <output_dir>/<orientation>/<category>/<story_slug>/<file>
     """
     parts = Path(output_path).parts
-    if len(parts) <= _MIN_PATH_PARTS:
-        message = f"Invalid output path: {output_path}. Must have at least 4 parts."
-        raise ValueError(message)
 
-    story_slug = parts[-2] if len(parts) >= _MIN_PATH_PARTS + 2 else Path(parts[-1]).stem
+    # Expected layouts (parts indices):
+    # 3-part:   [output_dir, orientation, file] -> category = filename
+    # 4-part:   [output_dir, orientation, category, file]
+    # 5+ part:  [output_dir, orientation, category, story_slug, file]
 
+    if len(parts) < 3:
+        raise ValueError(f"Invalid output path: {output_path}. Must have at least 3 parts.")
+
+    # orientation is the second path element
+    orientation = parts[1]
+
+    filename_stem = Path(parts[-1]).stem
+
+    if len(parts) == 3:
+        # category is the filename for the short form, slug is stem
+        category = parts[2]
+        story_slug = filename_stem
+        # detect chapter number in filename (e.g., story-3)
+        chapter_num = None
+        if m := _CHAPTER_SUFFIX_RE.match(story_slug):
+            story_slug = m.group(1)
+            chapter_num = int(m.group(2))
+        return orientation, category, story_slug, chapter_num
+
+    if len(parts) == 4:
+        category = parts[2]
+        story_slug = filename_stem
+        chapter_num = None
+        if m := _CHAPTER_SUFFIX_RE.match(story_slug):
+            story_slug = m.group(1)
+            chapter_num = int(m.group(2))
+        return orientation, category, story_slug, chapter_num
+
+    # 5+ parts: story_slug provided as the penultimate element
+    category = parts[2]
+    story_slug = parts[-2]
     chapter_num = None
-
+    # If story_slug itself encodes chapter (unlikely), prefer that.
     if m := _CHAPTER_SUFFIX_RE.match(story_slug):
+        story_slug = m.group(1)
+        chapter_num = int(m.group(2))
+        return orientation, category, story_slug, chapter_num
+
+    # Otherwise, check filename for chapter suffix but do not override slug.
+    if m := _CHAPTER_SUFFIX_RE.match(filename_stem):
         chapter_num = int(m.group(2))
 
-    return _BASE_TOPIC, parts[_MIN_PATH_PARTS - 1], story_slug, chapter_num
+    return orientation, category, story_slug, chapter_num
 
 
 # -- Schema migrations --------------------------------------------------
@@ -265,6 +301,7 @@ def migrate_legacy_schema(conn: sqlite3.Connection) -> bool:
         logging.debug("Skipping FTS rebuild during legacy schema migration", exc_info=True)
     return True
 
+
 def _migrate_schema(conn: "sqlite3.Connection") -> None:
     """Apply schema migrations to an existing partition or database file."""
     migrate_legacy_schema(conn)
@@ -298,13 +335,30 @@ def init_db(db_path: str) -> "sqlite3.Connection":
 
     # Retrieve raw DBAPI connection for FTS and trigger execution
     _conn = _engine.raw_connection().driver_connection
-    _conn.execute("PRAGMA journal_mode=WAL")
+    # Configure SQLite pragmas. WAL may not be supported on every filesystem
+    # (e.g., some network filesystems). Try WAL first and fall back to DELETE
+    # if it fails to avoid a hard crash during test runs.
+    try:
+        _conn.execute("PRAGMA journal_mode=WAL")
+    except sqlite3.OperationalError:
+        logging.warning("WAL journal mode not available, falling back to DELETE", exc_info=True)
+        try:
+            _conn.execute("PRAGMA journal_mode=DELETE")
+        except Exception:
+            # best-effort; continue and let later operations surface errors
+            logging.debug("Failed to set journal_mode=DELETE", exc_info=True)
+
     _conn.execute("PRAGMA synchronous=NORMAL")
     _conn.execute("PRAGMA cache_size=-64000")
 
     # SQLite DDL commands for FTS virtual table & triggers
-    _conn.executescript(SCHEMA)
-    _conn.executescript(INDEXES)
+    try:
+        _conn.executescript(SCHEMA)
+        _conn.executescript(INDEXES)
+    except sqlite3.OperationalError as e:
+        # Log enough context to diagnose disk I/O issues during schema setup
+        logging.exception("Failed to execute DB schema script on %s", resolved_path, exc_info=e)
+        raise
 
     _migrate_schema(_conn)
     return _conn
@@ -331,6 +385,8 @@ def execute_query(sql: str, params: tuple = ()) -> list[dict]:
             std_logging.exception("Error executing query: %s", formatted_sql, exc_info=e)
             return []
     # end execute_query
+
+
 def search_stories(
     fts_query: str = "",
     category: "str | None" = None,
@@ -578,6 +634,11 @@ def close_db() -> None:
         if _conn is not None:
             _conn.close()
             _conn = None
+        if _engine is not None:
+            try:
+                _engine.dispose()
+            except Exception:
+                logging.debug("Engine dispose failed", exc_info=True)
         _engine = None
         _is_partitioned = False
         _db_dir = None

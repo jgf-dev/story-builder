@@ -120,7 +120,6 @@ def get_nlp_conn():
 @st.cache_data
 def get_filter_options():
     """Compile distinct categories and authors across all partitions for filters."""
-    from storybuilder.downloader import db as storybuilder_db
 
     # Expected optimization impact: Resolving categories and authors across M year partitions
     # O(2 * M) individual DB queries -> 2 queries using ATTACH DATABASE.
@@ -232,19 +231,6 @@ def load_archive_stats():
     )
     return df_years, df_cats, df_auths, df_words
 
-    order = [
-        "Short (<1K)",
-        "Medium-Short (1K-5K)",
-        "Medium (5K-10K)",
-        "Medium-Long (10K-20K)",
-        "Long (20K-50K)",
-        "Epic (>50K)",
-    ]
-    df_words = pd.DataFrame(
-        [{"Bracket": b, "Stories": bracket_counts[b]} for b in order]
-    )
-
-    return df_years, df_cats, df_auths, df_words
 
 
 # ------------------------------------------------------------------------------
@@ -283,7 +269,6 @@ def query_stories(
                 if len(parts) >= 3:
                     entity_suffixes.append("/".join(parts[-3:]))
 
-    from storybuilder.downloader import db as storybuilder_db
 
     date_from = None
     date_to = None
@@ -502,16 +487,10 @@ if page == "🔍 Search & Explorer":
 
         # Display highlighted snippets if any
         if res.get("snippet"):
-<<<<<<< HEAD
-            # Escape the snippet first, then replace the placeholder highlight markers with actual HTML span tags
-=======
->>>>>>> fix-failing-tests-16749664909518946067
             snippet_escaped = html.escape(res["snippet"])
             snippet_cleaned = snippet_escaped.replace("___HIGHLIGHT_START___", "<span class='highlight'>").replace("___HIGHLIGHT_END___", "</span>")
             card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
 
-            card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
-        card_html += "</div>"
         st.markdown(card_html, unsafe_allow_html=True)
 
         # Action buttons on the card

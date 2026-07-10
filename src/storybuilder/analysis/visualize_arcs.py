@@ -95,7 +95,7 @@ def plot_narrative_arcs(story_dir, df_sentences, char_arcs):
             mode="lines",
             name="Overall Narrative Arc",
             line=dict(width=4, color="white"),
-        )
+        ),
     )
 
     for char, char_sentences in char_arcs.items():
@@ -107,7 +107,7 @@ def plot_narrative_arcs(story_dir, df_sentences, char_arcs):
                 name=f"{char}'s Emotional Arc",
                 opacity=0.7,
                 line=dict(width=2),
-            )
+            ),
         )
 
     story_name = Path(story_dir).name
@@ -124,12 +124,12 @@ def plot_narrative_arcs(story_dir, df_sentences, char_arcs):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Visualize narrative arcs from sentiment_analysis.db"
+        description="Visualize narrative arcs from sentiment_analysis.db",
     )
     parser.add_argument("--db-path", default="stories/db/sentiment_analysis.db")
     parser.add_argument("--story", help="Substring of story_dir to visualize")
     parser.add_argument(
-        "--window", type=int, default=100, help="Moving average window size (sentences)"
+        "--window", type=int, default=100, help="Moving average window size (sentences)",
     )
     args = parser.parse_args()
 
@@ -151,7 +151,7 @@ def main():
     char_arcs = {}
     for char in top_chars:
         char_arcs[char] = get_character_sentiment(
-            conn, story_id, char, df_sentences, args.window
+            conn, story_id, char, df_sentences, args.window,
         )
 
     fig, story_name = plot_narrative_arcs(story_dir, df_sentences, char_arcs)

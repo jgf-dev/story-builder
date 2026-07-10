@@ -1,6 +1,7 @@
 import argparse
 import glob
 import os
+import pathlib
 import re
 import subprocess
 import sys
@@ -16,11 +17,10 @@ def natural_sort_key(s):
 def get_audio_player():
     if sys.platform == "darwin":
         return ["afplay"]
-    elif sys.platform == "win32":
+    if sys.platform == "win32":
         return ["powershell", "-c", "(New-Object Media.SoundPlayer '{0}').PlaySync();"]
-    else:
-        # Assuming linux
-        return ["aplay", "-q"]
+    # Assuming linux
+    return ["aplay", "-q"]
 
 
 def play_sequence(directory):
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    if os.path.isdir(args.dir):
+    if pathlib.Path(args.dir).is_dir():
         play_sequence(args.dir)
     else:
         print(f"Error: Directory '{args.dir}' does not exist.")

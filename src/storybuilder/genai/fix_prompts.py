@@ -1,8 +1,11 @@
-import os
 import glob
+import os
+import pathlib
 import re
-from google import genai
+
 from dotenv import load_dotenv
+from google import genai
+
 
 load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
@@ -26,7 +29,7 @@ def extract_markdown_block(content: str) -> str:
     content = content.strip()
     # Match ```markdown ... ``` or ``` ... ```
     match = re.match(
-        r"^```(?:markdown)?\s*\n(.*?)\n```$", content, re.DOTALL | re.IGNORECASE
+        r"^```(?:markdown)?\s*\n(.*?)\n```$", content, re.DOTALL | re.IGNORECASE,
     )
     if match:
         return match.group(1).strip()
@@ -54,8 +57,7 @@ def fix_prompts(directory):
     print(f"Found {len(files)} prompt files to process.")
     for md_file in files:
         print(f"Fixing {os.path.basename(md_file)}...")
-        with open(md_file, "r") as f:
-            content = f.read()
+        content = pathlib.Path(md_file).read_text()
 
         try:
             interaction = client.interactions.create(
@@ -64,8 +66,7 @@ def fix_prompts(directory):
             )
             fixed_content = extract_markdown_block(interaction.output_text)
 
-            with open(md_file, "w") as f:
-                f.write(fixed_content)
+            pathlib.Path(md_file).write_text(fixed_content)
 
             print("  Fixed and saved.")
         except Exception as e:

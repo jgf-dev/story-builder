@@ -20,18 +20,18 @@ import sys
 import time
 from pathlib import Path
 
+
 # Use shared db module
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 # ——— Schema ——————————————————————————————————————————————————————————————————
 
 # Import shared database functions
-from storybuilder.downloader.db import (
-    init_db as _db_init_db,
-    _parse_output_path,
-    _parse_author,
-    optimize_fts,
-)
+from storybuilder.downloader.db import _parse_author
+from storybuilder.downloader.db import _parse_output_path
+from storybuilder.downloader.db import init_db as _db_init_db
+from storybuilder.downloader.db import optimize_fts
+
 
 BATCH_SIZE = 1000
 
@@ -52,8 +52,7 @@ def parse_header(filepath: str) -> "dict | None":
     Returns None if the file cannot be read or has no valid header.
     """
     try:
-        with open(filepath, "r", encoding="utf-8") as f:
-            text = f.read()
+        text = Path(filepath).read_text(encoding="utf-8")
     except Exception:
         return None
 
@@ -129,7 +128,7 @@ def import_files(
     batch = []
 
     for i, filepath in enumerate(files):
-        if not os.path.isfile(filepath):
+        if not Path(filepath).is_file():
             skipped += 1
             continue
 
@@ -161,7 +160,7 @@ def import_files(
                 char_count,
                 word_count,
                 content,
-            )
+            ),
         )
 
         if len(batch) >= BATCH_SIZE:
@@ -266,7 +265,7 @@ def main():
     global _start_time
 
     parser = argparse.ArgumentParser(
-        description="Import Nifty story .txt files into SQLite + FTS5"
+        description="Import Nifty story .txt files into SQLite + FTS5",
     )
     parser.add_argument(
         "--db",
@@ -280,7 +279,7 @@ def main():
         help="Import only N files (for testing, default: all)",
     )
     parser.add_argument(
-        "--force", action="store_true", help="Force insert even on integrity errors"
+        "--force", action="store_true", help="Force insert even on integrity errors",
     )
     args = parser.parse_args()
 
@@ -302,8 +301,8 @@ def main():
         print(f"  Limited to {args.limit:,} files for testing")
 
     # Re-initialize DB
-    if os.path.exists(args.db) and not args.force:
-        os.remove(args.db)
+    if Path(args.db).exists() and not args.force:
+        Path(args.db).unlink()
 
     conn = init_db(args.db)
 
@@ -329,18 +328,18 @@ def main():
 
     # Print stats
     row = conn.execute(
-        "SELECT COUNT(*), SUM(char_count), SUM(word_count) FROM stories"
+        "SELECT COUNT(*), SUM(char_count), SUM(word_count) FROM stories",
     ).fetchone()
     conn.close()
 
     print(
-        f"\nDone! Imported {imported:,} stories ({skipped} skipped) in {elapsed:.1f}s ({rate:.0f}/s)"
+        f"\nDone! Imported {imported:,} stories ({skipped} skipped) in {elapsed:.1f}s ({rate:.0f}/s)",
     )
     print(f"  Total stories:  {row[0]:,}")
     if row[1]:
         print(f"  Total chars:    {row[1]:,}")
         print(f"  Total words:    {row[2]:,}")
-    print(f"  Database:       {os.path.getsize(args.db) / (1024 * 1024):.1f} MB")
+    print(f"  Database:       {Path(args.db).stat().st_size / (1024 * 1024):.1f} MB")
 
 
 if __name__ == "__main__":

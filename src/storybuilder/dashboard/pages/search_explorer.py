@@ -1,7 +1,9 @@
 import html
+
 import streamlit as st
 
-from storybuilder.dashboard.data import query_stories, StorySearchQuery
+from storybuilder.dashboard.data import StorySearchQuery
+from storybuilder.dashboard.data import query_stories
 
 
 def render_search_explorer(filters: dict) -> None:
@@ -53,7 +55,7 @@ def render_search_explorer(filters: dict) -> None:
             # Escape the snippet first, then replace the placeholder highlight markers with actual HTML span tags
             snippet_escaped = html.escape(res["snippet"])
             snippet_cleaned = snippet_escaped.replace(
-                "___HIGHLIGHT_START___", "<span class='highlight'>"
+                "___HIGHLIGHT_START___", "<span class='highlight'>",
             ).replace("___HIGHLIGHT_END___", "</span>")
             card_html += "<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; padding: 8px;"
             card_html += f" background: rgba(0, 0, 0, 0.2); border-radius: 6px;'>... {snippet_cleaned} ...</p>"

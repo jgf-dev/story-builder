@@ -2,6 +2,7 @@ import importlib
 import sys
 from pathlib import Path
 
+
 # Ensure src layout package is importable
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
@@ -32,12 +33,12 @@ from storybuilder.dashboard.config import inject_custom_css  # noqa: E402
 from storybuilder.dashboard.config import setup_page  # noqa: E402
 
 # Expose key data operations at module level to satisfy test imports
-from storybuilder.dashboard.data import add_favorite  # noqa: E402, F401
-from storybuilder.dashboard.data import get_db_files  # noqa: E402, F401
-from storybuilder.dashboard.data import get_favorites  # noqa: E402, F401
-from storybuilder.dashboard.data import get_story_by_path  # noqa: E402, F401
-from storybuilder.dashboard.data import query_stories  # noqa: E402, F401
-from storybuilder.dashboard.data import remove_favorite  # noqa: E402, F401
+from storybuilder.dashboard.data import add_favorite  # noqa: E402
+from storybuilder.dashboard.data import get_db_files  # noqa: E402
+from storybuilder.dashboard.data import get_favorites  # noqa: E402
+from storybuilder.dashboard.data import get_story_by_path  # noqa: E402
+from storybuilder.dashboard.data import query_stories  # noqa: E402
+from storybuilder.dashboard.data import remove_favorite  # noqa: E402
 
 # Expose pages
 from storybuilder.dashboard.pages.archive_stats import render_archive_stats  # noqa: E402
@@ -86,7 +87,7 @@ def get_meta_conn():
             notes TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
-        """
+        """,
     )
     conn.commit()
     return conn
@@ -111,7 +112,7 @@ def get_filter_options():
     authors = set()
     # Get unique categories
     cat_results = storybuilder_db.execute_all_partitions(
-        "SELECT DISTINCT category FROM {table}"
+        "SELECT DISTINCT category FROM {table}",
     )
     for r in cat_results:
         if r.get("category"):
@@ -119,13 +120,12 @@ def get_filter_options():
 
     # Get unique authors
     author_results = storybuilder_db.execute_all_partitions(
-        "SELECT DISTINCT author_name FROM {table}"
+        "SELECT DISTINCT author_name FROM {table}",
     )
     for r in author_results:
         if r.get("author_name"):
             authors.add(r["author_name"])
     return sorted(list(categories)), sorted(list(authors))
-
 
 
 def _process_stats_db(db_path, year_stats, category_counts, author_counts, bracket_counts):
@@ -206,7 +206,7 @@ def load_archive_stats():
                         "Year": int(year_name),
                         "Stories Count": cnt,
                         "Total Words": words or 0,
-                    }
+                    },
                 )
             # Categories summary
             cursor.execute("SELECT category, COUNT(*) FROM stories GROUP BY category")
@@ -216,7 +216,7 @@ def load_archive_stats():
 
             # Authors summary
             cursor.execute(
-                "SELECT author_name, COUNT(*) FROM stories GROUP BY author_name"
+                "SELECT author_name, COUNT(*) FROM stories GROUP BY author_name",
             )
             for auth, count in cursor.fetchall():
                 if auth:
@@ -251,10 +251,10 @@ def load_archive_stats():
     )
 
     df_cats = pd.DataFrame(
-        [{"Category": k, "Stories": v} for k, v in category_counts.items()]
+        [{"Category": k, "Stories": v} for k, v in category_counts.items()],
     )
     df_auths = pd.DataFrame(
-        [{"Author": k, "Stories": v} for k, v in author_counts.items()]
+        [{"Author": k, "Stories": v} for k, v in author_counts.items()],
     )
 
     order = [
@@ -266,7 +266,7 @@ def load_archive_stats():
         "Epic (>50K)",
     ]
     df_words = pd.DataFrame(
-        [{"Bracket": b, "Stories": bracket_counts[b]} for b in order]
+        [{"Bracket": b, "Stories": bracket_counts[b]} for b in order],
     )
 
     return df_years, df_cats, df_auths, df_words
@@ -465,7 +465,7 @@ if page == "🔍 Search & Explorer":
     st.write("Browse, search and filter the narrative archives.")
 
     fts_input = st.text_input(
-        "Full-Text Search (FTS5 syntax, e.g. vampire OR werewolf)", ""
+        "Full-Text Search (FTS5 syntax, e.g. vampire OR werewolf)", "",
     )
 
     st.markdown("---")
@@ -505,7 +505,7 @@ if page == "🔍 Search & Explorer":
         if res.get("snippet"):
             snippet_escaped = html.escape(res["snippet"])
             snippet_cleaned = snippet_escaped.replace(
-                "___HIGHLIGHT_START___", "<span class='highlight'>"
+                "___HIGHLIGHT_START___", "<span class='highlight'>",
             ).replace("___HIGHLIGHT_END___", "</span>")
             card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
 
@@ -530,11 +530,11 @@ elif page == "📖 Read Story":
 
     if not st.session_state.selected_story_path:
         st.warning(
-            "No story selected. Please go to 'Search & Explorer' first to pick a story."
+            "No story selected. Please go to 'Search & Explorer' first to pick a story.",
         )
     else:
         story = get_story_by_path(
-            st.session_state.selected_story_path, st.session_state.selected_story_year
+            st.session_state.selected_story_path, st.session_state.selected_story_year,
         )
         if not story:
             st.error("Error loading story contents.")
@@ -593,17 +593,16 @@ elif page == "📖 Read Story":
                             remove_favorite(story["path"])
                             st.success("Removed!")
                             st.rerun()
-                    else:
-                        if st.button("Add to Favorites"):
-                            add_favorite(
-                                story["path"],
-                                story["title"],
-                                story["author_name"],
-                                fav_tags,
-                                fav_notes,
-                            )
-                            st.success("Added!")
-                            st.rerun()
+                    elif st.button("Add to Favorites"):
+                        add_favorite(
+                            story["path"],
+                            story["title"],
+                            story["author_name"],
+                            fav_tags,
+                            fav_notes,
+                        )
+                        st.success("Added!")
+                        st.rerun()
 
                 # Export to Markdown Button
                 md_content = f"""# {story["title"]}
@@ -624,7 +623,7 @@ elif page == "📖 Read Story":
                 )
 
             st.write(
-                f"**Category:** `{story['category']}` | **Published:** `{story['publication_date'] or 'Unknown'}` | **Words:** `{story['word_count']:,}`"
+                f"**Category:** `{story['category']}` | **Published:** `{story['publication_date'] or 'Unknown'}` | **Words:** `{story['word_count']:,}`",
             )
             st.markdown("---")
 
@@ -639,19 +638,18 @@ elif page == "⭐ Favorites & Tags":
     favorites = get_favorites()
     if not favorites:
         st.info(
-            "You haven't bookmarked any stories yet. Read a story and add it to favorites!"
+            "You haven't bookmarked any stories yet. Read a story and add it to favorites!",
         )
     else:
         # Get unique tags
         all_tags = set()
         for f in favorites:
             if f["tags"]:
-                for t in f["tags"].split(","):
-                    all_tags.add(t.strip())
+                all_tags.update(t.strip() for t in f["tags"].split(","))
 
         # Tag filter selector
         filter_tag = st.selectbox(
-            "Filter Favorites by Tag", ["All"] + sorted(list(all_tags))
+            "Filter Favorites by Tag", ["All"] + sorted(list(all_tags)),
         )
 
         st.write("---")
@@ -682,7 +680,7 @@ elif page == "⭐ Favorites & Tags":
                             path_to_db_year[p] = y
                 except sqlite3.Error as e:
                     st.warning(
-                        f"Could not resolve story paths from database '{y_db}': {e}"
+                        f"Could not resolve story paths from database '{y_db}': {e}",
                     )
                 finally:
                     conn.close()
@@ -716,7 +714,7 @@ elif page == "⭐ Favorites & Tags":
                 with col1:
                     # Attempt to resolve database year based on path to load it in reader
                     db_year = path_to_db_year.get(
-                        f["story_path"], 2026
+                        f["story_path"], 2026,
                     )  # Default fallback
                     if st.button("Read", key=f"read_fav_{f['story_path']}"):
                         st.session_state.selected_story_path = f["story_path"]
@@ -757,7 +755,7 @@ elif page == "📊 Archive Stats":
         markers=True,
     )
     fig_line.update_layout(
-        template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f"
+        template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f",
     )
     st.plotly_chart(fig_line, use_container_width=True)
 
@@ -807,6 +805,6 @@ elif page == "📊 Archive Stats":
         title="Story Word Count Distribution Bracket",
     )
     fig_words.update_layout(
-        template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f"
+        template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f",
     )
     st.plotly_chart(fig_words, use_container_width=True)

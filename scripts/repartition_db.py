@@ -4,16 +4,17 @@ Repartition existing SQLite database files in stories/db into clean single-year 
 Creates the new partition files in stories/db_repartitioned/ and replaces stories/db/ upon success.
 """
 
-import os
-import sys
 import glob
-import sqlite3
 import shutil
+import sqlite3
+import sys
 from pathlib import Path
+
 
 # Add project root to sys.path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from storybuilder.downloader.db import SCHEMA, INDEXES
+from storybuilder.downloader.db import INDEXES
+from storybuilder.downloader.db import SCHEMA
 
 
 def get_db_filename_from_date(story_date) -> str:
@@ -35,7 +36,7 @@ def get_db_filename_from_date(story_date) -> str:
 
 
 def get_or_create_connection(
-    temp_dir: Path, filename: str, new_conns: dict
+    temp_dir: Path, filename: str, new_conns: dict,
 ) -> sqlite3.Connection:
     """Retrieve an existing connection or create and initialize a new database connection."""
     target_path = str(temp_dir / filename)
@@ -118,8 +119,8 @@ def swap_db_directories(db_path: Path, temp_dir: Path):
         shutil.rmtree(backup_dir)
 
     print("Swapping db directories...")
-    os.rename(db_path, backup_dir)
-    os.rename(temp_dir, db_path)
+    Path(db_path).rename(backup_dir)
+    Path(temp_dir).rename(db_path)
     print(f"Migration completed successfully! Old databases backed up to {backup_dir}")
 
 

@@ -8,19 +8,24 @@ from pathlib import Path
 
 from storybuilder.downloader.storage import upload_many
 
+
 # Add project root to sys.path to enable absolute imports when run directly as a script
 if __name__ == "__main__" and __package__ is None:
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from storybuilder.downloader import db, network
-from storybuilder.downloader.cache import load_cache, safe_print, save_cache
-from storybuilder.downloader.scraper import get_subcategories, process_subcategory
+from storybuilder.downloader import db
+from storybuilder.downloader import network
+from storybuilder.downloader.cache import load_cache
+from storybuilder.downloader.cache import safe_print
+from storybuilder.downloader.cache import save_cache
+from storybuilder.downloader.scraper import get_subcategories
+from storybuilder.downloader.scraper import process_subcategory
 from storybuilder.downloader.writer import download_single_target
 
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Download stories from Nifty Archive based on date range and category."
+        description="Download stories from Nifty Archive based on date range and category.",
     )
     parser.add_argument(
         "--category",
@@ -107,7 +112,7 @@ def _setup_network(args: argparse.Namespace) -> bool:
 
 
 def _parse_dates(
-    start_date_str: str, end_date_str: str | None
+    start_date_str: str, end_date_str: str | None,
 ) -> tuple[datetime.date | None, datetime.date | None]:
     try:
         start_date = datetime.datetime.strptime(start_date_str, "%Y-%m-%d").date()
@@ -128,7 +133,7 @@ def _parse_dates(
 
 
 def _print_config(
-    args: argparse.Namespace, start_date: datetime.date, end_date: datetime.date
+    args: argparse.Namespace, start_date: datetime.date, end_date: datetime.date,
 ) -> None:
     print("Starting downloader...")
     if args.db:
@@ -157,7 +162,7 @@ def _scrape_subcategories(
     all_story_targets: dict[str, dict] = {}
     if args.max_scraping > 1:
         with concurrent.futures.ThreadPoolExecutor(
-            max_workers=args.max_scraping
+            max_workers=args.max_scraping,
         ) as executor:
             futures = [
                 executor.submit(process_subcategory, sub, start_date, end_date, args)
@@ -175,7 +180,7 @@ def _scrape_subcategories(
                                 "date": target["date"],
                             }
                         all_story_targets[key]["output_paths"].append(
-                            target["output_path"]
+                            target["output_path"],
                         )
                 except Exception as e:
                     safe_print(f"Error occurred in scraping worker thread: {e}")
@@ -195,7 +200,7 @@ def _scrape_subcategories(
 
 
 def _download_stories(
-    all_story_targets: dict[str, dict], args: argparse.Namespace
+    all_story_targets: dict[str, dict], args: argparse.Namespace,
 ) -> int:
     total_downloads = len(all_story_targets)
     print("\n" + "=" * 50)
@@ -206,7 +211,7 @@ def _download_stories(
 
     if args.max_workers > 1:
         with concurrent.futures.ThreadPoolExecutor(
-            max_workers=args.max_workers
+            max_workers=args.max_workers,
         ) as executor:
             futures = []
             for idx, (key, target) in enumerate(all_story_targets.items()):
@@ -286,7 +291,7 @@ def main():
 
     try:
         all_story_targets = _scrape_subcategories(
-            subcategories, start_date, end_date, args
+            subcategories, start_date, end_date, args,
         )
     finally:
         save_cache(args.output_dir)

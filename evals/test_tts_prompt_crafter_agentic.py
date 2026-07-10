@@ -20,7 +20,6 @@ Run with:
 
 import pytest
 
-from evals.agentic.reflection_evaluator import CritiqueResult
 from evals.agentic.reflection_evaluator import ReflectionEvaluator
 from evals.agentic.rubric_evaluator import RubricDimension
 from evals.agentic.rubric_evaluator import RubricEvaluator
@@ -199,7 +198,7 @@ class TestTTSPromptCrafterPipeline:
 
         # Should have at least attempted tool usage
         assert len(tool_calls_made) > 0, (
-            f"No tool calls made during pipeline execution"
+            "No tool calls made during pipeline execution"
         )
 
         # Get final response

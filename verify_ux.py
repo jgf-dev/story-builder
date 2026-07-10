@@ -9,7 +9,7 @@ def run_cuj(page):
 
     # Initial state: no unsaved changes, Save button should be disabled
     page.screenshot(
-        path="/home/jules/verification/screenshots/verification-initial.png"
+        path="/home/jules/verification/screenshots/verification-initial.png",
     )
     page.wait_for_timeout(500)
 
@@ -28,7 +28,7 @@ def run_cuj(page):
 
     # Take a screenshot after clicking save
     page.screenshot(
-        path="/home/jules/verification/screenshots/verification-after-save.png"
+        path="/home/jules/verification/screenshots/verification-after-save.png",
     )
 
 
@@ -36,7 +36,7 @@ if __name__ == "__main__":
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         context = browser.new_context(
-            record_video_dir="/home/jules/verification/videos"
+            record_video_dir="/home/jules/verification/videos",
         )
         page = context.new_page()
         try:

@@ -6,14 +6,13 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
+from storybuilder.dashboard.config import BRACKET_LABELS
+from storybuilder.dashboard.config import LONG_YEAR
+from storybuilder.dashboard.config import get_db_dir
+from storybuilder.dashboard.config import get_meta_db_path
+from storybuilder.dashboard.config import get_nlp_db_path
 from storybuilder.downloader import db as storybuilder_db
-from storybuilder.dashboard.config import (
-    BRACKET_LABELS,
-    LONG_YEAR,
-    get_db_dir,
-    get_meta_db_path,
-    get_nlp_db_path,
-)
+
 
 logger = getLogger(__name__)
 
@@ -66,7 +65,7 @@ def get_filter_options() -> tuple[list[str], list[str]]:
     """Compile distinct categories and authors across all partitions for filters."""
     categories = set()
     authors = set()
-    
+
     # Get unique categories
     cat_results = storybuilder_db.execute_all_partitions("SELECT DISTINCT category FROM {table}")
     for r in cat_results:
@@ -78,7 +77,7 @@ def get_filter_options() -> tuple[list[str], list[str]]:
     for r in author_results:
         if r.get("author_name"):
             authors.add(r["author_name"])
-            
+
     return sorted(categories), sorted(authors)
 
 

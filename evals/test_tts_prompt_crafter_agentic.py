@@ -137,7 +137,7 @@ class TestTTSPromptCrafterGreetings:
     @pytest.mark.parametrize("query", GREETING_QUERIES)
     def test_greeting_response(self, adk_events, query):
         """Agent should respond appropriately to greetings."""
-        events = adk_events(query)
+        events = adk_events({'content': query, 'role': 'user'})
 
         assert len(events) > 0, f"No events returned for query: {query}"
 
@@ -185,7 +185,7 @@ class TestTTSPromptCrafterPipeline:
     @pytest.mark.parametrize("query", PIPELINE_QUERIES)
     def test_pipeline_execution(self, adk_events, query):
         """Agent should process a story through the full pipeline."""
-        events = adk_events(query)
+        events = adk_events({'content': query})
 
         assert len(events) > 0, "No events returned"
 
@@ -215,7 +215,7 @@ class TestTTSPromptCrafterEdgeCases:
     def test_missing_story(self, adk_events):
         """Agent should handle non-existent story paths gracefully."""
         query = "Process the story at stories/text/nonexistent.md"
-        events = adk_events(query)
+        events = adk_events({'content': query})
 
         final_events = [e for e in events if e.is_final_response()]
         if not final_events:
@@ -235,7 +235,7 @@ class TestTTSPromptCrafterEdgeCases:
 
     def test_empty_query(self, adk_events):
         """Agent should handle empty queries gracefully."""
-        events = adk_events("")
+        events = adk_events({'content': '', 'role': 'user'})
 
         assert len(events) > 0, "No events for empty query"
 
@@ -266,7 +266,7 @@ class TestTTSPromptCrafterReflection:
     @pytest.mark.parametrize("query", GREETING_QUERIES[:2])
     def test_self_reflection_on_greetings(self, adk_events, query):
         """Verify agent outputs pass self-reflection criteria."""
-        events = adk_events(query)
+        events = adk_events({'content': query, 'role': 'user'})
 
         final_events = [e for e in events if e.is_final_response()]
         if not final_events:

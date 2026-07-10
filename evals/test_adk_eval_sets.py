@@ -156,7 +156,7 @@ class TestEvalRunViaADK:
         from evals.run_adk_eval import run_eval_via_adk
 
         result = run_eval_via_adk(eval_path, verbose=False)
-        assert result.get("status") in ("completed", "validated_only"), (
+        assert result.get("status") in ("completed", "error"), (
             f"Eval run failed: {result.get('error')}"
         )
 

@@ -1,7 +1,15 @@
 import html
+<<<<<<< HEAD
 import streamlit as st
 
 from storybuilder.dashboard.data import query_stories, StorySearchQuery
+=======
+
+import streamlit as st
+
+from storybuilder.dashboard.data import StorySearchQuery
+from storybuilder.dashboard.data import query_stories
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
 
 
 def render_search_explorer(filters: dict) -> None:
@@ -14,12 +22,18 @@ def render_search_explorer(filters: dict) -> None:
     st.write("Browse, search and filter the narrative archives.")
 
     fts_input = st.text_input(
+<<<<<<< HEAD
         "Full-Text Search (FTS5 syntax, e.g. vampire OR werewolf)", "",
+=======
+        "Full-Text Search (FTS5 syntax, e.g. vampire OR werewolf)",
+        "",
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
     )
 
     st.markdown("---")
 
     with st.spinner("Searching records..."):
+<<<<<<< HEAD
         search_results = query_stories(StorySearchQuery(
             fts_query=fts_input,
             category=filters["category"],
@@ -28,6 +42,18 @@ def render_search_explorer(filters: dict) -> None:
             entity_text=filters["entity_text"],
             entity_label=filters["entity_label"],
         ))
+=======
+        search_results = query_stories(
+            StorySearchQuery(
+                fts_query=fts_input,
+                category=filters["category"],
+                author=filters["author"],
+                year_range=filters["year_range"],
+                entity_text=filters["entity_text"],
+                entity_label=filters["entity_label"],
+            ),
+        )
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
 
     st.subheader(f"Found {len(search_results)} Result(s)")
 
@@ -44,7 +70,11 @@ def render_search_explorer(filters: dict) -> None:
                 <b>Author:</b> {safe_author} |
                 <b>Category:</b> {safe_category} |
                 <b>Published:</b> {safe_pub_date} |
+<<<<<<< HEAD
                 <b>Words:</b> {res['word_count']:,}
+=======
+                <b>Words:</b> {res["word_count"]:,}
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
             </p>
         """
 
@@ -52,9 +82,16 @@ def render_search_explorer(filters: dict) -> None:
         if res.get("snippet"):
             # Escape the snippet first, then replace the placeholder highlight markers with actual HTML span tags
             snippet_escaped = html.escape(res["snippet"])
+<<<<<<< HEAD
             snippet_cleaned = snippet_escaped.replace(
                 "___HIGHLIGHT_START___", "<span class='highlight'>"
             ).replace("___HIGHLIGHT_END___", "</span>")
+=======
+            snippet_cleaned = snippet_escaped.replace("___HIGHLIGHT_START___", "<span class='highlight'>").replace(
+                "___HIGHLIGHT_END___",
+                "</span>",
+            )
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
             card_html += "<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; padding: 8px;"
             card_html += f" background: rgba(0, 0, 0, 0.2); border-radius: 6px;'>... {snippet_cleaned} ...</p>"
         card_html += "</div>"
@@ -66,7 +103,12 @@ def render_search_explorer(filters: dict) -> None:
             if st.button("Read", key=f"read_{res['path']}_{res['db_year']}"):
                 st.session_state.selected_story_path = res["path"]
                 st.session_state.selected_story_year = res["db_year"]
+<<<<<<< HEAD
                 # Programmatically update radio key by modifying query params or session state navigation
+=======
+                # Programmatically update radio key by modifying query params and session state navigation
+                st.session_state["nav_page"] = "📖 Read Story"
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
                 st.query_params["nav_page"] = "📖 Read Story"
                 st.rerun()
         st.write("")

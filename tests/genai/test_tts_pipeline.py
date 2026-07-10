@@ -10,6 +10,7 @@ Run manually with:
 """
 
 import glob
+
 import os
 import shutil
 import tempfile
@@ -39,7 +40,9 @@ class TestTTSPipeline(unittest.TestCase):
 
         # Find up to MAX_API_CALLS real prompt files from the repo
         all_parts = sorted(
-            glob.glob(str(project_root / "stories" / "**" / "*-part.md"), recursive=True)
+            glob.glob(
+                str(project_root / "stories" / "**" / "*-part.md"), recursive=True
+            )
         )
         # Exclude archive directories
         all_parts = [p for p in all_parts if "archive" not in p]
@@ -79,7 +82,11 @@ class TestTTSPipeline(unittest.TestCase):
             generated = []
 
             for i, md_file in enumerate(self.prompt_files):
+<<<<<<< HEAD
                 base_name = Path(md_file).stem
+=======
+                base_name = os.path.basename(md_file).replace("-part.md", "")
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
                 wav_file = os.path.join(tmp_dir, f"{base_name}.wav")
 
                 # Sanitize voice names to valid Gemini voices for the integration test

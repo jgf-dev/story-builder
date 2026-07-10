@@ -1,9 +1,16 @@
 import html
+<<<<<<< HEAD
 from pathlib import Path
 import sqlite3
 import streamlit as st
 
 from storybuilder.dashboard.data import get_favorites, get_db_files
+=======
+
+import streamlit as st
+
+from storybuilder.dashboard.data import get_favorites
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
 
 
 def render_favorites_tags() -> None:
@@ -13,14 +20,19 @@ def render_favorites_tags() -> None:
 
     favorites = get_favorites()
     if not favorites:
+<<<<<<< HEAD
         st.info(
             "You haven't bookmarked any stories yet. Read a story and add it to favorites!"
         )
+=======
+        st.info("You haven't bookmarked any stories yet. Read a story and add it to favorites!")
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
     else:
         # Get unique tags
         all_tags = set()
         for f in favorites:
             if f["tags"]:
+<<<<<<< HEAD
                 for t in f["tags"].split(","):
                     all_tags.add(t.strip())
 
@@ -28,6 +40,12 @@ def render_favorites_tags() -> None:
         filter_tag = st.selectbox(
             "Filter Favorites by Tag", ["All"] + sorted(list(all_tags))
         )
+=======
+                all_tags.update(t.strip() for t in f["tags"].split(","))
+
+        # Tag filter selector
+        filter_tag = st.selectbox("Filter Favorites by Tag", ["All"] + sorted(list(all_tags)))
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
 
         st.write("---")
         # Expected optimization impact: Resolving N favorite stories in M year partitions
@@ -36,6 +54,7 @@ def render_favorites_tags() -> None:
         fav_paths = [f["story_path"] for f in favorites]
         path_to_db_year = {}
         if fav_paths:
+<<<<<<< HEAD
             for y_db in get_db_files():
                 try:
                     y = int(Path(y_db).stem)
@@ -64,6 +83,25 @@ def render_favorites_tags() -> None:
                     )
                 finally:
                     conn.close()
+=======
+            from storybuilder.downloader import db as storybuilder_db
+
+            try:
+                placeholders = ",".join("?" for _ in fav_paths)
+                rows = storybuilder_db.execute_query(
+                    f"SELECT path, publication_date FROM stories WHERE path IN ({placeholders})",
+                    params=tuple(fav_paths),
+                )
+                for row in rows:
+                    pub_date = row.get("publication_date")
+                    try:
+                        y = int(str(pub_date)[:4]) if pub_date and len(str(pub_date)) >= 4 else 2026
+                    except ValueError:
+                        y = 2026
+                    path_to_db_year[row["path"]] = y
+            except Exception as e:
+                st.warning(f"Could not resolve story paths from database: {e}")
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
 
         # Display favorites
         for f in favorites:
@@ -76,10 +114,17 @@ def render_favorites_tags() -> None:
                 continue
 
             with st.container():
+<<<<<<< HEAD
                 safe_fav_title = html.escape(f['title'] or '')
                 safe_fav_author = html.escape(f['author'] or 'Unknown')
                 safe_fav_tags = html.escape(f['tags'] or 'None')
                 safe_fav_notes = html.escape(f['notes'] or 'None')
+=======
+                safe_fav_title = html.escape(f["title"] or "")
+                safe_fav_author = html.escape(f["author"] or "Unknown")
+                safe_fav_tags = html.escape(f["tags"] or "None")
+                safe_fav_notes = html.escape(f["notes"] or "None")
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
                 st.markdown(
                     f"""
                     <div class='story-card'>
@@ -98,7 +143,14 @@ def render_favorites_tags() -> None:
                     if st.button("Read", key=f"read_fav_{f['story_path']}"):
                         st.session_state.selected_story_path = f["story_path"]
                         st.session_state.selected_story_year = db_year
+<<<<<<< HEAD
                         st.query_params["nav_page"] = "📖 Read Story"
                         st.rerun()
                 st.write("")
 
+=======
+                        st.session_state["nav_page"] = "📖 Read Story"
+                        st.query_params["nav_page"] = "📖 Read Story"
+                        st.rerun()
+                st.write("")
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483

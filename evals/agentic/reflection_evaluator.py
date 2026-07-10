@@ -7,7 +7,10 @@ and refines until all criteria pass or the iteration limit is reached.
 Based on the agentic-eval skill patterns.
 """
 
+<<<<<<< HEAD
 import json
+=======
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -203,6 +206,10 @@ class LLMJudgeReflectionEvaluator(ReflectionEvaluator):
                         status="FAIL",
                         score=0.0,
                         feedback=f"Judge error: {e}",
+<<<<<<< HEAD
                     )
+=======
+                    ),
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
                 )
         return results

@@ -1,7 +1,15 @@
 from pathlib import Path
+<<<<<<< HEAD
 import streamlit as st
 
 from storybuilder.dashboard.data import get_filter_options, get_db_files
+=======
+
+import streamlit as st
+
+from storybuilder.dashboard.data import get_db_files
+from storybuilder.dashboard.data import get_filter_options
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
 
 
 def render_sidebar() -> tuple[str, dict]:

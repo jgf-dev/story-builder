@@ -10,7 +10,10 @@ Fixtures:
 """
 
 import json
+<<<<<<< HEAD
 import os
+=======
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
 from pathlib import Path
 
 import pytest
@@ -46,7 +49,11 @@ def load_jsonl(request):
         if not filepath.exists():
             pytest.skip(f"Dataset file not found: {filepath}")
         records = []
+<<<<<<< HEAD
         with open(filepath) as f:
+=======
+        with Path(filepath).open() as f:
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
             for line in f:
                 line = line.strip()
                 if line:
@@ -65,9 +72,16 @@ def tts_agent():
     """
     try:
         from storybuilder.agents.tts_prompt_crafter.agent import root_agent
+<<<<<<< HEAD
         return root_agent
     except ImportError:
         pytest.skip("TTS Prompt Crafter agent module not available")
+=======
+
+        return root_agent
+    except ImportError:
+        raise pytest.skip.Exception("TTS Prompt Crafter agent module not available")
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
 
 
 @pytest.fixture(scope="session")
@@ -93,7 +107,11 @@ def tts_runner(tts_agent):
         )
         return runner
     except ImportError as e:
+<<<<<<< HEAD
         pytest.skip(f"ADK runner creation failed: {e}")
+=======
+        raise pytest.skip.Exception(f"ADK runner creation failed: {e}")
+>>>>>>> palette-fix-duplicate-file-input-1065389564287363483
 
 
 @pytest.fixture

@@ -9,6 +9,9 @@
 - **test_tts_pipeline.py**: Resolved 12 conflict regions — kept `get_gemini_api_keys` (matching current `client.py`), used `Path`-based operations, consistent variable naming (`configured_api_keys`, `completed_files`), and added return type hints.
 - **db.py**: No conflict markers (already resolved), staged as-is.
 - All 15 tests pass. Ran `ruff check --fix` (64 auto-fixes) and `ruff format`.
+title: Storybuilder dev changelog
+description: Explanantion of changes per commits
+---
 
 ## 04/07/2026
   
@@ -27,6 +30,14 @@ Preventing any resource leaks in long-running processes like the Streamlit works
 
 ### hardened the monolithic mode thread-safety by implementing per-call read connections for concurrent read tasks
 
+### updated both search and execution functions in  src/storybuilder/downloader/db.py  to ensure that SQLite cursors are explicitly closed 
+
+Preventing any resource leaks in long-running processes like the Streamlit workspace dashboard.
+
+- Cursor Cleanup in  _execute_single_db : Added a  cursor = None  declaration and an explicit  cursor.close()  check inside the  finally  block of the  _execute_single_db  helper in db.py.
+- Cursor Cleanup in  _search_single_db : Added the same resource cleanup for the SQLite cursor created during concurrent/monolithic partition searches in the  _search_single_db  helper in db.py.
+
+### hardened the monolithic mode thread-safety by implementing per-call read connections for concurrent read tasks.
   
   Here is a summary of the changes:
   
@@ -39,6 +50,7 @@ Preventing any resource leaks in long-running processes like the Streamlit works
   
   These changes completely prevent concurrent read threads from using the shared write connection ( _conn ), safely resolving the thread-safety issue without any blocking overhead (since SQLite WAL mode natively supports
 
+  These changes completely prevent concurrent read threads from using the shared write connection ( _conn ), safely resolving the thread-safety issue without any blocking overhead (since SQLite WAL mode natively supports         
   concurrent reader connections).
 
 ### The reason the search results were not displaying is due to a **Streamlit module caching behavior**
@@ -49,12 +61,13 @@ Preventing any resource leaks in long-running processes like the Streamlit works
 - However, Streamlit **caches all imported submodules** (such as `storybuilder.dashboard.data` or `storybuilder.dashboard.pages.*`) inside memory and does not automatically reload them when they are modified.
 - As a result, the active Streamlit process was still running the older version of the refactored code (which was missing the database partition engine initialization) even after we fixed it in `data.py`.
 
+* When you run a Streamlit server, it watches the main entry point script ([dashboard.py](file:///home/jgf2/git/voice/story-builder/scripts/dashboard.py)) for file changes and reruns it.
+* However, Streamlit **caches all imported submodules** (such as `storybuilder.dashboard.data` or `storybuilder.dashboard.pages.*`) inside memory and does not automatically reload them when they are modified.
+* As a result, the active Streamlit process was still running the older version of the refactored code (which was missing the database partition engine initialization) even after we fixed it in `data.py`.
 
 ### The Fix
 
 1. We modified [`dashboard.py`](file:///home/jgf2/git/voice/story-builder/scripts/dashboard.py) to explicitly reload all of its custom dashboard package dependencies on rerun:
-
-
    ```python
    import importlib
    import sys
@@ -63,8 +76,6 @@ Preventing any resource leaks in long-running processes like the Streamlit works
        importlib.reload(sys.modules["storybuilder.dashboard.data"])
    # ... [reloads config, sidebar, and pages similarly]
    ```
-
-
 2. Removed all temporary debugging logging files.
 3. Verified the changes: all 172 tests still pass perfectly.
 
@@ -117,3 +128,4 @@ uv run ruff check <resolved_files>
 - **Code Health Integrations**: Integrated the Edge debugging configurations in `.vscode/launch.json`, new ADK evaluation framework files under `evals/`, dependency updates (`streamlit>=1.59.0`, `tqdm>=4.68.4`), and clean path handling (`Path.stem` instead of `os.path`) in `test_tts_pipeline.py`.
 - **Validation**: All 169 unit tests passed successfully.
 
+Please refresh/reload your browser tab running the Streamlit app. This will force a script rerun, which now dynamically reloads all submodules, initializes the database partition engine, and displays the stories.

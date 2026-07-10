@@ -280,7 +280,6 @@ class TestDatabaseInit(unittest.TestCase):
                 "legacy@example.com",
                 "2024-01-15",  # email_date
                 "2024-01-15",  # publication_date
-
                 "https://example.com/legacy",
                 123,
                 20,
@@ -308,7 +307,6 @@ class TestDatabaseInit(unittest.TestCase):
 
             fts_count = conn.execute(
                 "SELECT COUNT(*) FROM stories_fts WHERE stories_fts MATCH 'legacy'",
-
             ).fetchone()[0]
             self.assertEqual(fts_count, 1)
         finally:
@@ -594,10 +592,7 @@ class TestParseHeader(unittest.TestCase):
             "Title: My Story\n"
             "Author: Jane Writer <jane@email.com>\n"
             "Publication Date: 2024-06-13\n"
-            "URL: https://example.com/story\n"
-            + "=" * 80
-            + "\n\n"
-            + "Once upon a time there was a story.\n"
+            "URL: https://example.com/story\n" + "=" * 80 + "\n\n" + "Once upon a time there was a story.\n"
             "It had multiple paragraphs.\n"
         )
         path = self._write_story_file("test.txt", content)
@@ -681,18 +676,19 @@ class TestParseHeader(unittest.TestCase):
 class TestMonolithicDatabase(unittest.TestCase):
     """Tests for monolithic SQLModel-based database in db.py."""
 
-
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
         self.db_path = os.path.join(self.temp_dir, "stories.db")
 
     def tearDown(self):
         from storybuilder.downloader import db
+
         db.close_db()
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_init_db_creates_schema(self):
         from storybuilder.downloader import db
+
         conn = db.init_db(self.db_path)
         self.assertIsNotNone(conn)
 
@@ -706,6 +702,7 @@ class TestMonolithicDatabase(unittest.TestCase):
 
     def test_insert_and_retrieve_story(self):
         from storybuilder.downloader import db
+
         db.init_db(self.db_path)
 
         success = db.insert_story(
@@ -731,8 +728,8 @@ class TestMonolithicDatabase(unittest.TestCase):
 
     def test_execute_query(self):
         from storybuilder.downloader import db
-        db.init_db(self.db_path)
 
+        db.init_db(self.db_path)
 
         db.insert_story(
             output_path="nifty_stories/gay/adult-friends/test-story.txt",
@@ -749,6 +746,7 @@ class TestMonolithicDatabase(unittest.TestCase):
 
     def test_search_stories_fts(self):
         from storybuilder.downloader import db
+
         db.init_db(self.db_path)
         db.insert_story(
             output_path="nifty_stories/gay/adult-friends/test-story.txt",
@@ -763,9 +761,6 @@ class TestMonolithicDatabase(unittest.TestCase):
         results = db.search_stories(fts_query="banana", snippets=True)
         self.assertEqual(len(results), 1)
         self.assertIn("banana", results[0]["snippet"])
-
-
-
 
 
 class TestImportToSQLite(unittest.TestCase):
@@ -804,8 +799,8 @@ class TestImportToSQLite(unittest.TestCase):
         self.assertEqual(result["publication_date"], "2024-01-01")
         self.assertEqual(result["url"], "http://example.com/story")
         self.assertEqual(
-            result["content"], "This is the body of the story.\nIt has multiple lines.",
-
+            result["content"],
+            "This is the body of the story.\nIt has multiple lines.",
         )
 
     def test_parse_header_missing_fields(self):

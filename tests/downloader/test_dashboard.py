@@ -36,6 +36,7 @@ class TestDashboard(unittest.TestCase):
 
         # Patch db.py globals used by dashboard's new refactored code
         import storybuilder.downloader.db as sb_db
+
         sb_db.init_db(self.db_dir)
 
         self.patch_dir.start()
@@ -49,11 +50,18 @@ class TestDashboard(unittest.TestCase):
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _create_mock_partition(
-        self, year, category, title, author, date, word_count, path, content,
+        self,
+        year,
+        category,
+        title,
+        author,
+        date,
+        word_count,
+        path,
+        content,
     ):
         from sqlmodel import Session
         from sqlmodel import select
-
 
         from storybuilder.downloader import db as sb_db
 
@@ -64,11 +72,6 @@ class TestDashboard(unittest.TestCase):
             story_date=date,
             url="http://test",
             content=content,
-
-
-
-
-
         )
         if word_count is not None:
             with Session(sb_db._engine) as session:
@@ -102,17 +105,17 @@ class TestDashboard(unittest.TestCase):
             """,
         )
         conn.execute(
-            "INSERT OR REPLACE INTO stories (filepath) VALUES (?)", (filepath,),
+            "INSERT OR REPLACE INTO stories (filepath) VALUES (?)",
+            (filepath,),
         )
         story_id = conn.execute(
-            "SELECT id FROM stories WHERE filepath = ?", (filepath,),
-
+            "SELECT id FROM stories WHERE filepath = ?",
+            (filepath,),
         ).fetchone()[0]
         conn.execute(
             "INSERT INTO entities (story_id, text, label, frequency) VALUES (?, ?, ?, 1)",
             (story_id, text, label),
         )
-
 
         conn.commit()
         conn.close()
@@ -139,8 +142,11 @@ class TestDashboard(unittest.TestCase):
 
         # Add favorite
         success = add_favorite(
-            "test_path.txt", "Test Story", "Test Author", "tag1,tag2", "Some notes",
-
+            "test_path.txt",
+            "Test Story",
+            "Test Author",
+            "tag1,tag2",
+            "Some notes",
         )
         self.assertTrue(success)
 

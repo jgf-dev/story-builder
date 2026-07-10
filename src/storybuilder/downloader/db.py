@@ -173,6 +173,7 @@ def _parse_author(raw: "str | None") -> "tuple[str | None, str | None]":
 def _parse_output_path(output_path: str) -> "tuple[str, str, str, int | None]":
     """Extract (orientation, category, story_slug, chapter_num) from a path.
 
+    Path structure (3 parts):  <output_dir>/<orientation>/<file>
     Path structure (4 parts):  <output_dir>/<orientation>/<category>/<file>
     Path structure (5+ parts): <output_dir>/<orientation>/<category>/<story_slug>/<file>
     """

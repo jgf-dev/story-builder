@@ -1,8 +1,11 @@
-import os
 import glob
+import os
+import pathlib
 import re
-from google import genai
+
 from dotenv import load_dotenv
+from google import genai
+
 
 load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
@@ -21,10 +24,13 @@ You are an expert audio director. Rewrite the provided TTS prompt text to fix th
 5) Output the exact same markdown structure, only fixing the text. Do not add any conversational text or markdown code block markers around the output (like ```markdown), just output the raw markdown text.
 """
 
+
 def extract_markdown_block(content: str) -> str:
     content = content.strip()
     # Match ```markdown ... ``` or ``` ... ```
-    match = re.match(r"^```(?:markdown)?\s*\n(.*?)\n```$", content, re.DOTALL | re.IGNORECASE)
+    match = re.match(
+        r"^```(?:markdown)?\s*\n(.*?)\n```$", content, re.DOTALL | re.IGNORECASE,
+    )
     if match:
         return match.group(1).strip()
     # Match any generic block at start and end
@@ -41,6 +47,7 @@ def extract_markdown_block(content: str) -> str:
         return "\n".join(lines).strip()
     return content
 
+
 def fix_prompts(directory):
     files = sorted(glob.glob(os.path.join(directory, "*-part.md")))
     if not files:
@@ -50,26 +57,30 @@ def fix_prompts(directory):
     print(f"Found {len(files)} prompt files to process.")
     for md_file in files:
         print(f"Fixing {os.path.basename(md_file)}...")
-        with open(md_file, "r") as f:
-            content = f.read()
+        content = pathlib.Path(md_file).read_text()
 
         try:
             interaction = client.interactions.create(
                 model="gemini-3.5-flash",
-                input=f"{PROMPT_INSTRUCTION}\n\nHere is the prompt file content:\n\n{content}"
+                input=f"{PROMPT_INSTRUCTION}\n\nHere is the prompt file content:\n\n{content}",
             )
             fixed_content = extract_markdown_block(interaction.output_text)
 
-            with open(md_file, "w") as f:
-                f.write(fixed_content)
+            pathlib.Path(md_file).write_text(fixed_content)
 
-            print(f"  Fixed and saved.")
+            print("  Fixed and saved.")
         except Exception as e:
             print(f"  Error processing {os.path.basename(md_file)}: {e}")
 
+
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(description="Fix TTS prompt files.")
-    parser.add_argument("--dir", default="stories/the_secret_vacation_prompts", help="Directory containing the *-part.md files")
+    parser.add_argument(
+        "--dir",
+        default="stories/the_secret_vacation_prompts",
+        help="Directory containing the *-part.md files",
+    )
     args = parser.parse_args()
     fix_prompts(args.dir)

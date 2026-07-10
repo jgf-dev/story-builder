@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-import os
-import ast
-import re
 import argparse
+import ast
+import os
+import re
 from pathlib import Path
 
 
@@ -22,22 +22,20 @@ def get_annotation_str(node):
         return ""
     if isinstance(node, ast.Name):
         return node.id
-    elif isinstance(node, ast.Constant):
+    if isinstance(node, ast.Constant):
         return str(node.value)
-    elif isinstance(node, ast.Subscript):
+    if isinstance(node, ast.Subscript):
         val = get_annotation_str(node.value)
         slc = get_annotation_str(node.slice)
         return f"{val}[{slc}]"
-    elif isinstance(node, ast.Attribute):
+    if isinstance(node, ast.Attribute):
         val = get_annotation_str(node.value)
         return f"{val}.{node.attr}"
-    elif isinstance(node, ast.BinOp) and isinstance(node.op, ast.BitOr):
+    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.BitOr):
         left = get_annotation_str(node.left)
         right = get_annotation_str(node.right)
         return f"{left} | {right}"
-    elif isinstance(node, ast.Tuple):
-        return ", ".join(get_annotation_str(elt) for elt in node.elts)
-    elif isinstance(node, ast.List):
+    if isinstance(node, ast.Tuple) or isinstance(node, ast.List):
         return ", ".join(get_annotation_str(elt) for elt in node.elts)
     return str(node)
 
@@ -62,7 +60,7 @@ class CodebaseAnalyzer:
                 "dist",
                 "build",
                 ".github",
-            ]
+            ],
         )
         self.files = []
         self.modules = {}  # rel_path -> ast.AST or None
@@ -101,9 +99,8 @@ class CodebaseAnalyzer:
             elif ext in [".sql"]:
                 if not is_test:
                     self.analyze_sql(rel_path, abs_path)
-            elif ext in [".sh"]:
-                if not is_test:
-                    self.analyze_shell(rel_path, abs_path)
+            elif ext in [".sh"] and not is_test:
+                self.analyze_shell(rel_path, abs_path)
 
     def analyze_python(self, rel_path, abs_path, is_test=False):
         if is_test:
@@ -186,13 +183,9 @@ class CodebaseAnalyzer:
                     py_file = self.analyzer.root_dir / f"{resolved_path}.py"
                     dir_init = self.analyzer.root_dir / resolved_path / "__init__.py"
                     if py_file.is_file():
-                        local_imports.append(
-                            str(py_file.relative_to(self.analyzer.root_dir))
-                        )
+                        local_imports.append(str(py_file.relative_to(self.analyzer.root_dir)))
                     elif dir_init.is_file():
-                        local_imports.append(
-                            str(dir_init.relative_to(self.analyzer.root_dir))
-                        )
+                        local_imports.append(str(dir_init.relative_to(self.analyzer.root_dir)))
 
             def visit_ClassDef(self, node):
                 classes_in_file.append(node.name)
@@ -203,9 +196,7 @@ class CodebaseAnalyzer:
                     if isinstance(body_item, ast.AnnAssign):
                         if isinstance(body_item.target, ast.Name):
                             field_name = body_item.target.id
-                            field_type = (
-                                get_annotation_str(body_item.annotation) or "Any"
-                            )
+                            field_type = get_annotation_str(body_item.annotation) or "Any"
                             fields.append((field_name, field_type))
                     elif isinstance(body_item, ast.Assign):
                         for target in body_item.targets:
@@ -245,9 +236,7 @@ class CodebaseAnalyzer:
 
                 if callee and self.current_func:
                     caller_context = (
-                        f"{self.current_class}.{self.current_func}"
-                        if self.current_class
-                        else self.current_func
+                        f"{self.current_class}.{self.current_func}" if self.current_class else self.current_func
                     )
                     self.analyzer.calls.append((str(rel_path), caller_context, callee))
                 self.generic_visit(node)
@@ -287,9 +276,7 @@ class CodebaseAnalyzer:
             self.uis[str(rel_path)] = ui_techs
 
         local_imports = []
-        imports_matches = re.findall(
-            r'import\s+.*?\s+from\s+[\'"](\./.*?)[\'"]', content
-        )
+        imports_matches = re.findall(r'import\s+.*?\s+from\s+[\'"](\./.*?)[\'"]', content)
         imports_matches += re.findall(r'require\(\s*[\'"](\./.*?)[\'"]\s*\)', content)
 
         for imp in imports_matches:
@@ -315,9 +302,7 @@ class CodebaseAnalyzer:
 
         tables = re.findall(r"CREATE\s+TABLE\s+(\w+)", content, re.IGNORECASE)
         if tables:
-            self.databases[str(rel_path)] = [
-                f"SQL Schema (Tables: {', '.join(tables)})"
-            ]
+            self.databases[str(rel_path)] = [f"SQL Schema (Tables: {', '.join(tables)})"]
 
     def analyze_shell(self, rel_path, abs_path):
         try:
@@ -327,9 +312,7 @@ class CodebaseAnalyzer:
 
         runs = []
         for line in content.splitlines():
-            matches = re.findall(
-                r"(python\d?|uv run|sh|bash)\s+([a-zA-Z0-9_\-\./]+)", line
-            )
+            matches = re.findall(r"(python\d?|uv run|sh|bash)\s+([a-zA-Z0-9_\-\./]+)", line)
             for _, run_script in matches:
                 if (self.root_dir / run_script).is_file():
                     runs.append(run_script)
@@ -340,7 +323,7 @@ class CodebaseAnalyzer:
         md = []
         md.append("# Codebase Architecture and Flow Diagrams")
         md.append(
-            "\nThis document contains Mermaid diagrams visualizing the codebase, automatically generated by the Codebase Diagrammer skill."
+            "\nThis document contains Mermaid diagrams visualizing the codebase, automatically generated by the Codebase Diagrammer skill.",
         )
         md.append("\n---")
 
@@ -381,9 +364,7 @@ class CodebaseAnalyzer:
         # 2. Module & Script Dependency Diagram
         md.append("\n---")
         md.append("\n## 2. Module & File Dependencies")
-        md.append(
-            "Visualizes import relationships and dependency flows between local scripts and modules."
-        )
+        md.append("Visualizes import relationships and dependency flows between local scripts and modules.")
         md.append("\n```mermaid")
         md.append("flowchart RL")
         has_imports = False
@@ -391,9 +372,7 @@ class CodebaseAnalyzer:
             caller_id = clean_id(caller)
             for callee in sorted(callees):
                 callee_id = clean_id(callee)
-                md.append(
-                    f'    {caller_id}["{clean_label(caller)}"] --> {callee_id}["{clean_label(callee)}"]'
-                )
+                md.append(f'    {caller_id}["{clean_label(caller)}"] --> {callee_id}["{clean_label(callee)}"]')
                 has_imports = True
         if not has_imports:
             md.append('    NoDependencies["No inter-file dependencies detected."]')
@@ -402,9 +381,7 @@ class CodebaseAnalyzer:
         # 3. Class and Function Map
         md.append("\n---")
         md.append("\n## 3. Key Classes & Functions")
-        md.append(
-            "Outlines the primary class structures and key functions defined in each module."
-        )
+        md.append("Outlines the primary class structures and key functions defined in each module.")
         md.append("\n```mermaid")
         md.append("classDiagram")
         has_classes = False
@@ -463,9 +440,7 @@ class CodebaseAnalyzer:
         # 4. Storage & Data Models
         md.append("\n---")
         md.append("\n## 4. Data Storage & API Flows")
-        md.append(
-            "Represents database connections, local caches, APIs, and external services consumed by scripts."
-        )
+        md.append("Represents database connections, local caches, APIs, and external services consumed by scripts.")
         md.append("\n```mermaid")
         md.append("flowchart LR")
 
@@ -486,17 +461,13 @@ class CodebaseAnalyzer:
                 has_storage = True
 
         if not has_storage:
-            md.append(
-                '    NoStorage["No storage integrations or local databases detected."]'
-            )
+            md.append('    NoStorage["No storage integrations or local databases detected."]')
         md.append("```")
 
         # 5. UI and Client Interfaces
         md.append("\n---")
         md.append("\n## 5. UI & Presentation Layers")
-        md.append(
-            "Tracks user interfaces, scripts utilizing Streamlit or plotting modules, and entrypoints."
-        )
+        md.append("Tracks user interfaces, scripts utilizing Streamlit or plotting modules, and entrypoints.")
         md.append("\n```mermaid")
         md.append("flowchart TD")
 
@@ -524,12 +495,8 @@ class CodebaseAnalyzer:
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Analyze a codebase and output structured Mermaid diagrams."
-    )
-    parser.add_argument(
-        "--root-dir", default=".", help="Root directory of the codebase to analyze."
-    )
+    parser = argparse.ArgumentParser(description="Analyze a codebase and output structured Mermaid diagrams.")
+    parser.add_argument("--root-dir", default=".", help="Root directory of the codebase to analyze.")
     parser.add_argument(
         "--output-file",
         default="architecture.md",

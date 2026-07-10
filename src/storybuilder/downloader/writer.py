@@ -1,9 +1,12 @@
 import os
+import pathlib
 import re
+
 from bs4 import BeautifulSoup
+
+from . import db
 from .cache import safe_print
 from .network import fetch_page
-from . import db
 
 
 def _parse_html_story(response_text):
@@ -28,7 +31,7 @@ def _parse_html_story(response_text):
     # Extract paragraph text
     paragraphs = []
     body_tag = soup.find("body")
-    target_container = body_tag if body_tag else soup
+    target_container = body_tag or soup
 
     for p in target_container.find_all("p"):
         p_text = p.get_text(strip=True)
@@ -50,9 +53,7 @@ def _parse_text_story(raw_text):
     story_text = raw_text
 
     # Try to parse headers (Subject, From)
-    subject_match = re.search(
-        r"^Subject:\s*(.*)$", raw_text, re.IGNORECASE | re.MULTILINE
-    )
+    subject_match = re.search(r"^Subject:\s*(.*)$", raw_text, re.IGNORECASE | re.MULTILINE)
     if subject_match:
         title = subject_match.group(1).strip()
 
@@ -71,7 +72,6 @@ def _format_header(title, author, story_date, story_url):
     header += f"URL: {story_url}\n"
     header += "=" * 80 + "\n\n"
     return header
-
 
 
 def save_story(story_url, output_path, story_date, delay):
@@ -101,9 +101,8 @@ def save_story(story_url, output_path, story_date, delay):
 
     # Save to file ONLY if database is NOT enabled
     if db.get_conn() is None:
-        os.makedirs(os.path.dirname(output_path), exist_ok=True)
-        with open(output_path, "w", encoding="utf-8") as f:
-            f.write(header + story_text)
+        pathlib.Path(os.path.dirname(output_path)).mkdir(exist_ok=True, parents=True)
+        pathlib.Path(output_path).write_text(header + story_text, encoding="utf-8")
         safe_print(f"Saved story to {output_path}")
 
     # Insert into SQLite database
@@ -118,7 +117,6 @@ def save_story(story_url, output_path, story_date, delay):
         )
 
     return True
-
 
 
 def _is_already_downloaded(idx_str, url, output_paths, story_date):
@@ -136,7 +134,7 @@ def _is_already_downloaded(idx_str, url, output_paths, story_date):
         # Check if all paths exist on disk
         all_exist = True
         for path in output_paths:
-            if not os.path.exists(path):
+            if not pathlib.Path(path).exists():
                 all_exist = False
                 break
         if all_exist:
@@ -144,19 +142,23 @@ def _is_already_downloaded(idx_str, url, output_paths, story_date):
             return True
     return False
 
+
 def _replicate_story(primary_path, output_paths, story_date):
     if len(output_paths) <= 1:
         return
 
     if db.get_conn() is None:
         import shutil
+
         for extra_path in output_paths[1:]:
             safe_print(f"Copying already downloaded story to: {extra_path}")
-            os.makedirs(os.path.dirname(extra_path), exist_ok=True)
+            pathlib.Path(os.path.dirname(extra_path)).mkdir(exist_ok=True, parents=True)
             try:
                 shutil.copy2(primary_path, extra_path)
             except Exception as e:
-                safe_print(f"Warning: Failed to copy {primary_path} to {extra_path}: {e}")
+                safe_print(
+                    f"Warning: Failed to copy {primary_path} to {extra_path}: {e}",
+                )
     else:
         # Retrieve from database and insert for duplicates
         story_data = db.get_story(primary_path, story_date)
@@ -171,14 +173,14 @@ def _replicate_story(primary_path, output_paths, story_date):
                     content=story_data["content"],
                 )
 
+
 def download_single_target(idx_str, url, output_paths, story_date, delay, force=False):
     """
     Downloads a single target story and handles duplicate copy replication.
     Returns True if successful, False otherwise.
     """
-    if not force:
-        if _is_already_downloaded(idx_str, url, output_paths, story_date):
-            return True
+    if not force and _is_already_downloaded(idx_str, url, output_paths, story_date):
+        return True
 
     safe_print(f"\n[{idx_str}] Downloading target...")
     primary_path = output_paths[0]

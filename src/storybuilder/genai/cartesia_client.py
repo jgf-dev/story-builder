@@ -1,12 +1,14 @@
 import argparse
 import glob
 import os
+import pathlib
 import re
 import time
 import wave
 
 import requests
 from dotenv import load_dotenv
+
 
 load_dotenv()
 
@@ -59,9 +61,7 @@ def parse_speech_config_cartesia(markdown_content):
     for line in preamble.split("\n"):
         line = line.strip()
         if line.startswith("*") or line.startswith("-"):
-            match = re.search(
-                r"[\*\-]\s*([A-Za-z0-9_-]+)\s*\(Voice:\s*([A-Za-z0-9_-]+)\)", line
-            )
+            match = re.search(r"[\*\-]\s*([A-Za-z0-9_-]+)\s*\(Voice:\s*([A-Za-z0-9_-]+)\)", line)
             if match:
                 speaker = match.group(1)
                 voice_ref = match.group(2)
@@ -74,13 +74,10 @@ def parse_speech_config_cartesia(markdown_content):
                     speaker_to_voice_id[speaker] = voice_ref.lower()
                 else:
                     # Resolve common voice names
-                    resolved_voice_id = VOICE_MAP.get(
-                        voice_ref.lower(), NAME_FALLBACK_MAP["default"]
-                    )
+                    resolved_voice_id = VOICE_MAP.get(voice_ref.lower(), NAME_FALLBACK_MAP["default"])
                     speaker_to_voice_id[speaker] = resolved_voice_id
 
     return speaker_to_voice_id
-
 
 
 def parse_transcript_segments(markdown_content, speaker_to_voice_id, default_voice_id):
@@ -172,9 +169,11 @@ def generate_segment_audio(api_key, text, voice_id, rate=24000):
             response = requests.post(url, json=payload, headers=headers, timeout=60)
             if response.status_code == 200:
                 return response.content
-            elif response.status_code == 429:
+            if response.status_code == 429:
                 wait_time = 10 * (attempt + 1)
-                print(f"  Cartesia Rate Limit (429). Retrying in {wait_time}s... ({attempt + 1}/{max_retries})")
+                print(
+                    f"  Cartesia Rate Limit (429). Retrying in {wait_time}s... ({attempt + 1}/{max_retries})",
+                )
                 time.sleep(wait_time)
             else:
                 print(f"  Cartesia error {response.status_code}: {response.text}")
@@ -192,18 +191,13 @@ def generate_segment_audio(api_key, text, voice_id, rate=24000):
 def process_file_cartesia(md_file, wav_file, api_key, rate=24000):
     """Processes a single markdown file and generates matched WAVs using Cartesia."""
     print(f"Processing {os.path.basename(md_file)} with Cartesia...")
-    with open(md_file, "r") as f:
-        content = f.read()
+    content = pathlib.Path(md_file).read_text()
 
     # Parse voice mappings
     speaker_to_voice_id = parse_speech_config_cartesia(content)
 
     # Determine default narrator voice (first defined, or Maya fallback)
-    default_voice_id = (
-        list(speaker_to_voice_id.values())[0]
-        if speaker_to_voice_id
-        else NAME_FALLBACK_MAP["narrator"]
-    )
+    default_voice_id = list(speaker_to_voice_id.values())[0] if speaker_to_voice_id else NAME_FALLBACK_MAP["narrator"]
 
     # Parse dialogue segments
     segments = parse_transcript_segments(content, speaker_to_voice_id, default_voice_id)
@@ -214,7 +208,9 @@ def process_file_cartesia(md_file, wav_file, api_key, rate=24000):
     success = True
 
     for idx, (voice_id, text) in enumerate(segments):
-        print(f"  Synthesizing segment {idx + 1}/{len(segments)} (Voice ID: {voice_id[:8]}...): {text[:40]}...")
+        print(
+            f"  Synthesizing segment {idx + 1}/{len(segments)} (Voice ID: {voice_id[:8]}...): {text[:40]}...",
+        )
         try:
             segment_pcm = generate_segment_audio(api_key, text, voice_id, rate=rate)
             accumulated_pcm += segment_pcm
@@ -253,7 +249,7 @@ def process_directory_cartesia(directory, rate=24000):
         wav_file = os.path.join(directory, f"{base_name}.wav")
 
         # Check if already generated
-        if os.path.exists(wav_file):
+        if pathlib.Path(wav_file).exists():
             print(f"Skipping {os.path.basename(md_file)}, {os.path.basename(wav_file)} already exists.")
             continue
 
@@ -264,11 +260,20 @@ def process_directory_cartesia(directory, rate=24000):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process TTS prompt files using Cartesia API.")
-    parser.add_argument("--dir", default="stories/the_secret_vacation", help="Directory containing the *-part.md files")
-    parser.add_argument("--rate", type=int, default=24000, help="Audio output sample rate (default 24000)")
+    parser.add_argument(
+        "--dir",
+        default="stories/the_secret_vacation",
+        help="Directory containing the *-part.md files",
+    )
+    parser.add_argument(
+        "--rate",
+        type=int,
+        default=24000,
+        help="Audio output sample rate (default 24000)",
+    )
     args = parser.parse_args()
 
-    if os.path.isdir(args.dir):
+    if pathlib.Path(args.dir).is_dir():
         process_directory_cartesia(args.dir, rate=args.rate)
     else:
         print(f"Error: Directory '{args.dir}' does not exist.")

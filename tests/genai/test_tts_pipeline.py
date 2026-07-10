@@ -73,7 +73,7 @@ class TestTTSPipeline(unittest.TestCase):
             generated = []
 
             for i, md_file in enumerate(self.prompt_files):
-                base_name = os.path.basename(md_file).replace(".md", "")
+                base_name = os.path.splitext(os.path.basename(md_file))[0]
                 wav_file = os.path.join(tmp_dir, f"{base_name}.wav")
 
                 # Sanitize voice names to valid Gemini voices for the integration test
@@ -115,6 +115,9 @@ class TestTTSPipeline(unittest.TestCase):
         finally:
             shutil.rmtree(tmp_dir, ignore_errors=True)
 
+            for i, md_file in enumerate(self.prompt_files):
+                base_name = os.path.splitext(os.path.basename(md_file))[0]
+                wav_file = os.path.join(tmp_dir, f"{base_name}.wav")
 
 if __name__ == "__main__":
     unittest.main()

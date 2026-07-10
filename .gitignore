@@ -30,3 +30,4 @@ benchmark.db
 dummy_stories/
 .kanban.db
 test_dbs/
+gh_2.40.1_linux_amd64/

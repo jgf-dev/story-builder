@@ -10,7 +10,6 @@ import html
 
 # Ensure src layout package is importable
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from storybuilder.downloader import db as storybuilder_db
 
 # Define paths
 DB_DIR = "stories/db"
@@ -500,11 +499,11 @@ if page == "🔍 Search & Explorer":
 
         # Display highlighted snippets if any
         if res.get("snippet"):
+            # Escape the snippet first, then replace the placeholder highlight markers with actual HTML span tags
             snippet_escaped = html.escape(res["snippet"])
             snippet_cleaned = snippet_escaped.replace("___HIGHLIGHT_START___", "<span class='highlight'>").replace("___HIGHLIGHT_END___", "</span>")
             card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
 
-            card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
         card_html += "</div>"
         st.markdown(card_html, unsafe_allow_html=True)
 

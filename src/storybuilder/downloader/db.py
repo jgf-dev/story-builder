@@ -133,7 +133,6 @@ CREATE INDEX IF NOT EXISTS idx_stories_char_count      ON stories(char_count);
 
 _conn: "sqlite3.Connection | None" = None
 _engine: "create_engine | None" = None
-_db_path_global: "str | None" = None
 _connections: dict[str, sqlite3.Connection] = {}
 _is_partitioned = False
 _db_dir: "str | None" = None
@@ -273,11 +272,10 @@ def migrate_legacy_schema(conn: sqlite3.Connection) -> bool:
         raise
 
     conn.executescript(INDEXES)
-    conn.executescript(INDEXES)
     try:
         conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('rebuild')")
     except sqlite3.OperationalError:
-        pass
+        logging.debug("Skipping FTS rebuild during legacy schema migration", exc_info=True)
     return True
 
 def _migrate_schema(conn: "sqlite3.Connection") -> None:

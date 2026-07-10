@@ -123,10 +123,6 @@ class RubricEvaluator:
                     details={"criterion_description": dim.description},
                 ),
             )
-                    reason=f"Override scorer for '{dim.name}' to get detailed feedback",
-                    details={"criterion_description": dim.description},
-                ),
-            )
 
         overall_score = sum(s.weighted_score for s in dimension_scores)
         passed = overall_score >= self.threshold

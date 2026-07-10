@@ -16,15 +16,10 @@ from storybuilder.downloader import db as storybuilder_db
 
 logger = getLogger(__name__)
 
-_db_initialized = False
-
 
 def _ensure_db() -> None:
-    """Initialize the storybuilder database engine on first use (idempotent)."""
-    global _db_initialized
-    if not _db_initialized:
-        storybuilder_db.init_db(get_db_dir())
-        _db_initialized = True
+    """Initialize the storybuilder database engine (idempotent)."""
+    storybuilder_db.init_db(get_db_dir())
 
 
 def get_db_files() -> list[Path]:
@@ -254,8 +249,8 @@ def _extract_db_year(pub_date: str | int | None) -> int:
     try:
         if pub_date and len(str(pub_date)) >= LONG_YEAR:
             return int(str(pub_date)[:4])
-    except (ValueError, TypeError):
-        pass
+    except (ValueError, TypeError) as exc:
+        logger.debug("Failed to extract year from publication_date=%r: %s", pub_date, exc)
     return 2026
 
 

@@ -1,8 +1,10 @@
 import os
 
 from cartesia import Cartesia
-from cartesia.types import VoiceSpecifierParam, WAVOutputFormatParam
+from cartesia.types import VoiceSpecifierParam
+from cartesia.types import WAVOutputFormatParam
 from dotenv import load_dotenv
+
 
 load_dotenv()
 
@@ -14,9 +16,7 @@ def generate_speech(text: str, voice: str):
         model_id="sonic-latest",
         transcript=text,
         voice=VoiceSpecifierParam(id=voice, mode="id"),
-        output_format=WAVOutputFormatParam(
-            sample_rate=48000, encoding="pcm_f32le", container="wav"
-        ),
+        output_format=WAVOutputFormatParam(sample_rate=48000, encoding="pcm_f32le", container="wav"),
         language="en",
     )
     response.write_to_file("output.wav")

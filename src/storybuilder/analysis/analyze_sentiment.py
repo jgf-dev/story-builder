@@ -4,7 +4,6 @@ import sqlite3
 from collections import defaultdict
 from pathlib import Path
 
-
 import spacy
 from thinc.api import require_gpu, set_gpu_allocator
 from tqdm import tqdm
@@ -59,7 +58,8 @@ def init_db(db_path):
             entity_label TEXT,
             FOREIGN KEY(sentence_id) REFERENCES sentences(id)
         )
-    """)
+    """
+    )
     cursor.execute(
         "CREATE INDEX IF NOT EXISTS idx_sentences_story ON sentences(story_id)"
     )
@@ -79,10 +79,9 @@ def get_sentiment_value(result):
     score = result["score"]
     if "positive" in label:
         return score
-    elif "negative" in label:
+    if "negative" in label:
         return -score
-    else:
-        return 0.0
+    return 0.0
 
 
 def extract_chapter_number(filename):
@@ -180,21 +179,12 @@ def load_models(spacy_model_name, sentiment_model_name, use_gpu):
     )
     return nlp, sentiment_pipe
 
-    return nlp, sentiment_pipe
 
 def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe):
-    with open(filepath, "r", encoding="utf-8") as f:
-        text = f.read()
+    path = Path(filepath)
+    text = path.read_text(encoding="utf-8")
     text = re.sub(r"\s+", " ", text).strip()
     if not text:
-        return
-    text = re.sub(r"\s+", " ", text).strip()
-    if not text:
-        return
-    try:
-        doc = nlp(text)
-    except Exception as e:
-        print(f"spaCy error on {filepath}: {e}")
         return
 
     try:
@@ -202,14 +192,10 @@ def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe
     except Exception as e:
         print(f"spaCy error on {filepath}: {e}")
         return
-    sentences = list(doc.sents)
-    if not sentences:
-        return
 
     sentences = list(doc.sents)
     if not sentences:
         return
-    sentence_texts = [sent.text for sent in sentences]
 
     sentence_texts = [sent.text for sent in sentences]
     try:
@@ -224,17 +210,6 @@ def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe
             except Exception:
                 sentiments.append({"label": "neutral", "score": 0.0})
 
-    try:
-        sentiments = sentiment_pipe(sentence_texts, batch_size=32)
-    except Exception as e:
-        print(f"Sentiment pipeline error on {filepath}: {e}")
-        sentiments = []
-        for sentence_text in sentence_texts:
-            try:
-                res = sentiment_pipe(sentence_text[:512])[0]
-                sentiments.append(res)
-            except Exception:
-                sentiments.append({"label": "neutral", "score": 0.0})
     cursor.execute("SELECT MAX(id) FROM sentences")
     row = cursor.fetchone() or (None,)
     last_id_before = row[0] if row[0] is not None else 0
@@ -244,7 +219,7 @@ def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe
     for sent_idx, (sent, sent_result) in enumerate(zip(sentences, sentiments)):
         score = get_sentiment_value(sent_result)
         sentence_batch.append(
-            (story_id, filepath.name, chapter_idx, sent_idx, sent.text, score)
+            (story_id, path.name, chapter_idx, sent_idx, sent.text, score)
         )
         sentence_id = last_id_before + 1 + sent_idx
         for ent in sent.ents:

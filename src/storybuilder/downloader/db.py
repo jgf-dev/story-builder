@@ -323,12 +323,8 @@ def _execute_single_partition(args):
 
 
 def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
-<<<<<<< HEAD
-    """Execute a SELECT query across all database partitions concurrently.
-=======
     """Execute a SELECT query across all database partitions concurrently
     using a ThreadPoolExecutor to improve latency.
->>>>>>> bolt-parallelize-partitions-9285815848419465447
 
     The SQL must use {table} where the target table name goes.
     Returns a list of dictionaries.
@@ -365,17 +361,12 @@ def execute_all_partitions(sql: str, params: tuple = ()) -> list[dict]:
             print(f"Error querying {db_path}: {e}")
             return []
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(db_paths), 10)) as executor:
-        for res in executor.map(_execute_single_db, db_paths):
-=======
     with concurrent.futures.ThreadPoolExecutor(
         max_workers=min(len(db_paths), 10)
     ) as executor:
         args_list = [(path, sql, params) for path in db_paths]
         for res in executor.map(_execute_single_partition, args_list):
->>>>>>> bolt-parallelize-partitions-9285815848419465447
             all_rows.extend(res)
-
     return all_rows
 
 
@@ -417,20 +408,6 @@ def search_all_partitions(
         db_paths = [None]
     else:
         partition_dir = db_dir or _db_dir
-        if not partition_dir:
-            return []
-        if partition_dir == _db_dir:
-            db_paths = get_all_partition_paths()
-        else:
-            import glob
-
-            excluded = {"stories.db", "dashboard_metadata.db"}
-            db_files = glob.glob(os.path.join(partition_dir, "*.db"))
-            db_paths = sorted(
-                p for p in db_files if os.path.basename(p) not in excluded
-            )
-        if not db_paths:
-            return []
         if not partition_dir:
             return []
         if partition_dir == _db_dir:

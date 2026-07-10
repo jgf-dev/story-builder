@@ -29,14 +29,13 @@ PROMPT_INSTRUCTION = (
 )
 
 
-
-
-
 def extract_markdown_block(content: str) -> str:
     content = content.strip()
     # Match ```markdown ... ``` or ``` ... ```
     match = re.match(
-        r"^```(?:markdown)?\s*\n(.*?)\n```$", content, re.DOTALL | re.IGNORECASE
+        r"^```(?:markdown)?\s*\n(.*?)\n```$",
+        content,
+        re.DOTALL | re.IGNORECASE,
     )
     if match:
         return match.group(1).strip()
@@ -55,17 +54,10 @@ def extract_markdown_block(content: str) -> str:
     return content
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
-def fix_prompts(directory):
-    files = sorted(glob.glob(os.path.join(directory, "*-part.md")))
-=======
 def fix_prompts(directory: str) -> None:
     dir_path = pathlib.Path(directory)
     files = sorted([str(p) for p in dir_path.glob("*-part.md")])
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+
     if not files:
         print(f"No prompt files found in {directory}")
         return
@@ -103,14 +95,7 @@ def fix_prompts(directory: str) -> None:
                             category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
                             threshold=types.HarmBlockThreshold.BLOCK_NONE,
                         ),
-<<<<<<< HEAD
-                    ]
-<<<<<<< HEAD
-=======
                     ],
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
                 ),
             )
             fixed_content = extract_markdown_block(response.text)
@@ -118,20 +103,8 @@ def fix_prompts(directory: str) -> None:
             path.write_text(fixed_content, encoding="utf-8")
 
             print("  Fixed and saved.")
-<<<<<<< HEAD
         except Exception as e:  # noqa: BLE001
             print(f"  Error processing {path.name}: {e}")
-
-
-<<<<<<< HEAD
-            print("  Fixed and saved.")
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
-        except Exception as e:
-            print(f"  Error processing {os.path.basename(md_file)}: {e}")
-=======
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-
 
 
 if __name__ == "__main__":

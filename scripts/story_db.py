@@ -80,78 +80,6 @@ def cmd_search(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = No
 
     where = " AND ".join(conditions)
 
-<<<<<<< HEAD
-    conditions = ["stories_fts MATCH ?"]
-    params = [args.query]
-
-    if args.author:
-        conditions.append("s.author_name LIKE ?")
-        params.append(f"%{args.author}%")
-    if args.category:
-        conditions.append("s.category = ?")
-        params.append(args.category)
-    if args.date_from:
-        conditions.append("s.publication_date >= ?")
-        params.append(args.date_from)
-    if args.date_to:
-        conditions.append("s.publication_date <= ?")
-        params.append(args.date_to)
-
-    where = " AND ".join(conditions)
-
-    if db_paths:
-        # Multi-DB: attach each database sequentially and merge results
-        all_rows = []
-        for db_path in db_paths:
-            conn.execute("ATTACH DATABASE ? AS curr_db", (db_path,))
-            table_ref = "curr_db.stories"
-            fts_ref = "curr_db.stories_fts"
-            sql = f"""
-                SELECT s.id, s.path, s.category, s.story_slug, s.chapter_num,
-                       s.title, s.author_name, s.publication_date,
-                       s.char_count, s.word_count,
-                       snippet({fts_ref}, 2, '<b>', '</b>', '…', 40) AS snippet
-                FROM {table_ref} s
-                JOIN {fts_ref} ON s.id = {fts_ref}.rowid
-                WHERE {where}
-                ORDER BY rank
-                LIMIT ?
-            """
-            try:
-                # Need explicit cursor to close it and release DB lock for DETACH
-                curs = conn.cursor()
-                rows = curs.execute(sql, params + [args.limit]).fetchall()
-                all_rows.extend(rows)
-                curs.close()
-            except sqlite3.OperationalError:
-                # DB may not have FTS table; skip
-                pass
-            finally:
-                conn.execute("DETACH DATABASE curr_db")
-
-        # Sort by a simple heuristic: prefer those with snippets, then by id
-        all_rows.sort(
-            key=lambda r: (
-                0 if r["snippet"] and "<b>" in (r["snippet"] or "") else 1,
-                r["id"],
-            )
-        )
-        rows = all_rows[: args.limit]
-    else:
-        sql = f"""
-            SELECT s.id, s.path, s.category, s.story_slug, s.chapter_num,
-                   s.title, s.author_name, s.publication_date,
-                   s.char_count, s.word_count,
-                   snippet(stories_fts, 2, '<b>', '</b>', '…', 40) AS snippet
-            FROM stories s
-            JOIN stories_fts ON s.id = stories_fts.rowid
-            WHERE {where}
-            ORDER BY rank
-            LIMIT ?
-        """
-        params.append(args.limit)
-        rows = conn.execute(sql, params).fetchall()
-=======
     sql = f"""
         SELECT s.id, s.path, s.category, s.story_slug, s.chapter_num,
                s.title, s.author_name, s.publication_date,
@@ -165,7 +93,6 @@ def cmd_search(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = No
     """
     params.append(args.limit)
     rows = conn.execute(sql, params).fetchall()
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
 
     if not rows:
         print(f"No results for '{args.query}'")
@@ -225,15 +152,8 @@ def cmd_get(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None)
         print(f"Title:    {row['title']}")
         print(
             f"Author:   {row['author_name'] or 'Unknown'}"
-<<<<<<< HEAD
-<<<<<<< HEAD
-            + (f" <{row['author_email']}>" if row["author_email"] else "")
-=======
             + (f" <{row['author_email']}>" if row["author_email"] else ""),
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
-            + (f" <{row['author_email']}>" if row["author_email"] else "")
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
+
         )
         print(f"Date:     {row['publication_date'] or 'Unknown'}")
         print(f"URL:      {row['url'] or 'N/A'}")
@@ -297,22 +217,16 @@ def cmd_list(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None
 
     # Column widths
     print(
-        f"{'ID':>6}  {'Title':<45}  {'Author':<25}  {'Date':>10}  {'Words':>8}  Category"
+        f"{'ID':>6}  {'Title':<45}  {'Author':<25}  {'Date':>10}  {'Words':>8}  Category",
+
     )
     print("-" * 120)
     for row in rows:
         title = row["title"][:44] if row["title"] else ""
         author = (row["author_name"] or "")[:24]
         print(
-<<<<<<< HEAD
-<<<<<<< HEAD
-            f"{row['id']:>6}  {title:<45}  {author:<25}  {row['publication_date'] or '':>10}  {row['word_count']:>8,}  {row['category']}"
-=======
             f"{row['id']:>6}  {title:<45}  {author:<25}  {row['publication_date'] or '':>10}  {row['word_count']:>8,}  {row['category']}",
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
-            f"{row['id']:>6}  {title:<45}  {author:<25}  {row['publication_date'] or '':>10}  {row['word_count']:>8,}  {row['category']}"
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
+
         )
 
 
@@ -331,44 +245,9 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
     total_chars = conn.execute(f"SELECT SUM(char_count) FROM stories {where}", params).fetchone()[0] or 0
     total_words = conn.execute(f"SELECT SUM(word_count) FROM stories {where}", params).fetchone()[0] or 0
 
-<<<<<<< HEAD
-        # Expected optimization impact: Resolving stats across M year partitions
-        # O(3 * M) individual DB queries -> O(1 * M) using ATTACH DATABASE.
-        # Significantly improves the stats query time by combining COUNT and SUMs into a single pass.
-        rows = list(
-            storybuilder_db.execute_all_partitions(
-                f"SELECT COUNT(*) as cnt, SUM(char_count) as chars, SUM(word_count) as words FROM {{table}} {where}",
-                tuple(params),
-            )
-        )
-        total = sum(r["cnt"] or 0 for r in rows)
-        total_chars = sum(r["chars"] or 0 for r in rows)
-        total_words = sum(r["words"] or 0 for r in rows)
-
-    else:
-        total = conn.execute(
-            f"SELECT COUNT(*) FROM stories {where}", params
-        ).fetchone()[0]
-        total_chars = (
-            conn.execute(
-                f"SELECT SUM(char_count) FROM stories {where}", params
-            ).fetchone()[0]
-            or 0
-        )
-        total_words = (
-            conn.execute(
-                f"SELECT SUM(word_count) FROM stories {where}", params
-            ).fetchone()[0]
-            or 0
-        )
-
-<<<<<<< HEAD
-=======
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
     print(
-        f"\n=== Database Stats{' for ' + args.category if args.category else ''} ===\n"
+        f"\n=== Database Stats{' for ' + args.category if args.category else ''} ===\n",
+
     )
     print(f"  Stories:     {total:,}")
     print(f"  Total chars: {total_chars:,}")
@@ -392,36 +271,6 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
 
     # Top authors
     print("\n  Top authors:")
-<<<<<<< HEAD
-    if db_paths:
-        from storybuilder.downloader import db as storybuilder_db
-
-        auth_rows = storybuilder_db.execute_all_partitions(
-            f"""SELECT author_name, COUNT(*) as cnt, SUM(word_count) as total_words
-                FROM {{table}} {"WHERE category = ?" if args.category else ""}
-                GROUP BY author_name""",
-            (args.category,) if args.category else (),
-        )
-        auth_counter = Counter()
-        auth_words = Counter()
-        for row in auth_rows:
-            name = row["author_name"] or "Unknown"
-            auth_counter[name] += row["cnt"]
-            auth_words[name] += row["total_words"] or 0
-        authors = [
-            {"author_name": k, "cnt": v, "total_words": auth_words[k]}
-            for k, v in auth_counter.most_common(15)
-        ]
-    else:
-        authors = conn.execute(
-            f"""
-            SELECT author_name, COUNT(*) as cnt, SUM(word_count) as total_words
-            FROM stories {where or "WHERE 1=1"}
-            GROUP BY author_name ORDER BY cnt DESC LIMIT 15
-            """,
-            params if where else [],
-        ).fetchall()
-=======
     authors = conn.execute(
         f"""
         SELECT author_name, COUNT(*) as cnt, SUM(word_count) as total_words
@@ -430,7 +279,7 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
         """,
         params if where else [],
     ).fetchall()
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+
     for a in authors:
         name = (a["author_name"] or "Unknown")[:30]
         print(f"    {name:<30} {a['cnt']:>5} stories  ({a['total_words']:,} words)")
@@ -459,7 +308,8 @@ def main():
         help="Database directory or file. Searches all .db files if a directory.",
     )
     parser.add_argument(
-        "--db-dir", default=None, help="Directory with split .db files (overrides --db)"
+        "--db-dir", default=None, help="Directory with split .db files (overrides --db)",
+
     )
 
     sub = parser.add_subparsers(dest="command", required=True)
@@ -495,7 +345,8 @@ def main():
         help="Export directory (default: exported_stories/)",
     )
     p.add_argument(
-        "--no-content", action="store_true", help="Show metadata only, not story text"
+        "--no-content", action="store_true", help="Show metadata only, not story text",
+
     )
     p.add_argument(
         "--max-chars",

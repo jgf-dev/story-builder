@@ -141,16 +141,8 @@ def _get_cached_subcategory(sub_url):
     return cached_stories, is_complete
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
-def _scrape_subcategory_pages(
-    sub_url, start_date, delay, force_scan, use_cache, cached_lookup
-):
-=======
 def _scrape_subcategory_pages(sub_url, start_date, delay, force_scan, use_cache, cached_lookup):
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+
     scraped_stories = []
     current_url = sub_url
     page_num = 1

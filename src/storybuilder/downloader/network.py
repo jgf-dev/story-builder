@@ -34,20 +34,13 @@ def rotate_windscribe_ip():
         )
         if result.returncode == 0:
             safe_print(
-                "Successfully rotated IP. Waiting 10 seconds for connection to stabilize..."
+                "Successfully rotated IP. Waiting 10 seconds for connection to stabilize...",
             )
             time.sleep(10)
             return True
-<<<<<<< HEAD
-        else:
-            safe_print(
-                f"Failed to rotate IP: {result.stdout.strip() or result.stderr.strip()}"
-            )
-            return False
-=======
         safe_print(f"Failed to rotate IP: {result.stdout.strip() or result.stderr.strip()}")
         return False
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+
     except Exception as e:
         safe_print(f"Error running windscribe-cli ip rotate: {e}")
         return False
@@ -60,15 +53,8 @@ def fetch_page(url, delay, headers=None, max_retries=3):
     """
     if not headers:
         headers = {
-<<<<<<< HEAD
-<<<<<<< HEAD
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-=======
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
+
         }
 
     for attempt in range(max_retries):
@@ -79,42 +65,29 @@ def fetch_page(url, delay, headers=None, max_retries=3):
             if response.status_code == 404:
                 safe_print(f"Error 404: Not Found - {url}")
                 return None
-<<<<<<< HEAD
-            elif response.status_code in (403, 429, 503):
-                safe_print(
-                    f"Warning: Fetching {url} returned status code {response.status_code} (Attempt {attempt + 1}/{max_retries})"
-<<<<<<< HEAD
-=======
             if response.status_code in (403, 429, 503):
                 safe_print(
                     f"Warning: Fetching {url} returned status code {response.status_code} (Attempt {attempt + 1}/{max_retries})",
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
+
                 )
                 if ENABLE_ROTATION:
                     rotate_windscribe_ip()
             else:
                 safe_print(
-<<<<<<< HEAD
-<<<<<<< HEAD
-                    f"Warning: Fetching {url} returned status code {response.status_code} (Attempt {attempt + 1}/{max_retries})"
-=======
                     f"Warning: Fetching {url} returned status code {response.status_code} (Attempt {attempt + 1}/{max_retries})",
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
-                    f"Warning: Fetching {url} returned status code {response.status_code} (Attempt {attempt + 1}/{max_retries})"
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
+
                 )
         except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
             safe_print(
-                f"Warning: Connection/Timeout error on attempt {attempt + 1}/{max_retries} for {url}: {e}"
+                f"Warning: Connection/Timeout error on attempt {attempt + 1}/{max_retries} for {url}: {e}",
+
             )
             if ENABLE_ROTATION:
                 rotate_windscribe_ip()
         except Exception as e:
             safe_print(
-                f"Warning: Unexpected error on attempt {attempt + 1}/{max_retries} for {url}: {e}"
+                f"Warning: Unexpected error on attempt {attempt + 1}/{max_retries} for {url}: {e}",
+
             )
 
         if attempt < max_retries - 1:

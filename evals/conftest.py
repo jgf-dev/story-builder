@@ -10,14 +10,6 @@ Fixtures:
 """
 
 import json
-<<<<<<< HEAD
-<<<<<<< HEAD
-import os
-=======
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
-import os
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 from pathlib import Path
 
 import pytest
@@ -53,15 +45,8 @@ def load_jsonl(request):
         if not filepath.exists():
             pytest.skip(f"Dataset file not found: {filepath}")
         records = []
-<<<<<<< HEAD
-<<<<<<< HEAD
-        with open(filepath) as f:
-=======
         with Path(filepath).open() as f:
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
-        with open(filepath) as f:
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
+
             for line in f:
                 line = line.strip()
                 if line:
@@ -80,22 +65,10 @@ def tts_agent():
     """
     try:
         from storybuilder.agents.tts_prompt_crafter.agent import root_agent
-<<<<<<< HEAD
-<<<<<<< HEAD
-        return root_agent
-    except ImportError:
-        pytest.skip("TTS Prompt Crafter agent module not available")
-=======
 
         return root_agent
     except ImportError:
         raise pytest.skip.Exception("TTS Prompt Crafter agent module not available")
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
-        return root_agent
-    except ImportError:
-        pytest.skip("TTS Prompt Crafter agent module not available")
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 
 
 @pytest.fixture(scope="session")
@@ -121,15 +94,7 @@ def tts_runner(tts_agent):
         )
         return runner
     except ImportError as e:
-<<<<<<< HEAD
-<<<<<<< HEAD
-        pytest.skip(f"ADK runner creation failed: {e}")
-=======
         raise pytest.skip.Exception(f"ADK runner creation failed: {e}")
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
-        pytest.skip(f"ADK runner creation failed: {e}")
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 
 
 @pytest.fixture
@@ -147,28 +112,17 @@ def adk_events(tts_runner):
     # Store runner reference for the inner function
     runner = tts_runner
 
-    # Use a fresh, per-call InMemorySessionService so each test starts
-    # with a clean session. Also enable ``auto_create_session`` so the
-    # runner auto-creates a session on first call instead of raising
-    # ``SessionNotFoundError``.
-    runner.auto_create_session = True
-
     async def _run_query(query: str) -> list:
-        from google.genai import types as genai_types
+        from google.adk.sessions import InMemorySessionService
 
-        # ADK's ``run_async`` expects ``new_message`` to be a
-        # ``google.genai.types.Content`` (with at least one Part),
-        # not a raw string. Wrap the query accordingly.
-        new_message = genai_types.Content(
-            role="user",
-            parts=[genai_types.Part(text=query)],
-        )
+        session_service = InMemorySessionService()
+        runner._session_service = session_service
 
         events = []
         async for event in runner.run_async(
             user_id="eval_user",
             session_id=f"eval_session_{id(query)}",
-            new_message=new_message,
+            new_message=query,
         ):
             events.append(event)
         return events

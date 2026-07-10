@@ -35,19 +35,8 @@ def render_archive_stats() -> None:
         title="Story Publications Per Year",
         markers=True,
     )
-<<<<<<< HEAD
-<<<<<<< HEAD
-    fig_line.update_layout(
-        template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f"
-    )
-=======
     fig_line.update_layout(template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f")
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
-    fig_line.update_layout(
-        template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f"
-    )
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
+
     st.plotly_chart(fig_line, use_container_width=True)
 
     # 2. Categories & Authors Charts
@@ -95,17 +84,6 @@ def render_archive_stats() -> None:
         y="Stories",
         title="Story Word Count Distribution Bracket",
     )
-<<<<<<< HEAD
-<<<<<<< HEAD
-    fig_words.update_layout(
-        template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f"
-    )
-=======
     fig_words.update_layout(template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f")
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
-    fig_words.update_layout(
-        template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f"
-    )
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
+
     st.plotly_chart(fig_words, use_container_width=True)

@@ -60,23 +60,8 @@ def init_db(db_path):
             entity_label TEXT,
             FOREIGN KEY(sentence_id) REFERENCES sentences(id)
         )
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
-    """
-    )
-    cursor.execute(
-        "CREATE INDEX IF NOT EXISTS idx_sentences_story ON sentences(story_id)"
-    )
-    cursor.execute(
-        "CREATE INDEX IF NOT EXISTS idx_entities_sentence ON sentence_entities(sentence_id)"
-    )
-    cursor.execute(
-        "CREATE INDEX IF NOT EXISTS idx_entities_text ON sentence_entities(entity_text)"
-=======
     """,
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+
     )
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_sentences_story ON sentences(story_id)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_entities_sentence ON sentence_entities(sentence_id)")

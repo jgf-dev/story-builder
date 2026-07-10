@@ -6,25 +6,6 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
-from storybuilder.downloader import db as storybuilder_db
-from storybuilder.dashboard.config import (
-    BRACKET_LABELS,
-    LONG_YEAR,
-    get_db_dir,
-    get_meta_db_path,
-    get_nlp_db_path,
-)
-
-logger = getLogger(__name__)
-
-# Initialize the storybuilder database partition engine
-storybuilder_db.init_db(get_db_dir())
-<<<<<<< HEAD
-=======
 from storybuilder.dashboard.config import BRACKET_LABELS
 from storybuilder.dashboard.config import LONG_YEAR
 from storybuilder.dashboard.config import get_db_dir
@@ -39,9 +20,6 @@ logger = getLogger(__name__)
 def _ensure_db() -> None:
     """Initialize the storybuilder database engine (idempotent)."""
     storybuilder_db.init_db(get_db_dir())
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 
 
 def get_db_files() -> list[Path]:
@@ -86,18 +64,6 @@ def get_nlp_conn() -> sqlite3.Connection | None:
 
 @st.cache_data
 def get_filter_options() -> tuple[list[str], list[str]]:
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
-    """Compile distinct categories and authors across all partitions for filters."""
-    categories = set()
-    authors = set()
-    
-    # Get unique categories
-    cat_results = storybuilder_db.execute_all_partitions("SELECT DISTINCT category FROM {table}")
-<<<<<<< HEAD
-=======
     """Compile distinct categories and authors across the database for filters."""
     _ensure_db()
     categories = set()
@@ -105,45 +71,23 @@ def get_filter_options() -> tuple[list[str], list[str]]:
 
     # Get unique categories
     cat_results = storybuilder_db.execute_query("SELECT DISTINCT category FROM {table}")
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
+
     for r in cat_results:
         if r.get("category"):
             categories.add(r["category"])
 
     # Get unique authors
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
-    author_results = storybuilder_db.execute_all_partitions("SELECT DISTINCT author_name FROM {table}")
-    for r in author_results:
-        if r.get("author_name"):
-            authors.add(r["author_name"])
-            
-<<<<<<< HEAD
-=======
     author_results = storybuilder_db.execute_query("SELECT DISTINCT author_name FROM {table}")
     for r in author_results:
         if r.get("author_name"):
             authors.add(r["author_name"])
 
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
     return sorted(categories), sorted(authors)
 
 
 # ── Archive-stats helpers ───────────────────────────────────────────────
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
 
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 def _init_aggregators() -> dict:
     """Return fresh accumulator dicts for a full aggregation pass."""
     return {
@@ -154,100 +98,6 @@ def _init_aggregators() -> dict:
     }
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
-def _query_year_summary(cursor: sqlite3.Cursor, year_name: int, year_stats: list) -> None:
-    """Append per-year totals to *year_stats*."""
-    cursor.execute("SELECT COUNT(*), SUM(word_count) FROM stories")
-    cnt, words = cursor.fetchone()
-    if cnt:
-        year_stats.append(
-            {
-                "Year": year_name,
-                "Stories Count": cnt,
-                "Total Words": words or 0,
-            },
-        )
-
-
-def _accumulate_category_counts(cursor: sqlite3.Cursor, accumulator: dict) -> None:
-    """Add this db's category distribution to *accumulator*."""
-    cursor.execute("SELECT category, COUNT(*) FROM stories GROUP BY category")
-    for cat, count in cursor.fetchall():
-        if cat:
-            accumulator[cat] = accumulator.get(cat, 0) + count
-
-
-def _accumulate_author_counts(cursor: sqlite3.Cursor, accumulator: dict) -> None:
-    """Add this db's author distribution to *accumulator*."""
-    cursor.execute("SELECT author_name, COUNT(*) FROM stories GROUP BY author_name")
-    for auth, count in cursor.fetchall():
-        if auth:
-            accumulator[auth] = accumulator.get(auth, 0) + count
-
-
-def _accumulate_bracket_counts(cursor: sqlite3.Cursor, accumulator: dict) -> None:
-    """Add this db's word-count bracket distribution to *accumulator*."""
-    cursor.execute(
-        """
-        SELECT
-            CASE
-                WHEN word_count < 1000 THEN 'Short (<1K)'
-                WHEN word_count < 5000 THEN 'Medium-Short (1K-5K)'
-                WHEN word_count < 10000 THEN 'Medium (5K-10K)'
-                WHEN word_count < 20000 THEN 'Medium-Long (10K-20K)'
-                WHEN word_count < 50000 THEN 'Long (20K-50K)'
-                ELSE 'Epic (>50K)'
-            END AS bracket,
-            COUNT(*)
-        FROM stories
-        WHERE word_count IS NOT NULL
-        GROUP BY bracket
-        """,
-    )
-    for bracket, count in cursor.fetchall():
-        if bracket in accumulator:
-            accumulator[bracket] += count
-
-
-def _process_partition(db_path: str, year_name: int, ag: dict) -> None:
-    """Connect to a single partition DB and collect all stats into *ag*."""
-    conn: sqlite3.Connection | None = None
-    cursor: sqlite3.Cursor | None = None
-
-    try:
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-    except sqlite3.Error:
-        logger.exception("Failed to connect to partition DB: %s", db_path)
-
-    if cursor:
-        try:
-            _query_year_summary(cursor, year_name, ag["year_stats"])
-            _accumulate_category_counts(cursor, ag["category_counts"])
-            _accumulate_author_counts(cursor, ag["author_counts"])
-            _accumulate_bracket_counts(cursor, ag["bracket_counts"])
-        except sqlite3.Error:
-            logger.exception("Failed to query partition DB: %s", db_path)
-        finally:
-            if conn:
-                conn.close()
-
-
-def _format_stats_dataframes(ag: dict) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    """Convert aggregator dicts into the four final DataFrames."""
-    df_years = pd.DataFrame(ag["year_stats"])
-    df_cats = (
-        pd.DataFrame(list(ag["category_counts"].items()), columns=["Category", "Count"])
-        .sort_values("Count", ascending=False)
-    )
-    df_auths = (
-        pd.DataFrame(list(ag["author_counts"].items()), columns=["Author", "Count"])
-        .sort_values("Count", ascending=False)
-<<<<<<< HEAD
-=======
 def _format_stats_dataframes(ag: dict) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Convert aggregator dicts into the four final DataFrames."""
     df_years = pd.DataFrame(ag["year_stats"])
@@ -258,9 +108,7 @@ def _format_stats_dataframes(ag: dict) -> tuple[pd.DataFrame, pd.DataFrame, pd.D
     df_auths = pd.DataFrame(list(ag["author_counts"].items()), columns=["Author", "Count"]).sort_values(
         "Count",
         ascending=False,
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
+
     )
     df_words = pd.DataFrame(
         [
@@ -274,16 +122,6 @@ def _format_stats_dataframes(ag: dict) -> tuple[pd.DataFrame, pd.DataFrame, pd.D
 
 @st.cache_data
 def load_archive_stats() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
-    """Pre-aggregate stats across all partition databases for the visualizations."""
-    ag = _init_aggregators()
-    for db in get_db_files():
-        _process_partition(str(db), int(Path(db).stem), ag)
-<<<<<<< HEAD
-=======
     """Pre-aggregate stats from the monolithic database for the visualizations."""
     _ensure_db()
     ag = _init_aggregators()
@@ -345,9 +183,6 @@ def load_archive_stats() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.D
     except Exception as e:
         logger.exception("Failed to query archive statistics from database", exc_info=e)
 
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
     return _format_stats_dataframes(ag)
 
 
@@ -370,16 +205,9 @@ class StorySearchQuery:
 
 
 def _resolve_entity_suffixes(
-<<<<<<< HEAD
-<<<<<<< HEAD
-    entity_text: str, entity_label: str,
-=======
     entity_text: str,
     entity_label: str,
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
-    entity_text: str, entity_label: str,
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
+
 ) -> list[str] | None:
     """Query NLP database for story-path suffixes matching entity text + label.
 
@@ -424,32 +252,16 @@ def _extract_db_year(pub_date: str | int | None) -> int:
     try:
         if pub_date and len(str(pub_date)) >= LONG_YEAR:
             return int(str(pub_date)[:4])
-<<<<<<< HEAD
-<<<<<<< HEAD
-    except (ValueError, TypeError):
-        pass
-=======
     except (ValueError, TypeError) as exc:
         logger.debug("Failed to extract year from publication_date=%r: %s", pub_date, exc)
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
-    except (ValueError, TypeError):
-        pass
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
+
     return 2026
 
 
 def _filter_by_entity_suffixes(
-<<<<<<< HEAD
-<<<<<<< HEAD
-    results: list[dict], entity_suffixes: list[str] | None,
-=======
     results: list[dict],
     entity_suffixes: list[str] | None,
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
-    results: list[dict], entity_suffixes: list[str] | None,
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
+
 ) -> list[dict]:
     """Remove results whose path doesn't match any entity suffix."""
     if entity_suffixes is None:
@@ -485,13 +297,8 @@ def query_stories(
     limit: int = 100,
 ) -> list[dict]:
     """Search the archive with FTS, filters, and entity-based narrowing."""
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
     _ensure_db()
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
+
     if params is None:
         params = StorySearchQuery(
             fts_query=fts_query,
@@ -505,15 +312,8 @@ def query_stories(
     entity_suffixes = _resolve_entity_suffixes(params.entity_text, params.entity_label)
     date_from, date_to = _build_date_range(params.year_range)
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-    raw_results = storybuilder_db.search_all_partitions(
-=======
     raw_results = storybuilder_db.search_stories(
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
-    raw_results = storybuilder_db.search_all_partitions(
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
+
         fts_query=params.fts_query,
         category=params.category,
         author=params.author,
@@ -521,38 +321,6 @@ def query_stories(
         date_to=date_to,
         limit=params.limit,
         snippets=True,
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
-    )
-
-    results = _enrich_with_db_year(raw_results)
-    results = _filter_by_entity_suffixes(results, entity_suffixes)
-    return results[:params.limit]
-
-
-def get_story_by_path(story_path: str, db_year: int | str | None = None) -> dict | None:
-    """Retrieve full text and details of a single story from its year partition db."""
-    db_path = str(Path(get_db_dir()) / f"{db_year or 2026}.db")
-    if not Path(db_path).exists():
-        return None
-    conn: sqlite3.Connection | None = None
-
-    try:
-        conn = sqlite3.connect(db_path)
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM stories WHERE path = ?", (story_path,))
-        row = cursor.fetchone()
-        return dict(row) if row else None
-    except sqlite3.Error:
-        return None
-    finally:
-        if conn:
-            conn.close()
-<<<<<<< HEAD
-=======
         entity_suffixes=entity_suffixes,
     )
 
@@ -579,9 +347,6 @@ def get_story_by_path(story_path: str, db_year: int | str | None = None) -> dict
     except Exception:
         logger.exception("Failed to retrieve story by path: %s", story_path)
         return None
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 
 
 # ------------------------------------------------------------------------------

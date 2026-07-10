@@ -1,14 +1,8 @@
 import pathlib
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
-def save_prompts(prompts: List[str], file_path: str = "tts_prompts.txt") -> str:
-=======
 def save_prompts(prompts: list[str], file_path: str = "tts_prompts.txt") -> str:
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
+
     """Saves a list of TTS prompts to a specified text file.
 
     Args:

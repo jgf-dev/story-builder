@@ -3,28 +3,9 @@
 root = true
 
 [*]
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724
 indent_style = tabs
 trim_trailing_whitespace = true
 insert_final_newline = true
 end_of_line = lf
 tab_width = 4
 use_tabs = true
-<<<<<<< HEAD
-=======
-indent_style = space
-indent_size = 4
-trim_trailing_whitespace = true
-insert_final_newline = true
-end_of_line = lf
-
-[*.py]
-indent_style = space
-indent_size = 4
-max_line_length = 120
->>>>>>> palette-fix-duplicate-file-input-1065389564287363483
-=======
->>>>>>> palette/fix-duplicate-file-input-14315194890274537724

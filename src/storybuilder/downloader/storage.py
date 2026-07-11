@@ -100,14 +100,24 @@ def upload_many_s3(
     key_prefix = prefix.strip("/")
 
     for filename in filenames:
-        source_path = Path(filename)
+        path = Path(filename)
+
         if base_dir:
+            # Prefer the path as provided (often already rooted at cwd).
             try:
-                relative_name = str(source_path.resolve().relative_to(base_dir))
+                source_path = path.resolve()
+                source_path.relative_to(base_dir)
+            except ValueError:
+                # Otherwise, interpret it as relative to source_directory.
+                source_path = (base_dir / path).resolve() if not path.is_absolute() else path.resolve()
+
+            try:
+                relative_name = str(source_path.relative_to(base_dir))
             except ValueError:
                 relative_name = source_path.name
         else:
-            relative_name = source_path.name
+            source_path = path
+            relative_name = path.name
 
         relative_name = relative_name.replace(os.sep, "/")
         s3_key = f"{key_prefix}/{relative_name}" if key_prefix else relative_name

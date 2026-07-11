@@ -98,14 +98,31 @@ def upload_many_gcs(
     source_directory: str = "",
     workers: int = 8,
 ) -> None:
-    """CLI-compatible GCS upload (prefix reserved; blob names from filenames)."""
-    del prefix  # blob key prefixing not yet applied by transfer_manager helper
-    upload_many(
-        bucket_name,
-        filenames,
+    """Upload files to GCS using transfer_manager with an optional object prefix.
+
+    Returns immediately when filenames is empty.
+    """
+    if not filenames:
+        return
+
+    normalized_filenames = _normalize_filenames(filenames, source_directory)
+    blob_name_prefix = f"{prefix.strip('/')}/" if prefix else ""
+
+    storage_client = Client()
+    bucket = storage_client.bucket(bucket_name)
+    results = transfer_manager.upload_many_from_filenames(
+        bucket,
+        normalized_filenames,
         source_directory=source_directory,
-        workers=workers,
+        blob_name_prefix=blob_name_prefix,
+        max_workers=workers,
     )
+
+    for name, result in zip(normalized_filenames, results):
+        if isinstance(result, Exception):
+            print(f"Failed to upload {name} due to exception: {result}")
+        else:
+            print(f"Uploaded {name} to gs://{bucket.name}/{blob_name_prefix}{name}")
 
 
 def _resolve_s3_source(filename: str, base_dir: Path | None) -> tuple[Path, str]:

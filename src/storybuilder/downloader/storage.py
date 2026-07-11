@@ -42,7 +42,6 @@ def _normalize_filenames(filenames: list[str], source_directory: str) -> list[st
     return normalized
 
 
-
 def upload_many(
     bucket_name: str,
     filenames: list[str],
@@ -58,8 +57,6 @@ def upload_many(
     )
 
 
-=======
->>>>>>> fix-genai-tts-entrypoint-9568411881905231847
 def upload_many_gcs(
     bucket_name: str,
     prefix: str,
@@ -87,48 +84,13 @@ def upload_many_gcs(
         max_workers=workers,
     )
 
-    for name, result in zip(normalized_filenames, results):
+    for name, result in zip(normalized_filenames, results, strict=False):
         if isinstance(result, Exception):
             print(f"Failed to upload {name} due to exception: {result}")
         else:
             print(f"Uploaded {name} to gs://{bucket.name}/{blob_name_prefix}{name}")
 
 
-<<<<<<< HEAD
-=======
-def upload_many(
-    bucket_name: str,
-    filenames: list[str],
-    source_directory: str = "",
-    workers: int = 8,
-) -> None:
-    upload_many_gcs(
-        bucket_name,
-        "",
-        filenames,
-        source_directory=source_directory,
-        workers=workers,
-    )
-
-
-def upload_many_gcs(
-    bucket_name: str,
-    prefix: str,
-    filenames: list[str],
-    source_directory: str = "",
-    workers: int = 8,
-) -> None:
-    """CLI-compatible GCS upload (prefix reserved; blob names from filenames)."""
-    del prefix  # blob key prefixing not yet applied by transfer_manager helper
-    upload_many(
-        bucket_name,
-        filenames,
-        source_directory=source_directory,
-        workers=workers,
-    )
-
-
->>>>>>> fix-genai-tts-entrypoint-9568411881905231847
 def _resolve_s3_source(filename: str, base_dir: Path | None) -> tuple[Path, str]:
     """Return (source_path, relative_name) for building an S3 object key."""
     path = Path(filename)
@@ -196,8 +158,9 @@ def upload_many_s3(
     try:
         import boto3
     except ImportError as exc:
+        msg = "S3 uploads require the 'boto3' package. Install it with `pip install boto3`."
         raise ImportError(
-            "S3 uploads require the 'boto3' package. Install it with `pip install boto3`.",
+            msg,
         ) from exc
 
     s3_client = boto3.client("s3")

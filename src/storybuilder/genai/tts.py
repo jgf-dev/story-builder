@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """Console entrypoint for Gemini TTS generation.
 
 Installed as ``genai-tts`` via ``[project.scripts]`` in pyproject.toml.

@@ -165,6 +165,7 @@ dev = [
     "pytest>=9.0.3",
     "pytest-benchmark>=5.2.3",
     "pytest-cov>=7.1.0",
+    "pytest-mergify>=1.2.0",
     "ruff>=0.15.20",
     "pre-commit>=4.6.0",
     "nbqa>=1.9.1",

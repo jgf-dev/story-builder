@@ -1,0 +1,7 @@
+queue_rules: []
+pull_request_rules: []
+# NOTE: Mergify doesn't support a top-level `scopes` section.
+# To target test-only changes, add a per-rule condition like:
+#   - files~=^tests/
+# (or per-rule `scopes:` include patterns; see Mergify documentation.)
+# (remove these comments once real rules are added)

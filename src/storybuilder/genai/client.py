@@ -272,7 +272,7 @@ def main() -> None:
     parser.add_argument(
         "--dir",
         default="stories/the_secret_vacation",
-        help="Directory containing the *-part.md files",
+        help="Directory containing the *.md prompt files",
     )
     args = parser.parse_args()
 

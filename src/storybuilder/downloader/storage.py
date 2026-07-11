@@ -42,7 +42,7 @@ def _normalize_filenames(filenames: list[str], source_directory: str) -> list[st
     return normalized
 
 
-def upload_many_gcs(
+def _upload_many_gcs_legacy(
     bucket_name: str,
     prefix: str,
     filenames: list[str],

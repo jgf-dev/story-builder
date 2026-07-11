@@ -72,6 +72,8 @@ jobs:
       - name: Install the project
         run: uv sync --all-extras --dev --prerelease=allow
       - name: Run Downloader Tests
+        env:
+          MERGIFY_TOKEN: ${{ secrets.MERGIFY_TOKEN }}
         run: uv run pytest --cov=src --cov-report=xml:coverage-downloader.xml tests/downloader/
       - name: Post Coverage Comment
         if: github.event_name == 'pull_request'
@@ -102,6 +104,8 @@ jobs:
       - name: Install the project
         run: uv sync --all-extras --dev --prerelease=allow
       - name: Run GenAI Tests
+        env:
+          MERGIFY_TOKEN: ${{ secrets.MERGIFY_TOKEN }}
         run: uv run pytest --cov=src --cov-report=xml:coverage-genai.xml tests/genai/
       - name: Post Coverage Comment
         if: github.event_name == 'pull_request'
@@ -132,6 +136,8 @@ jobs:
       - name: Install the project
         run: uv sync --all-extras --dev --prerelease=allow
       - name: Run Analysis Tests
+        env:
+          MERGIFY_TOKEN: ${{ secrets.MERGIFY_TOKEN }}
         run: uv run pytest --cov=src --cov-report=xml:coverage-analysis.xml tests/analysis/
       - name: Post Coverage Comment
         if: github.event_name == 'pull_request'
@@ -162,6 +168,8 @@ jobs:
       - name: Install the project
         run: uv sync --all-extras --dev --prerelease=allow
       - name: Run Agent Tests
+        env:
+          MERGIFY_TOKEN: ${{ secrets.MERGIFY_TOKEN }}
         run: uv run pytest --cov=src --cov-report=xml:coverage-agents.xml tests/agents/
       - name: Post Coverage Comment
         if: github.event_name == 'pull_request'
@@ -192,6 +200,8 @@ jobs:
       - name: Install the project
         run: uv sync --all-extras --dev --prerelease=allow
       - name: Run Misc Tests
+        env:
+          MERGIFY_TOKEN: ${{ secrets.MERGIFY_TOKEN }}
         run: uv run pytest --cov=src --cov-report=xml:coverage-misc.xml tests/misc/
       - name: Post Coverage Comment
         if: github.event_name == 'pull_request'

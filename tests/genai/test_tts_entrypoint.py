@@ -3,7 +3,7 @@
 import io
 import unittest
 from contextlib import redirect_stderr
-from importlib.metadata import entry_points
+from importlib.metadata import distribution
 from unittest.mock import patch
 
 from storybuilder.genai import client
@@ -17,12 +17,11 @@ class TestTtsEntrypoint(unittest.TestCase):
         self.assertTrue(callable(tts.main))
 
     def test_console_script_entry_point_declared(self) -> None:
-        eps = entry_points()
-        scripts = (
-            eps.select(group="console_scripts")
-            if hasattr(eps, "select")
-            else eps.get("console_scripts", [])
-        )
+        scripts = [
+            ep
+            for ep in distribution("storybuilder").entry_points
+            if ep.group == "console_scripts"
+        ]
         genai_tts = next((ep for ep in scripts if ep.name == "genai-tts"), None)
         self.assertIsNotNone(genai_tts, "genai-tts console script missing from package metadata")
         self.assertEqual(genai_tts.value, "storybuilder.genai.tts:main")

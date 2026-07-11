@@ -265,7 +265,7 @@ def process_directory(directory) -> None:
         time.sleep(2)
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(description="Process TTS prompt files to generate audio.")
     parser.add_argument(
         "--dir",
@@ -278,3 +278,7 @@ if __name__ == "__main__":
         process_directory(args.dir)
     else:
         print(f"Error: Directory '{args.dir}' does not exist.")
+
+
+if __name__ == "__main__":
+    main()

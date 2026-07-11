@@ -4,6 +4,17 @@ StoryBuilder is an integrated Python toolkit and pipeline designed to scrape, st
 
 ---
 
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=jgf-dev_story-builder&metric=duplicated_lines_density&token=9085b2f9af74d4fafdc72f20b64abe67ea3d0e56)](https://sonarcloud.io/summary/new_code?id=jgf-dev_story-builder)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=jgf-dev_story-builder&metric=bugs&token=9085b2f9af74d4fafdc72f20b64abe67ea3d0e56)](https://sonarcloud.io/summary/new_code?id=jgf-dev_story-builder)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=jgf-dev_story-builder&metric=alert_status&token=9085b2f9af74d4fafdc72f20b64abe67ea3d0e56)](https://sonarcloud.io/summary/new_code?id=jgf-dev_story-builder)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=jgf-dev_story-builder&metric=reliability_rating&token=9085b2f9af74d4fafdc72f20b64abe67ea3d0e56)](https://sonarcloud.io/summary/new_code?id=jgf-dev_story-builder)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=jgf-dev_story-builder&metric=security_rating&token=9085b2f9af74d4fafdc72f20b64abe67ea3d0e56)](https://sonarcloud.io/summary/new_code?id=jgf-dev_story-builder)
+[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=jgf-dev_story-builder&metric=sqale_index&token=9085b2f9af74d4fafdc72f20b64abe67ea3d0e56)](https://sonarcloud.io/summary/new_code?id=jgf-dev_story-builder)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=jgf-dev_story-builder&metric=sqale_rating&token=9085b2f9af74d4fafdc72f20b64abe67ea3d0e56)](https://sonarcloud.io/summary/new_code?id=jgf-dev_story-builder)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=jgf-dev_story-builder&metric=vulnerabilities&token=9085b2f9af74d4fafdc72f20b64abe67ea3d0e56)](https://sonarcloud.io/summary/new_code?id=jgf-dev_story-builder)
+
+---
+
 ## 🚀 Key Features
 
 * **Automated Downloader & Scraper**: Robust multi-threaded scraper for [Nifty Archive](https://nifty.org) and [Nifty Search](https://search.niftyarchives.org), including SOCKS5 proxy support, automatic IP rotation, and comprehensive SQLite metadata caching.

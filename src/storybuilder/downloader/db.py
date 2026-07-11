@@ -628,6 +628,9 @@ def optimize_fts() -> None:
             std_logging.exception("FTS optimize skipped", exc_info=e)
 
 
+search_all_partitions = search_stories
+
+
 def close_db() -> None:
     global _conn, _engine, _is_partitioned, _db_dir, _monolithic_db_path, _db_path_global
     with _lock:

@@ -1,4 +1,7 @@
-queue_rules: []
+queue_rules:
+  - name: merge_to_main
+    merge_conditions:
+      - check-success = test
 merge_queue:
   max_parallel_checks: 3
 scopes:

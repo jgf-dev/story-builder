@@ -141,7 +141,7 @@ _lock = threading.Lock()
 
 # -- Regex patterns -----------------------------------------------------
 
-_EMAIL_AUTHOR_RE = re.compile(r"^(.+?)\s*<([^>]+)>\s*$")
+_EMAIL_AUTHOR_RE = re.compile(r"^((?:[^<>\n]+|<[^<>\n]+>)+)\s*<([^<>\n]+)>\s*$")
 _CHAPTER_SUFFIX_RE = re.compile(r"^(.+?)-(\d+)$")
 
 # -- Author parsing -----------------------------------------------------
@@ -393,14 +393,13 @@ def search_stories(
     author: "str | None" = None,
     date_from: "str | None" = None,
     date_to: "str | None" = None,
-    limit: int = 100,
-    snippets: bool = True,
-    db_dir: "str | None" = None,
-    db_paths: "list[str] | None" = None,
-    query: "str | None" = None,
-    entity_suffixes: "list[str] | None" = None,
+    **kwargs,
 ) -> list[dict]:
     """Search the monolithic database using SQLModel and SQLAlchemy expressions."""
+    limit: int = kwargs.get("limit", 100)
+    snippets: bool = kwargs.get("snippets", True)
+    query: "str | None" = kwargs.get("query", None)
+    entity_suffixes: "list[str] | None" = kwargs.get("entity_suffixes", None)
     if entity_suffixes == []:
         return []
 
@@ -644,3 +643,7 @@ def close_db() -> None:
         _db_dir = None
         _monolithic_db_path = None
         _db_path_global = None
+
+
+# Backward-compatible alias
+search_all_partitions = search_stories

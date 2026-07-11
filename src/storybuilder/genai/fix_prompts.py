@@ -27,28 +27,22 @@ You are an expert audio director. Rewrite the provided TTS prompt text to fix th
 
 def extract_markdown_block(content: str) -> str:
     content = content.strip()
-    # Match ```markdown ... ``` or ``` ... ```
-    match = re.match(
-        r"^```(?:markdown)?\s*\n(.*?)\n```$", content, re.DOTALL | re.IGNORECASE,
-    )
-    if match:
-        return match.group(1).strip()
-    # Match any generic block at start and end
-    match_any = re.match(r"^```[a-zA-Z0-9_-]*\s*\n(.*?)\n```$", content, re.DOTALL)
-    if match_any:
-        return match_any.group(1).strip()
-    # Fallback to older cleanup if not matching the full block structure perfectly
-    if content.startswith("```"):
-        lines = content.split("\n")
-        if lines[0].startswith("```"):
-            lines = lines[1:]
-        if lines and lines[-1].strip() == "```":
-            lines = lines[:-1]
-        return "\n".join(lines).strip()
-    return content
+    if not content.startswith("```"):
+        return content
+
+    lines = content.split("\n")
+    # Strict matching block check
+    if content.endswith("```") and lines[-1].strip() == "```" and re.match(r"^```[a-zA-Z0-9_-]*$", lines[0].strip()):
+        return "\n".join(lines[1:-1]).strip()
+
+    # Fallback to older cleanup
+    cleaned_lines = lines[1:]
+    if cleaned_lines and cleaned_lines[-1].strip() == "```":
+        cleaned_lines = cleaned_lines[:-1]
+    return "\n".join(cleaned_lines).strip()
 
 
-def fix_prompts(directory):
+def fix_prompts(directory) -> None:
     files = sorted(glob.glob(os.path.join(directory, "*-part.md")))
     if not files:
         print(f"No prompt files found in {directory}")

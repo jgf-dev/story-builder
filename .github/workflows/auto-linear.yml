@@ -5,7 +5,7 @@
 name: Linear sync or create
 on:
   pull_request:
-    types: [opened, reopened]
+    types: [opened]
   issues:
     types: [opened]
 

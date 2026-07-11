@@ -19,13 +19,25 @@ def _normalize_filenames(filenames: list[str], source_directory: str) -> list[st
     normalized: list[str] = []
     for filename in filenames:
         path = Path(filename)
-        if path.is_absolute():
+
+        # First, interpret the filename as it was provided (often rooted at cwd).
+        try:
+            normalized.append(str(path.resolve().relative_to(base_dir)))
+            continue
+        except ValueError:
+            pass
+
+        # Next, interpret the filename as already relative to source_directory.
+        if not path.is_absolute():
             try:
-                normalized.append(str(path.resolve().relative_to(base_dir)))
+                normalized.append(str((base_dir / path).resolve().relative_to(base_dir)))
+                continue
             except ValueError:
-                normalized.append(path.name)
-        else:
-            normalized.append(filename)
+                pass
+
+        # Outside source_directory; fall back to basename.
+        normalized.append(path.name)
+
     return normalized
 
 

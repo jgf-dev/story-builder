@@ -177,6 +177,7 @@ dev = [
 testpaths = [
     "tests",
 ]
+pythonpath = ["."]
 
 # Temporary disable test in agent
 

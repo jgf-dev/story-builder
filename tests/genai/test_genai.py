@@ -162,18 +162,23 @@ class TestGenAIClient(unittest.TestCase):
             client_main()
             mock_process.assert_called_once_with("/tmp")
 
-    def test_main_prints_error_for_missing_directory(self, capsys=None):
-        """main() should print an error and not call process_directory for a non-existent dir."""
+    def test_main_exits_nonzero_for_missing_directory(self) -> None:
+        """main() should exit non-zero and not call process_directory for a non-existent dir."""
+        import io
+        from contextlib import redirect_stderr
+
+        stderr = io.StringIO()
         with (
             patch("storybuilder.genai.client.process_directory") as mock_process,
             patch("sys.argv", ["genai-tts", "--dir", "/nonexistent_dir_xyz"]),
-            patch("builtins.print") as mock_print,
+            redirect_stderr(stderr),
+            self.assertRaises(SystemExit) as raised,
         ):
             client_main()
-            mock_process.assert_not_called()
-            mock_print.assert_called_once()
-            printed = mock_print.call_args[0][0]
-            self.assertIn("/nonexistent_dir_xyz", printed)
+
+        mock_process.assert_not_called()
+        self.assertNotEqual(raised.exception.code, 0)
+        self.assertIn("/nonexistent_dir_xyz", stderr.getvalue())
 
 
 if __name__ == "__main__":

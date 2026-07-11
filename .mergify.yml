@@ -1,7 +1,7 @@
 queue_rules: []
 scopes:
-  source:
-    files:
-      tests:
-        include:
-          - tests/**/*
+  source: files
+  files:
+    tests:
+      include:
+        - tests/**/*

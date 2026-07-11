@@ -1,5 +1,8 @@
 import unittest
+
+from storybuilder.genai.client import main as client_main
 from storybuilder.genai.client import parse_speech_config
+from storybuilder.genai.tts import main as tts_main
 
 
 class TestGenAIClient(unittest.TestCase):
@@ -140,6 +143,10 @@ class TestGenAIClient(unittest.TestCase):
             # 4. Fallback code block cleanup
             content = "```\nfallback content\n```"
             self.assertEqual(extract_markdown_block(content), "fallback content")
+
+    def test_tts_entrypoint_resolves_to_client_main(self):
+        """Verify that storybuilder.genai.tts:main re-exports client.main correctly."""
+        self.assertIs(tts_main, client_main)
 
 
 if __name__ == "__main__":

@@ -14,7 +14,7 @@ from google import genai
 load_dotenv()
 
 
-def wave_file(filename, pcm, channels=1, rate=24000, sample_width=2):
+def wave_file_writer(filename, pcm, channels=1, rate=24000, sample_width=2):
     with wave.open(filename, "wb") as wf:
         wf.setnchannels(channels)
         wf.setsampwidth(sample_width)
@@ -254,7 +254,7 @@ def process_directory(directory):
         time.sleep(2)
 
 
-if __name__ == "__main__":
+def main() -> None:
     parser = argparse.ArgumentParser(description="Process TTS prompt files to generate audio.")
     parser.add_argument(
         "--dir",
@@ -267,3 +267,7 @@ if __name__ == "__main__":
         process_directory(args.dir)
     else:
         print(f"Error: Directory '{args.dir}' does not exist.")
+
+
+if __name__ == "__main__":
+    main()

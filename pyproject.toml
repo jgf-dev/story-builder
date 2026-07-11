@@ -184,4 +184,5 @@ markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "adk_eval: marks tests that run ADK evaluation engine",
     "agentic: marks tests using agentic evaluation patterns (reflection, rubric)",
+    "integration: live external services (Gemini/Vertex/TTS); unit suite uses fakes by default — enable live path with STORYBUILDER_LIVE_API=1",
 ]

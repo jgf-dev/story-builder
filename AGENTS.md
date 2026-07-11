@@ -67,7 +67,7 @@ StoryBuilder is a Python toolkit for analyzing, embedding, and generating audio 
 
 **TTS generation (Gemini interactions API):**
 
-- `python src/storybuilder/genai/client.py --dir stories/the_secret_vacation` (or any dir with `*-part.md` files)
+- `genai-tts --dir stories/the_secret_vacation` (or `python -m storybuilder.genai.client --dir ...` / any dir with `*-part.md` files)
 - Skips existing `.wav`; uses stateful `previous_interaction_id`; 15s backoff on 429/quota; 2s inter-file sleep
 
 **DB import and query (stories.db with FTS5):**

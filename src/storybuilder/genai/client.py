@@ -267,7 +267,7 @@ def process_directory(directory) -> None:
         time.sleep(2)
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Process TTS prompt files to generate audio.")
     parser.add_argument(
         "--dir",

@@ -269,6 +269,13 @@ def main() -> None:
     if not dir_path.is_dir():
         parser.error(f"Path '{args.dir}' is not a directory.")
 
+    if not get_gemini_api_keys():
+        parser.exit(1, "Error: No GEMINI_API_KEY or GEMINI_API_KEY_X found in environment.\n")
+
+    md_files = sorted(glob.glob(os.path.join(args.dir, "*.md")))
+    if not md_files:
+        parser.exit(1, f"Error: No prompt files found in {args.dir}\n")
+
     process_directory(args.dir)
 
 

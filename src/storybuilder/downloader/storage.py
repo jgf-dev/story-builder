@@ -2,39 +2,101 @@ import glob
 import os
 from pathlib import Path
 
+import boto3
 from google.cloud.storage import Client
 from google.cloud.storage import transfer_manager
 
 
-def upload_many(
-    bucket_name: str, filenames: list[str], source_directory: str = "", workers: int = 8,
-):
-    """Upload every file in a list to a bucket, concurrently in a process pool.
+def _normalize_filenames(filenames: list[str], source_directory: str) -> list[str]:
+    if not source_directory:
+        return filenames
 
-    Each blob name is derived from the filename, not including the
-    `source_directory` parameter. For complete control of the blob name for each
-    file (and other aspects of individual blob metadata), use
-    transfer_manager.upload_many() instead.
-    """
+    base_dir = Path(source_directory).resolve()
+    normalized: list[str] = []
+    for filename in filenames:
+        path = Path(filename)
+        if path.is_absolute():
+            try:
+                normalized.append(str(path.resolve().relative_to(base_dir)))
+            except ValueError:
+                normalized.append(path.name)
+        else:
+            normalized.append(filename)
+    return normalized
+
+
+def upload_many_gcs(
+    bucket_name: str,
+    prefix: str,
+    filenames: list[str],
+    source_directory: str = "",
+    workers: int = 8,
+) -> None:
+    if not filenames:
+        return
+
+    normalized_filenames = _normalize_filenames(filenames, source_directory)
+    blob_name_prefix = f"{prefix.strip('/')}/" if prefix else ""
 
     storage_client = Client()
     bucket = storage_client.bucket(bucket_name)
-
     results = transfer_manager.upload_many_from_filenames(
         bucket,
-        filenames,
+        normalized_filenames,
         source_directory=source_directory,
+        blob_name_prefix=blob_name_prefix,
         max_workers=workers,
     )
 
-    for name, result in zip(filenames, results):
-        # The results list is either `None` or an exception for each filename in
-        # the input list, in order.
-
+    for name, result in zip(normalized_filenames, results):
         if isinstance(result, Exception):
             print(f"Failed to upload {name} due to exception: {result}")
         else:
-            print(f"Uploaded {name} to {bucket.name}.")
+            print(f"Uploaded {name} to gs://{bucket.name}/{blob_name_prefix}{name}")
+
+
+def upload_many_s3(
+    bucket_name: str,
+    prefix: str,
+    filenames: list[str],
+    source_directory: str = "",
+) -> None:
+    if not filenames:
+        return
+
+    s3_client = boto3.client("s3")
+    base_dir = Path(source_directory).resolve() if source_directory else None
+    key_prefix = prefix.strip("/")
+
+    for filename in filenames:
+        source_path = Path(filename)
+        if base_dir:
+            try:
+                relative_name = str(source_path.resolve().relative_to(base_dir))
+            except ValueError:
+                relative_name = source_path.name
+        else:
+            relative_name = source_path.name
+
+        relative_name = relative_name.replace(os.sep, "/")
+        s3_key = f"{key_prefix}/{relative_name}" if key_prefix else relative_name
+        s3_client.upload_file(str(source_path), bucket_name, s3_key)
+        print(f"Uploaded {source_path} to s3://{bucket_name}/{s3_key}")
+
+
+def upload_many(
+    bucket_name: str,
+    filenames: list[str],
+    source_directory: str = "",
+    workers: int = 8,
+) -> None:
+    upload_many_gcs(
+        bucket_name,
+        "",
+        filenames,
+        source_directory=source_directory,
+        workers=workers,
+    )
 
 
 if __name__ == "__main__":

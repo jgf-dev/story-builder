@@ -3,6 +3,7 @@
 import io
 import unittest
 from contextlib import redirect_stderr
+from importlib.metadata import PackageNotFoundError
 from importlib.metadata import distribution
 from unittest.mock import patch
 
@@ -17,11 +18,15 @@ class TestTtsEntrypoint(unittest.TestCase):
         self.assertTrue(callable(tts.main))
 
     def test_console_script_entry_point_declared(self) -> None:
-        scripts = [
-            ep
-            for ep in distribution("storybuilder").entry_points
-            if ep.group == "console_scripts"
-        ]
+        try:
+            dist = distribution("storybuilder")
+        except PackageNotFoundError:
+            self.skipTest(
+                "storybuilder distribution metadata unavailable "
+                "(e.g. PYTHONPATH=src without install)",
+            )
+
+        scripts = [ep for ep in dist.entry_points if ep.group == "console_scripts"]
         genai_tts = next((ep for ep in scripts if ep.name == "genai-tts"), None)
         self.assertIsNotNone(genai_tts, "genai-tts console script missing from package metadata")
         self.assertEqual(genai_tts.value, "storybuilder.genai.tts:main")

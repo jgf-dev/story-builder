@@ -27,9 +27,6 @@ jobs:
       - name: Install the project
         run: uv sync --all-extras --dev --prerelease=allow
 
-      - name: Install pylint
-        run: uv run python -m pip install --upgrade pip pylint
-
       - name: Add pylint annotator
         if: github.event_name == 'pull_request'
         uses: jpy-git/pylint-pr-annotator@v0.0.1

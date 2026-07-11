@@ -229,8 +229,8 @@ def process_directory(directory):
     key_name, api_key = api_keys[current_key_idx]
     client = genai.Client(api_key=api_key)
 
-    # Find all *.md prompt files in the directory
-    files = sorted(glob.glob(os.path.join(directory, "*.md")))
+    # Find all *-part.md prompt files in the directory
+    files = sorted(glob.glob(os.path.join(directory, "*-part.md")))
     if not files:
         print(f"No prompt files found in {directory}")
         return
@@ -259,12 +259,22 @@ def main() -> None:
     parser.add_argument(
         "--dir",
         default="stories/the_secret_vacation",
-        help="Directory containing the *-part.md files",
+        help="Directory containing the *-part.md prompt files",
     )
     args = parser.parse_args()
 
-    if not pathlib.Path(args.dir).is_dir():
-        parser.error(f"Directory '{args.dir}' does not exist.")
+    dir_path = pathlib.Path(args.dir)
+    if not dir_path.exists():
+        parser.error(f"Path '{args.dir}' does not exist.")
+    if not dir_path.is_dir():
+        parser.error(f"Path '{args.dir}' is not a directory.")
+
+    if not get_gemini_api_keys():
+        parser.exit(1, "Error: No GEMINI_API_KEY or GEMINI_API_KEY_X found in environment.\n")
+
+    md_files = sorted(glob.glob(os.path.join(args.dir, "*-part.md")))
+    if not md_files:
+        parser.exit(1, f"Error: No prompt files found in {args.dir}\n")
 
     process_directory(args.dir)
 

@@ -5,11 +5,13 @@ description: Explanation of changes per commits
 
 ## 11/07/2026
 
-### Resolved merge conflicts on branch optimistic-jackal-jade-508
+### Resolved merge conflicts with branch optimistic-jackal-jade-508
 
-- **storage.py**: Resolved conflicts by keeping HEAD's custom S3 upload helper functions and `ExpectedBucketOwner` ownership checks, discarding the incoming branch's duplicated old code.
-- **client.py**: Resolved conflicts by keeping HEAD's refactored `process_file` and `process_directory` functions, which have optimized parameter count and Cognitive Complexity.
-- **Verified and formatted**: Ran `ruff format` and verified that all 165 unit and integration tests passed successfully.
+- **storage.py**: Consolidated GCS upload functions (`upload_many`, `upload_many_gcs`) to preserve prefix mapping and transfer_manager optimizations. Retained S3 bucket owner checks (`AWS_EXPECTED_BUCKET_OWNER`) during file uploads.
+- **client.py**: Unified `main()` entrypoint function signature with correct type annotations, docstring, and preserved the `parser.error` exit behavior for missing directories.
+- **tts.py**: Re-exported `main` and `process_directory` from the genai client module to satisfy console scripts and test imports.
+- **test_genai.py**: Consolidated test cases to verify the `genai-tts` CLI entrypoint (exits, directory validation) and keep the backtracking regex regression test.
+- **Verification**: Ran `pytest` verifying all tests pass, and cleaned up style issues with `ruff`.
 
 ## 10/07/2026
 

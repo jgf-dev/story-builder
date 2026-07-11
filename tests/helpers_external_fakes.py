@@ -18,7 +18,7 @@ LIVE_API_ENV = "STORYBUILDER_LIVE_API"
 
 def live_api_enabled() -> bool:
     """True only when the operator explicitly opts into real backends."""
-    return os.getenv(LIVE_API_ENV, "").strip() in {"1", "true", "TRUE", "yes", "YES"}
+    return os.getenv(LIVE_API_ENV, "").strip().lower() in {"1", "true", "yes"}
 
 
 def write_tiny_wav(path: str, *, frames: int = 240) -> None:

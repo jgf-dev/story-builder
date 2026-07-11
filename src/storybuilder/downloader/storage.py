@@ -78,7 +78,6 @@ def upload_many_gcs(
             print(f"Uploaded {name} to gs://{bucket.name}/{blob_name_prefix}{name}")
 
 
-
 def upload_many(
     bucket_name: str,
     filenames: list[str],
@@ -155,7 +154,7 @@ def _upload_single_s3(
         str(source_path),
         bucket_name,
         s3_key,
-        ExtraArgs=extra_args if extra_args else None,
+        ExtraArgs=extra_args or None,
     )
     print(f"Uploaded {source_path} to s3://{bucket_name}/{s3_key}")
 

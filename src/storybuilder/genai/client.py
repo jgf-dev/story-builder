@@ -119,15 +119,9 @@ def _classify_error(error_msg: str) -> tuple[bool, bool, bool]:
         or "modality" in error_lower
         or "400" in error_msg
     )
-    is_quota = (
-        "429" in error_msg
-        or "too_many_requests" in error_lower
-        or "quota" in error_lower
-    )
+    is_quota = "429" in error_msg or "too_many_requests" in error_lower or "quota" in error_lower
     is_session_not_found = (
-        "404" in error_msg
-        or "not_found" in error_lower
-        or "requested entity was not found" in error_lower
+        "404" in error_msg or "not_found" in error_lower or "requested entity was not found" in error_lower
     )
     return is_invalid_key, is_quota, is_session_not_found
 
@@ -206,7 +200,12 @@ def process_file(md_file, wav_file, previous_id, api_state):
             )
         except Exception as e:
             previous_id, keys_tried, attempt, should_continue = _handle_exception(
-                e, api_state, previous_id, keys_tried, attempt, md_file
+                e,
+                api_state,
+                previous_id,
+                keys_tried,
+                attempt,
+                md_file,
             )
             if should_continue:
                 client = api_state["client"]
@@ -258,7 +257,10 @@ def process_directory(directory) -> None:
             continue
 
         previous_id = process_file(
-            md_file, wav_file, previous_id, api_state
+            md_file,
+            wav_file,
+            previous_id,
+            api_state,
         )
 
         # Slight delay to respect rate limits

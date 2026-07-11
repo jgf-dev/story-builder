@@ -171,14 +171,19 @@ class TestTTSPipeline(unittest.TestCase):
                 base_name = os.path.basename(temp_md_file).replace(".md", "")
                 wav_file = os.path.join(tmp_dir, f"{base_name}.wav")
                 try:
-                    client, current_key_idx, previous_id = process_file(
+                    api_state = {
+                        "client": client,
+                        "api_keys": api_keys,
+                        "current_key_idx": current_key_idx,
+                    }
+                    previous_id = process_file(
                         temp_md_file,
                         wav_file,
-                        client,
                         previous_id,
-                        api_keys,
-                        current_key_idx,
+                        api_state,
                     )
+                    client = api_state["client"]
+                    current_key_idx = api_state["current_key_idx"]
                 except Exception as e:
                     err = str(e).lower()
                     if any(

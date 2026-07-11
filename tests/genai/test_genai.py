@@ -145,6 +145,7 @@ class TestGenAIClient(unittest.TestCase):
             content = "```\nfallback content\n```"
             self.assertEqual(extract_markdown_block(content), "fallback content")
 
+<<<<<<< HEAD
     def test_tts_entrypoint_resolves_to_client_main(self):
         """Verify that storybuilder.genai.tts:main re-exports client.main correctly."""
         self.assertIs(tts_main, client_main)
@@ -175,6 +176,11 @@ class TestGenAIClient(unittest.TestCase):
         mock_process.assert_not_called()
         self.assertNotEqual(raised.exception.code, 0)
         self.assertIn("/nonexistent_dir_xyz", stderr.getvalue())
+=======
+            # 5. Large input with no matching closing block (originally caused backtracking)
+            content = "```markdown\n" + "a" * 5000 + "\nnot_matching"
+            self.assertEqual(extract_markdown_block(content), "a" * 5000 + "\nnot_matching")
+>>>>>>> fix-genai-tts-entrypoint-9568411881905231847
 
 
 if __name__ == "__main__":

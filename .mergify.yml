@@ -1,0 +1,7 @@
+queue_rules: []
+scopes:
+  source:
+    files:
+      tests:
+        include:
+          - tests/**/*

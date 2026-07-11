@@ -3,7 +3,6 @@ import os
 from pathlib import Path
 from typing import Any
 
-import boto3
 from google.cloud.storage import Client
 from google.cloud.storage import transfer_manager
 

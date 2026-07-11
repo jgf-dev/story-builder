@@ -276,8 +276,11 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    if not pathlib.Path(args.dir).is_dir():
-        parser.error(f"Directory '{args.dir}' does not exist.")
+    dir_path = pathlib.Path(args.dir)
+    if not dir_path.exists():
+        parser.error(f"Path '{args.dir}' does not exist.")
+    if not dir_path.is_dir():
+        parser.error(f"Path '{args.dir}' is not a directory.")
 
     process_directory(args.dir)
 

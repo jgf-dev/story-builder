@@ -1,5 +1,8 @@
 import unittest
+
+from storybuilder.genai.client import main as client_main
 from storybuilder.genai.client import parse_speech_config
+from storybuilder.genai.tts import main as tts_main
 
 
 class TestGenAIClient(unittest.TestCase):
@@ -144,6 +147,10 @@ class TestGenAIClient(unittest.TestCase):
             # 5. Large input with no matching closing block (originally caused backtracking)
             content = "```markdown\n" + "a" * 5000 + "\nnot_matching"
             self.assertEqual(extract_markdown_block(content), "a" * 5000 + "\nnot_matching")
+
+    def test_tts_entrypoint_resolves_to_client_main(self):
+        """Verify that storybuilder.genai.tts:main re-exports client.main correctly."""
+        self.assertIs(tts_main, client_main)
 
 
 if __name__ == "__main__":

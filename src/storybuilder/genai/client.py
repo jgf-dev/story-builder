@@ -14,7 +14,7 @@ from google import genai
 load_dotenv()
 
 
-def wave_file(filename, pcm, channels=1, rate=24000, sample_width=2):
+def wave_file_writer(filename, pcm, channels=1, rate=24000, sample_width=2):
     with wave.open(filename, "wb") as wf:
         wf.setnchannels(channels)
         wf.setsampwidth(sample_width)

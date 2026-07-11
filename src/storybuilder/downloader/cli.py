@@ -113,7 +113,7 @@ def _parse_args() -> argparse.Namespace:
 def _setup_network(args: argparse.Namespace) -> bool:
     if args.socks5_proxy:
         try:
-            import socks  # noqa: F401  # ruff:ignore[import-outside-top-level]
+            import socks  # noqa: F401
         except ImportError:
             print("Error: SOCKS proxy support requires the 'pysocks' package.")
             print("Please install it in your environment using:")
@@ -176,18 +176,6 @@ def _print_config(
         print("Chronological early-stop optimization is DISABLED.")
 
 
-def _merge_targets(all_story_targets: dict[str, dict], sub_targets: list[dict]) -> None:
-    for target in sub_targets:
-        key = target["key"]
-        if key not in all_story_targets:
-            all_story_targets[key] = {
-                "url": target["url"],
-                "output_paths": [],
-                "date": target["date"],
-            }
-        all_story_targets[key]["output_paths"].append(target["output_path"])
-
-
 def _scrape_subcategories(
     subcategories: list[str],
     start_date: datetime.date,
@@ -202,69 +190,33 @@ def _scrape_subcategories(
             futures = [executor.submit(process_subcategory, sub, start_date, end_date, args) for sub in subcategories]
             for future in concurrent.futures.as_completed(futures):
                 try:
-                    _merge_targets(all_story_targets, future.result())
+                    sub_targets = future.result()
+                    for target in sub_targets:
+                        key = target["key"]
+                        if key not in all_story_targets:
+                            all_story_targets[key] = {
+                                "url": target["url"],
+                                "output_paths": [],
+                                "date": target["date"],
+                            }
+                        all_story_targets[key]["output_paths"].append(
+                            target["output_path"],
+                        )
                 except Exception as e:
                     safe_print(f"Error occurred in scraping worker thread: {e}")
     else:
         for sub in subcategories:
             sub_targets = process_subcategory(sub, start_date, end_date, args)
-            _merge_targets(all_story_targets, sub_targets)
+            for target in sub_targets:
+                key = target["key"]
+                if key not in all_story_targets:
+                    all_story_targets[key] = {
+                        "url": target["url"],
+                        "output_paths": [],
+                        "date": target["date"],
+                    }
+                all_story_targets[key]["output_paths"].append(target["output_path"])
     return all_story_targets
-
-
-def _download_stories_parallel(
-    all_story_targets: dict[str, dict],
-    max_workers: int,
-    delay: float,
-    force: bool,
-) -> int:
-    total_downloads = len(all_story_targets)
-    successful_downloads = 0
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = []
-        for idx, (key, target) in enumerate(all_story_targets.items()):
-            idx_str = f"{idx + 1}/{total_downloads}"
-            future = executor.submit(
-                download_single_target,
-                idx_str,
-                target["url"],
-                target["output_paths"],
-                target["date"],
-                delay,
-                force=force,
-            )
-            futures.append(future)
-
-        for future in concurrent.futures.as_completed(futures):
-            try:
-                if future.result():
-                    successful_downloads += 1
-            except Exception as e:
-                print(f"Error occurred in download worker thread: {e}")
-    return successful_downloads
-
-
-def _download_stories_sequential(
-    all_story_targets: dict[str, dict],
-    delay: float,
-    force: bool,
-) -> int:
-    total_downloads = len(all_story_targets)
-    successful_downloads = 0
-    for idx, (key, target) in enumerate(all_story_targets.items()):
-        idx_str = f"{idx + 1}/{total_downloads}"
-        success = download_single_target(
-            idx_str,
-            target["url"],
-            target["output_paths"],
-            target["date"],
-            delay,
-            force=force,
-        )
-        if success:
-            successful_downloads += 1
-        time.sleep(delay)
-    return successful_downloads
 
 
 def _download_stories(
@@ -276,19 +228,47 @@ def _download_stories(
     print(f"Total unique stories/chapters to download: {total_downloads}")
     print("=" * 50)
 
+    successful_downloads = 0
+
     if args.max_workers > 1:
-        successful_downloads = _download_stories_parallel(
-            all_story_targets,
-            args.max_workers,
-            args.delay,
-            args.force,
-        )
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=args.max_workers,
+        ) as executor:
+            futures = []
+            for idx, (key, target) in enumerate(all_story_targets.items()):
+                idx_str = f"{idx + 1}/{total_downloads}"
+                future = executor.submit(
+                    download_single_target,
+                    idx_str,
+                    target["url"],
+                    target["output_paths"],
+                    target["date"],
+                    args.delay,
+                    force=args.force,
+                )
+                futures.append(future)
+
+            for future in concurrent.futures.as_completed(futures):
+                try:
+                    success = future.result()
+                    if success:
+                        successful_downloads += 1
+                except Exception as e:
+                    print(f"Error occurred in download worker thread: {e}")
     else:
-        successful_downloads = _download_stories_sequential(
-            all_story_targets,
-            args.delay,
-            args.force,
-        )
+        for idx, (key, target) in enumerate(all_story_targets.items()):
+            idx_str = f"{idx + 1}/{total_downloads}"
+            success = download_single_target(
+                idx_str,
+                target["url"],
+                target["output_paths"],
+                target["date"],
+                args.delay,
+                force=args.force,
+            )
+            if success:
+                successful_downloads += 1
+            time.sleep(args.delay)
 
     print("\n" + "=" * 50)
     print("Download completed successfully.")
@@ -328,14 +308,13 @@ def _upload_to_cloud(args: argparse.Namespace) -> None:
         print(f"Uploading output tree to GCS ({args.gcs_bucket})...")
         upload_many_gcs(
             args.gcs_bucket,
-            args.gcs_prefix,
             output_files,
             source_directory=str(output_dir),
         )
     elif not args.s3_bucket:
         # Fallback to the original behavior: upload DB files to GCS nifty-index
         print("Uploading to GCS...")
-        upload_many_gcs("nifty-index", "", db_files, source_directory=source_dir)
+        upload_many_gcs("nifty-index", db_files, source_directory=source_dir)
 
 
 def main():

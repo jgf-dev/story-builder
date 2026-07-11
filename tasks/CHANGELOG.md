@@ -1,15 +1,4 @@
 ---
-title: Storybuilder dev changelog
-description: Explanation of changes per commits
----
-
-## 11/07/2026
-
-### Resolved merge conflicts on branch optimistic-jackal-jade-508
-
-- **storage.py**: Resolved conflicts by keeping HEAD's custom S3 upload helper functions and `ExpectedBucketOwner` ownership checks, discarding the incoming branch's duplicated old code.
-- **client.py**: Resolved conflicts by keeping HEAD's refactored `process_file` and `process_directory` functions, which have optimized parameter count and Cognitive Complexity.
-- **Verified and formatted**: Ran `ruff format` and verified that all 165 unit and integration tests passed successfully.
 
 ## 10/07/2026
 
@@ -20,6 +9,9 @@ description: Explanation of changes per commits
 - **test_tts_pipeline.py**: Resolved 12 conflict regions — kept `get_gemini_api_keys` (matching current `client.py`), used `Path`-based operations, consistent variable naming (`configured_api_keys`, `completed_files`), and added return type hints.
 - **db.py**: No conflict markers (already resolved), staged as-is.
 - All 15 tests pass. Ran `ruff check --fix` (64 auto-fixes) and `ruff format`.
+title: Storybuilder dev changelog
+description: Explanantion of changes per commits
+---
 
 ## 10/07/2026
 

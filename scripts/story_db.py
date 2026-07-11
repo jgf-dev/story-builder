@@ -164,7 +164,10 @@ def cmd_get(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None)
         if not args.no_content:
             content = row["content"]
             if args.max_chars and len(content) > args.max_chars:
-                content = content[: args.max_chars] + f"\n\n… (truncated, {row['char_count']:,} total chars)"
+                content = (
+                    content[: args.max_chars]
+                    + f"\n\n… (truncated, {row['char_count']:,} total chars)"
+                )
             print(content)
 
 
@@ -235,11 +238,9 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
         where = "WHERE category = ?"
         params.append(args.category)
 
-    # ⚡ Bolt optimization: Combine aggregations to reduce table scans from 3 to 1
-    row = conn.execute(f"SELECT COUNT(*), SUM(char_count), SUM(word_count) FROM stories {where}", params).fetchone()
-    total = row[0]
-    total_chars = row[1] or 0
-    total_words = row[2] or 0
+    total = conn.execute(f"SELECT COUNT(*) FROM stories {where}", params).fetchone()[0]
+    total_chars = conn.execute(f"SELECT SUM(char_count) FROM stories {where}", params).fetchone()[0] or 0
+    total_words = conn.execute(f"SELECT SUM(word_count) FROM stories {where}", params).fetchone()[0] or 0
 
     print(
         f"\n=== Database Stats{' for ' + args.category if args.category else ''} ===\n",
@@ -302,9 +303,7 @@ def main():
         help="Database directory or file. Searches all .db files if a directory.",
     )
     parser.add_argument(
-        "--db-dir",
-        default=None,
-        help="Directory with split .db files (overrides --db)",
+        "--db-dir", default=None, help="Directory with split .db files (overrides --db)",
     )
 
     sub = parser.add_subparsers(dest="command", required=True)
@@ -340,9 +339,7 @@ def main():
         help="Export directory (default: exported_stories/)",
     )
     p.add_argument(
-        "--no-content",
-        action="store_true",
-        help="Show metadata only, not story text",
+        "--no-content", action="store_true", help="Show metadata only, not story text",
     )
     p.add_argument(
         "--max-chars",

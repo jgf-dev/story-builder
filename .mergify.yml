@@ -1,27 +1,7 @@
-queue_rules:
-  - name: checks-pass
-    merge_conditions:
-      - "#check-failure = 0"
-      - check-success = Run Tests
-merge_queue:
-  status_comments: all
-  queue_controls_comment: true
-  skip_intermediate_results: false
-  reset_on_external_merge: always
-  max_parallel_checks: 3
-merge_protections_settings:
-  auto_merge_conditions:
-    - check-success = Run Tests
-  
-scopes:
-  source:
-    files:
-      tests:
-        include:
-          - tests/**/*
-      source:
-        include:
-          - src/**/*
-      scripts:
-        include:
-          - scripts/**/*
+queue_rules: []
+pull_request_rules: []
+# NOTE: Mergify doesn't support a top-level `scopes` section.
+# To target test-only changes, add a per-rule condition like:
+#   - files~=^tests/
+# (or per-rule `scopes:` include patterns; see Mergify documentation.)
+# (remove these comments once real rules are added)

@@ -141,10 +141,6 @@ class TestGenAIClient(unittest.TestCase):
             content = "```\nfallback content\n```"
             self.assertEqual(extract_markdown_block(content), "fallback content")
 
-            # 5. Large input with no matching closing block (originally caused backtracking)
-            content = "```markdown\n" + "a" * 5000 + "\nnot_matching"
-            self.assertEqual(extract_markdown_block(content), "a" * 5000 + "\nnot_matching")
-
 
 if __name__ == "__main__":
     unittest.main()

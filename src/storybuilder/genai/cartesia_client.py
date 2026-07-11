@@ -39,7 +39,7 @@ NAME_FALLBACK_MAP = {
 }
 
 
-def wave_file(filename, pcm, channels=1, rate=24000, sample_width=2) -> None:
+def wave_file(filename, pcm, channels=1, rate=24000, sample_width=2):
     """Writes raw PCM s16le bytes to a standard WAV container."""
     with wave.open(filename, "wb") as wf:
         wf.setnchannels(channels)
@@ -60,7 +60,7 @@ def parse_speech_config_cartesia(markdown_content):
 
     for line in preamble.split("\n"):
         line = line.strip()
-        if line.startswith(("*", "-")):
+        if line.startswith("*") or line.startswith("-"):
             match = re.search(r"[\*\-]\s*([A-Za-z0-9_-]+)\s*\(Voice:\s*([A-Za-z0-9_-]+)\)", line)
             if match:
                 speaker = match.group(1)
@@ -80,47 +80,50 @@ def parse_speech_config_cartesia(markdown_content):
     return speaker_to_voice_id
 
 
-def _parse_line_speaker_and_text(line: str) -> tuple[str, str]:
-    match = re.match(r"^([A-Za-z0-9_-]+):", line)
-    if match:
-        speaker = match.group(1)
-        text = line[match.end() :].strip()
-    else:
-        speaker = "Narrator"
-        text = line
-    return speaker, text.strip("\"'")
-
-
-def _resolve_voice_id(speaker: str, speaker_to_voice_id: dict, default_voice_id: str) -> str:
-    voice_id = speaker_to_voice_id.get(speaker)
-    if voice_id:
-        return voice_id
-    # Try name-based fallback matching
-    voice_id = NAME_FALLBACK_MAP.get(speaker.lower())
-    if voice_id:
-        return voice_id
-    # Fallback to the default narrator/first speaker
-    return default_voice_id
-
-
 def parse_transcript_segments(markdown_content, speaker_to_voice_id, default_voice_id):
     """
     Parses the transcript section into contiguous segments spoken by the same voice ID.
     This minimizes API requests by grouping adjacent lines spoken by the same character.
     """
     parts = markdown_content.split("#### TRANSCRIPT")
-    transcript = parts[1] if len(parts) == 2 else markdown_content
+    if len(parts) != 2:
+        # Fallback if no TRANSCRIPT section is marked
+        transcript = markdown_content
+    else:
+        transcript = parts[1]
 
     segments = []
     current_voice_id = None
     current_lines = []
 
     for line in transcript.split("\n"):
-        speaker, text = _parse_line_speaker_and_text(line.strip())
+        line = line.strip()
+        if not line:
+            continue
+
+        # Match speaker prefix: e.g. "Jace: \"Line text...\""
+        match = re.match(r"^([A-Za-z0-9_-]+):", line)
+        if match:
+            speaker = match.group(1)
+            text = line[match.end() :].strip()
+        else:
+            # Assume narration spoken by Narrator or fallback
+            speaker = "Narrator"
+            text = line
+
+        # Strip any surrounding quotes from the dialogue text
+        text = text.strip("\"'")
         if not text:
             continue
 
-        voice_id = _resolve_voice_id(speaker, speaker_to_voice_id, default_voice_id)
+        # Resolve speaker to voice ID
+        voice_id = speaker_to_voice_id.get(speaker)
+        if not voice_id:
+            # Try name-based fallback matching
+            voice_id = NAME_FALLBACK_MAP.get(speaker.lower())
+            if not voice_id:
+                # Fallback to the default narrator/first speaker
+                voice_id = default_voice_id
 
         if voice_id == current_voice_id:
             current_lines.append(text)
@@ -194,7 +197,7 @@ def process_file_cartesia(md_file, wav_file, api_key, rate=24000):
     speaker_to_voice_id = parse_speech_config_cartesia(content)
 
     # Determine default narrator voice (first defined, or Maya fallback)
-    default_voice_id = next(iter(speaker_to_voice_id.values())) if speaker_to_voice_id else NAME_FALLBACK_MAP["narrator"]
+    default_voice_id = list(speaker_to_voice_id.values())[0] if speaker_to_voice_id else NAME_FALLBACK_MAP["narrator"]
 
     # Parse dialogue segments
     segments = parse_transcript_segments(content, speaker_to_voice_id, default_voice_id)

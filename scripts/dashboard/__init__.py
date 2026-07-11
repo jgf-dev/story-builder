@@ -154,7 +154,7 @@ def query_stories(
         if end_year:
             date_to = f"{end_year}-12-31"
 
-    rows = sb_db.search_all_partitions(
+    rows = sb_db.search_stories(
         fts_query=fts_query or "",
         category=category,
         author=author,

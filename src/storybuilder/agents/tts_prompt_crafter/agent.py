@@ -10,9 +10,8 @@ using a three-agent pipeline:
 
 import logging
 import os
-import pathlib
 import warnings
-from enum import Enum, StrEnum
+from enum import Enum
 from functools import cached_property
 
 from dotenv import load_dotenv
@@ -40,7 +39,9 @@ from .tools import split_scene_files
 from .tools import write_scene_file
 
 
-dotenv_path = pathlib.Path(os.path.join(pathlib.Path(__file__).parent, "..", "..", "..", "..", ".env")).resolve()
+dotenv_path = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", ".env"),
+)
 load_dotenv(dotenv_path)
 
 warnings.filterwarnings("ignore")
@@ -154,7 +155,7 @@ class StorySchema(BaseModel):
     story: str = Field(default="", description="The story text.")
 
 
-class IntimacyLevel(StrEnum):
+class IntimacyLevel(str, Enum):
     NONE = "none"
     MILD = "mild"
     MODERATE = "moderate"
@@ -164,7 +165,7 @@ class IntimacyLevel(StrEnum):
         return self in (self.MODERATE, self.HIGH)
 
 
-class PacingNotes(StrEnum):
+class PacingNotes(str, Enum):
     SLOW = "slow"
     MEASURED = "measured"
     CONVERSATIONAL = "conversational"

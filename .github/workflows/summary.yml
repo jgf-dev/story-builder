@@ -14,11 +14,11 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@v4
 
       - name: Run AI inference
         id: inference
-        uses: actions/ai-inference@b81b2afb8390ee6839b494a404766bef6493c7d9 # v1
+        uses: actions/ai-inference@v1
         with:
           prompt: |
             You are refining the description (body) of a draft issue; title/body are included below along with the workspace path and repositiry url. 
@@ -40,7 +40,7 @@ jobs:
 
       - name: AI Improve Title
         id: title-edit
-        uses: actions/ai-inference@b81b2afb8390ee6839b494a404766bef6493c7d9 # v1
+        uses: actions/ai-inference@v1
         with:
           prompt: |
             You are improving the title of an issue; the current title and body are included below.

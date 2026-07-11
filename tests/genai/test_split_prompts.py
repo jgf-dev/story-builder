@@ -192,10 +192,6 @@ class TestDBIntegration(unittest.TestCase):
                 max_workers=1,
                 max_scraping=1,
                 force=False,
-                s3_bucket=None,
-                s3_prefix="",
-                gcs_bucket=None,
-                gcs_prefix="",
             )
             # Monkey patch the writer's save_story to bypass network fetch
             self.patcher_writer = unittest.mock.patch(

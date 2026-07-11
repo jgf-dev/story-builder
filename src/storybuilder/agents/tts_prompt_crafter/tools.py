@@ -26,23 +26,19 @@ if _SPLIT_SCRIPT_DIR not in sys.path:
     sys.path.insert(0, _SPLIT_SCRIPT_DIR)
 
 
-def _resolve_absolute_story_path(story_path_or_name: str) -> str | None:
-    candidates = [story_path_or_name]
-    if not story_path_or_name.endswith(".md"):
-        candidates.append(f"{story_path_or_name}.md")
-    for candidate in candidates:
-        if pathlib.Path(candidate).exists():
-            return candidate
-    return None
-
-
 def _resolve_story_path(story_path_or_name: str) -> str | None:
     """Resolve a story name or path to an existing markdown file."""
     if not story_path_or_name:
         return None
 
     if pathlib.Path(story_path_or_name).is_absolute():
-        return _resolve_absolute_story_path(story_path_or_name)
+        candidates = [story_path_or_name]
+        if not story_path_or_name.endswith(".md"):
+            candidates.append(f"{story_path_or_name}.md")
+        for candidate in candidates:
+            if pathlib.Path(candidate).exists():
+                return candidate
+        return None
 
     # Keep explicit relative paths rejected so callers do not accidentally
     # depend on the current working directory.

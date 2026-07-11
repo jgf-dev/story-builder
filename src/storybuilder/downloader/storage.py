@@ -24,16 +24,18 @@ def _normalize_filenames(filenames: list[str], source_directory: str) -> list[st
         try:
             normalized.append(str(path.resolve().relative_to(base_dir)))
             continue
-        except ValueError:
-            pass
+        except ValueError as exc:
+            # Expected when the resolved path is not under source_directory.
+            _ = exc
 
         # Next, interpret the filename as already relative to source_directory.
         if not path.is_absolute():
             try:
                 normalized.append(str((base_dir / path).resolve().relative_to(base_dir)))
                 continue
-            except ValueError:
-                pass
+            except ValueError as exc:
+                # Expected when the combined path is still outside source_directory.
+                _ = exc
 
         # Outside source_directory; fall back to basename.
         normalized.append(path.name)

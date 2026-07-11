@@ -40,6 +40,10 @@ dependencies = [
     "opentelemetry.exporter.otlp.proto.http",
     "dotenv>=0.9.9",
     "sqlmodel>=0.0.39",
+<<<<<<< HEAD
+=======
+    "agent-framework>=1.10.0,<=1.10.0",
+>>>>>>> fix-genai-tts-entrypoint-9568411881905231847
 ]
 
 [project.scripts]

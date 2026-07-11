@@ -267,6 +267,7 @@ def process_directory(directory) -> None:
         time.sleep(2)
 
 
+<<<<<<< HEAD
 def main() -> None:
     """Parse CLI arguments and generate TTS audio from prompt files in a directory.
 
@@ -274,6 +275,9 @@ def main() -> None:
     ``pyproject.toml``.  Equivalent to running
     ``python -m storybuilder.genai.client --dir <directory>``.
     """
+=======
+def main():
+>>>>>>> fix-genai-tts-entrypoint-9568411881905231847
     parser = argparse.ArgumentParser(description="Process TTS prompt files to generate audio.")
     parser.add_argument(
         "--dir",

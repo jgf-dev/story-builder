@@ -2,12 +2,12 @@ import glob
 import os
 from pathlib import Path
 
-import boto3
 from google.cloud.storage import Client
 from google.cloud.storage import transfer_manager
 
 
 def _normalize_filenames(filenames: list[str], source_directory: str) -> list[str]:
+    """Normalize absolute paths to source-directory-relative names for cloud uploads."""
     if not source_directory:
         return filenames
 
@@ -32,6 +32,7 @@ def upload_many_gcs(
     source_directory: str = "",
     workers: int = 8,
 ) -> None:
+    """Upload files to GCS using transfer_manager with an optional object prefix."""
     if not filenames:
         return
 
@@ -61,8 +62,11 @@ def upload_many_s3(
     filenames: list[str],
     source_directory: str = "",
 ) -> None:
+    """Upload files to S3 with keys rooted at the optional prefix."""
     if not filenames:
         return
+
+    import boto3
 
     s3_client = boto3.client("s3")
     base_dir = Path(source_directory).resolve() if source_directory else None

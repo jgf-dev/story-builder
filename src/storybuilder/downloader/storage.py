@@ -7,7 +7,11 @@ from google.cloud.storage import transfer_manager
 
 
 def _normalize_filenames(filenames: list[str], source_directory: str) -> list[str]:
-    """Normalize absolute paths to source-directory-relative names for cloud uploads."""
+    """Normalize filenames for uploads.
+
+    If source_directory is provided, absolute paths under it are converted to
+    relative paths. Absolute paths outside it fall back to basename.
+    """
     if not source_directory:
         return filenames
 
@@ -32,7 +36,10 @@ def upload_many_gcs(
     source_directory: str = "",
     workers: int = 8,
 ) -> None:
-    """Upload files to GCS using transfer_manager with an optional object prefix."""
+    """Upload files to GCS using transfer_manager with an optional object prefix.
+
+    Returns immediately when filenames is empty.
+    """
     if not filenames:
         return
 
@@ -62,11 +69,19 @@ def upload_many_s3(
     filenames: list[str],
     source_directory: str = "",
 ) -> None:
-    """Upload files to S3 with keys rooted at the optional prefix."""
+    """Upload files to S3 with keys rooted at the optional prefix.
+
+    Returns immediately when filenames is empty. Requires boto3 at runtime.
+    """
     if not filenames:
         return
 
-    import boto3
+    try:
+        import boto3
+    except ImportError as exc:
+        raise ImportError(
+            "S3 uploads require the 'boto3' package. Install it with `pip install boto3`.",
+        ) from exc
 
     s3_client = boto3.client("s3")
     base_dir = Path(source_directory).resolve() if source_directory else None

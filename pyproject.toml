@@ -40,7 +40,6 @@ dependencies = [
     "opentelemetry.exporter.otlp.proto.http",
     "dotenv>=0.9.9",
     "sqlmodel>=0.0.39",
-    "agent-framework>=1.10.0,<=1.10.0",
 ]
 
 [project.scripts]

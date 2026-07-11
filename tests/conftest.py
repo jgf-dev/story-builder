@@ -50,7 +50,8 @@ def mock_genai_client(monkeypatch, fake_genai_client):
     monkeypatch.setattr("google.genai.Client", _client_factory)
     try:
         monkeypatch.setattr("google.genai.client.Client", _client_factory)
-    except Exception:
+    except (AttributeError, ImportError, ModuleNotFoundError):
+        # Optional alternate import path may not exist in all environments.
         pass
     return fake_genai_client
 

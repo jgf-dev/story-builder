@@ -14,7 +14,7 @@ from google import genai
 load_dotenv()
 
 
-def wave_file_writer(filename, pcm, channels=1, rate=24000, sample_width=2):
+def wave_file_writer(filename, pcm, channels=1, rate=24000, sample_width=2) -> None:
     with wave.open(filename, "wb") as wf:
         wf.setnchannels(channels)
         wf.setsampwidth(sample_width)
@@ -136,7 +136,7 @@ def _handle_exception(e, api_state, previous_id, keys_tried, attempt, md_file):
     if (is_invalid_key or is_quota) and keys_tried < len(api_state["api_keys"]) - 1:
         current_key_idx = api_state["current_key_idx"]
         key_name = api_state["api_keys"][current_key_idx][0]
-        print(f"  Error processing {os.path.basename(md_file)} for {key_name}")
+        print(f"  Error processing {pathlib.Path(md_file).name} for {key_name}")
 
         api_state["current_key_idx"] = (current_key_idx + 1) % len(api_state["api_keys"])
         new_key_name, api_key = api_state["api_keys"][api_state["current_key_idx"]]
@@ -151,13 +151,13 @@ def _handle_exception(e, api_state, previous_id, keys_tried, attempt, md_file):
         time.sleep(wait_time)
         return previous_id, 0, attempt + 1, True
 
-    print(f"  Error processing {os.path.basename(md_file)}: {e}")
+    print(f"  Error processing {pathlib.Path(md_file).name}: {e}")
     return previous_id, keys_tried, attempt, False
 
 
 def _save_audio_from_interaction(interaction, wav_file, md_file) -> None:
     if not (interaction.output_audio and interaction.output_audio.data):
-        print(f"  Warning: No audio output for {os.path.basename(md_file)}")
+        print(f"  Warning: No audio output for {pathlib.Path(md_file).name}")
         return
 
     audio_bytes = base64.b64decode(interaction.output_audio.data)
@@ -171,7 +171,7 @@ def _save_audio_from_interaction(interaction, wav_file, md_file) -> None:
             print(f"  Extracted sample rate from mime_type: {sample_rate}Hz")
 
     wave_file(wav_file, audio_bytes, rate=sample_rate)
-    print(f"  Saved audio to {os.path.basename(wav_file)}")
+    print(f"  Saved audio to {pathlib.Path(wav_file).name}")
 
 
 def process_file(md_file, wav_file, previous_id, api_state):
@@ -180,8 +180,8 @@ def process_file(md_file, wav_file, previous_id, api_state):
     current_key_idx = api_state["current_key_idx"]
     api_keys[current_key_idx][0]
 
-    print(f"Processing {os.path.basename(md_file)}...")
-    content = pathlib.Path(md_file).read_text()
+    print(f"Processing {pathlib.Path(md_file).name}...")
+    content = pathlib.Path(md_file).read_text(encoding="utf-8")
 
     speech_config = parse_speech_config(content)
     print(f"  Speech config: {speech_config}")
@@ -211,14 +211,14 @@ def process_file(md_file, wav_file, previous_id, api_state):
                 client = api_state["client"]
                 api_state["api_keys"][api_state["current_key_idx"]][0]
                 continue
-            raise e
+            raise
         else:
             _save_audio_from_interaction(interaction, wav_file, md_file)
             previous_id = interaction.id  # TODO: check if key rotation breaks
             break
     else:
         print(
-            f"  Failed to process {os.path.basename(md_file)} after {max_retries} attempts.",
+            f"  Failed to process {pathlib.Path(md_file).name} after {max_retries} attempts.",
         )
 
     return previous_id
@@ -249,11 +249,11 @@ def process_directory(directory) -> None:
     }
     previous_id = None
     for md_file in files:
-        base_name = os.path.splitext(os.path.basename(md_file))[0]
+        base_name = os.path.splitext(pathlib.Path(md_file).name)[0]
         wav_file = os.path.join(directory, f"{base_name}.wav")
 
         if pathlib.Path(wav_file).exists():
-            print(f"Skipping {os.path.basename(md_file)}, {os.path.basename(wav_file)} already exists.")
+            print(f"Skipping {pathlib.Path(md_file).name}, {pathlib.Path(wav_file).name} already exists.")
             continue
 
         previous_id = process_file(
@@ -267,7 +267,6 @@ def process_directory(directory) -> None:
         time.sleep(2)
 
 
-<<<<<<< HEAD
 def main() -> None:
     """Parse CLI arguments and generate TTS audio from prompt files in a directory.
 
@@ -275,9 +274,6 @@ def main() -> None:
     ``pyproject.toml``.  Equivalent to running
     ``python -m storybuilder.genai.client --dir <directory>``.
     """
-=======
-def main():
->>>>>>> fix-genai-tts-entrypoint-9568411881905231847
     parser = argparse.ArgumentParser(description="Process TTS prompt files to generate audio.")
     parser.add_argument(
         "--dir",
@@ -289,11 +285,7 @@ def main():
     if pathlib.Path(args.dir).is_dir():
         process_directory(args.dir)
     else:
-<<<<<<< HEAD
         parser.error(f"Directory '{args.dir}' does not exist.")
-=======
-        print(f"Error: Directory '{args.dir}' does not exist.")
->>>>>>> fix-genai-tts-entrypoint-9568411881905231847
 
 
 if __name__ == "__main__":

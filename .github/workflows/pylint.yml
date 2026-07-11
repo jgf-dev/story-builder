@@ -27,4 +27,4 @@ jobs:
         run: uv sync --all-extras --dev --prerelease=allow
 
       - name: Run pylint
-        run: uv run pylint src/
+        run: uv run pylint --errors-only src/

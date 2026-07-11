@@ -238,6 +238,7 @@ class TestDBIntegration(unittest.TestCase):
                 "storybuilder.downloader.cli.upload_many_s3"
             )
             self.mock_upload_s3 = self.patcher_upload_s3.start()
+            self.addCleanup(self.patcher_upload_s3.stop)
         except Exception as e:
             self.fail(f"Error setting up mocks: {e}")
 

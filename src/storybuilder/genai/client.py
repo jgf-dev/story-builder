@@ -276,10 +276,10 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    if pathlib.Path(args.dir).is_dir():
-        process_directory(args.dir)
-    else:
-        print(f"Error: Directory '{args.dir}' does not exist.")
+    if not pathlib.Path(args.dir).is_dir():
+        parser.error(f"Directory '{args.dir}' does not exist.")
+
+    process_directory(args.dir)
 
 
 if __name__ == "__main__":

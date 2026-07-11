@@ -78,7 +78,7 @@ def _upload_many_gcs_legacy(
             print(f"Uploaded {name} to gs://{bucket.name}/{blob_name_prefix}{name}")
 
 
-def upload_many_s3(
+def _upload_many_s3_legacy(
     bucket_name: str,
     prefix: str,
     filenames: list[str],

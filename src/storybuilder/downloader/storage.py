@@ -6,6 +6,48 @@ from google.cloud.storage import Client
 from google.cloud.storage import transfer_manager
 
 
+import boto3
+
+def upload_many_s3(
+    bucket_name: str,
+    prefix: str,
+    filenames: list[str],
+    source_directory: str = "",
+    workers: int = 8,
+):
+    """Upload every file in a list to an S3 bucket.
+
+    Each object key is derived from the filename, excluding the
+    `source_directory` parameter, and prefixed with `prefix`.
+    """
+    import concurrent.futures
+    import traceback
+
+    s3_client = boto3.client("s3")
+
+    def upload_file(filename):
+        try:
+            rel_path = os.path.relpath(filename, source_directory)
+            object_name = f"{prefix}/{rel_path}".replace("//", "/")
+            s3_client.upload_file(filename, bucket_name, object_name)
+            return filename, None
+        except Exception as e:
+            return filename, e
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+        futures = {executor.submit(upload_file, fn): fn for fn in filenames}
+        for future in concurrent.futures.as_completed(futures):
+            name = futures[future]
+            try:
+                filename, result = future.result()
+                if result is not None:
+                    print(f"Failed to upload {filename} to S3 due to exception: {result}")
+                else:
+                    print(f"Uploaded {filename} to s3://{bucket_name}/{prefix}")
+            except Exception as e:
+                print(f"Failed to upload {name} to S3 due to exception: {e}")
+
+
 def upload_many(
     bucket_name: str, filenames: list[str], source_directory: str = "", workers: int = 8,
 ):

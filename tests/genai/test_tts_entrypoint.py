@@ -1,7 +1,10 @@
 """Regression tests for the genai-tts console entrypoint."""
 
+import io
 import unittest
+from contextlib import redirect_stderr
 from importlib.metadata import entry_points
+from unittest.mock import patch
 
 from storybuilder.genai import client
 from storybuilder.genai import tts
@@ -24,6 +27,17 @@ class TestTtsEntrypoint(unittest.TestCase):
         self.assertIsNotNone(genai_tts, "genai-tts console script missing from package metadata")
         self.assertEqual(genai_tts.value, "storybuilder.genai.tts:main")
         self.assertIs(genai_tts.load(), client.main)
+
+    def test_main_exits_nonzero_for_missing_dir(self) -> None:
+        stderr = io.StringIO()
+        with (
+            patch("sys.argv", ["genai-tts", "--dir", "/nonexistent/path/for/tts"]),
+            redirect_stderr(stderr),
+            self.assertRaises(SystemExit) as raised,
+        ):
+            client.main()
+        self.assertNotEqual(raised.exception.code, 0)
+        self.assertIn("does not exist", stderr.getvalue())
 
 
 if __name__ == "__main__":

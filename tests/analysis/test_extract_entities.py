@@ -3,8 +3,12 @@ import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import MagicMock, patch
-from storybuilder.analysis.extract_entities import init_db, is_processed, main
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
+from storybuilder.analysis.extract_entities import init_db
+from storybuilder.analysis.extract_entities import is_processed
+from storybuilder.analysis.extract_entities import main
 
 
 class TestExtractEntities(unittest.TestCase):

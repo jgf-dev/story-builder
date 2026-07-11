@@ -29,11 +29,7 @@ def main():
 
     result = collection_averages.get(ids=[args.target_story], include=["embeddings"])
 
-    if (
-        result is None
-        or result.get("embeddings") is None
-        or len(result["embeddings"]) == 0
-    ):
+    if result is None or result.get("embeddings") is None or len(result["embeddings"]) == 0:
         print(f"Error: Story '{args.target_story}' not found in the database.")
         print("Please ensure you use the exact filepath used during generation.")
         return
@@ -45,7 +41,7 @@ def main():
     query_results = collection_averages.query(query_embeddings=[target_embedding], n_results=args.n_results + 1)
 
     for idx, (filepath, distance) in enumerate(
-        zip(query_results["ids"][0], query_results["distances"][0]),
+        zip(query_results["ids"][0], query_results["distances"][0], strict=False),
     ):
         if filepath == args.target_story:
             continue

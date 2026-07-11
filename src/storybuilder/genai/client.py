@@ -138,12 +138,10 @@ def process_file(md_file, wav_file, client, previous_id, api_keys, current_key_i
 
                 # Dynamically extract sample rate from mime_type if available
                 sample_rate = 24000
-                if (
-                    hasattr(interaction.output_audio, "mime_type")
-                    and interaction.output_audio.mime_type
-                ):
+                if hasattr(interaction.output_audio, "mime_type") and interaction.output_audio.mime_type:
                     rate_match = re.search(
-                        r"rate=(\d+)", interaction.output_audio.mime_type,
+                        r"rate=(\d+)",
+                        interaction.output_audio.mime_type,
                     )
                     if rate_match:
                         sample_rate = int(rate_match.group(1))
@@ -167,11 +165,7 @@ def process_file(md_file, wav_file, client, previous_id, api_keys, current_key_i
                 or "modality" in error_msg.lower()
                 or "400" in error_msg
             )
-            is_quota = (
-                "429" in error_msg
-                or "too_many_requests" in error_msg.lower()
-                or "quota" in error_msg.lower()
-            )
+            is_quota = "429" in error_msg or "too_many_requests" in error_msg.lower() or "quota" in error_msg.lower()
             is_session_not_found = (
                 "404" in error_msg
                 or "not_found" in error_msg.lower()
@@ -247,7 +241,12 @@ def process_directory(directory):
             continue
 
         client, current_key_idx, previous_id = process_file(
-            md_file, wav_file, client, previous_id, api_keys, current_key_idx,
+            md_file,
+            wav_file,
+            client,
+            previous_id,
+            api_keys,
+            current_key_idx,
         )
 
         # Slight delay to respect rate limits

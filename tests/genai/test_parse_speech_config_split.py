@@ -1,10 +1,8 @@
 import unittest
 
-from storybuilder.genai.client import (
-    _build_speech_config,
-    _extract_active_speakers,
-    _parse_voice_mappings,
-)
+from storybuilder.genai.client import _build_speech_config
+from storybuilder.genai.client import _extract_active_speakers
+from storybuilder.genai.client import _parse_voice_mappings
 
 
 class TestParseSpeechConfigSplit(unittest.TestCase):

@@ -5,7 +5,7 @@ import subprocess
 
 
 def run_git_cmd(args):
-    return subprocess.run(args, capture_output=True, text=True)
+    return subprocess.run(args, capture_output=True, text=True, check=False)
 
 
 def find_files_with_conflict_markers():

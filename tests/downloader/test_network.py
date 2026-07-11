@@ -1,5 +1,6 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
 from storybuilder.downloader.network import rotate_windscribe_ip
 

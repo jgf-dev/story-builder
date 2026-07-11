@@ -1,11 +1,11 @@
 import pathlib
 
-from storybuilder.xaiapi.client import create_chat_session
 from xai_sdk.chat import system
 from xai_sdk.chat import user
 
 from storybuilder.utils import get_prompt
 from storybuilder.utils import get_story
+from storybuilder.xaiapi.client import create_chat_session
 
 
 annotate_prompt = get_prompt("annotate")

@@ -47,7 +47,6 @@ def discover_eval_sets(agent_dir: Path) -> list[Path]:
 def load_eval_set(eval_set_path: Path) -> dict:
     """Load an ADK eval set JSON file."""
     with Path(eval_set_path).open() as f:
-
         return json.load(f)
 
 
@@ -119,7 +118,6 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
                     num_runs=1,
                     print_detailed_results=verbose,
                 ),
-
             )
 
             # Print results summary

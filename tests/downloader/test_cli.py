@@ -1,9 +1,10 @@
-import unittest
-from unittest.mock import patch, MagicMock
 import argparse
+import unittest
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
-from storybuilder.downloader.cli import _setup_network
 from storybuilder.downloader import network
+from storybuilder.downloader.cli import _setup_network
 
 
 class TestCLI(unittest.TestCase):

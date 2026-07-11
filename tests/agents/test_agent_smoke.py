@@ -16,13 +16,11 @@ class TestAgentSmoke(unittest.IsolatedAsyncioTestCase):
         ):
             self.skipTest("Vertex AI credentials / Gemini API key not configured")
 
-        from storybuilder.agents.tts_prompt_crafter.agent import (
-            APP_NAME,
-            SESSION_ID,
-            USER_ID,
-            runner,
-            session_service,
-        )
+        from storybuilder.agents.tts_prompt_crafter.agent import APP_NAME
+        from storybuilder.agents.tts_prompt_crafter.agent import SESSION_ID
+        from storybuilder.agents.tts_prompt_crafter.agent import USER_ID
+        from storybuilder.agents.tts_prompt_crafter.agent import runner
+        from storybuilder.agents.tts_prompt_crafter.agent import session_service
 
         if not await session_service.get_session(
             app_name=APP_NAME,

@@ -7,7 +7,10 @@ from google.cloud.storage import transfer_manager
 
 
 def upload_many(
-    bucket_name: str, filenames: list[str], source_directory: str = "", workers: int = 8,
+    bucket_name: str,
+    filenames: list[str],
+    source_directory: str = "",
+    workers: int = 8,
 ):
     """Upload every file in a list to a bucket, concurrently in a process pool.
 
@@ -27,7 +30,7 @@ def upload_many(
         max_workers=workers,
     )
 
-    for name, result in zip(filenames, results):
+    for name, result in zip(filenames, results, strict=False):
         # The results list is either `None` or an exception for each filename in
         # the input list, in order.
 

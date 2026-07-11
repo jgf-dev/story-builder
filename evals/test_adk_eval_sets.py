@@ -108,7 +108,6 @@ class TestEvalSetStructure:
         issues = _validate_eval_set_structure(data, eval_path.stem)
         assert not issues, f"Structural issues in {eval_path.relative_to(PROJECT_ROOT)}:\n" + "\n".join(
             f"  - {i}" for i in issues
-
         )
 
     def test_all_eval_sets_have_unique_ids(self):
@@ -118,7 +117,6 @@ class TestEvalSetStructure:
 
         for eval_path in all_evals:
             with Path(eval_path).open() as f:
-
                 data = json.load(f)
             eval_id = data.get("eval_set_id", eval_path.stem)
             if eval_id not in seen_ids:

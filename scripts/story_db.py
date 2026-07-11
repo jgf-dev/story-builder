@@ -164,10 +164,7 @@ def cmd_get(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None)
         if not args.no_content:
             content = row["content"]
             if args.max_chars and len(content) > args.max_chars:
-                content = (
-                    content[: args.max_chars]
-                    + f"\n\n… (truncated, {row['char_count']:,} total chars)"
-                )
+                content = content[: args.max_chars] + f"\n\n… (truncated, {row['char_count']:,} total chars)"
             print(content)
 
 
@@ -303,7 +300,9 @@ def main():
         help="Database directory or file. Searches all .db files if a directory.",
     )
     parser.add_argument(
-        "--db-dir", default=None, help="Directory with split .db files (overrides --db)",
+        "--db-dir",
+        default=None,
+        help="Directory with split .db files (overrides --db)",
     )
 
     sub = parser.add_subparsers(dest="command", required=True)
@@ -339,7 +338,9 @@ def main():
         help="Export directory (default: exported_stories/)",
     )
     p.add_argument(
-        "--no-content", action="store_true", help="Show metadata only, not story text",
+        "--no-content",
+        action="store_true",
+        help="Show metadata only, not story text",
     )
     p.add_argument(
         "--max-chars",

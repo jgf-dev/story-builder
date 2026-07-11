@@ -33,7 +33,9 @@ def extract_markdown_block(content: str) -> str:
     content = content.strip()
     # Match ```markdown ... ``` or ``` ... ```
     match = re.match(
-        r"^```(?:markdown)?\s*\n(.*?)\n```$", content, re.DOTALL | re.IGNORECASE,
+        r"^```(?:markdown)?\s*\n(.*?)\n```$",
+        content,
+        re.DOTALL | re.IGNORECASE,
     )
     if match:
         return match.group(1).strip()

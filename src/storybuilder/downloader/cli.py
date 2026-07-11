@@ -9,9 +9,6 @@ from storybuilder.downloader.storage import upload_many_gcs
 from storybuilder.downloader.storage import upload_many_s3
 
 
-
-
-
 # Add project root to sys.path to enable absolute imports when run directly as a script
 if __name__ == "__main__" and __package__ is None:
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
@@ -292,11 +289,7 @@ def _upload_to_cloud(args: argparse.Namespace) -> None:
 
     # Output tree
     output_dir = Path(args.output_dir)
-    output_files = (
-        [str(p) for p in output_dir.rglob("*") if p.is_file()]
-        if output_dir.exists()
-        else []
-    )
+    output_files = [str(p) for p in output_dir.rglob("*") if p.is_file()] if output_dir.exists() else []
 
     if args.s3_bucket:
         print(f"Uploading output tree to S3 ({args.s3_bucket})...")

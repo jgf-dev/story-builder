@@ -70,12 +70,13 @@ jobs:
         with:
           python-version-file: ".python-version"
       - name: Install the project
-        run: uv sync --all-extras --dev --prerelease=allow
+        run: uv sync --all-extras --dev
       - name: Run Downloader Tests
         run: uv run pytest --cov=src --cov-report=xml:coverage-downloader.xml tests/downloader/
       - name: Post Coverage Comment
+      - name: Post Coverage Comment
         if: github.event_name == 'pull_request'
-        uses: orgoro/coverage@v3.2
+
         with:
           coverageFile: coverage-downloader.xml
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -100,7 +101,7 @@ jobs:
         with:
           python-version-file: ".python-version"
       - name: Install the project
-        run: uv sync --all-extras --dev --prerelease=allow
+        run: uv sync --all-extras --dev
       - name: Run GenAI Tests
         run: uv run pytest --cov=src --cov-report=xml:coverage-genai.xml tests/genai/
       - name: Post Coverage Comment
@@ -130,7 +131,7 @@ jobs:
         with:
           python-version-file: ".python-version"
       - name: Install the project
-        run: uv sync --all-extras --dev --prerelease=allow
+        run: uv sync --all-extras --dev
       - name: Run Analysis Tests
         run: uv run pytest --cov=src --cov-report=xml:coverage-analysis.xml tests/analysis/
       - name: Post Coverage Comment
@@ -160,7 +161,7 @@ jobs:
         with:
           python-version-file: ".python-version"
       - name: Install the project
-        run: uv sync --all-extras --dev --prerelease=allow
+        run: uv sync --all-extras --dev
       - name: Run Agent Tests
         run: uv run pytest --cov=src --cov-report=xml:coverage-agents.xml tests/agents/
       - name: Post Coverage Comment
@@ -190,7 +191,7 @@ jobs:
         with:
           python-version-file: ".python-version"
       - name: Install the project
-        run: uv sync --all-extras --dev --prerelease=allow
+        run: uv sync --all-extras --dev
       - name: Run Misc Tests
         run: uv run pytest --cov=src --cov-report=xml:coverage-misc.xml tests/misc/
       - name: Post Coverage Comment

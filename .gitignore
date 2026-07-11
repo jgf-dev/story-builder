@@ -44,3 +44,4 @@ gh_2.40.1_linux_amd64/
 *.diff
 
 *.diff
+.pre-commit-venv/

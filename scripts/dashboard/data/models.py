@@ -3,17 +3,17 @@
 from dataclasses import dataclass
 from dataclasses import field
 from datetime import date
-from typing import Optional
 
 
 @dataclass
 class StorySearchQuery:
     """Query parameters for story search."""
+
     query: str = ""
     author: str = ""
     category: str = ""
-    date_from: Optional[date] = None
-    date_to: Optional[date] = None
+    date_from: date | None = None
+    date_to: date | None = None
     tags: list[str] = field(default_factory=list)
     favorites_only: bool = False
     page: int = 1
@@ -25,10 +25,11 @@ class StorySearchQuery:
 @dataclass
 class Story:
     """Represents a story from the archive."""
+
     path: str
     title: str
     author: str
-    publication_date: Optional[date] = None
+    publication_date: date | None = None
     category: str = ""
     subcategory: str = ""
     content: str = ""
@@ -58,6 +59,7 @@ class Story:
 @dataclass
 class Favorite:
     """Represents a user favorite."""
+
     story_path: str
     added_at: date
     notes: str = ""
@@ -72,6 +74,7 @@ class Favorite:
 @dataclass
 class Tag:
     """Represents a tag."""
+
     name: str
     color: str = "#6c757d"
     description: str = ""
@@ -89,6 +92,7 @@ class Tag:
 @dataclass
 class SearchResult:
     """Container for search results with pagination info."""
+
     stories: list[Story]
     total_count: int
     page: int
@@ -126,11 +130,12 @@ class SearchResult:
 @dataclass
 class ArchiveStats:
     """Statistics about the story archive."""
+
     total_stories: int = 0
     total_authors: int = 0
     total_categories: int = 0
     total_words: int = 0
-    date_range: tuple[Optional[date], Optional[date]] = (None, None)
+    date_range: tuple[date | None, date | None] = (None, None)
     stories_by_year: dict[int, int] = field(default_factory=dict)
     stories_by_category: dict[str, int] = field(default_factory=dict)
     stories_by_author: dict[str, int] = field(default_factory=dict)

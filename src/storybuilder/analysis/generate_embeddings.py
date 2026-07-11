@@ -69,12 +69,12 @@ def process_story(filepath_str, collection_chunks, collection_averages, model):
             return False
 
         chunk_embeddings = model.encode(
-            chunks, convert_to_numpy=True, show_progress_bar=False,
+            chunks,
+            convert_to_numpy=True,
+            show_progress_bar=False,
         )
         chunk_ids = [f"{filepath_str}_chunk_{i}" for i in range(len(chunks))]
-        chunk_metadatas = [
-            {"story_id": filepath_str, "chunk_index": i} for i in range(len(chunks))
-        ]
+        chunk_metadatas = [{"story_id": filepath_str, "chunk_index": i} for i in range(len(chunks))]
 
         collection_chunks.add(
             ids=chunk_ids,

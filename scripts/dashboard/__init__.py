@@ -17,20 +17,16 @@ from pathlib import Path
 from typing import Optional
 
 # Re-export the configuration constants so tests can patch them
-from .config import BASE_DIR as BASE_DIR  # noqa: F401
-from .config import DB_DIR as DB_DIR  # noqa: F401
-from .config import STORIES_DIR as STORIES_DIR  # noqa: F401
+from .config import BASE_DIR as BASE_DIR
+from .config import DB_DIR as DB_DIR
+from .config import STORIES_DIR as STORIES_DIR
 
 
 # Legacy paths used by the old monolithic dashboard.py. Tests patch
 # ``dashboard.NLP_DB_PATH`` and ``dashboard.META_DB_PATH`` directly, so
 # expose them at the package root.
-NLP_DB_PATH = str(
-    (Path(__file__).resolve().parents[2] / "stories" / "db" / "nlp_analysis.db")
-)
-META_DB_PATH = str(
-    (Path(__file__).resolve().parents[2] / "stories" / "db" / "dashboard_metadata.db")
-)
+NLP_DB_PATH = str(Path(__file__).resolve().parents[2] / "stories" / "db" / "nlp_analysis.db")
+META_DB_PATH = str(Path(__file__).resolve().parents[2] / "stories" / "db" / "dashboard_metadata.db")
 
 
 def get_db_files() -> list[Path]:
@@ -71,7 +67,7 @@ def _meta_conn() -> sqlite3.Connection:
             notes TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
-        """
+        """,
     )
     conn.commit()
     return conn
@@ -81,8 +77,8 @@ def add_favorite(
     story_path: str,
     title: str,
     author: str,
-    tags: Optional[str],
-    notes: Optional[str],
+    tags: str | None,
+    notes: str | None,
 ) -> bool:
     """Insert or update a favorite row. Returns True on success."""
     conn = _meta_conn()
@@ -127,12 +123,12 @@ def get_favorites() -> list[dict]:
 
 
 def query_stories(
-    fts_query: Optional[str] = None,
-    category: Optional[str] = None,
-    author: Optional[str] = None,
-    year_range: Optional[tuple[int, int]] = None,
-    entity_text: Optional[str] = None,
-    entity_label: Optional[str] = None,
+    fts_query: str | None = None,
+    category: str | None = None,
+    author: str | None = None,
+    year_range: tuple[int, int] | None = None,
+    entity_text: str | None = None,
+    entity_label: str | None = None,
     limit: int = 50,
 ) -> list[dict]:
     """Search stories across all partitions and return matching rows.
@@ -145,8 +141,8 @@ def query_stories(
     from storybuilder.downloader import db as sb_db
 
     # Build date range from year_range tuple if provided
-    date_from: Optional[str] = None
-    date_to: Optional[str] = None
+    date_from: str | None = None
+    date_to: str | None = None
     if year_range:
         start_year, end_year = year_range
         if start_year:
@@ -208,14 +204,14 @@ def query_stories(
 
 
 __all__ = [
-    "DB_DIR",
     "BASE_DIR",
-    "STORIES_DIR",
-    "NLP_DB_PATH",
+    "DB_DIR",
     "META_DB_PATH",
-    "get_db_files",
+    "NLP_DB_PATH",
+    "STORIES_DIR",
     "add_favorite",
-    "remove_favorite",
+    "get_db_files",
     "get_favorites",
     "query_stories",
+    "remove_favorite",
 ]

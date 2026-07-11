@@ -10,7 +10,6 @@ Run manually with:
 """
 
 import glob
-
 import os
 import shutil
 import tempfile

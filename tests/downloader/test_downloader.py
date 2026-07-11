@@ -1,12 +1,13 @@
-import unittest
-import unittest.mock
 import datetime
 import os
+import unittest
+import unittest.mock
+
+from storybuilder.downloader import cache
 
 # Import modular components
 from storybuilder.downloader.date_parser import parse_nifty_date
 from storybuilder.downloader.scraper import parse_listing_rows
-from storybuilder.downloader import cache
 
 
 class TestDateParser(unittest.TestCase):
@@ -78,8 +79,8 @@ class TestCache(unittest.TestCase):
         cache.metadata_cache = {}
 
     def test_cache_loading_and_saving(self):
-        import tempfile
         import shutil
+        import tempfile
 
         temp_dir = tempfile.mkdtemp()
         try:
@@ -242,7 +243,8 @@ class TestProcessSubcategory(unittest.TestCase):
     @unittest.mock.patch("storybuilder.downloader.scraper.scrape_subcategory")
     @unittest.mock.patch("storybuilder.downloader.scraper.scrape_multi_chapter_folder")
     def test_process_subcategory(self, mock_scrape_multi, mock_scrape_sub):
-        from storybuilder.downloader.scraper import process_subcategory, seen_folders
+        from storybuilder.downloader.scraper import process_subcategory
+        from storybuilder.downloader.scraper import seen_folders
 
         # Reset seen_folders for isolation
         seen_folders.clear()
@@ -307,7 +309,8 @@ class TestProcessSubcategory(unittest.TestCase):
     def test_process_subcategory_skip_seen_folders(
         self, mock_scrape_multi, mock_scrape_sub
     ):
-        from storybuilder.downloader.scraper import process_subcategory, seen_folders
+        from storybuilder.downloader.scraper import process_subcategory
+        from storybuilder.downloader.scraper import seen_folders
 
         # Reset and prime seen_folders
         seen_folders.clear()
@@ -341,7 +344,8 @@ class TestProcessSubcategory(unittest.TestCase):
 
     @unittest.mock.patch("storybuilder.downloader.scraper.scrape_subcategory")
     def test_process_subcategory_extension_handling(self, mock_scrape_sub):
-        from storybuilder.downloader.scraper import process_subcategory, seen_folders
+        from storybuilder.downloader.scraper import process_subcategory
+        from storybuilder.downloader.scraper import seen_folders
 
         seen_folders.clear()
 

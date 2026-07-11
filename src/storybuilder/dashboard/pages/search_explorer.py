@@ -18,7 +18,6 @@ def render_search_explorer(filters: dict) -> None:
     fts_input = st.text_input(
         "Full-Text Search (FTS5 syntax, e.g. vampire OR werewolf)",
         "",
-
     )
 
     st.markdown("---")

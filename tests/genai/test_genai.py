@@ -1,4 +1,5 @@
 import unittest
+
 from storybuilder.genai.client import parse_speech_config
 
 

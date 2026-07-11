@@ -1,4 +1,5 @@
 import argparse
+import operator
 import sqlite3
 from collections import defaultdict
 
@@ -112,7 +113,7 @@ def main():
 
         for subcat, count in sorted(
             subcats.items(),
-            key=lambda item: item[1],
+            key=operator.itemgetter(1),
             reverse=True,
         ):
             print(f"  - {subcat}: {count} stories")

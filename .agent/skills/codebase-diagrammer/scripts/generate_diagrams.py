@@ -96,10 +96,10 @@ class CodebaseAnalyzer:
             elif ext in [".js", ".ts", ".jsx", ".tsx"]:
                 if not is_test:
                     self.analyze_js_ts(rel_path, abs_path)
-            elif ext in [".sql"]:
+            elif ext == ".sql":
                 if not is_test:
                     self.analyze_sql(rel_path, abs_path)
-            elif ext in [".sh"] and not is_test:
+            elif ext == ".sh" and not is_test:
                 self.analyze_shell(rel_path, abs_path)
 
     def analyze_python(self, rel_path, abs_path, is_test=False):

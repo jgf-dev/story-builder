@@ -142,7 +142,6 @@ def _get_cached_subcategory(sub_url):
 
 
 def _scrape_subcategory_pages(sub_url, start_date, delay, force_scan, use_cache, cached_lookup):
-
     scraped_stories = []
     current_url = sub_url
     page_num = 1

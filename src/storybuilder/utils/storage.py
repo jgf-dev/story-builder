@@ -14,7 +14,6 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(format="%(message)s", level=logging.INFO)
 
 
-
 def get_hf_client(token: str = "HF_TOKEN") -> HfApi:  # noqa
     """
     Get a Hugging Face Hub client.

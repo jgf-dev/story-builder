@@ -1,10 +1,12 @@
-import unittest
 import argparse
-from unittest.mock import patch, MagicMock
-from pathlib import Path
 import tempfile
+import unittest
+from pathlib import Path
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
-from storybuilder.analysis.generate_embeddings import get_chunks, main
+from storybuilder.analysis.generate_embeddings import get_chunks
+from storybuilder.analysis.generate_embeddings import main
 
 
 class TestGenerateEmbeddings(unittest.TestCase):

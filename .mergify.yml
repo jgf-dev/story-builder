@@ -1,0 +1,9 @@
+queue_rules: []
+merge_queue:
+  max_parallel_checks: 3
+scopes:
+  source:
+    files:
+      tests:
+        include:
+          - tests/**/*

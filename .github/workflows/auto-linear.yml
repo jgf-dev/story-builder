@@ -5,16 +5,13 @@
 name: Linear sync or create
 on:
   pull_request:
-    types: [opened, reopened, ready_for_review]
+    types: [opened]
   issues:
-    types: [opened, reopened, labeled]
-  discussion:
-    types: [created, answered, labeled]
+    types: [opened]
 
 permissions:
   pull-requests: write
   issues: write
-  discussions: write
 
 jobs:
   dependabot:

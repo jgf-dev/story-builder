@@ -98,7 +98,7 @@ class TestTTSPipeline(unittest.TestCase):
 
         process_file = fake_process_file_factory()
         api_keys = [("GEMINI_API_KEY", "unit-test-fake-key")]
-        self.assertGreater(len(api_keys), 0, "No GEMINI_API_KEY found in environment")
+        self.assertGreater(len(api_keys), 0, "Test setup error: api_keys list unexpectedly empty")
 
         current_key_idx = 0
         _, api_key = api_keys[current_key_idx]

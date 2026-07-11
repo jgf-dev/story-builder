@@ -40,8 +40,6 @@ def _normalize_filenames(filenames: list[str], source_directory: str) -> list[st
         # Outside source_directory; fall back to basename.
         normalized.append(path.name)
     return normalized
-
-
 def upload_many(
     bucket_name: str,
     filenames: list[str],

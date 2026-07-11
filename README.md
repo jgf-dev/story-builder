@@ -155,8 +155,12 @@ Use the `genai-tts` console command (installed via `uv sync`) to convert `*-part
 
 ```bash
 genai-tts --dir stories/the_secret_vacation
-# equivalent:
-# python3 -m storybuilder.genai.client --dir stories/the_secret_vacation
+```
+
+Or invoke directly via the Python module:
+
+```bash
+python3 -m storybuilder.genai.client --dir stories/the_secret_vacation
 ```
 
 Skips existing `.wav` files; uses stateful interaction continuity across parts.

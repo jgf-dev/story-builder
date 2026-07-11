@@ -1,5 +1,10 @@
+import sys
 import unittest
+from unittest.mock import patch
+
+from storybuilder.genai.client import main as client_main
 from storybuilder.genai.client import parse_speech_config
+from storybuilder.genai.tts import main as tts_main
 
 
 class TestGenAIClient(unittest.TestCase):
@@ -140,6 +145,32 @@ class TestGenAIClient(unittest.TestCase):
             # 4. Fallback code block cleanup
             content = "```\nfallback content\n```"
             self.assertEqual(extract_markdown_block(content), "fallback content")
+
+    def test_tts_entrypoint_resolves_to_client_main(self):
+        """Verify that storybuilder.genai.tts:main re-exports client.main correctly."""
+        self.assertIs(tts_main, client_main)
+
+    def test_main_processes_existing_directory(self):
+        """main() should call process_directory when the given --dir exists."""
+        with (
+            patch("storybuilder.genai.client.process_directory") as mock_process,
+            patch("sys.argv", ["genai-tts", "--dir", "/tmp"]),
+        ):
+            client_main()
+            mock_process.assert_called_once_with("/tmp")
+
+    def test_main_prints_error_for_missing_directory(self, capsys=None):
+        """main() should print an error and not call process_directory for a non-existent dir."""
+        with (
+            patch("storybuilder.genai.client.process_directory") as mock_process,
+            patch("sys.argv", ["genai-tts", "--dir", "/nonexistent_dir_xyz"]),
+            patch("builtins.print") as mock_print,
+        ):
+            client_main()
+            mock_process.assert_not_called()
+            mock_print.assert_called_once()
+            printed = mock_print.call_args[0][0]
+            self.assertIn("/nonexistent_dir_xyz", printed)
 
 
 if __name__ == "__main__":

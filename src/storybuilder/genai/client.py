@@ -14,7 +14,7 @@ from google import genai
 load_dotenv()
 
 
-def wave_file(filename, pcm, channels=1, rate=24000, sample_width=2):
+def wave_file_writer(filename, pcm, channels=1, rate=24000, sample_width=2):
     with wave.open(filename, "wb") as wf:
         wf.setnchannels(channels)
         wf.setsampwidth(sample_width)
@@ -255,6 +255,12 @@ def process_directory(directory):
 
 
 def main() -> None:
+    """Parse CLI arguments and generate TTS audio from prompt files in a directory.
+
+    This is the entrypoint for the ``genai-tts`` console script installed by
+    ``pyproject.toml``.  Equivalent to running
+    ``python -m storybuilder.genai.client --dir <directory>``.
+    """
     parser = argparse.ArgumentParser(description="Process TTS prompt files to generate audio.")
     parser.add_argument(
         "--dir",
@@ -263,20 +269,10 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    dir_path = pathlib.Path(args.dir)
-    if not dir_path.exists():
-        parser.error(f"Path '{args.dir}' does not exist.")
-    if not dir_path.is_dir():
-        parser.error(f"Path '{args.dir}' is not a directory.")
-
-    if not get_gemini_api_keys():
-        parser.exit(1, "Error: No GEMINI_API_KEY or GEMINI_API_KEY_X found in environment.\n")
-
-    md_files = sorted(glob.glob(os.path.join(args.dir, "*-part.md")))
-    if not md_files:
-        parser.exit(1, f"Error: No prompt files found in {args.dir}\n")
-
-    process_directory(args.dir)
+    if pathlib.Path(args.dir).is_dir():
+        process_directory(args.dir)
+    else:
+        print(f"Error: Directory '{args.dir}' does not exist.")
 
 
 if __name__ == "__main__":

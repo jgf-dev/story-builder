@@ -20,7 +20,6 @@ def _normalize_filenames(filenames: list[str], source_directory: str) -> list[st
     normalized: list[str] = []
     for filename in filenames:
         path = Path(filename)
-
         # First, interpret the filename as it was provided (often rooted at cwd).
         try:
             normalized.append(str(path.resolve().relative_to(base_dir)))
@@ -40,7 +39,6 @@ def _normalize_filenames(filenames: list[str], source_directory: str) -> list[st
 
         # Outside source_directory; fall back to basename.
         normalized.append(path.name)
-
     return normalized
 
 

@@ -250,7 +250,7 @@ class TestDBIntegration(unittest.TestCase):
         self.patcher_get_subcats.stop()
         self.patcher_proc_subcat.stop()
         self.patcher_upload.stop()
-        self.patcher_upload_s3.stop()
+        # patcher_upload_s3 stopped via addCleanup() in setUp()
         close_db()
         if Path(self.db_path).exists():
             Path(self.db_path).unlink()

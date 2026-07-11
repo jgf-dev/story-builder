@@ -1,0 +1,22 @@
+queue_rules:
+  - name: checks-pass
+    merge_conditions:
+      - "#check-failure = 0"
+merge_queue:
+  status_comments: all
+  queue_controls_comment: true
+  skip_intermediate_results: false
+  reset_on_external_merge: always
+  max_parallel_checks: 3
+scopes:
+  source:
+    files:
+      tests:
+        include:
+          - tests/**/*
+      source:
+        include:
+          - src/**/*
+      scripts:
+        include:
+          - scripts/**/*

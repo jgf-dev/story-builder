@@ -151,7 +151,6 @@ def upload_many_s3(
 
     Returns immediately when filenames is empty. Requires boto3 at runtime.
     """
-    del workers  # sequential uploads; reserved for future parallelism
     if not filenames:
         return
 
@@ -163,12 +162,29 @@ def upload_many_s3(
             msg,
         ) from exc
 
+    import concurrent.futures
+
     s3_client = boto3.client("s3")
     base_dir = Path(source_directory).resolve() if source_directory else None
     key_prefix = prefix.strip("/")
 
-    for filename in filenames:
-        _upload_single_s3(s3_client, bucket_name, key_prefix, filename, base_dir)
+    def upload_file(filename: str) -> tuple[str, Any]:
+        try:
+            _upload_single_s3(s3_client, bucket_name, key_prefix, filename, base_dir)
+            return filename, None
+        except Exception as e:
+            return filename, e
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+        futures = {executor.submit(upload_file, fn): fn for fn in filenames}
+        for future in concurrent.futures.as_completed(futures):
+            name = futures[future]
+            try:
+                filename, result = future.result()
+                if result is not None:
+                    print(f"Failed to upload {filename} to S3 due to exception: {result}")
+            except Exception as e:
+                print(f"Failed to upload {name} to S3 due to exception: {e}")
 
 
 if __name__ == "__main__":

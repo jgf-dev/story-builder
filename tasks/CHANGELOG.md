@@ -5,6 +5,13 @@ description: Explanation of changes per commits
 
 ## 11/07/2026
 
+### Resolved merge conflicts with branch fix-genai-tts-entrypoint-9568411881905231847
+
+- **storage.py**: Consolidated concurrent `upload_many_s3` helper to run asynchronously via `ThreadPoolExecutor` while preserving custom S3 single-file uploading settings (e.g. AWS bucket owner checks). Removed `boto3` from top-level imports to keep S3 support optional at import time.
+- **client.py**: Unified `process_file` and CLI `main` structure, keeping the api state key rotation and validation errors.
+- **tts.py**: Directly re-exported CLI `main` and directory processor (with `__main__` guard).
+- **test_genai.py**: Added mocks for API keys and glob results to ensure existing directory validations pass without key configuration constraints.
+
 ### Resolved merge conflicts with branch optimistic-jackal-jade-508
 
 - **storage.py**: Consolidated GCS upload functions (`upload_many`, `upload_many_gcs`) to preserve prefix mapping and transfer_manager optimizations. Retained S3 bucket owner checks (`AWS_EXPECTED_BUCKET_OWNER`) during file uploads. Removed duplicate/obsolete helper definitions.

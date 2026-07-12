@@ -244,28 +244,25 @@ class DatabaseRepository:
         with self._get_connection() as conn:
             stats = ArchiveStats()
 
-            # Total stories
-            stats.total_stories = conn.execute("SELECT COUNT(*) FROM stories").fetchone()[0]
+            # ⚡ Bolt optimization: Combine aggregations to reduce multiple table scans
+            row = conn.execute("""
+                SELECT
+                    COUNT(*),
+                    COUNT(DISTINCT NULLIF(author, '')),
+                    COUNT(DISTINCT NULLIF(category, '')),
+                    COALESCE(SUM(word_count), 0),
+                    MIN(publication_date),
+                    MAX(publication_date)
+                FROM stories
+            """).fetchone()
 
-            # Total authors
-            stats.total_authors = conn.execute(
-                "SELECT COUNT(DISTINCT author) FROM stories WHERE author IS NOT NULL AND author != ''",
-            ).fetchone()[0]
+            stats.total_stories = row[0]
+            stats.total_authors = row[1]
+            stats.total_categories = row[2]
+            stats.total_words = row[3]
 
-            # Total categories
-            stats.total_categories = conn.execute(
-                "SELECT COUNT(DISTINCT category) FROM stories WHERE category IS NOT NULL AND category != ''",
-            ).fetchone()[0]
-
-            # Total words
-            stats.total_words = conn.execute("SELECT COALESCE(SUM(word_count), 0) FROM stories").fetchone()[0]
-
-            # Date range
-            date_row = conn.execute(
-                "SELECT MIN(publication_date), MAX(publication_date) FROM stories WHERE publication_date IS NOT NULL",
-            ).fetchone()
-            if date_row[0] and date_row[1]:
-                stats.date_range = (date.fromisoformat(date_row[0]), date.fromisoformat(date_row[1]))
+            if row[4] and row[5]:
+                stats.date_range = (date.fromisoformat(row[4]), date.fromisoformat(row[5]))
 
             # Stories by year
             cursor = conn.execute("""

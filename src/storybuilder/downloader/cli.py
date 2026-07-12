@@ -5,11 +5,8 @@ import sys
 import time
 from pathlib import Path
 
-from storybuilder.downloader.storage import upload_many_gcs
+from storybuilder.downloader.storage import upload_many as upload_many_gcs
 from storybuilder.downloader.storage import upload_many_s3
-
-
-
 
 
 # Add project root to sys.path to enable absolute imports when run directly as a script
@@ -311,14 +308,13 @@ def _upload_to_cloud(args: argparse.Namespace) -> None:
         print(f"Uploading output tree to GCS ({args.gcs_bucket})...")
         upload_many_gcs(
             args.gcs_bucket,
-            args.gcs_prefix,
             output_files,
             source_directory=str(output_dir),
         )
     elif not args.s3_bucket:
         # Fallback to the original behavior: upload DB files to GCS nifty-index
         print("Uploading to GCS...")
-        upload_many_gcs("nifty-index", "", db_files, source_directory=source_dir)
+        upload_many_gcs("nifty-index", db_files, source_directory=source_dir)
 
 
 def main():

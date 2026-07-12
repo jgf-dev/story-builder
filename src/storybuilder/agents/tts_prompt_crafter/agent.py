@@ -180,7 +180,7 @@ class SceneSchema(BaseModel):
     scene_title: str = Field(description="The title of the scene.")
     location: str = Field(description="The location of the scene.")
     characters_present: list[CharacterName] = Field(
-        min_items=1,
+        min_length=1,
         description="The characters present in the scene.",
     )
     emotional_tone: str = Field(description="The emotional tone of the scene.")
@@ -189,7 +189,7 @@ class SceneSchema(BaseModel):
         description="The intimacy level of the scene.",
     )
     key_events: list[str] = Field(
-        min_items=1,
+        min_length=1,
         description="The key events of the scene.",
     )
     pacing_notes: PacingNotes = Field(
@@ -221,7 +221,7 @@ class SceneAnalysisSchema(BaseModel):
     """Schema for scene analysis output."""
 
     scenes: list[SceneSchema] = Field(
-        min_items=1,
+        min_length=1,
         description="The scenes in the story.",
     )
     voice_interaction_notes: VoiceInteractionNotesSchema = Field(
@@ -269,14 +269,14 @@ class StoryAnalysisSchema(BaseModel):
 
     title: str = Field(description="The title of the story.")
     genre_tone: list[Genre] = Field(
-        min_items=1,
+        min_length=1,
         description="The genres and tones of the story. Use as many as appropriate.",
     )
     setting: str = Field(description="The setting of the story.")
     narrative_voice: str = Field(description="The narrative voice of the story.")
     emotional_arc: str = Field(description="The emotional arc of the story.")
     characters: list[CharacterSchema] = Field(
-        min_items=1,
+        min_length=1,
         description="The characters in the story.",
     )
     scene_analysis: SceneAnalysisSchema = Field(description="The scene analysis.")
@@ -322,7 +322,7 @@ class PromptFilesOutputSchema(BaseModel):
     """Schema for scene prompt files output."""
 
     prompt_files: list[PromptFileSchema] = Field(
-        min_items=1,
+        min_length=1,
         description="The prompt files.",
     )
 

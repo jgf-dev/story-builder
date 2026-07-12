@@ -634,6 +634,11 @@ def close_db() -> None:
     global _conn, _engine, _is_partitioned, _db_dir, _monolithic_db_path, _db_path_global
     with _lock:
         if _conn is not None:
+            try:
+                # Ensure any WAL changes are checkpointed so external connections see the latest data
+                _conn.execute("PRAGMA wal_checkpoint(FULL)")
+            except Exception:
+                logging.debug("WAL checkpoint failed (may be using DELETE journal mode)", exc_info=True)
             _conn.close()
             _conn = None
         if _engine is not None:
@@ -650,3 +655,35 @@ def close_db() -> None:
 
 # Backward-compatible alias
 search_all_partitions = search_stories
+
+
+def get_all_partition_paths() -> list[str]:
+    """Return filesystem paths to partitioned story .db files.
+
+    Provides the function referenced by scripts/dashboard/__init__.py
+    for legacy compatibility. Returns paths to year-specific DBs
+    when using partitioned mode.
+    """
+    from pathlib import Path
+
+    candidates: list[Path] = []
+    if _db_dir:
+        candidates.append(Path(_db_dir))
+    candidates.extend([
+        Path.cwd() / "stories" / "db",
+        Path("stories") / "db",
+        Path("stories"),
+    ])
+
+    for base in candidates:
+        if base.exists() and base.is_dir():
+            dbs = sorted(
+                str(p)
+                for p in base.glob("*.db")
+                if not p.name.startswith(".")
+                and p.name not in {"stories.db", "meta.db", "nlp_analysis.db"}
+            )
+            if dbs:
+                return dbs
+    return []
+

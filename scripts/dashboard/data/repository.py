@@ -336,7 +336,7 @@ class DatabaseRepository:
                 favorites.append(fav)
             return favorites
 
-    def add_favorite(self, story_path: str, notes: str = "", tags: list[str] = None) -> bool:
+    def add_favorite(self, story_path: str, notes: str = "", tags: list[str] | None = None) -> bool:
         """Add a story to favorites."""
         with self._get_connection() as conn:
             try:
@@ -368,7 +368,7 @@ class DatabaseRepository:
             )
             return cursor.fetchone() is not None
 
-    def update_favorite(self, story_path: str, notes: str = None, tags: list[str] = None) -> bool:
+    def update_favorite(self, story_path: str, notes: str | None = None, tags: list[str] | None = None) -> bool:
         """Update favorite notes and tags."""
         with self._get_connection() as conn:
             updates = []

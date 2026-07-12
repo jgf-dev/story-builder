@@ -1,0 +1,14 @@
+{
+  "eval_set_id": "cartesia_dummy",
+  "eval_cases": [
+    {
+      "eval_id": "case1",
+      "conversation": [
+        {
+          "user_content": {"parts": [{"text": "Hello"}]},
+          "final_response": {"parts": [{"text": "Hello, I am the Cartesia TTS agent."}]}
+        }
+      ]
+    }
+  ]
+}

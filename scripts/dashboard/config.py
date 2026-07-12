@@ -8,6 +8,9 @@ BASE_DIR = Path(__file__).parent.parent.parent.parent
 STORIES_DIR = BASE_DIR / "stories"
 DB_DIR = STORIES_DIR / "db"
 
+# Default monolithic DB path (used by repository)
+DB_PATH: str = str(DB_DIR / "stories.db")
+
 # Database configuration for partitioned databases (by year)
 DB_CONFIG = {
     "base_path": DB_DIR,

@@ -2,7 +2,6 @@ import importlib
 import sys
 from pathlib import Path
 
-
 # Ensure src layout package is importable
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
@@ -70,43 +69,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-    for res in search_results:
-        # Create a container for the card styling
-        safe_title = html.escape(res["title"] or "")
-        safe_author = html.escape(res["author_name"] or "Unknown")
-        safe_category = html.escape(res["category"] or "")
-        safe_pub_date = html.escape(str(res["publication_date"] or "Unknown"))
-        card_html = f"""
-        <div class="story-card">
-            <h4>{safe_title}</h4>
-            <p style='color: #a9b6d8; font-size: 0.95rem; margin-bottom: 8px;'>
-                <b>Author:</b> {safe_author} |
-                <b>Category:</b> {safe_category} |
-                <b>Published:</b> {safe_pub_date} |
-                <b>Words:</b> {res["word_count"]:,}
-            </p>
-        """
-
-        # Display highlighted snippets if any
-        if res.get("snippet"):
-            # Escape the snippet first, then replace the placeholder highlight markers with actual HTML span tags
-            snippet_escaped = html.escape(res["snippet"])
-            snippet_cleaned = snippet_escaped.replace(
-                "___HIGHLIGHT_START___", "<span class='highlight'>",
-            ).replace("___HIGHLIGHT_END___", "</span>")
-            card_html += f"<p style='color: #cbd5e1; font-style: italic; font-size: 0.92rem; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px;'>... {snippet_cleaned} ...</p>"
-
-        card_html += "</div>"
-        st.markdown(card_html, unsafe_allow_html=True)
-
-        # Action buttons on the card
-        col1, col2 = st.columns([1, 8])
-        with col1:
-            if st.button("Read", key=f"read_{res['path']}_{res['db_year']}"):
-                st.session_state.selected_story_path = res["path"]
-                st.session_state.selected_story_year = res["db_year"]
-                # Programmatically update radio key by modifying query params or session state navigation
-                st.query_params["nav_page"] = "📖 Read Story"
-                st.rerun()
-        st.write("")

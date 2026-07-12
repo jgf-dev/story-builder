@@ -105,7 +105,8 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
 
         try:
             # Load using ADK's file loader (handles both new and old formats)
-            pydantic_eval_set = load_eval_set_from_file(str(eval_path), eval_name)
+            eval_set_id = eval_data.get("eval_set_id") or eval_data.get("name") or eval_path.stem
+            pydantic_eval_set = load_eval_set_from_file(str(eval_path), eval_set_id)
 
             # Determine agent module path relative to the agent's directory
             # The agent module must be importable from the agent directory

@@ -152,7 +152,7 @@ class TestGenAIClient(unittest.TestCase):
 
             # 5. Large input with no matching closing block (originally caused backtracking)
             content = "```markdown\n" + "a" * 5000 + "\nnot_matching"
-            self.assertEqual(extract_markdown_block(content), "a" * 5000 + "\nnot_matching")
+            assert extract_markdown_block(content) == "a" * 5000 + "\nnot_matching"
 
     def test_tts_entrypoint_resolves_to_client_main(self) -> None:
         """Verify that storybuilder.genai.tts:main re-exports client.main correctly."""
@@ -162,6 +162,8 @@ class TestGenAIClient(unittest.TestCase):
         """main() should call process_directory when the given --dir exists."""
         with (
             patch("storybuilder.genai.client.process_directory") as mock_process,
+            patch("storybuilder.genai.client.get_gemini_api_keys", return_value=[("GEMINI_API_KEY", "fake")]),
+            patch("storybuilder.genai.client.glob.glob", return_value=["/tmp/01-part.md"]),
             patch("sys.argv", ["genai-tts", "--dir", "/tmp"]),
         ):
             client_main()
@@ -175,6 +177,7 @@ class TestGenAIClient(unittest.TestCase):
         stderr = io.StringIO()
         with (
             patch("storybuilder.genai.client.process_directory") as mock_process,
+            patch("storybuilder.genai.client.get_gemini_api_keys", return_value=[("GEMINI_API_KEY", "fake")]),
             patch("sys.argv", ["genai-tts", "--dir", "/nonexistent_dir_xyz"]),
             redirect_stderr(stderr),
             pytest.raises(SystemExit) as raised,

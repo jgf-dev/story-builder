@@ -3,59 +3,12 @@ import os
 from pathlib import Path
 from typing import Any
 
-import boto3
 from google.cloud.storage import Client
 from google.cloud.storage import transfer_manager
 
 
-<<<<<<< HEAD
 def _normalize_filenames(filenames: list[str], source_directory: str) -> list[str]:
     """Normalize filenames for uploads.
-=======
-def upload_many_s3(
-    bucket_name: str,
-    prefix: str,
-    filenames: list[str],
-    source_directory: str = "",
-    workers: int = 8,
-):
-    """Upload every file in a list to an S3 bucket.
-
-    Each object key is derived from the filename, excluding the
-    `source_directory` parameter, and prefixed with `prefix`.
-    """
-    import concurrent.futures
-
-    s3_client = boto3.client("s3")
-
-    def upload_file(filename):
-        try:
-            rel_path = os.path.relpath(filename, source_directory)
-            object_name = f"{prefix}/{rel_path}".replace("//", "/")
-            s3_client.upload_file(filename, bucket_name, object_name)
-            return filename, None
-        except Exception as e:
-            return filename, e
-
-    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
-        futures = {executor.submit(upload_file, fn): fn for fn in filenames}
-        for future in concurrent.futures.as_completed(futures):
-            name = futures[future]
-            try:
-                filename, result = future.result()
-                if result is not None:
-                    print(f"Failed to upload {filename} to S3 due to exception: {result}")
-                else:
-                    print(f"Uploaded {filename} to s3://{bucket_name}/{prefix}")
-            except Exception as e:
-                print(f"Failed to upload {name} to S3 due to exception: {e}")
-
-
-def upload_many(
-    bucket_name: str, filenames: list[str], source_directory: str = "", workers: int = 8,
-):
-    """Upload every file in a list to a bucket, concurrently in a process pool.
->>>>>>> origin/fix-genai-tts-entrypoint-9568411881905231847
 
     If source_directory is provided, absolute paths under it are converted to
     relative paths. Absolute paths outside it fall back to basename.
@@ -87,6 +40,8 @@ def upload_many(
         # Outside source_directory; fall back to basename.
         normalized.append(path.name)
     return normalized
+
+
 def upload_many(
     bucket_name: str,
     filenames: list[str],
@@ -196,7 +151,6 @@ def upload_many_s3(
 
     Returns immediately when filenames is empty. Requires boto3 at runtime.
     """
-    del workers  # sequential uploads; reserved for future parallelism
     if not filenames:
         return
 
@@ -208,12 +162,31 @@ def upload_many_s3(
             msg,
         ) from exc
 
+    import concurrent.futures
+
     s3_client = boto3.client("s3")
     base_dir = Path(source_directory).resolve() if source_directory else None
     key_prefix = prefix.strip("/")
 
-    for filename in filenames:
-        _upload_single_s3(s3_client, bucket_name, key_prefix, filename, base_dir)
+    def upload_file(filename: str) -> tuple[str, Any]:
+        try:
+            _upload_single_s3(s3_client, bucket_name, key_prefix, filename, base_dir)
+            return filename, None
+        except Exception as e:
+            return filename, e
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+        futures = {executor.submit(upload_file, fn): fn for fn in filenames}
+        for future in concurrent.futures.as_completed(futures):
+            name = futures[future]
+            try:
+                filename, result = future.result()
+                if result is not None:
+                    print(f"Failed to upload {filename} to S3 due to exception: {result}")
+            except Exception as e:
+                print(f"Failed to upload {name} to S3 due to exception: {e}")
+
+
 if __name__ == "__main__":
     directory = Path(os.getenv("STORIES_DB")).resolve()
     print(directory)

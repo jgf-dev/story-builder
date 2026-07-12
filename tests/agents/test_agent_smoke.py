@@ -1,9 +1,13 @@
+import asyncio
 import os
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 
 from dotenv import load_dotenv
 from google.genai import types
+
+from tests.helpers_external_fakes import fake_run_async, live_api_enabled
 
 
 class TestAgentSmoke(unittest.IsolatedAsyncioTestCase):
@@ -11,6 +15,44 @@ class TestAgentSmoke(unittest.IsolatedAsyncioTestCase):
         project_root = Path(__file__).resolve().parents[2]
         load_dotenv(project_root / ".env")
 
+        if live_api_enabled():
+            await self._live_agent_smoke(project_root)
+            return
+
+        # Default unit path: never import the real ADK agent module (import-time
+        # Vertex / memory / runner construction). Drive the same assertion loop
+        # against an in-process runner double.
+        story_path = str(
+            project_root / "stories" / "text" / "the_secret_vacation-1-I.md"
+        )
+        user_msg = f"Generate TTS prompts for {story_path}"
+        content = types.Content(
+            role="user",
+            parts=[types.Part(text=user_msg)],
+        )
+
+        USER_ID = "unit-test-user"
+        SESSION_ID = "unit-test-session"
+        runner = SimpleNamespace(run_async=fake_run_async)
+
+        async def run_agent():
+            response_text = ""
+            async for event in runner.run_async(
+                user_id=USER_ID,
+                session_id=SESSION_ID,
+                new_message=content,
+            ):
+                if event.content and event.content.parts:
+                    for part in event.content.parts:
+                        if hasattr(part, "text") and part.text:
+                            response_text = part.text
+            return response_text
+
+        final_response = await asyncio.wait_for(run_agent(), timeout=5.0)
+        self.assertGreater(len(final_response), 0)
+
+    async def _live_agent_smoke(self, project_root: Path):
+        """Opt-in real ADK multi-agent run (STORYBUILDER_LIVE_API=1)."""
         if not os.getenv("GEMINI_API_KEY") and not os.getenv(
             "GOOGLE_APPLICATION_CREDENTIALS"
         ):
@@ -43,8 +85,6 @@ class TestAgentSmoke(unittest.IsolatedAsyncioTestCase):
             role="user",
             parts=[types.Part(text=user_msg)],
         )
-
-        import asyncio
 
         async def run_agent():
             response_text = ""

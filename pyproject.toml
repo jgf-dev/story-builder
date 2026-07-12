@@ -26,7 +26,7 @@ dependencies = [
     "requests>=2.34.2",
     "scikit-learn>=1.9.0",
     "sentence-transformers>=5.6.0",
-    "spacy[cuda12x]>=3.8.14",
+    "spacy[cuda12x]>=3.8.14", "numpy>=1.20,<1.29",
     "streamlit>=1.59.0",
     "tqdm>=4.68.4",
     "transformers>=5.13.0",
@@ -40,7 +40,7 @@ dependencies = [
     "opentelemetry.exporter.otlp.proto.http",
     "dotenv>=0.9.9",
     "sqlmodel>=0.0.39",
-    "agent-framework>=1.10.0",
+    "agent-framework>=1.10.0,<=1.10.0",
 ]
 
 [project.scripts]
@@ -162,9 +162,12 @@ dev = [
     "a>=1.0",
     "black>=26.5.1",
     "isort>=8.0.1",
+    "pylint>=3.0.0",
     "pytest>=9.0.3",
+    "pytest-mergify>=2026.7.7.1",
     "pytest-benchmark>=5.2.3",
     "pytest-cov>=7.1.0",
+    "pytest-mergify>=2026.7.7.1",
     "ruff>=0.15.20",
     "pre-commit>=4.6.0",
     "nbqa>=1.9.1",
@@ -175,6 +178,7 @@ dev = [
 testpaths = [
     "tests",
 ]
+pythonpath = ["."]
 
 # Temporary disable test in agent
 
@@ -183,4 +187,5 @@ markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "adk_eval: marks tests that run ADK evaluation engine",
     "agentic: marks tests using agentic evaluation patterns (reflection, rubric)",
+    "integration: live external services (Gemini/Vertex/TTS); unit suite uses fakes by default — enable live path with STORYBUILDER_LIVE_API=1",
 ]

@@ -180,14 +180,9 @@ def load_models(spacy_model_name, sentiment_model_name, use_gpu):
     )
     return nlp, sentiment_pipe
 
-    return nlp, sentiment_pipe
 
 def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe):
-    with open(filepath, "r", encoding="utf-8") as f:
-        text = f.read()
-    text = re.sub(r"\s+", " ", text).strip()
-    if not text:
-        return
+    text = filepath.read_text(encoding="utf-8")
     text = re.sub(r"\s+", " ", text).strip()
     if not text:
         return
@@ -196,34 +191,10 @@ def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe
     except Exception as e:
         print(f"spaCy error on {filepath}: {e}")
         return
-
-    try:
-        doc = nlp(text)
-    except Exception as e:
-        print(f"spaCy error on {filepath}: {e}")
-        return
-    sentences = list(doc.sents)
-    if not sentences:
-        return
-
     sentences = list(doc.sents)
     if not sentences:
         return
     sentence_texts = [sent.text for sent in sentences]
-
-    sentence_texts = [sent.text for sent in sentences]
-    try:
-        sentiments = sentiment_pipe(sentence_texts, batch_size=32)
-    except Exception as e:
-        print(f"Sentiment pipeline error on {filepath}: {e}")
-        sentiments = []
-        for sentence_text in sentence_texts:
-            try:
-                res = sentiment_pipe(sentence_text[:512])[0]
-                sentiments.append(res)
-            except Exception:
-                sentiments.append({"label": "neutral", "score": 0.0})
-
     try:
         sentiments = sentiment_pipe(sentence_texts, batch_size=32)
     except Exception as e:

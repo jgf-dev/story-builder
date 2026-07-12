@@ -149,6 +149,21 @@ python3 -m storybuilder.analysis.visualize_arcs --story "story-slug" --window 10
 python3 -m storybuilder.analysis.visualize_tsne --perplexity 1000
 ```
 
+### Step 6: Generate TTS Audio
+
+Use the `genai-tts` console command (installed via `uv sync`) to convert `*-part.md` prompt files in a directory into `.wav` audio:
+
+```bash
+genai-tts --dir stories/the_secret_vacation
+```
+
+Or invoke directly via the Python module:
+
+```bash
+python3 -m storybuilder.genai.client --dir stories/the_secret_vacation
+```
+
+Skips existing `.wav` files; uses stateful interaction continuity across parts.
 ---
 
 ## 🧪 Running Tests

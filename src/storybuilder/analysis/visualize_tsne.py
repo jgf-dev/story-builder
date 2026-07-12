@@ -105,7 +105,7 @@ def create_and_save_plot(
         template="plotly_dark",
     )
 
-    fig.update_traces(marker=dict(size=8, line=dict(width=1, color="DarkSlateGrey")))
+    fig.update_traces(marker={"size": 8, "line": {"width": 1, "color": "DarkSlateGrey"}})
 
     df = pd.DataFrame.from_records(
         {
@@ -122,7 +122,7 @@ def create_and_save_plot(
             y=row["y"],
             text=f"<b>{row['subcategory'].upper()}</b>",
             showarrow=False,
-            font=dict(size=14, color="white"),
+            font={"size": 14, "color": "white"},
             bgcolor="rgba(0,0,0,0.6)",
             bordercolor="white",
             borderwidth=1,
@@ -134,10 +134,10 @@ def create_and_save_plot(
     print("Open this file in your web browser to explore the clusters interactively.")
 
 
-def main():
+def main() -> None:
     args = parse_args()
 
-    ids, embeddings, metadatas = fetch_embeddings(args.db_path)
+    ids, embeddings, _ = fetch_embeddings(args.db_path)
 
     if len(embeddings) < 2:
         if len(embeddings) > 0:

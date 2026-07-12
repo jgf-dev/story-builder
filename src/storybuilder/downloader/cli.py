@@ -328,6 +328,7 @@ def _upload_to_cloud(args: argparse.Namespace) -> None:
         print(f"Uploading output tree to GCS ({args.gcs_bucket})...")
         upload_many_gcs(
             args.gcs_bucket,
+            args.gcs_prefix,
             output_files,
             source_directory=str(output_dir),
         )

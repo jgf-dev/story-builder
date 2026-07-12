@@ -12,12 +12,8 @@ import logging
 import os
 import pathlib
 import warnings
-<<<<<<< HEAD
 from enum import Enum
 from enum import StrEnum
-=======
-from enum import Enum, StrEnum
->>>>>>> copilot/setup-mergify-flaky-test-detection
 from functools import cached_property
 
 from dotenv import load_dotenv

@@ -229,11 +229,16 @@ class TestDBIntegration(unittest.TestCase):
                 },
             ]
 
-            # Monkey patch upload_many to avoid hitting GCS during unit test
+            # Monkey patch uploads to avoid hitting GCS/S3 during unit test
             self.patcher_upload = unittest.mock.patch(
                 "storybuilder.downloader.cli.upload_many_gcs"
             )
             self.mock_upload = self.patcher_upload.start()
+            self.patcher_upload_s3 = unittest.mock.patch(
+                "storybuilder.downloader.cli.upload_many_s3"
+            )
+            self.mock_upload_s3 = self.patcher_upload_s3.start()
+            self.addCleanup(self.patcher_upload_s3.stop)
         except Exception as e:
             self.fail(f"Error setting up mocks: {e}")
 
@@ -245,6 +250,7 @@ class TestDBIntegration(unittest.TestCase):
         self.patcher_get_subcats.stop()
         self.patcher_proc_subcat.stop()
         self.patcher_upload.stop()
+        # patcher_upload_s3 stopped via addCleanup() in setUp()
         close_db()
         if Path(self.db_path).exists():
             Path(self.db_path).unlink()

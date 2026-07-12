@@ -1,21 +1,21 @@
 import os
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from dotenv import load_dotenv
-from google import genai
 from google.genai import types
+
+from tests.helpers_external_fakes import (
+    live_api_enabled,
+    make_fake_genai_client,
+)
 
 
 class TestSubagent(unittest.TestCase):
     def test_analyzer_direct(self):
         project_root = Path(__file__).resolve().parents[2]
         load_dotenv(project_root / ".env")
-
-        if not os.getenv("GEMINI_API_KEY") and not os.getenv(
-            "GOOGLE_APPLICATION_CREDENTIALS"
-        ):
-            self.skipTest("Vertex AI credentials / Gemini API key not configured")
 
         prompts_dir = (
             project_root
@@ -51,10 +51,6 @@ class TestSubagent(unittest.TestCase):
             ),
         ]
 
-        client = genai.Client(
-            vertexai=True, project="storage-499607", location="us-central1"
-        )
-
         story_path = project_root / "stories" / "text" / "the_secret_vacation-1-I.md"
         with open(story_path, "r") as f:
             story_content = f.read()
@@ -64,6 +60,46 @@ class TestSubagent(unittest.TestCase):
         cleaned_content = cleaned_content.replace("Gay/Incest", "Gay")
         cleaned_content = cleaned_content.replace("incest", "romance")
 
+        if live_api_enabled():
+            self._live_analyzer(
+                cleaned_content, analyzer_prompt, safety_settings
+            )
+            return
+
+        # Default unit path: patch Client so generate_content never leaves process.
+        fake_client = make_fake_genai_client(
+            text="fake story analysis for unit test",
+        )
+        with patch("google.genai.Client", return_value=fake_client):
+            from google import genai
+
+            client = genai.Client(
+                vertexai=True, project="storage-499607", location="us-central1"
+            )
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=cleaned_content,
+                config=types.GenerateContentConfig(
+                    safety_settings=safety_settings,
+                    system_instruction=analyzer_prompt,
+                ),
+            )
+            self.assertTrue(response.candidates)
+            self.assertGreater(len(response.text), 0)
+            client.models.generate_content.assert_called_once()
+
+    def _live_analyzer(self, cleaned_content, analyzer_prompt, safety_settings):
+        """Opt-in real Vertex generate_content (STORYBUILDER_LIVE_API=1)."""
+        from google import genai
+
+        if not os.getenv("GEMINI_API_KEY") and not os.getenv(
+            "GOOGLE_APPLICATION_CREDENTIALS"
+        ):
+            self.skipTest("Vertex AI credentials / Gemini API key not configured")
+
+        client = genai.Client(
+            vertexai=True, project="storage-499607", location="us-central1"
+        )
         try:
             response = client.models.generate_content(
                 model="gemini-2.5-flash",
@@ -88,5 +124,6 @@ class TestSubagent(unittest.TestCase):
             else:
                 self.fail(f"Subagent direct call failed: {e}")
 
-        if __name__ == "__main__":
-            unittest.main()
+
+if __name__ == "__main__":
+    unittest.main()

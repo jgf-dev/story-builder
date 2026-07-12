@@ -337,6 +337,7 @@
     let currentFileName = 'TASKS.md';
     let currentHandle = null;
     let isDirty = null; // null so the first setDirty(false) goes through
+    let lastSavedContent = null;
 
     function setDirty(dirty) {
       if (isDirty === dirty) return;
@@ -372,6 +373,7 @@
 
     function loadText(text, fileName = currentFileName) {
       editor.value = text;
+      lastSavedContent = text;
       currentFileName = fileName;
       updateStats(text);
       setStatus(`Loaded ${fileName}.`);
@@ -406,6 +408,7 @@
       try {
         if (currentHandle && window.showSaveFilePicker) {
           await saveViaHandle(currentHandle, editor.value);
+          lastSavedContent = editor.value;
           setStatus(`Saved ${currentFileName}.`);
           setDirty(false);
           return;
@@ -418,6 +421,7 @@
         a.download = currentFileName || 'TASKS.md';
         a.click();
         URL.revokeObjectURL(url);
+        lastSavedContent = editor.value;
         setStatus(`Downloaded ${a.download}.`);
         setDirty(false);
       } catch (error) {
@@ -441,6 +445,7 @@
       a.download = currentFileName || 'TASKS.md';
       a.click();
       URL.revokeObjectURL(url);
+      lastSavedContent = editor.value;
       setStatus(`Downloaded ${a.download}.`);
       setDirty(false);
     });
@@ -455,7 +460,7 @@
 
     editor.addEventListener('input', () => {
       updateStats(editor.value);
-      setDirty(true);
+      setDirty(editor.value !== lastSavedContent);
     });
 
     window.addEventListener('beforeunload', (e) => {

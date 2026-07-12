@@ -398,8 +398,8 @@ def search_stories(
     """Search the monolithic database using SQLModel and SQLAlchemy expressions."""
     limit: int = kwargs.get("limit", 100)
     snippets: bool = kwargs.get("snippets", True)
-    query: "str | None" = kwargs.get("query", None)
-    entity_suffixes: "list[str] | None" = kwargs.get("entity_suffixes", None)
+    query: str | None = kwargs.get("query")
+    entity_suffixes: list[str] | None = kwargs.get("entity_suffixes")
     if entity_suffixes == []:
         return []
 
@@ -625,9 +625,6 @@ def optimize_fts() -> None:
             session.commit()
         except Exception as e:
             std_logging.exception("FTS optimize skipped", exc_info=e)
-
-
-search_all_partitions = search_stories
 
 
 def close_db() -> None:

@@ -4,11 +4,12 @@ import sqlite3
 from collections import defaultdict
 from pathlib import Path
 
-
 import spacy
-from thinc.api import require_gpu, set_gpu_allocator
+from thinc.api import require_gpu
+from thinc.api import set_gpu_allocator
 from tqdm import tqdm
 from transformers import pipeline
+
 
 DB_PATH = "sentiment_analysis.db"
 ALLOWED_LABELS = {
@@ -34,7 +35,7 @@ def init_db(db_path):
             story_dir TEXT UNIQUE,
             subcategory TEXT
         )
-    """
+    """,
     )
     cursor.execute(
         """
@@ -48,7 +49,7 @@ def init_db(db_path):
             sentiment_score REAL,
             FOREIGN KEY(story_id) REFERENCES stories(id)
         )
-    """
+    """,
     )
     cursor.execute(
         """
@@ -61,13 +62,13 @@ def init_db(db_path):
         )
     """)
     cursor.execute(
-        "CREATE INDEX IF NOT EXISTS idx_sentences_story ON sentences(story_id)"
+        "CREATE INDEX IF NOT EXISTS idx_sentences_story ON sentences(story_id)",
     )
     cursor.execute(
-        "CREATE INDEX IF NOT EXISTS idx_entities_sentence ON sentence_entities(sentence_id)"
+        "CREATE INDEX IF NOT EXISTS idx_entities_sentence ON sentence_entities(sentence_id)",
     )
     cursor.execute(
-        "CREATE INDEX IF NOT EXISTS idx_entities_text ON sentence_entities(entity_text)"
+        "CREATE INDEX IF NOT EXISTS idx_entities_text ON sentence_entities(entity_text)",
     )
 
     conn.commit()
@@ -79,10 +80,9 @@ def get_sentiment_value(result):
     score = result["score"]
     if "positive" in label:
         return score
-    elif "negative" in label:
+    if "negative" in label:
         return -score
-    else:
-        return 0.0
+    return 0.0
 
 
 def extract_chapter_number(filename):
@@ -100,7 +100,7 @@ def extract_chapter_number(filename):
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Analyze narrative sentiment and entity interactions."
+        description="Analyze narrative sentiment and entity interactions.",
     )
     parser.add_argument(
         "--stories-dir",
@@ -121,10 +121,10 @@ def parse_args():
         help="Max number of multi-chapter stories to process.",
     )
     parser.add_argument(
-        "--db-path", type=str, default=DB_PATH, help="Path to SQLite DB."
+        "--db-path", type=str, default=DB_PATH, help="Path to SQLite DB.",
     )
     parser.add_argument(
-        "--spacy-model", type=str, default="en_core_web_sm", help="spaCy model."
+        "--spacy-model", type=str, default="en_core_web_sm", help="spaCy model.",
     )
     parser.add_argument(
         "--sentiment-model",
@@ -156,7 +156,7 @@ def find_multi_chapter_stories(stories_dir, subcategory=None):
 
 def load_models(spacy_model_name, sentiment_model_name, use_gpu):
     print(
-        f"Loading models (spaCy: {spacy_model_name}, HF: {sentiment_model_name})..."
+        f"Loading models (spaCy: {spacy_model_name}, HF: {sentiment_model_name})...",
     )
     device = 0 if use_gpu else -1
 
@@ -215,7 +215,7 @@ def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe
     for sent_idx, (sent, sent_result) in enumerate(zip(sentences, sentiments)):
         score = get_sentiment_value(sent_result)
         sentence_batch.append(
-            (story_id, filepath.name, chapter_idx, sent_idx, sent.text, score)
+            (story_id, filepath.name, chapter_idx, sent_idx, sent.text, score),
         )
         sentence_id = last_id_before + 1 + sent_idx
         for ent in sent.ents:
@@ -291,7 +291,7 @@ def main():
             break
 
         was_processed = process_story(
-            story_dir, filepaths, cursor, conn, nlp, sentiment_pipe
+            story_dir, filepaths, cursor, conn, nlp, sentiment_pipe,
         )
         if was_processed:
             processed_stories += 1

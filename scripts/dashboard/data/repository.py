@@ -4,7 +4,6 @@ import sqlite3
 from contextlib import contextmanager
 from datetime import date
 from pathlib import Path
-from typing import Optional
 
 from ..config import DB_PATH
 from .models import ArchiveStats
@@ -18,7 +17,7 @@ from .models import Tag
 class DatabaseRepository:
     """Repository for database operations."""
 
-    def __init__(self, db_path: Optional[str] = None):
+    def __init__(self, db_path: str | None = None):
         """Initialize the repository with a database path."""
         self.db_path = db_path or DB_PATH
         self._ensure_db_exists()
@@ -61,7 +60,7 @@ class DatabaseRepository:
         with self._get_connection() as conn:
             cursor = conn.execute(
                 "SELECT tag FROM story_tags WHERE story_path = ? ORDER BY tag",
-                (story_path,)
+                (story_path,),
             )
             return [row["tag"] for row in cursor.fetchall()]
 
@@ -104,7 +103,7 @@ class DatabaseRepository:
             if query.tags:
                 tag_placeholders = ",".join(["?"] * len(query.tags))
                 where_conditions.append(
-                    f"EXISTS (SELECT 1 FROM story_tags WHERE story_path = stories.path AND tag IN ({tag_placeholders}))"
+                    f"EXISTS (SELECT 1 FROM story_tags WHERE story_path = stories.path AND tag IN ({tag_placeholders}))",
                 )
                 params.extend(query.tags)
 
@@ -173,24 +172,24 @@ class DatabaseRepository:
         direction = "DESC" if sort_order == "desc" else "ASC"
         return f"{column} {direction}"
 
-    def get_story(self, path: str, include_content: bool = True) -> Optional[Story]:
+    def get_story(self, path: str, include_content: bool = True) -> Story | None:
         """Get a single story by path."""
         with self._get_connection() as conn:
             cursor = conn.execute(
                 "SELECT * FROM stories WHERE path = ?",
-                (path,)
+                (path,),
             )
             row = cursor.fetchone()
             if row:
                 return self._row_to_story(row, include_content)
             return None
 
-    def get_story_by_slug(self, slug: str, include_content: bool = True) -> Optional[Story]:
+    def get_story_by_slug(self, slug: str, include_content: bool = True) -> Story | None:
         """Get a single story by slug."""
         with self._get_connection() as conn:
             cursor = conn.execute(
                 "SELECT * FROM stories WHERE slug = ?",
-                (slug,)
+                (slug,),
             )
             row = cursor.fetchone()
             if row:
@@ -217,7 +216,7 @@ class DatabaseRepository:
         """Get all unique categories."""
         with self._get_connection() as conn:
             cursor = conn.execute(
-                "SELECT DISTINCT category FROM stories WHERE category IS NOT NULL AND category != '' ORDER BY category"
+                "SELECT DISTINCT category FROM stories WHERE category IS NOT NULL AND category != '' ORDER BY category",
             )
             return [row["category"] for row in cursor.fetchall()]
 
@@ -225,7 +224,7 @@ class DatabaseRepository:
         """Get all unique authors."""
         with self._get_connection() as conn:
             cursor = conn.execute(
-                "SELECT DISTINCT author FROM stories WHERE author IS NOT NULL AND author != '' ORDER BY author"
+                "SELECT DISTINCT author FROM stories WHERE author IS NOT NULL AND author != '' ORDER BY author",
             )
             return [row["author"] for row in cursor.fetchall()]
 
@@ -250,12 +249,12 @@ class DatabaseRepository:
 
             # Total authors
             stats.total_authors = conn.execute(
-                "SELECT COUNT(DISTINCT author) FROM stories WHERE author IS NOT NULL AND author != ''"
+                "SELECT COUNT(DISTINCT author) FROM stories WHERE author IS NOT NULL AND author != ''",
             ).fetchone()[0]
 
             # Total categories
             stats.total_categories = conn.execute(
-                "SELECT COUNT(DISTINCT category) FROM stories WHERE category IS NOT NULL AND category != ''"
+                "SELECT COUNT(DISTINCT category) FROM stories WHERE category IS NOT NULL AND category != ''",
             ).fetchone()[0]
 
             # Total words
@@ -263,7 +262,7 @@ class DatabaseRepository:
 
             # Date range
             date_row = conn.execute(
-                "SELECT MIN(publication_date), MAX(publication_date) FROM stories WHERE publication_date IS NOT NULL"
+                "SELECT MIN(publication_date), MAX(publication_date) FROM stories WHERE publication_date IS NOT NULL",
             ).fetchone()
             if date_row[0] and date_row[1]:
                 stats.date_range = (date.fromisoformat(date_row[0]), date.fromisoformat(date_row[1]))
@@ -308,7 +307,7 @@ class DatabaseRepository:
 
             # Tagged stories count
             stats.tagged_stories_count = conn.execute(
-                "SELECT COUNT(DISTINCT story_path) FROM story_tags"
+                "SELECT COUNT(DISTINCT story_path) FROM story_tags",
             ).fetchone()[0]
 
             # Unique tags count
@@ -343,7 +342,7 @@ class DatabaseRepository:
             try:
                 conn.execute(
                     "INSERT INTO favorites (story_path, added_at, notes, tags) VALUES (?, ?, ?, ?)",
-                    (story_path, date.today().isoformat(), notes, ",".join(tags or []))
+                    (story_path, date.today().isoformat(), notes, ",".join(tags or [])),
                 )
                 conn.commit()
                 return True
@@ -355,7 +354,7 @@ class DatabaseRepository:
         with self._get_connection() as conn:
             cursor = conn.execute(
                 "DELETE FROM favorites WHERE story_path = ?",
-                (story_path,)
+                (story_path,),
             )
             conn.commit()
             return cursor.rowcount > 0
@@ -365,7 +364,7 @@ class DatabaseRepository:
         with self._get_connection() as conn:
             cursor = conn.execute(
                 "SELECT 1 FROM favorites WHERE story_path = ?",
-                (story_path,)
+                (story_path,),
             )
             return cursor.fetchone() is not None
 
@@ -397,7 +396,7 @@ class DatabaseRepository:
             try:
                 conn.execute(
                     "INSERT INTO story_tags (story_path, tag) VALUES (?, ?)",
-                    (story_path, tag.lower().strip())
+                    (story_path, tag.lower().strip()),
                 )
                 conn.commit()
                 return True
@@ -409,7 +408,7 @@ class DatabaseRepository:
         with self._get_connection() as conn:
             cursor = conn.execute(
                 "DELETE FROM story_tags WHERE story_path = ? AND tag = ?",
-                (story_path, tag.lower().strip())
+                (story_path, tag.lower().strip()),
             )
             conn.commit()
             return cursor.rowcount > 0
@@ -419,7 +418,7 @@ class DatabaseRepository:
         with self._get_connection() as conn:
             cursor = conn.execute(
                 "SELECT tag FROM story_tags WHERE story_path = ? ORDER BY tag",
-                (story_path,)
+                (story_path,),
             )
             return [row["tag"] for row in cursor.fetchall()]
 
@@ -434,10 +433,10 @@ class DatabaseRepository:
 
 
 # Singleton instance
-_repository: Optional[DatabaseRepository] = None
+_repository: DatabaseRepository | None = None
 
 
-def get_repository(db_path: Optional[str] = None) -> DatabaseRepository:
+def get_repository(db_path: str | None = None) -> DatabaseRepository:
     """Get the singleton database repository instance."""
     global _repository
     if _repository is None or db_path is not None:

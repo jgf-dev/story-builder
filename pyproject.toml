@@ -163,7 +163,7 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-testpaths  = ["tests"]
+testpaths = ["tests"]
 pythonpath = ["."]
 
 # Temporary disable test in agent

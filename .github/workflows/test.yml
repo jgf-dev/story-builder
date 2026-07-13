@@ -74,13 +74,16 @@ jobs:
       - name: Run Downloader Tests
         env:
           MERGIFY_TOKEN: ${{ secrets.MERGIFY_TOKEN }}
-        run: uv run pytest --cov=src --cov-report=xml:coverage-downloader.xml tests/downloader/
-      - name: Post Coverage Comment
+        run: uv run pytest --cov=src tests/downloader
+      - name: Rename Coverage File
         if: github.event_name == 'pull_request'
-        uses: orgoro/coverage@3f13a558c5af7376496aa4848bf0224aead366ac # v3.2
+        run: mv .coverage .coverage.downloader
+      - name: Upload Coverage Artifact
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
         with:
-          coverageFile: coverage-downloader.xml
-          token: ${{ secrets.GITHUB_TOKEN }}
+          name: coverage-downloader
+          path: .coverage.downloader
 
   test-genai:
     needs: changes
@@ -106,13 +109,16 @@ jobs:
       - name: Run GenAI Tests
         env:
           MERGIFY_TOKEN: ${{ secrets.MERGIFY_TOKEN }}
-        run: uv run pytest --cov=src --cov-report=xml:coverage-genai.xml tests/genai/
-      - name: Post Coverage Comment
+        run: uv run pytest --cov=src tests/genai
+      - name: Rename Coverage File
         if: github.event_name == 'pull_request'
-        uses: orgoro/coverage@3f13a558c5af7376496aa4848bf0224aead366ac # v3.2
+        run: mv .coverage .coverage.genai
+      - name: Upload Coverage Artifact
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
         with:
-          coverageFile: coverage-genai.xml
-          token: ${{ secrets.GITHUB_TOKEN }}
+          name: coverage-genai
+          path: .coverage.genai
 
   test-analysis:
     needs: changes
@@ -138,13 +144,16 @@ jobs:
       - name: Run Analysis Tests
         env:
           MERGIFY_TOKEN: ${{ secrets.MERGIFY_TOKEN }}
-        run: uv run pytest --cov=src --cov-report=xml:coverage-analysis.xml tests/analysis/
-      - name: Post Coverage Comment
+        run: uv run pytest --cov=src tests/analysis
+      - name: Rename Coverage File
         if: github.event_name == 'pull_request'
-        uses: orgoro/coverage@3f13a558c5af7376496aa4848bf0224aead366ac # v3.2
+        run: mv .coverage .coverage.analysis
+      - name: Upload Coverage Artifact
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
         with:
-          coverageFile: coverage-analysis.xml
-          token: ${{ secrets.GITHUB_TOKEN }}
+          name: coverage-analysis
+          path: .coverage.analysis
 
   test-agents:
     needs: changes
@@ -170,13 +179,16 @@ jobs:
       - name: Run Agent Tests
         env:
           MERGIFY_TOKEN: ${{ secrets.MERGIFY_TOKEN }}
-        run: uv run pytest --cov=src --cov-report=xml:coverage-agents.xml tests/agents/
-      - name: Post Coverage Comment
+        run: uv run pytest --cov=src tests/agents
+      - name: Rename Coverage File
         if: github.event_name == 'pull_request'
-        uses: orgoro/coverage@3f13a558c5af7376496aa4848bf0224aead366ac # v3.2
+        run: mv .coverage .coverage.agents
+      - name: Upload Coverage Artifact
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
         with:
-          coverageFile: coverage-agents.xml
-          token: ${{ secrets.GITHUB_TOKEN }}
+          name: coverage-agents
+          path: .coverage.agents
 
   test-misc:
     needs: changes
@@ -202,13 +214,16 @@ jobs:
       - name: Run Misc Tests
         env:
           MERGIFY_TOKEN: ${{ secrets.MERGIFY_TOKEN }}
-        run: uv run pytest --cov=src --cov-report=xml:coverage-misc.xml tests/misc/
-      - name: Post Coverage Comment
+        run: uv run pytest --cov=src tests/misc
+      - name: Rename Coverage File
         if: github.event_name == 'pull_request'
-        uses: orgoro/coverage@3f13a558c5af7376496aa4848bf0224aead366ac # v3.2
+        run: mv .coverage .coverage.misc
+      - name: Upload Coverage Artifact
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
         with:
-          coverageFile: coverage-misc.xml
-          token: ${{ secrets.GITHUB_TOKEN }}
+          name: coverage-misc
+          path: .coverage.misc
 
   test-results:
     needs:
@@ -229,3 +244,45 @@ jobs:
               exit 1
             fi
           done
+
+  post-coverage:
+    needs:
+      - test-downloader
+      - test-genai
+      - test-analysis
+      - test-agents
+      - test-misc
+    if: always() && github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version-file: ".python-version"
+      - name: Download all coverage artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: coverages
+          pattern: coverage-*
+          merge-multiple: true
+      - name: Combine coverages
+        run: |
+          uv run pytest --version # ensure virtualenv setup
+          uv run pip install coverage
+          uv run coverage combine coverages/.coverage.*
+          uv run coverage xml -o coverage.xml
+      - name: Post Coverage Comment
+        uses: orgoro/coverage@ca0c362dc1a4f100447309405e6dfea47e251495 # v3.3.1
+        with:
+          coverageFile: coverage.xml
+          token: ${{ secrets.GITHUB_TOKEN }}

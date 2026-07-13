@@ -3,6 +3,60 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
+## 13/07/2026
+
+### Test Coverage Improvements for Downloader Module
+
+Increased package test coverage from **69% to 82%** (+13 percentage points).
+
+#### cli.py (53% → 95%, +42%)
+Added `TestCLIInternalFunctions` (10 tests):
+- `_print_config` - basic, with db, with proxy/rotation
+- `_merge_targets` - deduplication
+- `_scrape_subcategories` - parallel and sequential
+- `_download_stories_parallel` / `_download_stories_sequential`
+- `_download_stories` - branch selection (parallel vs sequential)
+
+Added `TestUploadToCloud` (4 tests):
+- S3 only upload, GCS only upload, fallback to nifty-index, empty output handling
+
+Added `TestStorageFunctions` (5 tests):
+- `_s3_object_key` with/without prefix
+- `upload_many_gcs` / `upload_many_s3` empty returns early
+- `upload_many` delegates to GCS
+
+#### scraper.py (67% → 83%, +16%)
+Added `TestScraperMultiChapter` (9 tests):
+- `_get_cached_chapters` - cache hit, cache miss, no chapters in range
+- `_fetch_and_parse_chapters` - basic parsing, empty response
+- `scrape_multi_chapter_folder` - cache usage, cache miss
+- `_process_directory_story` - chapter target generation
+- `_process_single_story` - single target generation
+
+#### db.py (50% → 77%, +27%)
+Added `TestDBSearch` (6 tests):
+- Basic search, category filter, author filter, date range, no results, limit
+
+Added `TestDBParseOutputPath` (5 tests):
+- 3/4/5-part path parsing, chapter suffix detection, invalid path handling
+
+Added `TestDBContentOperations` (2 tests):
+- Get story returns all fields
+
+#### writer.py (76% → 84%, +8%)
+Added `TestWriterCacheInteraction` (5 tests):
+- Duplicate targets, cache deduplication, file exists check, replicate_story, download_single_target
+
+#### storage.py (72% → 73%, +1%)
+Minor additions for S3 key generation and empty file handling.
+
+#### Summary
+- **147 tests passing**
+- **Coverage**: 82% total package coverage
+- **Files modified**: `test_cli.py`, `test_downloader.py`, `test_database.py`, `test_db.py`
+
+---
+
 ## 11/07/2026
 
 ### Resolved merge conflicts with branch fix-genai-tts-entrypoint-9568411881905231847

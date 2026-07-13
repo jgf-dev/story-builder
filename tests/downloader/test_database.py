@@ -868,5 +868,167 @@ class TestImportToSQLite(unittest.TestCase):
         self.assertEqual(result["content"], "")
 
 
+class TestDBSearch(unittest.TestCase):
+    """Tests for search_stories and related functions."""
+
+    def setUp(self):
+        import tempfile
+        from storybuilder.downloader import db
+
+        self.temp_dir = tempfile.mkdtemp()
+        self.db_path = os.path.join(self.temp_dir, "test.db")
+        db.init_db(self.db_path)
+
+        db.insert_story(
+            output_path="/tmp/story1.txt",
+            title="Love Story",
+            author="Author A",
+            story_date="2024-06-01",
+            url="http://ex/1",
+            content="A story about love and romance",
+        )
+        db.insert_story(
+            output_path="/tmp/story2.txt",
+            title="Adventure Tale",
+            author="Author B",
+            story_date="2024-07-15",
+            url="http://ex/2",
+            content="An adventure in the mountains",
+        )
+
+    def tearDown(self):
+        import shutil
+        shutil.rmtree(self.temp_dir)
+
+    def test_search_stories_basic(self):
+        from storybuilder.downloader import db
+
+        results = db.search_stories("love")
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["title"], "Love Story")
+
+    def test_search_stories_with_category_filter(self):
+        from storybuilder.downloader import db
+
+        results = db.search_stories("adventure", category="gay")
+        self.assertIsInstance(results, list)
+
+    def test_search_stories_with_author_filter(self):
+        from storybuilder.downloader import db
+
+        results = db.search_stories("", author="Author A")
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["author_name"], "Author A")
+
+    def test_search_stories_date_range(self):
+        from storybuilder.downloader import db
+
+        results = db.search_stories("", date_from="2024-06-01", date_to="2024-06-30")
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["title"], "Love Story")
+
+    def test_search_stories_no_results(self):
+        from storybuilder.downloader import db
+
+        results = db.search_stories("nonexistent_word_xyz")
+        self.assertEqual(len(results), 0)
+
+    def test_search_stories_limit(self):
+        from storybuilder.downloader import db
+
+        results = db.search_stories("", limit=1)
+        self.assertLessEqual(len(results), 1)
+
+
+class TestDBParseOutputPath(unittest.TestCase):
+    """Tests for _parse_output_path.
+
+    Path format: output_dir/orientation/category/file (relative, no leading /)
+    """
+
+    def test_parse_4part_path(self):
+        """4-part: output/orientation/category/file"""
+        from storybuilder.downloader.db import _parse_output_path
+
+        orientation, category, story_slug, chapter = _parse_output_path(
+            "output/gay/romance/story.txt"
+        )
+        self.assertEqual(orientation, "gay")
+        self.assertEqual(category, "romance")
+        self.assertEqual(story_slug, "story")
+
+    def test_parse_5part_path(self):
+        """5-part: output/orientation/category/slug/file"""
+        from storybuilder.downloader.db import _parse_output_path
+
+        orientation, category, story_slug, chapter = _parse_output_path(
+            "output/gay/series/my-story/ch1.txt"
+        )
+        self.assertEqual(orientation, "gay")
+        self.assertEqual(category, "series")
+        self.assertEqual(story_slug, "my-story")
+
+    def test_parse_3part_path(self):
+        """3-part: output/orientation/file"""
+        from storybuilder.downloader.db import _parse_output_path
+
+        orientation, category, story_slug, chapter = _parse_output_path(
+            "output/gay/some-story.txt"
+        )
+        self.assertEqual(orientation, "gay")
+        self.assertEqual(category, "some-story.txt")  # full filename for 3-part
+        self.assertEqual(story_slug, "some-story")
+
+    def test_parse_with_chapter_suffix(self):
+        from storybuilder.downloader.db import _parse_output_path
+
+        orientation, category, story_slug, chapter = _parse_output_path(
+            "output/gay/series/chapter-5.txt"
+        )
+        self.assertEqual(story_slug, "chapter")
+        self.assertEqual(chapter, 5)
+
+    def test_parse_invalid_too_short(self):
+        from storybuilder.downloader.db import _parse_output_path
+
+        with self.assertRaises(ValueError):
+            _parse_output_path("short.txt")
+
+
+class TestDBContentOperations(unittest.TestCase):
+    """Tests for content update/delete operations."""
+
+    def setUp(self):
+        import tempfile
+        from storybuilder.downloader import db
+
+        self.temp_dir = tempfile.mkdtemp()
+        self.db_path = os.path.join(self.temp_dir, "test.db")
+        db.init_db(self.db_path)
+
+    def tearDown(self):
+        import shutil
+        shutil.rmtree(self.temp_dir)
+
+    def test_get_story_returns_all_fields(self):
+        from storybuilder.downloader import db
+
+        db.insert_story(
+            output_path="/tmp/fields_test.txt",
+            title="Test Title",
+            author="Test Author",
+            story_date="2024-06-01",
+            url="http://ex/test",
+            content="Test content here",
+        )
+
+        result = db.get_story("/tmp/fields_test.txt")
+
+        self.assertEqual(result["title"], "Test Title")
+        self.assertIn("Test Author", result["author"])
+        self.assertEqual(result["url"], "http://ex/test")
+        self.assertIn("Test content", result["content"])
+
+
 if __name__ == "__main__":
     unittest.main()

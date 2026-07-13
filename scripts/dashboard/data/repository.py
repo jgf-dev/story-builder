@@ -37,22 +37,25 @@ class DatabaseRepository:
         finally:
             conn.close()
 
-    def _row_to_story(self, row: sqlite3.Row, include_content: bool = False) -> Story:
+    def _row_to_story(
+        self, row: sqlite3.Row, include_content: bool = False, preloaded_tags: list[str] | None = None
+    ) -> Story:
         """Convert a database row to a Story object."""
+        row_dict = dict(row)
         return Story(
-            path=row["path"],
-            title=row["title"],
-            author=row["author"],
-            publication_date=date.fromisoformat(row["publication_date"]) if row["publication_date"] else None,
-            category=row["category"] or "",
-            subcategory=row["subcategory"] or "",
-            content=row["content"] if include_content else "",
-            word_count=row["word_count"] or 0,
-            year=row["year"] or 0,
-            slug=row["slug"] or "",
-            is_favorite=bool(row.get("is_favorite", 0)),
-            tags=self._get_story_tags(row["path"]),
-            snippet=row.get("snippet", ""),
+            path=row_dict["path"],
+            title=row_dict["title"],
+            author=row_dict["author"],
+            publication_date=date.fromisoformat(row_dict["publication_date"]) if row_dict["publication_date"] else None,
+            category=row_dict["category"] or "",
+            subcategory=row_dict["subcategory"] or "",
+            content=row_dict["content"] if include_content else "",
+            word_count=row_dict["word_count"] or 0,
+            year=row_dict["year"] or 0,
+            slug=row_dict["slug"] or "",
+            is_favorite=bool(row_dict.get("is_favorite")),
+            tags=preloaded_tags if preloaded_tags is not None else self._get_story_tags(row_dict["path"]),
+            snippet=row_dict.get("snippet", ""),
         )
 
     def _get_story_tags(self, story_path: str) -> list[str]:
@@ -149,7 +152,20 @@ class DatabaseRepository:
             """
 
             cursor = conn.execute(sql, params)
-            stories = [self._row_to_story(row) for row in cursor.fetchall()]
+            rows = cursor.fetchall()
+
+            # Batch fetch tags for all stories in the current page
+            story_paths = [row["path"] for row in rows]
+            tags_by_path = {path: [] for path in story_paths}
+
+            if story_paths:
+                placeholders = ",".join(["?"] * len(story_paths))
+                tag_sql = f"SELECT story_path, tag FROM story_tags WHERE story_path IN ({placeholders}) ORDER BY tag"
+                tag_cursor = conn.execute(tag_sql, story_paths)
+                for tag_row in tag_cursor.fetchall():
+                    tags_by_path[tag_row["story_path"]].append(tag_row["tag"])
+
+            stories = [self._row_to_story(row, preloaded_tags=tags_by_path.get(row["path"], [])) for row in rows]
 
             return SearchResult(
                 stories=stories,

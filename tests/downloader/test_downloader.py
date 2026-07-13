@@ -2,11 +2,15 @@ import unittest
 import unittest.mock
 import datetime
 import os
+import tempfile
+from unittest.mock import patch, MagicMock
+from pathlib import Path
 
 # Import modular components
 from storybuilder.downloader.date_parser import parse_nifty_date
 from storybuilder.downloader.scraper import parse_listing_rows
 from storybuilder.downloader import cache
+from storybuilder.downloader import storage as dl_storage
 
 
 class TestDateParser(unittest.TestCase):
@@ -378,3 +382,103 @@ class TestProcessSubcategory(unittest.TestCase):
 
         self.assertEqual(results[0]["key"], (None, "story_no_ext.txt"))
         self.assertEqual(results[1]["key"], (None, "story_with.html"))
+
+
+class TestDownloaderStorage(unittest.TestCase):
+    """Unit tests for src/storybuilder/downloader/storage.py to increase coverage."""
+
+    def test_normalize_filenames_no_source_dir(self):
+        filenames = ["/abs/path/to/file1.txt", "relative/file2.txt"]
+        result = dl_storage._normalize_filenames(filenames, "")
+        self.assertEqual(result, filenames)
+
+    def test_normalize_filenames_with_source_dir(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            f1 = base / "sub" / "file1.txt"
+            f1.parent.mkdir(parents=True)
+            f1.touch()
+            filenames = [str(f1), str(base / "outside.txt")]
+            result = dl_storage._normalize_filenames(filenames, str(base))
+            self.assertIn("sub/file1.txt", result)
+            self.assertIn("outside.txt", result)
+
+    def test_normalize_filenames_fallback_to_basename(self):
+        filenames = ["/completely/outside/file.txt"]
+        result = dl_storage._normalize_filenames(filenames, "/some/other/dir")
+        self.assertEqual(result, ["file.txt"])
+
+    @patch("storybuilder.downloader.storage.Client")
+    @patch("storybuilder.downloader.storage.transfer_manager")
+    def test_upload_many_gcs_basic(self, mock_tm, mock_client):
+        mock_bucket = MagicMock()
+        mock_client.return_value.bucket.return_value = mock_bucket
+        mock_tm.upload_many_from_filenames.return_value = [None, None]
+
+        dl_storage.upload_many_gcs(
+            "my-bucket",
+            "prefix",
+            ["file1.txt", "file2.txt"],
+            source_directory="",
+            workers=2,
+        )
+
+        mock_client.assert_called_once()
+        mock_tm.upload_many_from_filenames.assert_called_once()
+        self.assertTrue(mock_tm.upload_many_from_filenames.called)
+
+    @patch("storybuilder.downloader.storage.Client")
+    @patch("storybuilder.downloader.storage.transfer_manager")
+    def test_upload_many_gcs_empty(self, mock_tm, mock_client):
+        dl_storage.upload_many_gcs("bucket", "", [])
+        mock_tm.upload_many_from_filenames.assert_not_called()
+
+    def test_upload_many_s3(self):
+        mock_boto3 = MagicMock()
+        mock_s3 = MagicMock()
+        mock_boto3.client.return_value = mock_s3
+
+        with patch.dict("sys.modules", {"boto3": mock_boto3}):
+            with patch("concurrent.futures.ThreadPoolExecutor") as mock_executor:
+                with patch("concurrent.futures.as_completed") as mock_as_completed:
+                    mock_future = MagicMock()
+                    mock_future.result.return_value = ("file.txt", None)
+                    mock_executor.return_value.__enter__.return_value.submit.return_value = mock_future
+                    mock_as_completed.return_value = [mock_future]
+
+                    dl_storage.upload_many_s3(
+                        "my-bucket",
+                        "prefix",
+                        ["file.txt"],
+                        source_directory="",
+                    )
+
+                    mock_boto3.client.assert_called_with("s3")
+
+    def test_upload_many_s3_empty(self):
+        # Should not attempt boto3 import when no files
+        with patch.dict("sys.modules", {"boto3": MagicMock()}):
+            dl_storage.upload_many_s3("bucket", "", [])
+            # If it tried to import, it would have been in the dict, but call shouldn't happen
+            # Just ensure no crash and early return
+            # No exception expected
+
+    def test_resolve_s3_source_no_base(self):
+        src, rel = dl_storage._resolve_s3_source("/abs/path/file.txt", None)
+        self.assertEqual(rel, "file.txt")
+
+    def test_resolve_s3_source_with_base(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            f = base / "sub" / "file.txt"
+            src, rel = dl_storage._resolve_s3_source(str(f), base)
+            self.assertIn("sub/file.txt", rel)
+
+    def test_s3_object_key(self):
+        self.assertEqual(dl_storage._s3_object_key("", "file.txt"), "file.txt")
+        self.assertEqual(dl_storage._s3_object_key("pre", "file.txt"), "pre/file.txt")
+
+    def test_upload_single_s3(self):
+        mock_s3 = MagicMock()
+        dl_storage._upload_single_s3(mock_s3, "bucket", "pre", "file.txt", None)
+        mock_s3.upload_file.assert_called_once()

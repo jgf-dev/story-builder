@@ -188,6 +188,25 @@ class TestGenAIClient(unittest.TestCase):
         assert raised.value.code != 0
         assert "/nonexistent_dir_xyz" in stderr.getvalue()
 
+    def test_get_gemini_api_keys_primary_only(self) -> None:
+        from storybuilder.genai.client import get_gemini_api_keys
+        with patch.dict("os.environ", {"GEMINI_API_KEY": "primary-key"}, clear=True):
+            keys = get_gemini_api_keys()
+            self.assertEqual(len(keys), 1)
+            self.assertEqual(keys[0], ("GEMINI_API_KEY", "primary-key"))
+
+    def test_get_gemini_api_keys_with_rotations(self) -> None:
+        from storybuilder.genai.client import get_gemini_api_keys
+        env = {
+            "GEMINI_API_KEY": "primary",
+            "GEMINI_API_KEY_1": "key1",
+            "GEMINI_API_KEY_2": "key2",
+        }
+        with patch.dict("os.environ", env, clear=True):
+            keys = get_gemini_api_keys()
+            self.assertEqual(len(keys), 3)
+            self.assertEqual(keys[1], ("GEMINI_API_KEY_1", "key1"))
+
 
 if __name__ == "__main__":
     unittest.main()

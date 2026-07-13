@@ -44,3 +44,10 @@ gh_2.40.1_linux_amd64/
 *.diff
 
 *.diff
+.coverage
+.ruff_cache
+.coverage
+.jules/
+.cache
+.benchmarks
+coverage_html/

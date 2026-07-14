@@ -264,7 +264,7 @@
       </p>
     </header>
 
-    <main class="grid">
+    <div class="grid">
       <section class="card">
         <div class="hd">
           <h2>TASKS.md Editor</h2>
@@ -272,12 +272,12 @@
         </div>
         <div class="toolbar">
           <input id="fileInput" class="sr-only" type="file" accept=".md,text/markdown,text/plain">
-          <label class="file-label" for="fileInput" title="Choose a TASKS.md file to load">Load TASKS.md</label>
+          <label class="file-label" for="fileInput">Load TASKS.md</label>
           <button class="primary" id="saveBtn" title="No unsaved changes" aria-keyshortcuts="Control+S Meta+S" disabled>Save</button>
-          <button id="downloadBtn" title="Download current contents as a file">Download Copy</button>
-          <button class="warn" id="resetBtn" title="Clear and reset to default template">Reset Template</button>
+          <button id="downloadBtn">Download Copy</button>
+          <button class="warn" id="resetBtn">Reset Template</button>
         </div>
-        <textarea id="editor" class="editor" spellcheck="false" aria-label="TASKS.md Editor" placeholder="Your tasks will appear here..."></textarea>
+        <textarea id="editor" class="editor" spellcheck="false" aria-label="TASKS.md Editor"></textarea>
         <div id="status" class="status" role="status" aria-live="polite">Ready.</div>
       </section>
 
@@ -310,7 +310,7 @@
           </div>
         </section>
       </aside>
-    </main>
+    </div>
   </div>
 
   <script>

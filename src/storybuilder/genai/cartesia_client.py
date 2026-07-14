@@ -41,11 +41,11 @@ NAME_FALLBACK_MAP = {
 
 def wave_file(filename, pcm, channels=1, rate=24000, sample_width=2) -> None:
     """Writes raw PCM s16le bytes to a standard WAV container."""
-    with wave.open(filename, "wb") as wf:
-        wf.setnchannels(channels)
-        wf.setsampwidth(sample_width)
-        wf.setframerate(rate)
-        wf.writeframes(pcm)
+    with wave.open(filename, "wb") as wf:  # pylint: disable=no-member
+        wf.setnchannels(channels)  # pylint: disable=no-member
+        wf.setsampwidth(sample_width)  # pylint: disable=no-member
+        wf.setframerate(rate)  # pylint: disable=no-member
+        wf.writeframes(pcm)  # pylint: disable=no-member
 
 
 def parse_speech_config_cartesia(markdown_content):

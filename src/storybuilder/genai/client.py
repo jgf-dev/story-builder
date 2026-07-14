@@ -10,15 +10,16 @@ import wave
 from dotenv import load_dotenv
 from google import genai
 
+
 load_dotenv()
 
 
 def wave_file_writer(filename, pcm, channels=1, rate=24000, sample_width=2) -> None:
-    with wave.open(filename, "wb") as wf:
-        wf.setnchannels(channels)
-        wf.setsampwidth(sample_width)
-        wf.setframerate(rate)
-        wf.writeframes(pcm)
+    with wave.open(filename, "wb") as wf:  # type: ignore[attr-defined]
+        wf.setnchannels(channels)  # pylint: disable=no-member
+        wf.setsampwidth(sample_width)  # pylint: disable=no-member
+        wf.setframerate(rate)  # pylint: disable=no-member
+        wf.writeframes(pcm)  # pylint: disable=no-member
 
 
 def _parse_voice_mappings(markdown_content):
@@ -110,7 +111,7 @@ def get_gemini_api_keys():
     return keys
 
 
-def _classify_error(error_msg: str) -> tuple[bool, bool, bool, bool]:
+def _classify_error(error_msg: str) -> tuple[bool, bool, bool]:
     error_lower = error_msg.lower()
     is_invalid_key = (
         "api key not valid" in error_lower
@@ -122,87 +123,36 @@ def _classify_error(error_msg: str) -> tuple[bool, bool, bool, bool]:
     is_session_not_found = (
         "404" in error_msg or "not_found" in error_lower or "requested entity was not found" in error_lower
     )
-    is_unauthorized = "unauthorized" in error_lower or "401" in error_msg
-    return is_invalid_key, is_quota, is_session_not_found, is_unauthorized
+    return is_invalid_key, is_quota, is_session_not_found
 
 
-def _handle_exception(e, api_state, previous_id, attempt, md_file):
-    is_invalid_key, is_quota, is_session_not_found, is_unauthorized = _classify_error(str(e))
-    md_name = pathlib.Path(md_file).name
+def _handle_exception(e, api_state, previous_id, keys_tried, attempt, md_file):
+    is_invalid_key, is_quota, is_session_not_found = _classify_error(str(e))
 
     if is_session_not_found and previous_id is not None:
-        print(f"  Session ID {previous_id} not found or expired.")
-        return _prompt_key_rotation(api_state, previous_id, md_file)
+        print(f"  Session ID {previous_id} not found or expired. Retrying without session history.")
+        return None, keys_tried, attempt, True
 
-    if is_invalid_key or is_unauthorized:
-        print(f"  Invalid/unauthorized key error for {md_name}: {e}")
-        return _prompt_key_rotation(api_state, previous_id, md_file)
+    if (is_invalid_key or is_quota) and keys_tried < len(api_state["api_keys"]) - 1:
+        current_key_idx = api_state["current_key_idx"]
+        key_name = api_state["api_keys"][current_key_idx][0]
+        print(f"  Error processing {pathlib.Path(md_file).name} for {key_name}")
+
+        api_state["current_key_idx"] = (current_key_idx + 1) % len(api_state["api_keys"])
+        new_key_name, api_key = api_state["api_keys"][api_state["current_key_idx"]]
+        print(f"  Switching to key '{new_key_name}' due to error: {e}")
+        api_state["client"] = genai.Client(api_key=api_key)
+
+        return None, keys_tried + 1, attempt, True
 
     if is_quota:
-        if attempt < 4:
-            wait_time = 15 * (2 ** attempt)
-            print(f"  Quota hit on {md_name}. Retrying with backoff in {wait_time}s... (Attempt {attempt + 1}/5)")
-            time.sleep(wait_time)
-            return previous_id, attempt + 1, True
-        else:
-            print(f"  Quota still hit after {attempt + 1} retries. Exhausted retries for now.")
-            return previous_id, attempt, False
+        wait_time = 15 * (attempt + 1)
+        print(f"  Rate limit/Quota hit on all keys. Retrying in {wait_time}s... (Attempt {attempt + 1}/5)")
+        time.sleep(wait_time)
+        return previous_id, 0, attempt + 1, True
 
-    print(f"  Error processing {md_name}: {e}")
-    return previous_id, attempt, False
-
-
-def _prompt_key_rotation(api_state, previous_id, md_file):
-    """Ask user if they want to rotate keys after session expiration (voice mismatch risk)."""
-    md_name = pathlib.Path(md_file).name
-    print(f"  Session expired for {md_name}. Continuing with a new key will cause voice mismatch.")
-    print("  Options:")
-    print("    [S] Skip this file and continue (preserves session for next file)")
-    print("    [Q] Quit and let user restart from this file with fresh session")
-    print("    [K] Rotate to next key and continue (voice mismatch likely)")
-    print("    [A] Rotate to next key and restart session from this file")
-
-    while True:
-        try:
-            choice = input("  Choose [S/Q/K/A]: ").strip().lower()
-        except (EOFError, KeyboardInterrupt):
-            print("\n  Quitting...")
-            return previous_id, 0, False
-
-        if choice == "s":
-            return previous_id, 0, True
-        elif choice == "q":
-            print("  Quitting. Run again with the same input to resume from this file.")
-            return previous_id, 0, False
-        elif choice == "k":
-            return _rotate_key(api_state, previous_id, md_file, restart_session=False)
-        elif choice == "a":
-            return _rotate_key(api_state, previous_id, md_file, restart_session=True)
-        else:
-            print("  Invalid choice. Please enter S, Q, K, or A.")
-
-
-def _rotate_key(api_state, previous_id, md_file, restart_session=False):
-    """Rotate to next API key, optionally restarting the session."""
-    current_key_idx = api_state["current_key_idx"]
-    api_keys = api_state["api_keys"]
-
-    if len(api_keys) == 1:
-        print(f"  Only one key available. Cannot rotate.")
-        return previous_id, 0, False
-
-    next_idx = (current_key_idx + 1) % len(api_keys)
-    new_key_name, api_key = api_keys[next_idx]
-    print(f"  Rotating to key '{new_key_name}'...")
-    api_state["current_key_idx"] = next_idx
-    api_state["client"] = genai.Client(api_key=api_key)
-
-    if restart_session:
-        print("  Restarting session from this file (voice mismatch expected).")
-        return None, 0, True
-    else:
-        print("  Continuing without session history (voice mismatch possible).")
-        return None, 0, True
+    print(f"  Error processing {pathlib.Path(md_file).name}: {e}")
+    return previous_id, keys_tried, attempt, False
 
 
 def _save_audio_from_interaction(interaction, wav_file, md_file) -> None:
@@ -220,7 +170,7 @@ def _save_audio_from_interaction(interaction, wav_file, md_file) -> None:
             sample_rate = int(rate_match.group(1))
             print(f"  Extracted sample rate from mime_type: {sample_rate}Hz")
 
-    wave_file(wav_file, audio_bytes, rate=sample_rate)
+    wave_file_writer(wav_file, audio_bytes, rate=sample_rate)
     print(f"  Saved audio to {pathlib.Path(wav_file).name}")
 
 
@@ -237,6 +187,7 @@ def process_file(md_file, wav_file, previous_id, api_state):
     print(f"  Speech config: {speech_config}")
 
     max_retries = 5
+    keys_tried = 0
     attempt = 0
     while attempt < max_retries:
         try:
@@ -245,23 +196,25 @@ def process_file(md_file, wav_file, previous_id, api_state):
                 input=content,
                 response_modalities=["audio"],
                 generation_config={"speech_config": speech_config},
-                previous_interaction_id=previous_id,
+                previous_interaction_id=previous_id,  # TODO: Check if the interaction API supports previous_interaction_id
             )
         except Exception as e:
-            previous_id, attempt, should_continue = _handle_exception(
+            previous_id, keys_tried, attempt, should_continue = _handle_exception(
                 e,
                 api_state,
                 previous_id,
+                keys_tried,
                 attempt,
                 md_file,
             )
             if should_continue:
                 client = api_state["client"]
+                api_state["api_keys"][api_state["current_key_idx"]][0]
                 continue
             raise
         else:
             _save_audio_from_interaction(interaction, wav_file, md_file)
-            previous_id = interaction.id
+            previous_id = interaction.id  # TODO: check if key rotation breaks
             break
     else:
         print(

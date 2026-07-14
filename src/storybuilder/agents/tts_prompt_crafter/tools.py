@@ -219,7 +219,7 @@ def split_scene_files(story_path: str) -> str:
         return f"Error: No *-scene*.md files found in {output_dir}"
 
     try:
-        from split_prompts import process_files
+        from split_prompts import process_files  # pylint: disable=import-error
 
         process_files(output_dir)
     except Exception as e:

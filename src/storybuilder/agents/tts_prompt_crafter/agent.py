@@ -10,12 +10,11 @@ using a three-agent pipeline:
 
 import logging
 import os
-import pathlib
 import warnings
-from enum import Enum, StrEnum
+from enum import Enum
+from enum import StrEnum
 from functools import cached_property
 
-from dotenv import load_dotenv
 from google.adk.agents import LlmAgent
 from google.adk.artifacts.in_memory_artifact_service import InMemoryArtifactService
 from google.adk.memory.vertex_ai_memory_bank_service import VertexAiMemoryBankService
@@ -33,6 +32,9 @@ from pydantic import BaseModel
 from pydantic import Field
 from pydantic.types import NonNegativeInt
 
+from storybuilder.utils.env import load_env
+from storybuilder.utils.logging_config import configure_logging
+
 from .prompts import get_prompt
 from .tools import list_stories
 from .tools import read_story
@@ -40,14 +42,12 @@ from .tools import split_scene_files
 from .tools import write_scene_file
 
 
-dotenv_path = pathlib.Path(os.path.join(pathlib.Path(__file__).parent, "..", "..", "..", "..", ".env")).resolve()
-load_dotenv(dotenv_path)
+load_env()
 
 warnings.filterwarnings("ignore")
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
-)
+
+
+configure_logging(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 os.environ["OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"] = "true"

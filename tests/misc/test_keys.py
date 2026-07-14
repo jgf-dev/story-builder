@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from dotenv import load_dotenv
+from storybuilder.utils.env import load_env
 
 from tests.helpers_external_fakes import (
     live_api_enabled,
@@ -14,7 +14,7 @@ from tests.helpers_external_fakes import (
 class TestKeys(unittest.TestCase):
     def test_vertex_ai_client(self):
         project_root = Path(__file__).resolve().parents[2]
-        load_dotenv(project_root / ".env")
+        load_env(project_root / ".env")
 
         if live_api_enabled():
             self._live_vertex_ai_client()

@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 from types import SimpleNamespace
 
-from dotenv import load_dotenv
+from storybuilder.utils.env import load_env
 from google.genai import types
 
 from tests.helpers_external_fakes import fake_run_async, live_api_enabled
@@ -13,7 +13,7 @@ from tests.helpers_external_fakes import fake_run_async, live_api_enabled
 class TestAgentSmoke(unittest.IsolatedAsyncioTestCase):
     async def test_agent_smoke(self):
         project_root = Path(__file__).resolve().parents[2]
-        load_dotenv(project_root / ".env")
+        load_env(project_root / ".env")
 
         if live_api_enabled():
             await self._live_agent_smoke(project_root)

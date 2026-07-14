@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from dotenv import load_dotenv
+from storybuilder.utils.env import load_env
 from google.genai import types
 
 from tests.helpers_external_fakes import (
@@ -15,7 +15,7 @@ from tests.helpers_external_fakes import (
 class TestSubagent(unittest.TestCase):
     def test_analyzer_direct(self):
         project_root = Path(__file__).resolve().parents[2]
-        load_dotenv(project_root / ".env")
+        load_env(project_root / ".env")
 
         prompts_dir = (
             project_root

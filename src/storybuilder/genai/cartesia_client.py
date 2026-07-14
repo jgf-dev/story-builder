@@ -7,10 +7,10 @@ import time
 import wave
 
 import requests
-from dotenv import load_dotenv
+from storybuilder.utils.env import load_env
 
 
-load_dotenv()
+load_env()
 
 # Map common Gemini/custom voice names to official Cartesia Emotive voice IDs
 VOICE_MAP = {

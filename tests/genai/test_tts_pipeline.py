@@ -15,7 +15,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from dotenv import load_dotenv
+from storybuilder.utils.env import load_env
 
 from tests.helpers_external_fakes import (
     fake_process_file_factory,
@@ -32,7 +32,7 @@ class TestTTSPipeline(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         project_root = Path(__file__).resolve().parents[2]
-        load_dotenv(project_root / ".env")
+        load_env(project_root / ".env")
 
         cls.live = live_api_enabled()
         cls.api_key = os.getenv("GEMINI_API_KEY")

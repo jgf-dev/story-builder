@@ -7,11 +7,11 @@ import re
 import time
 import wave
 
-from dotenv import load_dotenv
+from storybuilder.utils.env import load_env
 from google import genai
 
 
-load_dotenv()
+load_env()
 
 
 def wave_file_writer(filename, pcm, channels=1, rate=24000, sample_width=2) -> None:

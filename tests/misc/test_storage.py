@@ -19,7 +19,7 @@ class TestStorage(unittest.TestCase):
     def test_get_hf_client_success(self) -> None:
         # Test that it successfully gets the client when the env var is set
         with (
-            patch("storybuilder.utils.storage.load_dotenv"),
+            patch("storybuilder.utils.storage.load_env"),
             patch.dict(os.environ, {"HF_TOKEN": "my-secret-val"}),
         ):
             client = get_hf_client("HF_TOKEN")
@@ -29,7 +29,7 @@ class TestStorage(unittest.TestCase):
     def test_get_hf_client_missing_raises_value_error(self) -> None:
         # Test that it raises ValueError when the env var is missing
         with (
-            patch("storybuilder.utils.storage.load_dotenv"),
+            patch("storybuilder.utils.storage.load_env"),
             patch.dict(os.environ, {}, clear=True),
         ):
             with self.assertRaises(ValueError) as context:
@@ -42,7 +42,7 @@ class TestStorage(unittest.TestCase):
     def test_get_hf_client_empty_raises_value_error(self) -> None:
         # Test that it raises ValueError when the env var is empty
         with (
-            patch("storybuilder.utils.storage.load_dotenv"),
+            patch("storybuilder.utils.storage.load_env"),
             patch.dict(os.environ, {"HF_TOKEN": ""}),
         ):
             with self.assertRaises(ValueError) as context:
@@ -55,7 +55,7 @@ class TestStorage(unittest.TestCase):
     def test_get_hf_client_custom_env_var(self) -> None:
         # Test that it works with a custom environment variable name
         with (
-            patch("storybuilder.utils.storage.load_dotenv"),
+            patch("storybuilder.utils.storage.load_env"),
             patch.dict(os.environ, {"CUSTOM_TOKEN_VAR": "custom-val"}),
         ):
             client = get_hf_client("CUSTOM_TOKEN_VAR")
@@ -143,12 +143,7 @@ class TestStorage(unittest.TestCase):
                     "my-bucket",
                     add=[(db_file, expected_dest)],
                 )
-                self.assertTrue(
-                    any(
-                        "Uploading 1 .db files to bucket my-bucket" in log
-                        for log in log_capture.output
-                    )
-                )
+                self.assertTrue(any("Uploading 1 .db files to bucket my-bucket" in log for log in log_capture.output))
 
     def test_upload_directory_to_hf_bucket_custom_path(self) -> None:
         mock_hf = MagicMock(spec=HfApi)
@@ -158,9 +153,7 @@ class TestStorage(unittest.TestCase):
             db_file.touch()
 
             with patch("storybuilder.utils.storage.is_hf_bucket", return_value=True):
-                upload_directory_to_hf(
-                    mock_hf, temp_dir_path, repo_id="my-bucket", path_in_repo=""
-                )
+                upload_directory_to_hf(mock_hf, temp_dir_path, repo_id="my-bucket", path_in_repo="")
                 mock_hf.batch_bucket_files.assert_called_once_with(
                     "my-bucket",
                     add=[(db_file, "foo.db")],
@@ -183,12 +176,7 @@ class TestStorage(unittest.TestCase):
                 "my-repo",
                 path_in_repo="my-custom-prefix",
             )
-            self.assertTrue(
-                any(
-                    "Bucket info for my-repo: some-bucket-info" in log
-                    for log in log_capture.output
-                )
-            )
+            self.assertTrue(any("Bucket info for my-repo: some-bucket-info" in log for log in log_capture.output))
 
     def test_upload_story_db_not_found(self) -> None:
         mock_hf = MagicMock(spec=HfApi)
@@ -205,13 +193,9 @@ class TestStorage(unittest.TestCase):
             with self.assertRaises(BucketNotFoundError):
                 upload_story_db(mock_hf, repo_id="missing-repo")
             self.assertTrue(
-                any(
-                    "Error occurred while checking bucket info for missing-repo" in log
-                    for log in log_capture.output
-                )
+                any("Error occurred while checking bucket info for missing-repo" in log for log in log_capture.output)
             )
 
 
 if __name__ == "__main__":
     unittest.main()
-

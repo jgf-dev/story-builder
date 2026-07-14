@@ -3,12 +3,12 @@ import pathlib
 import re
 import sys
 
-from dotenv import load_dotenv
+from storybuilder.utils.env import load_env
 from google import genai
 from google.genai import types
 
 
-load_dotenv()
+load_env()
 api_key = os.getenv("GEMINI_API_KEY")
 if not api_key:
     print("Error: GEMINI_API_KEY not found in environment.")

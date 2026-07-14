@@ -104,7 +104,6 @@ Minor additions for S3 key generation and empty file handling.
   - Updated `_classify_error()` to detect unauthorized errors
 
 **Why this matters**: TTS requires consistent voice across multiple sequential API calls within a story. Previous logic rotated keys on quota error, breaking the session chain and causing voice mismatch. Now users are warned and can choose whether to risk voice mismatch.
-
 ## 11/07/2026
 
 ### Resolved merge conflicts with branch fix-genai-tts-entrypoint-9568411881905231847

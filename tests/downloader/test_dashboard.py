@@ -561,7 +561,5 @@ class TestDashboardDataFunctions(unittest.TestCase):
             self.assertEqual(get_favorites(), [])
         finally:
             del sys.modules["dashboard"]
-
-
 if __name__ == "__main__":
     unittest.main()

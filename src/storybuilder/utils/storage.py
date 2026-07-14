@@ -2,17 +2,16 @@ import logging
 import os
 from pathlib import Path
 
+from storybuilder.utils.env import load_env
 from huggingface_hub import BucketInfo
 from huggingface_hub import HfApi
 from huggingface_hub import bucket_info
 from huggingface_hub.errors import BucketNotFoundError
 
-from storybuilder.utils.env import load_env
-from storybuilder.utils.logging_config import configure_logging
-
 
 REPO_ID = "jeremygf/stories"
 logger = logging.getLogger(__name__)
+from storybuilder.utils.logging_config import configure_logging
 
 configure_logging()
 

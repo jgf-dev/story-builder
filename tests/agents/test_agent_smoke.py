@@ -4,10 +4,11 @@ import unittest
 from pathlib import Path
 from types import SimpleNamespace
 
-from storybuilder.utils.env import load_env
 from google.genai import types
 
-from tests.helpers_external_fakes import fake_run_async, live_api_enabled
+from storybuilder.utils.env import load_env
+from tests.helpers_external_fakes import fake_run_async
+from tests.helpers_external_fakes import live_api_enabled
 
 
 class TestAgentSmoke(unittest.IsolatedAsyncioTestCase):
@@ -22,9 +23,7 @@ class TestAgentSmoke(unittest.IsolatedAsyncioTestCase):
         # Default unit path: never import the real ADK agent module (import-time
         # Vertex / memory / runner construction). Drive the same assertion loop
         # against an in-process runner double.
-        story_path = str(
-            project_root / "stories" / "text" / "the_secret_vacation-1-I.md"
-        )
+        story_path = str(project_root / "stories" / "text" / "the_secret_vacation-1-I.md")
         user_msg = f"Generate TTS prompts for {story_path}"
         content = types.Content(
             role="user",
@@ -53,18 +52,14 @@ class TestAgentSmoke(unittest.IsolatedAsyncioTestCase):
 
     async def _live_agent_smoke(self, project_root: Path):
         """Opt-in real ADK multi-agent run (STORYBUILDER_LIVE_API=1)."""
-        if not os.getenv("GEMINI_API_KEY") and not os.getenv(
-            "GOOGLE_APPLICATION_CREDENTIALS"
-        ):
+        if not os.getenv("GEMINI_API_KEY") and not os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
             self.skipTest("Vertex AI credentials / Gemini API key not configured")
 
-        from storybuilder.agents.tts_prompt_crafter.agent import (
-            APP_NAME,
-            SESSION_ID,
-            USER_ID,
-            runner,
-            session_service,
-        )
+        from storybuilder.agents.tts_prompt_crafter.agent import APP_NAME
+        from storybuilder.agents.tts_prompt_crafter.agent import SESSION_ID
+        from storybuilder.agents.tts_prompt_crafter.agent import USER_ID
+        from storybuilder.agents.tts_prompt_crafter.agent import runner
+        from storybuilder.agents.tts_prompt_crafter.agent import session_service
 
         if not await session_service.get_session(
             app_name=APP_NAME,
@@ -77,9 +72,7 @@ class TestAgentSmoke(unittest.IsolatedAsyncioTestCase):
                 session_id=SESSION_ID,
             )
 
-        story_path = str(
-            project_root / "stories" / "text" / "the_secret_vacation-1-I.md"
-        )
+        story_path = str(project_root / "stories" / "text" / "the_secret_vacation-1-I.md")
         user_msg = f"Generate TTS prompts for {story_path}"
         content = types.Content(
             role="user",
@@ -102,9 +95,9 @@ class TestAgentSmoke(unittest.IsolatedAsyncioTestCase):
         try:
             final_response = await asyncio.wait_for(run_agent(), timeout=90.0)
             self.assertGreater(len(final_response), 0)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             self.skipTest(
-                "Skipped: Agent execution timed out after 90 seconds. This might be due to API latency or network issues."
+                "Skipped: Agent execution timed out after 90 seconds. This might be due to API latency or network issues.",
             )
         except Exception as e:
             if (

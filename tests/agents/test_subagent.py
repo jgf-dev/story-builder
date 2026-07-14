@@ -3,13 +3,11 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from storybuilder.utils.env import load_env
 from google.genai import types
 
-from tests.helpers_external_fakes import (
-    live_api_enabled,
-    make_fake_genai_client,
-)
+from storybuilder.utils.env import load_env
+from tests.helpers_external_fakes import live_api_enabled
+from tests.helpers_external_fakes import make_fake_genai_client
 
 
 class TestSubagent(unittest.TestCase):
@@ -17,16 +15,8 @@ class TestSubagent(unittest.TestCase):
         project_root = Path(__file__).resolve().parents[2]
         load_env(project_root / ".env")
 
-        prompts_dir = (
-            project_root
-            / "src"
-            / "storybuilder"
-            / "agents"
-            / "tts_prompt_crafter"
-            / "prompts"
-        )
-        with open(prompts_dir / "story-analyzer.md", "r") as f:
-            analyzer_prompt = f.read()
+        prompts_dir = project_root / "src" / "storybuilder" / "agents" / "tts_prompt_crafter" / "prompts"
+        analyzer_prompt = Path(prompts_dir / "story-analyzer.md").read_text()
 
         safety_settings = [
             types.SafetySetting(
@@ -52,8 +42,7 @@ class TestSubagent(unittest.TestCase):
         ]
 
         story_path = project_root / "stories" / "text" / "the_secret_vacation-1-I.md"
-        with open(story_path, "r") as f:
-            story_content = f.read()
+        story_content = Path(story_path).read_text()
 
         cleaned_content = story_content
         cleaned_content = cleaned_content.replace("(Gay/Incest)", "(Gay)")
@@ -61,9 +50,7 @@ class TestSubagent(unittest.TestCase):
         cleaned_content = cleaned_content.replace("incest", "romance")
 
         if live_api_enabled():
-            self._live_analyzer(
-                cleaned_content, analyzer_prompt, safety_settings
-            )
+            self._live_analyzer(cleaned_content, analyzer_prompt, safety_settings)
             return
 
         # Default unit path: patch Client so generate_content never leaves process.
@@ -73,9 +60,7 @@ class TestSubagent(unittest.TestCase):
         with patch("google.genai.Client", return_value=fake_client):
             from google import genai
 
-            client = genai.Client(
-                vertexai=True, project="storage-499607", location="us-central1"
-            )
+            client = genai.Client(vertexai=True, project="storage-499607", location="us-central1")
             response = client.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=cleaned_content,
@@ -92,14 +77,10 @@ class TestSubagent(unittest.TestCase):
         """Opt-in real Vertex generate_content (STORYBUILDER_LIVE_API=1)."""
         from google import genai
 
-        if not os.getenv("GEMINI_API_KEY") and not os.getenv(
-            "GOOGLE_APPLICATION_CREDENTIALS"
-        ):
+        if not os.getenv("GEMINI_API_KEY") and not os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
             self.skipTest("Vertex AI credentials / Gemini API key not configured")
 
-        client = genai.Client(
-            vertexai=True, project="storage-499607", location="us-central1"
-        )
+        client = genai.Client(vertexai=True, project="storage-499607", location="us-central1")
         try:
             response = client.models.generate_content(
                 model="gemini-2.5-flash",

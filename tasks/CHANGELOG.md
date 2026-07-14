@@ -3,6 +3,33 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
+## 13/07/2026
+
+### Added centralized env module for API key management
+
+- **New file: `src/storybuilder/utils/env.py`** - Centralized environment handling:
+  - `load_env()` - Single `load_dotenv()` call with memoization (no-op after first call)
+  - `get_api_key(name, required=True)` - Get required API keys with validation
+  - `get_optional_api_key(name)` - Get optional keys that may be missing
+  - `get_stable_api_key(base_name)` - **For TTS** - single key, NO rotation (maintains voice consistency)
+  - `get_api_keys_with_rotation(base_name)` - For non-TTS quota rotation
+- **New test file: `tests/misc/test_env.py`** - 10 tests covering all env functions (100% coverage)
+
+### Fixed TTS error handling to preserve voice consistency
+
+- **Updated `src/storybuilder/genai/client.py`** - Improved error handling logic:
+  - **Quota errors (429)**: Now retries with exponential backoff (15s → 30s → 60s → 120s) on the **same API key** - NO automatic key rotation
+  - **Session expiration (404)**: Prompts user with 4 options:
+    - `[S] Skip` - continue without this file (preserves session for next)
+    - `[Q] Quit` - let user restart manually from this file
+    - `[K] Rotate key` - switch keys but continue session (voice mismatch possible)
+    - `[A] Rotate + restart` - new key, restart session from this file (voice mismatch likely)
+  - **Invalid/unauthorized key**: Prompts for key rotation (key is truly bad, not just quota)
+  - Added `_prompt_key_rotation()` and `_rotate_key()` helper functions
+  - Updated `_classify_error()` to detect unauthorized errors
+
+**Why this matters**: TTS requires consistent voice across multiple sequential API calls within a story. Previous logic rotated keys on quota error, breaking the session chain and causing voice mismatch. Now users are warned and can choose whether to risk voice mismatch.
+
 ## 11/07/2026
 
 ### Resolved merge conflicts with branch fix-genai-tts-entrypoint-9568411881905231847

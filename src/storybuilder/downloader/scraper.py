@@ -256,16 +256,14 @@ def _filter_stories_by_date(merged_stories, start_date, end_date):
     filtered_stories = []
     for s in merged_stories:
         try:
-            s_date = datetime.datetime.strptime(s["date"], "%Y-%m-%d").date()
-        except Exception:
+            s_date = datetime.date.fromisoformat(s["date"])
+        except Exception as e:
+            safe_print(f"Warning: Failed to parse date '{s.get('date')}' for story '{s.get('name')}': {e}")
             continue
 
-        if s["is_dir"]:
-            # Always process directories because their index listing date can be stale
-            # or out of range even if they contain chapters in our range.
-            in_range = True
-        else:
-            in_range = start_date <= s_date <= end_date
+        # Always process directories because their index listing date can be stale
+        # or out of range even if they contain chapters in our range.
+        in_range = True if s["is_dir"] else start_date <= s_date <= end_date
 
         if in_range:
             filtered_stories.append(

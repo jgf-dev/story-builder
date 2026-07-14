@@ -279,5 +279,209 @@ class TestDashboard(unittest.TestCase):
         self.assertEqual(len(res_ent_none), 0)
 
 
+class TestDashboardConfig(unittest.TestCase):
+    """Tests for src/storybuilder/dashboard/config.py functions."""
+
+    def test_get_db_dir_default(self):
+        from storybuilder.dashboard.config import get_db_dir
+        result = get_db_dir()
+        self.assertEqual(result, "stories/db")
+
+    def test_get_nlp_db_path_default(self):
+        from storybuilder.dashboard.config import get_nlp_db_path
+        result = get_nlp_db_path()
+        self.assertEqual(result, "stories/db/nlp_analysis.db")
+
+    def test_get_meta_db_path_default(self):
+        from storybuilder.dashboard.config import get_meta_db_path
+        result = get_meta_db_path()
+        self.assertEqual(result, "stories/db/dashboard_metadata.db")
+
+    def test_get_db_dir_with_mock(self):
+        import sys
+        from storybuilder.dashboard.config import get_db_dir
+
+        mock_module = type(sys)("dashboard")
+        mock_module.DB_DIR = "custom/db/path"
+        sys.modules["dashboard"] = mock_module
+
+        try:
+            result = get_db_dir()
+            self.assertEqual(result, "custom/db/path")
+        finally:
+            del sys.modules["dashboard"]
+
+    def test_get_nlp_db_path_with_mock(self):
+        import sys
+        from storybuilder.dashboard.config import get_nlp_db_path
+
+        mock_module = type(sys)("dashboard")
+        mock_module.NLP_DB_PATH = "custom/nlp.db"
+        sys.modules["dashboard"] = mock_module
+
+        try:
+            result = get_nlp_db_path()
+            self.assertEqual(result, "custom/nlp.db")
+        finally:
+            del sys.modules["dashboard"]
+
+    def test_get_meta_db_path_with_mock(self):
+        import sys
+        from storybuilder.dashboard.config import get_meta_db_path
+
+        mock_module = type(sys)("dashboard")
+        mock_module.META_DB_PATH = "custom/meta.db"
+        sys.modules["dashboard"] = mock_module
+
+        try:
+            result = get_meta_db_path()
+            self.assertEqual(result, "custom/meta.db")
+        finally:
+            del sys.modules["dashboard"]
+
+    def test_bracket_labels_constant(self):
+        from storybuilder.dashboard.config import BRACKET_LABELS
+        expected = [
+            "Short (<1K)",
+            "Medium-Short (1K-5K)",
+            "Medium (5K-10K)",
+            "Medium-Long (10K-20K)",
+            "Long (20K-50K)",
+            "Epic (>50K)",
+        ]
+        self.assertEqual(BRACKET_LABELS, expected)
+
+    def test_long_year_constant(self):
+        from storybuilder.dashboard.config import LONG_YEAR
+        self.assertEqual(LONG_YEAR, 4)
+
+
+class TestDashboardDataFunctions(unittest.TestCase):
+    """Tests for src/storybuilder/dashboard/data.py functions."""
+
+    def setUp(self):
+        self.temp_dir = tempfile.mkdtemp()
+        self.db_dir = os.path.join(self.temp_dir, "db")
+        Path(self.db_dir).mkdir(exist_ok=True, parents=True)
+
+        self.nlp_db_path = os.path.join(self.temp_dir, "nlp_analysis.db")
+        self.meta_db_path = os.path.join(self.temp_dir, "dashboard_metadata.db")
+
+        import storybuilder.downloader.db as sb_db
+        sb_db.init_db(self.db_dir)
+
+    def tearDown(self):
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+    def test_get_db_files_empty(self):
+        import sys
+        from unittest.mock import patch
+
+        mock_module = type(sys)("dashboard")
+        mock_module.DB_DIR = self.db_dir
+        mock_module.NLP_DB_PATH = self.nlp_db_path
+        mock_module.META_DB_PATH = self.meta_db_path
+        sys.modules["dashboard"] = mock_module
+
+        try:
+            from storybuilder.dashboard.data import get_db_files
+            result = get_db_files()
+            self.assertEqual(result, [])
+        finally:
+            del sys.modules["dashboard"]
+
+    def test_get_db_files_with_year_dbs(self):
+        import sys
+        from unittest.mock import patch
+
+        mock_module = type(sys)("dashboard")
+        mock_module.DB_DIR = self.db_dir
+        mock_module.NLP_DB_PATH = self.nlp_db_path
+        mock_module.META_DB_PATH = self.meta_db_path
+        sys.modules["dashboard"] = mock_module
+
+        try:
+            Path(os.path.join(self.db_dir, "2025.db")).touch()
+            Path(os.path.join(self.db_dir, "2024.db")).touch()
+            Path(os.path.join(self.db_dir, "not_a_db.txt")).touch()
+
+            from storybuilder.dashboard.data import get_db_files
+            result = get_db_files()
+            result_names = [f.name for f in result]
+            self.assertEqual(result_names, ["2024.db", "2025.db"])
+        finally:
+            del sys.modules["dashboard"]
+
+    def test_get_filter_options_with_data(self):
+        import sys
+        from unittest.mock import patch
+
+        mock_module = type(sys)("dashboard")
+        mock_module.DB_DIR = self.db_dir
+        mock_module.NLP_DB_PATH = self.nlp_db_path
+        mock_module.META_DB_PATH = self.meta_db_path
+        sys.modules["dashboard"] = mock_module
+
+        try:
+            from storybuilder.dashboard.data import get_filter_options
+            from storybuilder.downloader.db import insert_story
+
+            insert_story(
+                output_path="stories/gay/college/test1.txt",
+                title="Test Story 1",
+                author="Author A",
+                story_date="2025-01-01",
+                url="http://test",
+                content="Test content",
+            )
+            insert_story(
+                output_path="stories/gay/athletics/test2.txt",
+                title="Test Story 2",
+                author="Author B",
+                story_date="2025-02-01",
+                url="http://test",
+                content="More test content",
+            )
+
+            categories, authors = get_filter_options()
+            self.assertIn("college", categories)
+            self.assertIn("athletics", categories)
+            self.assertIn("Author A", authors)
+            self.assertIn("Author B", authors)
+        finally:
+            del sys.modules["dashboard"]
+
+    def test_load_archive_stats(self):
+        import sys
+        from unittest.mock import patch
+
+        mock_module = type(sys)("dashboard")
+        mock_module.DB_DIR = self.db_dir
+        mock_module.NLP_DB_PATH = self.nlp_db_path
+        mock_module.META_DB_PATH = self.meta_db_path
+        sys.modules["dashboard"] = mock_module
+
+        try:
+            from storybuilder.dashboard.data import load_archive_stats
+            from storybuilder.downloader.db import insert_story
+
+            insert_story(
+                output_path="stories/gay/college/test.txt",
+                title="Test Story",
+                author="Test Author",
+                story_date="2025-06-15",
+                url="http://test",
+                content="Test content here",
+            )
+
+            df_years, df_cats, df_auths, df_words = load_archive_stats()
+
+            self.assertFalse(df_years.empty)
+            self.assertFalse(df_cats.empty)
+            self.assertFalse(df_auths.empty)
+        finally:
+            del sys.modules["dashboard"]
+
+
 if __name__ == "__main__":
     unittest.main()

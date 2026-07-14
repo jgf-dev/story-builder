@@ -33,22 +33,23 @@ from pydantic import BaseModel
 from pydantic import Field
 from pydantic.types import NonNegativeInt
 
+from storybuilder.utils.env import load_env
+from storybuilder.utils.logging_config import configure_logging, get_logger
+
 from .prompts import get_prompt
 from .tools import list_stories
 from .tools import read_story
 from .tools import split_scene_files
 from .tools import write_scene_file
 
+load_env()
 
 dotenv_path = pathlib.Path(os.path.join(pathlib.Path(__file__).parent, "..", "..", "..", "..", ".env")).resolve()
 load_dotenv(dotenv_path)
 
 warnings.filterwarnings("ignore")
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
-)
-logger = logging.getLogger(__name__)
+configure_logging(level=logging.DEBUG)
+logger = get_logger(__name__)
 
 os.environ["OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"] = "true"
 

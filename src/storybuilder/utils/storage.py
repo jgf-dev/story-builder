@@ -8,10 +8,12 @@ from huggingface_hub import HfApi
 from huggingface_hub import bucket_info
 from huggingface_hub.errors import BucketNotFoundError
 
+from storybuilder.utils.logging_config import configure_logging, get_logger
+
+configure_logging(level=logging.INFO, format_string="%(message)s")
 
 REPO_ID = "jeremygf/stories"
-logger = logging.getLogger(__name__)
-logging.basicConfig(format="%(message)s", level=logging.INFO)
+logger = get_logger(__name__)
 
 
 

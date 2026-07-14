@@ -57,6 +57,54 @@ Minor additions for S3 key generation and empty file handling.
 
 ---
 
+## 14/07/2026
+
+### Consolidated dashboard code (Issue #457)
+
+- **Deleted dead code**:
+  - Removed entire `scripts/dashboard/` directory (unused models, repository, config)
+  - Removed `test_perf.py` (performance test that used dead code)
+- **Added tests for active dashboard code** (`tests/downloader/test_dashboard.py`):
+  - `TestDashboardConfig` - 8 tests for config.py (get_db_dir, get_nlp_db_path, get_meta_db_path, constants)
+  - `TestDashboardDataFunctions` - 4 tests for data.py (get_db_files, get_filter_options, load_archive_stats)
+- **Verification**: All 199 tests pass (was 187 before, +12 new tests)
+
+## 13/07/2026
+
+### Added centralized env module for API key management
+
+- **New file: `src/storybuilder/utils/env.py`** - Centralized environment handling:
+  - `load_env()` - Single `load_dotenv()` call with memoization (no-op after first call)
+  - `get_api_key(name, required=True)` - Get required API keys with validation
+  - `get_optional_api_key(name)` - Get optional keys that may be missing
+  - `get_stable_api_key(base_name)` - **For TTS** - single key, NO rotation (maintains voice consistency)
+  - `get_api_keys_with_rotation(base_name)` - For non-TTS quota rotation
+- **New test file: `tests/misc/test_env.py`** - 12 tests covering env and logging_config
+
+### Added centralized logging configuration
+
+- **New file: `src/storybuilder/utils/logging_config.py`** - Standard logging setup:
+  - `configure_logging()` - Single logging config with memoization (no-op after first call)
+  - `get_logger(name)` - Get configured logger instances
+  - `set_library_log_levels()` - Silence noisy third-party libraries (urllib3, boto3, google.genai, etc.)
+  - Supports console + file output, configurable format
+- **Updated**: `src/storybuilder/utils/storage.py` and `src/storybuilder/agents/tts_prompt_crafter/agent.py` now use centralized logging
+
+### Fixed TTS error handling to preserve voice consistency
+
+- **Updated `src/storybuilder/genai/client.py`** - Improved error handling logic:
+  - **Quota errors (429)**: Now retries with exponential backoff (15s → 30s → 60s → 120s) on the **same API key** - NO automatic key rotation
+  - **Session expiration (404)**: Prompts user with 4 options:
+    - `[S] Skip` - continue without this file (preserves session for next)
+    - `[Q] Quit` - let user restart manually from this file
+    - `[K] Rotate key` - switch keys but continue session (voice mismatch possible)
+    - `[A] Rotate + restart` - new key, restart session from this file (voice mismatch likely)
+  - **Invalid/unauthorized key**: Prompts for key rotation (key is truly bad, not just quota)
+  - Added `_prompt_key_rotation()` and `_rotate_key()` helper functions
+  - Updated `_classify_error()` to detect unauthorized errors
+
+**Why this matters**: TTS requires consistent voice across multiple sequential API calls within a story. Previous logic rotated keys on quota error, breaking the session chain and causing voice mismatch. Now users are warned and can choose whether to risk voice mismatch.
+
 ## 11/07/2026
 
 ### Resolved merge conflicts with branch fix-genai-tts-entrypoint-9568411881905231847
@@ -99,7 +147,7 @@ Minor additions for S3 key generation and empty file handling.
 - tests and utility files: Resolved speech config test and storage utility conflicts by retaining GCS and S3 capability updates, completing the git merge smoothly.
 
 ## 04/07/2026
-  
+
 ### restored the compatibility contract for the  {table}  formatting alias in  execute_all_partitions
 
 - Restored ATTACH alias semantics: Updated the  execute_all_partitions  function in db.py to execute  ATTACH DATABASE ? AS curr_db  and format  {table}  as  curr_db.stories  when querying partition files.
@@ -115,7 +163,7 @@ Preventing any resource leaks in long-running processes like the Streamlit works
 
 ### hardened the monolithic mode thread-safety by implementing per-call read connections for concurrent read tasks
 
-### updated both search and execution functions in  src/storybuilder/downloader/db.py  to ensure that SQLite cursors are explicitly closed 
+### updated both search and execution functions in  src/storybuilder/downloader/db.py  to ensure that SQLite cursors are explicitly closed
 
 Preventing any resource leaks in long-running processes like the Streamlit workspace dashboard.
 
@@ -123,19 +171,19 @@ Preventing any resource leaks in long-running processes like the Streamlit works
 - Cursor Cleanup in  _search_single_db : Added the same resource cleanup for the SQLite cursor created during concurrent/monolithic partition searches in the  _search_single_db  helper in db.py.
 
 ### hardened the monolithic mode thread-safety by implementing per-call read connections for concurrent read tasks.
-  
+
   Here is a summary of the changes:
-  
+
   1. Global Path Tracking: Added  _monolithic_db_path  as a global variable in db.py.
   2. Database Initialization: Updated db.py to populate  _monolithic_db_path  when initializing in monolithic mode.
   3. Thread-Safe Reads:
       • Modified db.py (inside  execute_all_partitions ) to create a new connection per call when querying in monolithic mode.
       • Modified db.py (inside  search_all_partitions ) to also establish a separate connection per call for monolithic mode queries.
   4. Cleanup: Updated db.py to reset  _monolithic_db_path  to  None .
-  
+
   These changes completely prevent concurrent read threads from using the shared write connection ( _conn ), safely resolving the thread-safety issue without any blocking overhead (since SQLite WAL mode natively supports
 
-  These changes completely prevent concurrent read threads from using the shared write connection ( _conn ), safely resolving the thread-safety issue without any blocking overhead (since SQLite WAL mode natively supports         
+  These changes completely prevent concurrent read threads from using the shared write connection ( _conn ), safely resolving the thread-safety issue without any blocking overhead (since SQLite WAL mode natively supports
   concurrent reader connections).
 
 ### The reason the search results were not displaying is due to a **Streamlit module caching behavior**

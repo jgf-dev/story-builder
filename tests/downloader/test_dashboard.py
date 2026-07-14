@@ -482,6 +482,86 @@ class TestDashboardDataFunctions(unittest.TestCase):
         finally:
             del sys.modules["dashboard"]
 
+    def test_get_story_by_path_exists(self):
+        import sys
+
+        mock_module = type(sys)("dashboard")
+        mock_module.DB_DIR = self.db_dir
+        mock_module.NLP_DB_PATH = self.nlp_db_path
+        mock_module.META_DB_PATH = self.meta_db_path
+        sys.modules["dashboard"] = mock_module
+
+        try:
+            from storybuilder.dashboard.data import get_story_by_path
+            from storybuilder.downloader.db import insert_story
+
+            insert_story(
+                output_path="stories/gay/college/exist_test.txt",
+                title="Existing Story",
+                author="Test Author",
+                story_date="2025-06-15",
+                url="http://test",
+                content="Story content here",
+            )
+
+            result = get_story_by_path("stories/gay/college/exist_test.txt")
+            self.assertIsNotNone(result)
+            self.assertEqual(result["title"], "Existing Story")
+            self.assertEqual(result["author_name"], "Test Author")
+        finally:
+            del sys.modules["dashboard"]
+
+    def test_get_story_by_path_not_found(self):
+        import sys
+
+        mock_module = type(sys)("dashboard")
+        mock_module.DB_DIR = self.db_dir
+        mock_module.NLP_DB_PATH = self.nlp_db_path
+        mock_module.META_DB_PATH = self.meta_db_path
+        sys.modules["dashboard"] = mock_module
+
+        try:
+            from storybuilder.dashboard.data import get_story_by_path
+
+            result = get_story_by_path("nonexistent/story.txt")
+            self.assertIsNone(result)
+        finally:
+            del sys.modules["dashboard"]
+
+    def test_add_favorite_function(self):
+        import sys
+
+        mock_module = type(sys)("dashboard")
+        mock_module.DB_DIR = self.db_dir
+        mock_module.NLP_DB_PATH = self.nlp_db_path
+        mock_module.META_DB_PATH = self.meta_db_path
+        sys.modules["dashboard"] = mock_module
+
+        try:
+            from storybuilder.dashboard.data import add_favorite
+            from storybuilder.dashboard.data import get_favorites
+            from storybuilder.dashboard.data import remove_favorite
+
+            success = add_favorite(
+                "test/path.txt",
+                "Test Title",
+                "Test Author",
+                "tag1,tag2",
+                "Some notes",
+            )
+            self.assertTrue(success)
+
+            favs = get_favorites()
+            self.assertEqual(len(favs), 1)
+            self.assertEqual(favs[0]["story_path"], "test/path.txt")
+            self.assertEqual(favs[0]["title"], "Test Title")
+
+            removed = remove_favorite("test/path.txt")
+            self.assertTrue(removed)
+            self.assertEqual(get_favorites(), [])
+        finally:
+            del sys.modules["dashboard"]
+
 
 if __name__ == "__main__":
     unittest.main()

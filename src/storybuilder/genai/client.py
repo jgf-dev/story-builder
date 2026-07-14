@@ -15,11 +15,11 @@ load_dotenv()
 
 
 def wave_file_writer(filename, pcm, channels=1, rate=24000, sample_width=2) -> None:
-    with wave.open(filename, "wb") as wf:
-        wf.setnchannels(channels)
-        wf.setsampwidth(sample_width)
-        wf.setframerate(rate)
-        wf.writeframes(pcm)
+    with wave.open(filename, "wb") as wf:  # type: ignore[attr-defined]
+        wf.setnchannels(channels)  # pylint: disable=no-member
+        wf.setsampwidth(sample_width)  # pylint: disable=no-member
+        wf.setframerate(rate)  # pylint: disable=no-member
+        wf.writeframes(pcm)  # pylint: disable=no-member
 
 
 def _parse_voice_mappings(markdown_content):
@@ -170,7 +170,7 @@ def _save_audio_from_interaction(interaction, wav_file, md_file) -> None:
             sample_rate = int(rate_match.group(1))
             print(f"  Extracted sample rate from mime_type: {sample_rate}Hz")
 
-    wave_file(wav_file, audio_bytes, rate=sample_rate)
+    wave_file_writer(wav_file, audio_bytes, rate=sample_rate)
     print(f"  Saved audio to {pathlib.Path(wav_file).name}")
 
 

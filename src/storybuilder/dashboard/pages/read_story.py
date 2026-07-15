@@ -102,7 +102,7 @@ def render_read_story() -> None:
             st.write(
                 f"**Category:** `{story['category']}` | "
                 f"**Published:** `{story['publication_date'] or 'Unknown'}` | "
-                f"**Words:** `{(story.get('word_count') or 0):,}`"
+                f"**Words:** `{(story.get('word_count') or 0):,}`",
             )
             st.markdown("---")
 

@@ -1,5 +1,6 @@
 import os
 import sys
+from pathlib import Path
 
 import streamlit as st
 
@@ -36,7 +37,7 @@ def get_nlp_db_path() -> str:
             val = getattr(sys.modules[mod_name], "NLP_DB_PATH", None)
             if val is not None:
                 return val
-    return os.path.join(get_db_dir(), "nlp_analysis.db")
+    return str(Path(get_db_dir()) / "nlp_analysis.db")
 
 
 def get_meta_db_path() -> str:
@@ -48,7 +49,7 @@ def get_meta_db_path() -> str:
             val = getattr(sys.modules[mod_name], "META_DB_PATH", None)
             if val is not None:
                 return val
-    return os.path.join(get_db_dir(), "dashboard_metadata.db")
+    return str(Path(get_db_dir()) / "dashboard_metadata.db")
 
 
 def setup_page() -> None:

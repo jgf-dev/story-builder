@@ -19,7 +19,7 @@ class TestStorage(unittest.TestCase):
     def test_get_hf_client_success(self) -> None:
         # Test that it successfully gets the client when the env var is set
         with (
-            patch("storybuilder.utils.storage.load_dotenv"),
+            patch("storybuilder.utils.env.load_env"),
             patch.dict(os.environ, {"HF_TOKEN": "my-secret-val"}),
         ):
             client = get_hf_client("HF_TOKEN")
@@ -29,7 +29,7 @@ class TestStorage(unittest.TestCase):
     def test_get_hf_client_missing_raises_value_error(self) -> None:
         # Test that it raises ValueError when the env var is missing
         with (
-            patch("storybuilder.utils.storage.load_dotenv"),
+            patch("storybuilder.utils.env.load_env"),
             patch.dict(os.environ, {}, clear=True),
         ):
             with self.assertRaises(ValueError) as context:
@@ -42,7 +42,7 @@ class TestStorage(unittest.TestCase):
     def test_get_hf_client_empty_raises_value_error(self) -> None:
         # Test that it raises ValueError when the env var is empty
         with (
-            patch("storybuilder.utils.storage.load_dotenv"),
+            patch("storybuilder.utils.env.load_env"),
             patch.dict(os.environ, {"HF_TOKEN": ""}),
         ):
             with self.assertRaises(ValueError) as context:
@@ -55,7 +55,7 @@ class TestStorage(unittest.TestCase):
     def test_get_hf_client_custom_env_var(self) -> None:
         # Test that it works with a custom environment variable name
         with (
-            patch("storybuilder.utils.storage.load_dotenv"),
+            patch("storybuilder.utils.env.load_env"),
             patch.dict(os.environ, {"CUSTOM_TOKEN_VAR": "custom-val"}),
         ):
             client = get_hf_client("CUSTOM_TOKEN_VAR")
@@ -214,4 +214,3 @@ class TestStorage(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

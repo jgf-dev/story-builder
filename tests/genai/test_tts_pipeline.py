@@ -15,12 +15,10 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from dotenv import load_dotenv
+from storybuilder.utils.env import load_env
+from tests.helpers_external_fakes import fake_process_file_factory
+from tests.helpers_external_fakes import live_api_enabled
 
-from tests.helpers_external_fakes import (
-    fake_process_file_factory,
-    live_api_enabled,
-)
 
 # Maximum number of audio API calls / files in the sequential pipeline test.
 MAX_API_CALLS = 3
@@ -32,20 +30,14 @@ class TestTTSPipeline(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         project_root = Path(__file__).resolve().parents[2]
-        load_dotenv(project_root / ".env")
+        load_env(project_root / ".env")
 
         cls.live = live_api_enabled()
         cls.api_key = os.getenv("GEMINI_API_KEY")
         if cls.live and not cls.api_key:
-            raise unittest.SkipTest(
-                "STORYBUILDER_LIVE_API=1 but GEMINI_API_KEY not configured"
-            )
+            raise unittest.SkipTest("STORYBUILDER_LIVE_API=1 but GEMINI_API_KEY not configured")
 
-        all_parts = sorted(
-            glob.glob(
-                str(project_root / "stories" / "**" / "*-part.md"), recursive=True
-            )
-        )
+        all_parts = sorted(glob.glob(str(project_root / "stories" / "**" / "*-part.md"), recursive=True))
         all_parts = [p for p in all_parts if "archive" not in p]
 
         if not all_parts:
@@ -67,16 +59,14 @@ class TestTTSPipeline(unittest.TestCase):
             prepared = []
             for md_file in self.prompt_files:
                 base_name = os.path.basename(md_file).replace("-part.md", "")
-                with open(md_file, "r", encoding="utf-8") as f:
-                    content = f.read()
+                content = Path(md_file).read_text(encoding="utf-8")
                 content = (
                     content.replace("en-US-Journey-F", "Aoede")
                     .replace("en-US-Journey-D", "Charon")
                     .replace("en-US-Journey-O", "Kore")
                 )
                 temp_md_file = os.path.join(tmp_dir, f"{base_name}.md")
-                with open(temp_md_file, "w", encoding="utf-8") as f:
-                    f.write(content)
+                Path(temp_md_file).write_text(content, encoding="utf-8")
                 prepared.append(temp_md_file)
             return prepared
 
@@ -84,11 +74,7 @@ class TestTTSPipeline(unittest.TestCase):
         synthetic = []
         for i in range(MAX_API_CALLS):
             path = os.path.join(tmp_dir, f"unit-part-{i + 1}.md")
-            with open(path, "w", encoding="utf-8") as f:
-                f.write(
-                    f"* Narrator (Voice: Kore)\n\n"
-                    f"#### TRANSCRIPT\nNarrator: Unit test line {i + 1}.\n"
-                )
+            Path(path).write_text(f"* Narrator (Voice: Kore)\n\n#### TRANSCRIPT\nNarrator: Unit test line {i + 1}.\n", encoding="utf-8")
             synthetic.append(path)
         return synthetic
 
@@ -130,13 +116,11 @@ class TestTTSPipeline(unittest.TestCase):
 
                     self.assertIsNotNone(previous_id)
                     self.assertTrue(
-                        os.path.exists(wav_file),
+                        Path(wav_file).exists(),
                         f"WAV missing for {base_name}",
                     )
-                    size = os.path.getsize(wav_file)
-                    self.assertGreater(
-                        size, 0, f"WAV file for {base_name} is empty"
-                    )
+                    size = Path(wav_file).stat().st_size
+                    self.assertGreater(size, 0, f"WAV file for {base_name} is empty")
                     generated.append(wav_file)
 
                 self.assertEqual(len(generated), len(prompt_files))
@@ -160,9 +144,7 @@ class TestTTSPipeline(unittest.TestCase):
         tmp_dir = tempfile.mkdtemp(prefix="tts_test_")
         try:
             if not self.prompt_files:
-                self.skipTest(
-                    "No *-part.md prompt files found — skipping live TTS pipeline test"
-                )
+                self.skipTest("No *-part.md prompt files found — skipping live TTS pipeline test")
             prompt_files = self._prepare_prompt_files(tmp_dir)
             previous_id = None
             generated = []
@@ -196,16 +178,12 @@ class TestTTSPipeline(unittest.TestCase):
                             "permission",
                         )
                     ):
-                        self.skipTest(
-                            f"Skipped due to API/quota issue on file {i + 1}: {e}"
-                        )
+                        self.skipTest(f"Skipped due to API/quota issue on file {i + 1}: {e}")
                     else:
-                        self.fail(
-                            f"process_file failed on {os.path.basename(temp_md_file)}: {e}"
-                        )
+                        self.fail(f"process_file failed on {os.path.basename(temp_md_file)}: {e}")
 
-                if os.path.exists(wav_file):
-                    size = os.path.getsize(wav_file)
+                if Path(wav_file).exists():
+                    size = Path(wav_file).stat().st_size
                     self.assertGreater(
                         size,
                         0,

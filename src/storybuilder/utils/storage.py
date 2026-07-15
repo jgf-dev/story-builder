@@ -2,7 +2,7 @@ import logging
 import os
 from pathlib import Path
 
-from dotenv import load_dotenv
+from storybuilder.utils.env import load_env
 from huggingface_hub import BucketInfo
 from huggingface_hub import HfApi
 from huggingface_hub import bucket_info
@@ -11,8 +11,9 @@ from huggingface_hub.errors import BucketNotFoundError
 
 REPO_ID = "jeremygf/stories"
 logger = logging.getLogger(__name__)
-logging.basicConfig(format="%(message)s", level=logging.INFO)
+from storybuilder.utils.logging_config import configure_logging
 
+configure_logging()
 
 
 def get_hf_client(token: str = "HF_TOKEN") -> HfApi:  # noqa
@@ -22,7 +23,7 @@ def get_hf_client(token: str = "HF_TOKEN") -> HfApi:  # noqa
     Returns:
         A Hugging Face Hub client.
     """
-    load_dotenv()  # Load environment variables from .env file
+    load_env()
 
     token_value = os.getenv(token)
     if not token_value:
@@ -148,7 +149,5 @@ def upload_story_db(hf: HfApi, repo_id: str = REPO_ID, path_in_repo: str | None 
 
 
 if __name__ == "__main__":
-    # Load environment variables from .env file
     hf_client = get_hf_client()
-
     upload_story_db(hf_client)

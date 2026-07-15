@@ -7,8 +7,8 @@ from storybuilder.downloader.scraper import seen_folders
 
 
 def _reset_downloader_globals() -> None:
-	seen_folders.clear()
-	close_db()
+    seen_folders.clear()
+    close_db()
 
 
 @pytest.fixture(autouse=True)

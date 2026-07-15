@@ -29,7 +29,7 @@ pull_request_rules:
   - name: Auto-merge approved PRs
     conditions:
       - check-success = test-results
-      - check-success = .*test.*
+      - check-success =~ .*test.*
     actions:
       merge:
         method: squash

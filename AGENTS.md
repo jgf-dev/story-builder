@@ -110,6 +110,30 @@ Typical observed order for analysis work:
 - Branching is observed on `main`.
 - Recent commits use conventional commit prefixes like `feat:` and `fix:`.
 
+## Changelog
+
+For every change you make to the project, append a summary in ./**/CHANGELOG.md
+
+<changes>
+<one-of>
+## [PR-XXX](https://github.com/jgf2/story-builder/pull/XXX) - YYYY-MM-DD
+## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - YYYY-MM-DD
+</one-of>
+
+### Summary
+<Summary>
+
+### Added
+- <Added>
+
+### Removed
+- <Removed>
+
+### Fixed
+- <Fixed>
+</changes>
+
+
 ## Code Organization and Structure
 
 **High-level layout (observed via ls + QWEN.md + imports):**
@@ -241,4 +265,3 @@ When adding features or fixing bugs, cross-check the exact behaviors exercised i
 - **Prompt**: Use `/linear-assistant` (`.github/prompts/linear-assistant.prompt.md`) to create, find, or sync Linear issues from chat.
 - **Convention**: All Linear issue titles are prefixed with `GIT-` to match the auto-linear workflow. Use the `PRO` team key.
 - **API**: Linear GraphQL endpoint is `https://api.linear.app/graphql`. Prefer GraphQL over REST.
-

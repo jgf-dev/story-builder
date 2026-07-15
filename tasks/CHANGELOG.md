@@ -34,7 +34,6 @@ Added dashboard page test coverage and an authorized, dependency-pinned OpenCode
 - Triggered dashboard tests when dashboard source files change.
 - Standardized selected-story year state and dashboard tests on integer values.
 
->>>>>>> origin/main
 ## [af1d7aed](https://github.com/jgf2/story-builder/commit/af1d7aed) - 2026-07-15
 
 ### Summary

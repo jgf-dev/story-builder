@@ -29,6 +29,10 @@ class TestDashboard(unittest.TestCase):
         self.nlp_db_path = os.path.join(self.temp_dir, "nlp_analysis.db")
         self.meta_db_path = os.path.join(self.temp_dir, "dashboard_metadata.db")
 
+        # Clear Streamlit cache to prevent state pollution
+        import streamlit as st
+        st.cache_data.clear()
+
         # Patch paths inside dashboard
         self.patch_dir = patch("dashboard.DB_DIR", self.db_dir)
         self.patch_nlp = patch("dashboard.NLP_DB_PATH", self.nlp_db_path)
@@ -366,6 +370,10 @@ class TestDashboardDataFunctions(unittest.TestCase):
 
         self.nlp_db_path = os.path.join(self.temp_dir, "nlp_analysis.db")
         self.meta_db_path = os.path.join(self.temp_dir, "dashboard_metadata.db")
+
+        # Clear Streamlit cache to prevent state pollution
+        import streamlit as st
+        st.cache_data.clear()
 
         import storybuilder.downloader.db as sb_db
         sb_db.init_db(self.db_dir)

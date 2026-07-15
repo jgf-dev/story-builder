@@ -24,7 +24,7 @@ Added dashboard page test coverage and an authorized, dependency-pinned OpenCode
 - Pinned the OpenCode action to an immutable commit SHA.
 - Corrected SonarCloud exclusion property names and recursive glob patterns.
 - Triggered dashboard tests when dashboard source files change.
-- Matched dashboard test database-year values to the production integer type.
+- Standardized selected-story year state and dashboard tests on integer values.
 
 ## [af1d7aed](https://github.com/jgf2/story-builder/commit/af1d7aed) - 2026-07-15
 

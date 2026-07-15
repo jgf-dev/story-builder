@@ -3,6 +3,13 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
+## [PR-1370](https://github.com/jgf2/story-builder/pull/1370) - 2026-07-15
+
+### Summary
+Fixed the Mergify merge queue configuration so the test-check gating conditions actually match the split CI test jobs.
+
+### Fixed
+- Fixed the Mergify `queue_rules.merge_conditions` test-check gate in `.mergify.yml`. It previously used the literal-match operator against a check name that no CI job produces (`check-success = Run Tests` / `check-success = .*test.*`), so the queue rule never gated on tests. It now uses the regex-match operator with the aggregate check name (`check-success ~= ^run_tests / test-results$`), consistent with `merge_protections_settings.auto_merge_conditions`.
 ## [PR-1368](https://github.com/jgf2/story-builder/pull/1368) - 2026-07-15
 
 ### Summary

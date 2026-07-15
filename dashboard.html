@@ -221,7 +221,9 @@
     }
 
     .notes {
+      margin: 0;
       padding: 0 20px 20px;
+      list-style: none;
       display: grid;
       gap: 12px;
       color: var(--muted);
@@ -300,11 +302,11 @@
             <h2>How To Use</h2>
             <p class="sub">A quick reminder for the local workflow.</p>
           </header>
-          <div class="notes" role="list">
-            <div class="tip" role="listitem">Load your `TASKS.md`, make changes, and hit Save.</div>
-            <div class="tip" role="listitem">If you want the full productivity setup, run `/productivity:start`.</div>
-            <div class="tip" role="listitem">Keep tasks in the exact markdown sections the shared task board expects.</div>
-          </div>
+          <ul class="notes">
+            <li class="tip">Load your `TASKS.md`, make changes, and hit Save.</li>
+            <li class="tip">If you want the full productivity setup, run `/productivity:start`.</li>
+            <li class="tip">Keep tasks in the exact markdown sections the shared task board expects.</li>
+          </ul>
           <footer class="footer">
             This dashboard does not depend on a server. It edits the file through the browser's file picker and download flow.
           </footer>

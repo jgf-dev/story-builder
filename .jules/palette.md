@@ -1,3 +1,3 @@
-## 2024-03-04 - Use ARIA roles for lists when CSS cannot be changed
-**Learning:** Using <div role="list"> and <div role="listitem"> allows exposing list semantics to screen readers without introducing the default user-agent styling (bullets, padding) associated with native <ul> and <li> tags, which is useful when CSS modifications are restricted.
-**Action:** Apply list roles to non-semantic container elements when they represent a list of items and CSS changes are out of scope.
+## 2024-03-04 - Prefer native list elements
+**Learning:** Native `<ul>` and `<li>` elements provide list semantics without redundant ARIA roles, and their default bullets, margin, and padding can be reset with CSS when the visual design requires it.
+**Action:** Use native list elements for lists and adjust their presentation with CSS instead of applying `role="list"` and `role="listitem"` to generic containers.

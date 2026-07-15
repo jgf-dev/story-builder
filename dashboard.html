@@ -38,7 +38,7 @@
       padding: 32px 20px 48px;
     }
 
-    .shell > header {
+    header {
       display: grid;
       gap: 12px;
       margin-bottom: 20px;
@@ -221,9 +221,7 @@
     }
 
     .notes {
-      margin: 0;
       padding: 0 20px 20px;
-      list-style: none;
       display: grid;
       gap: 12px;
       color: var(--muted);
@@ -272,7 +270,7 @@
           <h2>TASKS.md Editor</h2>
           <p class="sub">Open the workspace task board file, edit it directly, then save it back.</p>
         </header>
-        <div class="toolbar" role="group" aria-label="Editor actions">
+        <div class="toolbar" role="toolbar" aria-label="Editor actions">
           <input id="fileInput" class="sr-only" type="file" accept=".md,text/markdown,text/plain">
           <label class="file-label" for="fileInput">Load TASKS.md</label>
           <button class="primary" id="saveBtn" title="No unsaved changes" aria-keyshortcuts="Control+S Meta+S" disabled>Save</button>
@@ -302,11 +300,11 @@
             <h2>How To Use</h2>
             <p class="sub">A quick reminder for the local workflow.</p>
           </header>
-          <ul class="notes">
-            <li class="tip">Load your `TASKS.md`, make changes, and hit Save.</li>
-            <li class="tip">If you want the full productivity setup, run `/productivity:start`.</li>
-            <li class="tip">Keep tasks in the exact markdown sections the shared task board expects.</li>
-          </ul>
+          <div class="notes" role="group">
+            <div class="tip">Load your `TASKS.md`, make changes, and hit Save.</div>
+            <div class="tip">If you want the full productivity setup, run `/productivity:start`.</div>
+            <div class="tip">Keep tasks in the exact markdown sections the shared task board expects.</div>
+          </div>
           <footer class="footer">
             This dashboard does not depend on a server. It edits the file through the browser's file picker and download flow.
           </footer>

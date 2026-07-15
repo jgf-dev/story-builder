@@ -12,6 +12,8 @@ Improved the dashboard's semantic structure while preserving its existing layout
 - Replaced generic note containers with native `<ul>` and `<li>` elements and reset their default visual styling.
 - Scoped the page-header layout styles so semantic card headers retain their original spacing.
 - Updated the accessibility guidance to prefer native list elements over generic ARIA grouping.
+- Fixed Quick Stats parsing so checklist items are counted within the correct task section.
+- Added arrow-key, Home, and End navigation with a single tab stop for the editor toolbar.
 
 ## [PR-1369](https://github.com/jgf-dev/story-builder/pull/1369) - 2026-07-15
 

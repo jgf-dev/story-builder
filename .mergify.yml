@@ -28,8 +28,9 @@ scopes:
 pull_request_rules:
   - name: Auto-merge approved PRs
     conditions:
+      - base = main
+      - "#approved-reviews-by >= 1"
       - check-success = test-results
-      - check-success =~ .*test.*
     actions:
       merge:
         method: squash

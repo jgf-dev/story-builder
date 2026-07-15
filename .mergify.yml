@@ -2,7 +2,7 @@ queue_rules:
   - name: checks-pass
     merge_conditions:
       - "#check-failure = 0"
-      - check-success = Run Tests
+      - check-success ~= ^run_tests / test-results$
 merge_queue:
   status_comments: all
   queue_controls_comment: true
@@ -24,3 +24,13 @@ scopes:
 merge_protections_settings:
   auto_merge_conditions:
     - check-success ~= ^run_tests / test-results$
+pull_request_rules:
+  - name: Auto-merge approved PRs
+    conditions:
+      - base = main
+      - "#approved-reviews-by >= 1"
+      - "#changes-requested-reviews-by = 0"
+      - check-success ~= ^run_tests / test-results$
+    actions:
+      merge:
+        method: squash

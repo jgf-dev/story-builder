@@ -11,6 +11,23 @@ Fixed CI path filter so changes to `src/storybuilder/dashboard/**` trigger the d
 ### Fixed
 - Added `src/storybuilder/dashboard/**` to the `downloader` paths-filter in `.github/workflows/test.yml` so that dashboard page changes (e.g. `read_story.py`) now trigger `test-downloader` and execute the existing dashboard Streamlit tests.
 - Fixed leaking global state between downloader tests that made `test-downloader` (and thus `test-results`) fail once the job started running. Added `tests/downloader/conftest.py` with an autouse fixture that resets `db._conn`/`_engine` (via `close_db()`) and clears `scraper.seen_folders` after every test, so tests that call `db.init_db` or scrape folders no longer corrupt later tests.
+## [PR-1370](https://github.com/jgf2/story-builder/pull/1370) - 2026-07-15
+
+### Summary
+Fixed the Mergify merge queue configuration so the test-check gating conditions actually match the split CI test jobs.
+
+### Fixed
+- Fixed the Mergify `queue_rules.merge_conditions` test-check gate in `.mergify.yml`. It previously used the literal-match operator against a check name that no CI job produces (`check-success = Run Tests` / `check-success = .*test.*`), so the queue rule never gated on tests. It now uses the regex-match operator with the aggregate check name (`check-success ~= ^run_tests / test-results$`), consistent with `merge_protections_settings.auto_merge_conditions`.
+## [PR-1368](https://github.com/jgf2/story-builder/pull/1368) - 2026-07-15
+
+### Summary
+Hardened the Mergify auto-merge `pull_request_rules` introduced in this PR to address Devin Review findings.
+
+### Fixed
+- Added a `#approved-reviews-by >= 1` condition so the "Auto-merge approved PRs" rule actually requires a human approval before merging.
+- Replaced the broad `check-success =~ .*test.*` condition with the specific aggregate check `check-success ~= ^run_tests / test-results$`, so auto-merge only fires once all test jobs have succeeded instead of when any single matching job passes.
+- Restored the `base = main` condition so the rule only targets PRs into `main`.
+
 ## [PR-1364](https://github.com/jgf-dev/story-builder/pull/1364) - 2026-07-15
 
 ### Summary

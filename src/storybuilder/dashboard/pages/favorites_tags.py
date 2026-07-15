@@ -60,7 +60,7 @@ def render_favorites_tags() -> None:
             col1, _col2 = st.columns([1, 8])
             with col1:
                 # Attempt to resolve database year based on path to load it in reader
-                db_year = str(path_to_db_year.get(f["story_path"], current_year))
+                db_year = path_to_db_year.get(f["story_path"], current_year)
                 if st.button("Read", key=f"read_fav_{f['story_path']}"):
                     st.session_state.selected_story_path = f["story_path"]
                     st.session_state.selected_story_year = db_year

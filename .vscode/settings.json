@@ -45,40 +45,6 @@
         "editor.defaultFormatter": "tamasfe.even-better-toml",
         "editor.formatOnSave": true
     },
-    "better-comments.tags": [
-        {
-            "tag": "XXX",
-            "color": "#F8C471"
-        },
-        {
-            "tag": "WARN",
-            "color": "#FF6961"
-        },
-        {
-            "tag": "NOTE",
-            "color": "#3498DB"
-        },
-        {
-            "tag": "TODO",
-            "color": "#77C3EC"
-        }
-    ],
-    "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
-    "codesnap.showWindowControls": false,
-    "codesnap.shutterAction": "copy",
-    "Workspace_Formatter.excludePattern": [
-        "**/build",
-        "**/.*",
-        "**/.vscode",
-        "**/html"
-    ],
-    "svg.preview.autoOpen": true,
-    "errorLens.delay": 1000,
-    "errorLens.enabledDiagnosticLevels": [
-        "error",
-        "warning"
-    ],
-    "errorLens.enabled": false,
     "[python]": {
         "editor.formatOnSave": false,
         "editor.defaultFormatter": "charliermarsh.ruff",
@@ -94,23 +60,9 @@
     "python.analysis.logLevel": "Error",
     "python.createEnvironment.contentButton": "show",
     "python.missingPackage.severity": "Error",
-    "mypy-type-checker.importStrategy": "fromEnvironment",
-    "black-formatter.importStrategy": "fromEnvironment",
-    "isort.check": true,
-    "isort.importStrategy": "fromEnvironment",
     "ruff.organizeImports": false,
     "ruff.fixAll": true,
-    "autoDocstring.generateDocstringOnEnter": true,
-    "autoDocstring.quoteStyle": "'''",
-    "jupyter.interactiveWindow.creationMode": "perFile",
-    "jupyter.askForKernelRestart": false,
-    "jupyter.themeMatplotlibPlots": true,
-    "jupyter.logging.level": "error",
     "notebook.formatOnSave.enabled": true,
-    "notebook.output.textLineLimit": 20,
-    "notebook.compactView": false,
-    "notebook.diff.ignoreMetadata": true,
-    "notebook.diff.ignoreOutputs": true,
     "python.testing.pytestEnabled": true,
     "python.testing.pytestArgs": [
         ".",

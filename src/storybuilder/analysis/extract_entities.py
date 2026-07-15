@@ -1,21 +1,18 @@
 """Extract Named Entities from stories using spaCy."""
 
-from sqlite3 import Cursor
-from sqlite3 import Connection
-from spacy.language import Language
-from argparse import Namespace
 import argparse
 import sqlite3
+from argparse import Namespace
 from collections import Counter
 from pathlib import Path
+from sqlite3 import Connection, Cursor
 
 import spacy
-from thinc.api import require_gpu
-from thinc.api import set_gpu_allocator
+from spacy.language import Language
+from thinc.api import require_gpu, set_gpu_allocator
 from tqdm import tqdm
 
-
-DB_PATH = "nlp_analysis.db"
+DB_PATH = "stories/db/nlp_analysis.db"
 ALLOWED_LABELS = {
     "PERSON",
     "NORP",

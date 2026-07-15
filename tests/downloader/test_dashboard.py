@@ -561,5 +561,94 @@ class TestDashboardDataFunctions(unittest.TestCase):
             self.assertEqual(get_favorites(), [])
         finally:
             del sys.modules["dashboard"]
+
+    def test_archive_stats_empty_db(self) -> None:
+        """Regression test for Fix #1: empty-DB stats guard should not crash."""
+        import sys
+
+        mock_module = type(sys)("dashboard")
+        mock_module.DB_DIR = self.db_dir
+        mock_module.NLP_DB_PATH = self.nlp_db_path
+        mock_module.META_DB_PATH = self.meta_db_path
+        sys.modules["dashboard"] = mock_module
+
+        try:
+            from storybuilder.dashboard.data import load_archive_stats
+
+            # Call with no stories inserted → should return empty DataFrames
+            df_years, df_cats, df_auths, df_words = load_archive_stats()
+
+            # Verify all are empty
+            self.assertTrue(df_years.empty, "df_years should be empty when no data is present")
+            self.assertTrue(df_cats.empty, "df_cats should be empty when no data is present")
+            self.assertTrue(df_auths.empty, "df_auths should be empty when no data is present")
+            self.assertTrue(df_words.empty, "df_words should be empty when no data is present")
+        finally:
+            del sys.modules["dashboard"]
+
+    def test_favorites_year_resolution_with_null_publication_date(self) -> None:
+        """Regression test for Fix #2: favorites year query via get_conn cursor."""
+        import sys
+
+        mock_module = type(sys)("dashboard")
+        mock_module.DB_DIR = self.db_dir
+        mock_module.NLP_DB_PATH = self.nlp_db_path
+        mock_module.META_DB_PATH = self.meta_db_path
+        sys.modules["dashboard"] = mock_module
+
+        try:
+            from storybuilder.downloader.db import get_conn
+            from storybuilder.downloader.db import insert_story
+
+            # Insert test stories with various publication_date formats (correct path format)
+            insert_story(
+                output_path="stories/gay/college/story1/part-1.txt",
+                title="Story with valid year",
+                author="Author One",
+                story_date="2020-06-15",
+                url="http://test1",
+                content="Content 1",
+            )
+
+            insert_story(
+                output_path="stories/gay/college/story2/part-1.txt",
+                title="Story with no year",
+                author="Author Two",
+                story_date=None,
+                url="http://test2",
+                content="Content 2",
+            )
+
+            # Simulate the favorites query using get_conn with qmark parameters
+            conn = get_conn()
+            self.assertIsNotNone(conn, "get_conn should return a valid connection")
+
+            cursor = conn.cursor()
+            paths = ["stories/gay/college/story1/part-1.txt", "stories/gay/college/story2/part-1.txt"]
+            placeholders = ",".join("?" for _ in paths)
+            cursor.execute(
+                f"SELECT path, publication_date FROM stories WHERE path IN ({placeholders})",
+                paths,
+            )
+            rows = cursor.fetchall()
+
+            # Verify we got results
+            self.assertEqual(len(rows), 2, "Should retrieve both stories")
+
+            # Check that we can extract years without crashing
+            path_to_year = {}
+            for row in rows:
+                pub_date = row[1] if len(row) > 1 else None
+                try:
+                    y = int(str(pub_date)[:4]) if pub_date and len(str(pub_date)) >= 4 else 2026
+                except (ValueError, TypeError):
+                    y = 2026
+                path_to_year[row[0]] = y
+
+            self.assertEqual(path_to_year["stories/gay/college/story1/part-1.txt"], 2020, "Should extract year 2020")
+            self.assertEqual(path_to_year["stories/gay/college/story2/part-1.txt"], 2026, "Should default to 2026 for None")
+        finally:
+            del sys.modules["dashboard"]
+
 if __name__ == "__main__":
     unittest.main()

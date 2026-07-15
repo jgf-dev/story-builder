@@ -34,18 +34,21 @@ def render_favorites_tags() -> None:
             from storybuilder.downloader import db as storybuilder_db
 
             try:
-                placeholders = ",".join("?" for _ in fav_paths)
-                rows = storybuilder_db.execute_query(
-                    f"SELECT path, publication_date FROM stories WHERE path IN ({placeholders})",
-                    params=tuple(fav_paths),
-                )
-                for row in rows:
-                    pub_date = row.get("publication_date")
-                    try:
-                        y = int(str(pub_date)[:4]) if pub_date and len(str(pub_date)) >= 4 else 2026
-                    except ValueError:
-                        y = 2026
-                    path_to_db_year[row["path"]] = y
+                conn = storybuilder_db.get_conn()
+                if conn:
+                    cursor = conn.cursor()
+                    placeholders = ",".join("?" for _ in fav_paths)
+                    cursor.execute(
+                        f"SELECT path, publication_date FROM stories WHERE path IN ({placeholders})",
+                        fav_paths,
+                    )
+                    for row in cursor.fetchall():
+                        pub_date = row[1] if len(row) > 1 else None
+                        try:
+                            y = int(str(pub_date)[:4]) if pub_date and len(str(pub_date)) >= 4 else 2026
+                        except (ValueError, TypeError):
+                            y = 2026
+                        path_to_db_year[row[0]] = y
             except Exception as e:
                 st.warning(f"Could not resolve story paths from database: {e}")
 

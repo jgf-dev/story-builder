@@ -1,4 +1,5 @@
 import streamlit as st
+import textwrap
 
 from storybuilder.dashboard.data import add_favorite
 from storybuilder.dashboard.data import get_favorites
@@ -82,7 +83,8 @@ def render_read_story() -> None:
                         st.rerun()
 
                 # Export to Markdown Button
-                md_content = f"""# {story["title"]}
+                md_content = textwrap.dedent(f"""
+                    # {story["title"]}
                     **Author:** {story["author_name"] or "Unknown"}
                     **Category:** {story["category"]}
                     **Published:** {story["publication_date"] or "Unknown"}
@@ -91,7 +93,7 @@ def render_read_story() -> None:
                     ---
 
                     {story["content"]}
-                    """
+                """).strip()
                 st.download_button(
                     label="📥 Export Markdown",
                     data=md_content,
@@ -100,7 +102,7 @@ def render_read_story() -> None:
                 )
 
             st.write(
-                f"**Category:** `{story['category']}` | **Published:** `{story['publication_date'] or 'Unknown'}` | **Words:** `{story['word_count']:,}`",
+                f"**Category:** `{story['category']}` | **Published:** `{story['publication_date'] or 'Unknown'}` | **Words:** `{(story.get('word_count') or 0):,}`",
 
             )
             st.markdown("---")

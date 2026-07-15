@@ -13,6 +13,11 @@ def render_archive_stats() -> None:
         df_years, df_cats, df_auths, df_words = load_archive_stats()
     st.markdown("---")
 
+    # Guard against empty database
+    if df_years.empty or "Stories Count" not in df_years.columns:
+        st.info("No archive data available yet.")
+        return
+
     # Overview metrics row
     total_stories = df_years["Stories Count"].sum()
     total_words = df_years["Total Words"].sum()

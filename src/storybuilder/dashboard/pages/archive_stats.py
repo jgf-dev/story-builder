@@ -24,10 +24,10 @@ def render_archive_stats() -> None:
     total_stories = df_years["Stories Count"].sum()
     total_words = df_years["Total Words"].sum()
 
-    col_m1, col_m2, col_m3 = st.columns(3)
-    col_m1.metric("Total Stories", f"{total_stories:,}")
-    col_m2.metric("Total Archive Words", f"{total_words:,}")
-    col_m3.metric(
+    cols = st.columns(3)
+    cols[0].metric("Total Stories", f"{total_stories:,}")
+    cols[1].metric("Total Archive Words", f"{total_words:,}")
+    cols[2].metric(
         "Average Story Length",
         f"{total_words // total_stories if total_stories > 0 else 0:,} words",
     )
@@ -36,62 +36,62 @@ def render_archive_stats() -> None:
     # 1. Timeline Chart
     current_year = datetime.datetime.now(datetime.UTC).year
     st.subheader(f"📈 Publications Timeline (1990 - {current_year})")
-    fig_line = px.line(
+    fig = px.line(
         df_years,
         x="Year",
         y="Stories Count",
         title="Story Publications Per Year",
         markers=True,
     )
-    fig_line.update_layout(template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f")
+    fig.update_layout(template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f")
 
-    st.plotly_chart(fig_line, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True)
 
     # 2. Categories & Authors Charts
-    col_left, col_right = st.columns(2)
+    chart_cols = st.columns(2)
 
-    with col_left:
+    with chart_cols[0]:
         st.subheader("🏷️ Top 15 Categories")
-        fig_cat = px.bar(
+        fig = px.bar(
             df_cats.head(15),
             x="Count",
             y="Category",
             orientation="h",
             title="Story Counts by Category",
         )
-        fig_cat.update_layout(
+        fig.update_layout(
             template="plotly_dark",
             plot_bgcolor="#09101f",
             paper_bgcolor="#09101f",
             yaxis={"categoryorder": "total ascending"},
         )
-        st.plotly_chart(fig_cat, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True)
 
-    with col_right:
+    with chart_cols[1]:
         st.subheader("✍️ Top 15 Authors")
-        fig_auth = px.bar(
+        fig = px.bar(
             df_auths.head(15),
             x="Count",
             y="Author",
             orientation="h",
             title="Story Counts by Author",
         )
-        fig_auth.update_layout(
+        fig.update_layout(
             template="plotly_dark",
             plot_bgcolor="#09101f",
             paper_bgcolor="#09101f",
             yaxis={"categoryorder": "total ascending"},
         )
-        st.plotly_chart(fig_auth, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True)
 
     # 3. Word Count Bracket Distribution
     st.subheader("📐 Story Length Distribution")
-    fig_words = px.bar(
+    fig = px.bar(
         df_words,
         x="Bracket",
         y="Stories",
         title="Story Word Count Distribution Bracket",
     )
-    fig_words.update_layout(template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f")
+    fig.update_layout(template="plotly_dark", plot_bgcolor="#09101f", paper_bgcolor="#09101f")
 
-    st.plotly_chart(fig_words, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True)

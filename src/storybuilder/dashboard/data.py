@@ -12,6 +12,8 @@ from storybuilder.downloader import db as storybuilder_db
 
 logger = getLogger(__name__)
 
+MIN_ENTITY_PATH_PARTS = 3
+
 
 def _ensure_db() -> None:
     """Initialize the storybuilder database engine (idempotent)."""
@@ -114,6 +116,17 @@ def _format_stats_dataframes(ag: dict) -> tuple[pd.DataFrame, pd.DataFrame, pd.D
     return df_years, df_cats, df_auths, df_words
 
 
+def _safe_query(conn: sqlite3.Connection, sql: str, params: tuple | None = None) -> list:
+    """Execute a query safely and fetch all rows, returning an empty list on failure."""
+    try:
+        cursor = conn.cursor()
+        cursor.execute(sql, params or ())
+        return cursor.fetchall()
+    except Exception:
+        logger.exception("Failed to execute database query: %s", sql)
+        return []
+
+
 @st.cache_data
 def load_archive_stats() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Pre-aggregate stats from the monolithic database for the visualizations."""
@@ -124,58 +137,58 @@ def load_archive_stats() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.D
     if not conn:
         return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 
-    try:
-        cursor = conn.cursor()
+    # 1. Year stats
+    year_rows = _safe_query(
+        conn,
+        """
+        SELECT CAST(substr(publication_date, 1, 4) AS INTEGER) AS year_val, COUNT(*), SUM(word_count)
+        FROM stories
+        WHERE publication_date IS NOT NULL AND length(publication_date) >= 4
+        GROUP BY year_val
+        """,
+    )
 
-        # 1. Year stats
-        cursor.execute(
-            """
-            SELECT CAST(substr(publication_date, 1, 4) AS INTEGER) AS year_val, COUNT(*), SUM(word_count)
-            FROM stories
-            WHERE publication_date IS NOT NULL AND length(publication_date) >= 4
-            GROUP BY year_val
-            """,
-        )
-        for yr, cnt, words in cursor.fetchall():
-            if yr:
-                ag["year_stats"].append({"Year": yr, "Stories Count": cnt, "Total Words": words or 0})
+    # 2. Category counts
+    cat_rows = _safe_query(conn, "SELECT category, COUNT(*) FROM stories GROUP BY category")
 
-        # 2. Category counts
-        cursor.execute("SELECT category, COUNT(*) FROM stories GROUP BY category")
-        for cat, cnt in cursor.fetchall():
-            if cat:
-                ag["category_counts"][cat] = cnt
+    # 3. Author counts
+    auth_rows = _safe_query(conn, "SELECT author_name, COUNT(*) FROM stories GROUP BY author_name")
 
-        # 3. Author counts
-        cursor.execute("SELECT author_name, COUNT(*) FROM stories GROUP BY author_name")
-        for auth, cnt in cursor.fetchall():
-            if auth:
-                ag["author_counts"][auth] = cnt
+    # 4. Bracket counts
+    bracket_rows = _safe_query(
+        conn,
+        """
+        SELECT
+            CASE
+                WHEN word_count < 1000 THEN 'Short (<1K)'
+                WHEN word_count < 5000 THEN 'Medium-Short (1K-5K)'
+                WHEN word_count < 10000 THEN 'Medium (5K-10K)'
+                WHEN word_count < 20000 THEN 'Medium-Long (10K-20K)'
+                WHEN word_count < 50000 THEN 'Long (20K-50K)'
+                ELSE 'Epic (>50K)'
+            END AS bracket,
+            COUNT(*)
+        FROM stories
+        WHERE word_count IS NOT NULL
+        GROUP BY bracket
+        """,
+    )
 
-        # 4. Bracket counts
-        cursor.execute(
-            """
-            SELECT
-                CASE
-                    WHEN word_count < 1000 THEN 'Short (<1K)'
-                    WHEN word_count < 5000 THEN 'Medium-Short (1K-5K)'
-                    WHEN word_count < 10000 THEN 'Medium (5K-10K)'
-                    WHEN word_count < 20000 THEN 'Medium-Long (10K-20K)'
-                    WHEN word_count < 50000 THEN 'Long (20K-50K)'
-                    ELSE 'Epic (>50K)'
-                END AS bracket,
-                COUNT(*)
-            FROM stories
-            WHERE word_count IS NOT NULL
-            GROUP BY bracket
-            """,
-        )
-        for bracket, cnt in cursor.fetchall():
-            if bracket in ag["bracket_counts"]:
-                ag["bracket_counts"][bracket] += cnt
+    for yr, cnt, words in year_rows:
+        if yr:
+            ag["year_stats"].append({"Year": yr, "Stories Count": cnt, "Total Words": words or 0})
 
-    except Exception as e:
-        logger.exception("Failed to query archive statistics from database", exc_info=e)
+    for cat, cnt in cat_rows:
+        if cat:
+            ag["category_counts"][cat] = cnt
+
+    for auth, cnt in auth_rows:
+        if auth:
+            ag["author_counts"][auth] = cnt
+
+    for bracket, cnt in bracket_rows:
+        if bracket in ag["bracket_counts"]:
+            ag["bracket_counts"][bracket] += cnt
 
     return _format_stats_dataframes(ag)
 
@@ -226,8 +239,8 @@ def _resolve_entity_suffixes(
     suffixes = []
     for r in cursor.fetchall():
         parts = Path(r[0]).parts
-        if len(parts) >= 3:
-            suffixes.append("/".join(parts[-3:]))
+        if len(parts) >= MIN_ENTITY_PATH_PARTS:
+            suffixes.append("/".join(parts[-MIN_ENTITY_PATH_PARTS:]))
     return suffixes
 
 
@@ -276,7 +289,7 @@ def _enrich_with_db_year(results: list[dict]) -> list[dict]:
     return enriched
 
 
-def query_stories(
+def query_stories(  # noqa: PLR0913
     params: StorySearchQuery | None = None,
     *,
     fts_query: str = "",
@@ -317,7 +330,7 @@ def query_stories(
     return results[: params.limit]
 
 
-def get_story_by_path(story_path: str, db_year: int | str | None = None) -> dict | None:
+def get_story_by_path(story_path: str, _db_year: int | str | None = None) -> dict | None:
     """Retrieve full text and details of a single story from the monolithic database."""
     _ensure_db()
     conn = storybuilder_db.get_conn()
@@ -327,15 +340,18 @@ def get_story_by_path(story_path: str, db_year: int | str | None = None) -> dict
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM stories WHERE path = ?", (story_path,))
         row = cursor.fetchone()
-        if row:
-            if isinstance(row, sqlite3.Row) or hasattr(row, "keys"):
-                return dict(row)
-            cols = [col[0] for col in cursor.description]
-            return dict(zip(cols, row, strict=False))
-        return None
+        description = cursor.description if row else None
     except Exception:
         logger.exception("Failed to retrieve story by path: %s", story_path)
         return None
+
+    if row:
+        if isinstance(row, sqlite3.Row) or hasattr(row, "keys"):
+            return dict(row)
+        if description:
+            cols = [col[0] for col in description]
+            return dict(zip(cols, row, strict=False))
+    return None
 
 
 # ------------------------------------------------------------------------------
@@ -385,3 +401,33 @@ def get_favorites() -> list[dict]:
     rows = cursor.fetchall()
     conn.close()
     return [dict(r) for r in rows]
+
+
+def get_favorites_publication_years(fav_paths: list[str]) -> dict[str, int]:
+    """Resolve the publication year for a list of story paths in bulk."""
+    _ensure_db()
+    conn = storybuilder_db.get_conn()
+    if not conn or not fav_paths:
+        return {}
+
+    current_year = datetime.datetime.now(datetime.UTC).year
+    path_to_year = {}
+    try:
+        cursor = conn.cursor()
+        placeholders = ",".join("?" for _ in fav_paths)
+        # S608 is dynamic SQL composition for placeholders. It's safe since placeholders contains only '?'.
+        query = f"SELECT path, publication_date FROM stories WHERE path IN ({placeholders})"  # noqa: S608
+        cursor.execute(query, fav_paths)
+        rows = cursor.fetchall()
+    except Exception:
+        logger.exception("Could not resolve story paths from database")
+        rows = []
+
+    for row in rows:
+        pub_date = row[1] if len(row) > 1 else None
+        try:
+            y = int(str(pub_date)[:LONG_YEAR]) if pub_date and len(str(pub_date)) >= LONG_YEAR else current_year
+        except (ValueError, TypeError):
+            y = current_year
+        path_to_year[row[0]] = y
+    return path_to_year

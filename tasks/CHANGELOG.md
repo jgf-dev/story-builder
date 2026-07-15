@@ -3,17 +3,6 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
-## [PR-1372](https://github.com/jgf-dev/story-builder/pull/1372) - 2026-07-15
-
-### Summary
-Fixed the SonarCloud maintainability failure caused by redundant ARIA list roles.
-
-### Fixed
-- Replaced the notes section's generic containers and `list`/`listitem` roles with native `<ul>` and `<li>` elements.
-- Reset the native list margin and marker styling so the dashboard's layout remains unchanged.
-- Scoped the page-header layout styles so semantic card headers retain their original spacing.
-- Updated the accessibility guidance to prefer semantic list elements over redundant ARIA roles.
-
 ## [PR-1369](https://github.com/jgf-dev/story-builder/pull/1369) - 2026-07-15
 
 ### Summary

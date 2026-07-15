@@ -64,3 +64,37 @@ def mock_gemini_tts_process_file(monkeypatch, fake_tts_process_file):
         fake_tts_process_file,
     )
     return fake_tts_process_file
+
+
+@pytest.fixture(autouse=True)
+def clean_globals():
+    """Autouse fixture to reset global states (database connections, scraping caches) before and after each test."""
+    # Reset seen_folders
+    try:
+        from storybuilder.downloader.scraper import seen_folders
+        seen_folders.clear()
+    except Exception:
+        pass
+
+    # Close DB
+    try:
+        from storybuilder.downloader.db import close_db
+        close_db()
+    except Exception:
+        pass
+
+    yield
+
+    # Cleanup after test
+    try:
+        from storybuilder.downloader.scraper import seen_folders
+        seen_folders.clear()
+    except Exception:
+        pass
+
+    try:
+        from storybuilder.downloader.db import close_db
+        close_db()
+    except Exception:
+        pass
+

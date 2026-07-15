@@ -81,7 +81,7 @@ def render_read_story() -> None:
                 st.rerun()
 
         # Export to Markdown Button
-        md_content = textwrap.dedent(f"""
+        header = textwrap.dedent(f"""
             # {story["title"]}
             **Author:** {story["author_name"] or "Unknown"}
             **Category:** {story["category"]}
@@ -89,9 +89,9 @@ def render_read_story() -> None:
             **URL:** {story["url"] or "N/A"}
 
             ---
+        """).lstrip()
 
-            {story["content"]}
-        """).strip()
+        md_content = f"{header}\n{story['content']}"
         st.download_button(
             label="📥 Export Markdown",
             data=md_content,

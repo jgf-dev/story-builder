@@ -4,6 +4,7 @@ from typing import Optional
 
 from dotenv import load_dotenv
 
+
 _env_loaded = False
 
 

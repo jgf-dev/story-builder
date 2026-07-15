@@ -15,7 +15,7 @@ import warnings
 from enum import Enum, StrEnum
 from functools import cached_property
 
-from dotenv import load_dotenv
+from storybuilder.utils.env import load_env
 from google.adk.agents import LlmAgent
 from google.adk.artifacts.in_memory_artifact_service import InMemoryArtifactService
 from google.adk.memory.vertex_ai_memory_bank_service import VertexAiMemoryBankService
@@ -44,8 +44,7 @@ from .tools import write_scene_file
 
 load_env()
 
-dotenv_path = pathlib.Path(os.path.join(pathlib.Path(__file__).parent, "..", "..", "..", "..", ".env")).resolve()
-load_dotenv(dotenv_path)
+load_env()
 
 warnings.filterwarnings("ignore")
 configure_logging(level=logging.DEBUG)

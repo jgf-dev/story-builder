@@ -9,10 +9,6 @@ merge_queue:
   skip_intermediate_results: false
   reset_on_external_merge: always
   max_parallel_checks: 3
-merge_protections_settings:
-  auto_merge_conditions:
-    - check-success = Run Tests
-
 scopes:
   source:
     files:
@@ -25,12 +21,15 @@ scopes:
       scripts:
         include:
           - scripts/**/*
+merge_protections_settings:
+  auto_merge_conditions:
+    - check-success ~= ^run_tests / test-results$
 pull_request_rules:
   - name: Auto-merge approved PRs
     conditions:
       - base = main
       - "#approved-reviews-by >= 1"
-      - check-success = test-results
+      - check-success ~= ^run_tests / test-results$
     actions:
       merge:
         method: squash

@@ -10,8 +10,31 @@ Hardened the Mergify auto-merge `pull_request_rules` introduced in this PR to ad
 
 ### Fixed
 - Added a `#approved-reviews-by >= 1` condition so the "Auto-merge approved PRs" rule actually requires a human approval before merging.
-- Replaced the broad `check-success =~ .*test.*` condition with the specific aggregate check `check-success = test-results`, so auto-merge only fires once all test jobs have succeeded instead of when any single matching job passes.
+- Replaced the broad `check-success =~ .*test.*` condition with the specific aggregate check `check-success ~= ^run_tests / test-results$`, so auto-merge only fires once all test jobs have succeeded instead of when any single matching job passes.
 - Restored the `base = main` condition so the rule only targets PRs into `main`.
+
+## [PR-1364](https://github.com/jgf-dev/story-builder/pull/1364) - 2026-07-15
+
+### Summary
+
+Added dashboard page test coverage and an authorized, dependency-pinned OpenCode workflow.
+
+### Added
+
+- Dashboard configuration, sidebar, archive statistics, favorites, story reader, and search explorer tests.
+- Test isolation for shared downloader database and scraper state.
+- An OpenCode comment workflow restricted to trusted repository contributors.
+
+### Removed
+
+- Support for the ambiguous `/oc` workflow command alias.
+
+### Fixed
+
+- Pinned the OpenCode action to an immutable commit SHA.
+- Corrected SonarCloud exclusion property names and recursive glob patterns.
+- Triggered dashboard tests when dashboard source files change.
+- Standardized selected-story year state and dashboard tests on integer values.
 
 ## [af1d7aed](https://github.com/jgf2/story-builder/commit/af1d7aed) - 2026-07-15
 

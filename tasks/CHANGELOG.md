@@ -11,6 +11,28 @@ Fixed CI path filter so changes to `src/storybuilder/dashboard/**` trigger the d
 ### Fixed
 - Added `src/storybuilder/dashboard/**` to the `downloader` paths-filter in `.github/workflows/test.yml` so that dashboard page changes (e.g. `read_story.py`) now trigger `test-downloader` and execute the existing dashboard Streamlit tests.
 - Fixed leaking global state between downloader tests that made `test-downloader` (and thus `test-results`) fail once the job started running. Added `tests/downloader/conftest.py` with an autouse fixture that resets `db._conn`/`_engine` (via `close_db()`) and clears `scraper.seen_folders` after every test, so tests that call `db.init_db` or scrape folders no longer corrupt later tests.
+## [PR-1364](https://github.com/jgf-dev/story-builder/pull/1364) - 2026-07-15
+
+### Summary
+
+Added dashboard page test coverage and an authorized, dependency-pinned OpenCode workflow.
+
+### Added
+
+- Dashboard configuration, sidebar, archive statistics, favorites, story reader, and search explorer tests.
+- Test isolation for shared downloader database and scraper state.
+- An OpenCode comment workflow restricted to trusted repository contributors.
+
+### Removed
+
+- Support for the ambiguous `/oc` workflow command alias.
+
+### Fixed
+
+- Pinned the OpenCode action to an immutable commit SHA.
+- Corrected SonarCloud exclusion property names and recursive glob patterns.
+- Triggered dashboard tests when dashboard source files change.
+- Standardized selected-story year state and dashboard tests on integer values.
 
 ## [af1d7aed](https://github.com/jgf2/story-builder/commit/af1d7aed) - 2026-07-15
 

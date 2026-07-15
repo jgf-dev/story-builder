@@ -3,6 +3,24 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
+## [862c2e9](https://github.com/jgf2/story-builder/commit/862c2e9f) - 2026-07-15
+
+### Summary
+Implemented high and medium priority dashboard fixes identified during code review, including resolving empty DB metrics crashes, fixing parameter mismatches, coalescing null values, dedenting markdown exports, guarding module reloading, and decoupling path resolution.
+
+### Added
+- Added regression tests for dashboard stats and year resolution in `test_dashboard.py`.
+- Added `st.cache_data.clear()` to test setUp to prevent Streamlit cache pollution across test runs.
+
+### Changed
+- Refactored `archive_stats.py` to guard empty database state.
+- Bypassed SQLAlchemy `text` positional binding issue in `favorites_tags.py` with native sqlite DBAPI cursor execution.
+- Added coalescing to `word_count` rendering in `search_explorer.py` and `read_story.py`.
+- Stripped leading indentation from exported markdown strings in `read_story.py` using `textwrap.dedent`.
+- Guarded `importlib.reload` loop in `dashboard.py` launcher with a `DASHBOARD_DEV_MODE` check.
+- Refactored `config.py` path resolution to check for environment variables and check both `__main__` and `dashboard` modules.
+- Replaced hardcoded `2026` year references with dynamic timezone-aware UTC year lookup.
+
 ## 13/07/2026
 
 ### Test Coverage Improvements for Downloader Module

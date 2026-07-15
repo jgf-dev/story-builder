@@ -11,22 +11,24 @@ tests:
   URL added by one test causes another test to short-circuit with "Skipping
   already scraped folder".
 
-Reset this global state after every test to keep tests isolated regardless of
-their own cleanup.
+Reset this global state before and after every test to keep tests isolated
+regardless of their own cleanup.
 """
-
-from __future__ import annotations
 
 from collections.abc import Iterator
 
 import pytest
 
-from storybuilder.downloader import db
-from storybuilder.downloader import scraper
+from storybuilder.downloader import db, scraper
+
+
+def _reset_downloader_global_state() -> None:
+    db.close_db()
+    scraper.seen_folders.clear()
 
 
 @pytest.fixture(autouse=True)
-def _reset_downloader_global_state() -> Iterator[None]:
+def clean_globals() -> Iterator[None]:
+    _reset_downloader_global_state()
     yield
-    db.close_db()
-    scraper.seen_folders.clear()
+    _reset_downloader_global_state()

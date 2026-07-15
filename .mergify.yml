@@ -23,4 +23,4 @@ scopes:
           - scripts/**/*
 merge_protections_settings:
   auto_merge_conditions:
-    - check-success ~= .*test.*
+    - check-success ~= ^run_tests / test-results$

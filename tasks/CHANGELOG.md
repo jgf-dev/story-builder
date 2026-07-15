@@ -3,6 +3,14 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
+## [PR-1363](https://github.com/jgf-dev/story-builder/pull/1363) - 2026-07-15
+
+### Summary
+Fixed CI path filter so changes to `src/storybuilder/dashboard/**` trigger the downloader test job.
+
+### Fixed
+- Added `src/storybuilder/dashboard/**` to the `downloader` paths-filter in `.github/workflows/test.yml` so that dashboard page changes (e.g. `read_story.py`) now trigger `test-downloader` and execute the existing dashboard Streamlit tests.
+- Fixed leaking global state between downloader tests that made `test-downloader` (and thus `test-results`) fail once the job started running. Added `tests/downloader/conftest.py` with an autouse fixture that resets `db._conn`/`_engine` (via `close_db()`) and clears `scraper.seen_folders` after every test, so tests that call `db.init_db` or scrape folders no longer corrupt later tests.
 ## [PR-1370](https://github.com/jgf2/story-builder/pull/1370) - 2026-07-15
 
 ### Summary

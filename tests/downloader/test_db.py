@@ -9,7 +9,7 @@ from unittest.mock import patch, MagicMock
 class TestDBInit(unittest.TestCase):
     """Tests for db.init_db and basic schema."""
 
-    def test_init_db_creates_tables(self):
+    def test_init_db_creates_tables(self) -> None:
         """init_db creates the stories and fts tables."""
         from storybuilder.downloader import db
         import tempfile
@@ -31,7 +31,7 @@ class TestDBInit(unittest.TestCase):
         finally:
             shutil.rmtree(temp_dir)
 
-    def test_story_insert_and_search(self):
+    def test_story_insert_and_search(self) -> None:
         """Basic insert and FTS search roundtrip."""
         from storybuilder.downloader import db
         import tempfile
@@ -65,7 +65,7 @@ class TestDBInit(unittest.TestCase):
 class TestDBExport(unittest.TestCase):
     """Tests for export functionality."""
 
-    def test_get_story_by_path(self):
+    def test_get_story_by_path(self) -> None:
         """get_story returns story by path."""
         from storybuilder.downloader import db
         import tempfile
@@ -92,7 +92,7 @@ class TestDBExport(unittest.TestCase):
         finally:
             shutil.rmtree(temp_dir)
 
-    def test_story_exists(self):
+    def test_story_exists(self) -> None:
         """story_exists checks for path."""
         from storybuilder.downloader import db
         import tempfile
@@ -122,7 +122,7 @@ class TestDBExport(unittest.TestCase):
 class TestDBPartitionPaths(unittest.TestCase):
     """Tests for get_all_partition_paths."""
 
-    def test_get_all_partition_paths_returns_list(self):
+    def test_get_all_partition_paths_returns_list(self) -> None:
         """Returns a list of partition path strings."""
         from storybuilder.downloader import db
 

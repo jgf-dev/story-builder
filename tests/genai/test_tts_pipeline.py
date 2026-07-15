@@ -30,7 +30,7 @@ class TestTTSPipeline(unittest.TestCase):
     """Sequential TTS generation with voice continuity (mocked by default)."""
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls) -> None:
         project_root = Path(__file__).resolve().parents[2]
         load_dotenv(project_root / ".env")
 
@@ -54,7 +54,7 @@ class TestTTSPipeline(unittest.TestCase):
             cls.prompt_files = all_parts[:MAX_API_CALLS]
         cls.project_root = project_root
 
-    def test_sequential_tts_generation_with_voice_continuity(self):
+    def test_sequential_tts_generation_with_voice_continuity(self) -> None:
         """Processes up to 3 prompt files via process_file with previous_id chain."""
         if self.live:
             self._live_sequential_tts()
@@ -92,7 +92,7 @@ class TestTTSPipeline(unittest.TestCase):
             synthetic.append(path)
         return synthetic
 
-    def _mocked_sequential_tts(self):
+    def _mocked_sequential_tts(self) -> None:
         """In-process fake: same call pattern as production, no Gemini TTS."""
         from google import genai
 
@@ -144,7 +144,7 @@ class TestTTSPipeline(unittest.TestCase):
             finally:
                 shutil.rmtree(tmp_dir, ignore_errors=True)
 
-    def _live_sequential_tts(self):
+    def _live_sequential_tts(self) -> None:
         from google import genai
 
         from storybuilder.genai.client import get_gemini_api_keys

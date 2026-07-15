@@ -21,7 +21,7 @@ if _scripts_dir not in sys.path:
 class TestDashboard(unittest.TestCase):
     """Tests for the main dashboard logic in scripts/dashboard.py."""
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.temp_dir = tempfile.mkdtemp()
         self.db_dir = os.path.join(self.temp_dir, "db")
         Path(self.db_dir).mkdir(exist_ok=True, parents=True)
@@ -43,7 +43,7 @@ class TestDashboard(unittest.TestCase):
         self.patch_nlp.start()
         self.patch_meta.start()
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         self.patch_dir.stop()
         self.patch_nlp.stop()
         self.patch_meta.stop()
@@ -59,7 +59,7 @@ class TestDashboard(unittest.TestCase):
         word_count,
         path,
         content,
-    ):
+    ) -> None:
         from sqlmodel import Session
         from sqlmodel import select
 
@@ -81,7 +81,7 @@ class TestDashboard(unittest.TestCase):
                     session.add(story)
                     session.commit()
 
-    def _create_mock_nlp_db(self, filepath, text, label):
+    def _create_mock_nlp_db(self, filepath, text, label) -> None:
         conn = sqlite3.connect(self.nlp_db_path)
         conn.execute(
             """
@@ -120,7 +120,7 @@ class TestDashboard(unittest.TestCase):
         conn.commit()
         conn.close()
 
-    def test_get_db_files(self):
+    def test_get_db_files(self) -> None:
         from dashboard import get_db_files
 
         self.assertEqual(get_db_files(), [])
@@ -132,7 +132,7 @@ class TestDashboard(unittest.TestCase):
         files = [os.path.basename(f) for f in get_db_files()]
         self.assertEqual(files, ["2025.db", "2026.db"])
 
-    def test_favorites_crud(self):
+    def test_favorites_crud(self) -> None:
         from dashboard import add_favorite
         from dashboard import get_favorites
         from dashboard import remove_favorite
@@ -175,7 +175,7 @@ class TestDashboard(unittest.TestCase):
         self.assertTrue(success_remove)
         self.assertEqual(get_favorites(), [])
 
-    def test_query_stories_metadata(self):
+    def test_query_stories_metadata(self) -> None:
         from dashboard import query_stories
 
         # Create stories in different partitions
@@ -223,7 +223,7 @@ class TestDashboard(unittest.TestCase):
         self.assertEqual(len(res_year), 1)
         self.assertEqual(res_year[0]["title"], "2025 Story Title")
 
-    def test_query_stories_fts(self):
+    def test_query_stories_fts(self) -> None:
         from dashboard import query_stories
 
         self._create_mock_partition(
@@ -246,7 +246,7 @@ class TestDashboard(unittest.TestCase):
         res_no_match = query_stories(fts_query="vampire")
         self.assertEqual(len(res_no_match), 0)
 
-    def test_query_stories_with_entities(self):
+    def test_query_stories_with_entities(self) -> None:
         from dashboard import query_stories
 
         story_path = "nifty_stories/gay/college/story1.txt"
@@ -282,22 +282,22 @@ class TestDashboard(unittest.TestCase):
 class TestDashboardConfig(unittest.TestCase):
     """Tests for src/storybuilder/dashboard/config.py functions."""
 
-    def test_get_db_dir_default(self):
+    def test_get_db_dir_default(self) -> None:
         from storybuilder.dashboard.config import get_db_dir
         result = get_db_dir()
         self.assertEqual(result, "stories/db")
 
-    def test_get_nlp_db_path_default(self):
+    def test_get_nlp_db_path_default(self) -> None:
         from storybuilder.dashboard.config import get_nlp_db_path
         result = get_nlp_db_path()
         self.assertEqual(result, "stories/db/nlp_analysis.db")
 
-    def test_get_meta_db_path_default(self):
+    def test_get_meta_db_path_default(self) -> None:
         from storybuilder.dashboard.config import get_meta_db_path
         result = get_meta_db_path()
         self.assertEqual(result, "stories/db/dashboard_metadata.db")
 
-    def test_get_db_dir_with_mock(self):
+    def test_get_db_dir_with_mock(self) -> None:
         import sys
         from storybuilder.dashboard.config import get_db_dir
 
@@ -311,7 +311,7 @@ class TestDashboardConfig(unittest.TestCase):
         finally:
             del sys.modules["dashboard"]
 
-    def test_get_nlp_db_path_with_mock(self):
+    def test_get_nlp_db_path_with_mock(self) -> None:
         import sys
         from storybuilder.dashboard.config import get_nlp_db_path
 
@@ -325,7 +325,7 @@ class TestDashboardConfig(unittest.TestCase):
         finally:
             del sys.modules["dashboard"]
 
-    def test_get_meta_db_path_with_mock(self):
+    def test_get_meta_db_path_with_mock(self) -> None:
         import sys
         from storybuilder.dashboard.config import get_meta_db_path
 
@@ -339,7 +339,7 @@ class TestDashboardConfig(unittest.TestCase):
         finally:
             del sys.modules["dashboard"]
 
-    def test_bracket_labels_constant(self):
+    def test_bracket_labels_constant(self) -> None:
         from storybuilder.dashboard.config import BRACKET_LABELS
         expected = [
             "Short (<1K)",
@@ -351,7 +351,7 @@ class TestDashboardConfig(unittest.TestCase):
         ]
         self.assertEqual(BRACKET_LABELS, expected)
 
-    def test_long_year_constant(self):
+    def test_long_year_constant(self) -> None:
         from storybuilder.dashboard.config import LONG_YEAR
         self.assertEqual(LONG_YEAR, 4)
 
@@ -359,7 +359,7 @@ class TestDashboardConfig(unittest.TestCase):
 class TestDashboardDataFunctions(unittest.TestCase):
     """Tests for src/storybuilder/dashboard/data.py functions."""
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.temp_dir = tempfile.mkdtemp()
         self.db_dir = os.path.join(self.temp_dir, "db")
         Path(self.db_dir).mkdir(exist_ok=True, parents=True)
@@ -370,10 +370,10 @@ class TestDashboardDataFunctions(unittest.TestCase):
         import storybuilder.downloader.db as sb_db
         sb_db.init_db(self.db_dir)
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def test_get_db_files_empty(self):
+    def test_get_db_files_empty(self) -> None:
         import sys
         from unittest.mock import patch
 
@@ -390,7 +390,7 @@ class TestDashboardDataFunctions(unittest.TestCase):
         finally:
             del sys.modules["dashboard"]
 
-    def test_get_db_files_with_year_dbs(self):
+    def test_get_db_files_with_year_dbs(self) -> None:
         import sys
         from unittest.mock import patch
 
@@ -412,7 +412,7 @@ class TestDashboardDataFunctions(unittest.TestCase):
         finally:
             del sys.modules["dashboard"]
 
-    def test_get_filter_options_with_data(self):
+    def test_get_filter_options_with_data(self) -> None:
         import sys
         from unittest.mock import patch
 
@@ -451,7 +451,7 @@ class TestDashboardDataFunctions(unittest.TestCase):
         finally:
             del sys.modules["dashboard"]
 
-    def test_load_archive_stats(self):
+    def test_load_archive_stats(self) -> None:
         import sys
         from unittest.mock import patch
 
@@ -482,7 +482,7 @@ class TestDashboardDataFunctions(unittest.TestCase):
         finally:
             del sys.modules["dashboard"]
 
-    def test_get_story_by_path_exists(self):
+    def test_get_story_by_path_exists(self) -> None:
         import sys
 
         mock_module = type(sys)("dashboard")
@@ -511,7 +511,7 @@ class TestDashboardDataFunctions(unittest.TestCase):
         finally:
             del sys.modules["dashboard"]
 
-    def test_get_story_by_path_not_found(self):
+    def test_get_story_by_path_not_found(self) -> None:
         import sys
 
         mock_module = type(sys)("dashboard")
@@ -528,7 +528,7 @@ class TestDashboardDataFunctions(unittest.TestCase):
         finally:
             del sys.modules["dashboard"]
 
-    def test_add_favorite_function(self):
+    def test_add_favorite_function(self) -> None:
         import sys
 
         mock_module = type(sys)("dashboard")

@@ -8,7 +8,7 @@ from storybuilder.genai.client import (
 
 
 class TestParseSpeechConfigSplit(unittest.TestCase):
-    def test_parse_voice_mappings(self):
+    def test_parse_voice_mappings(self) -> None:
         preamble = """
         * John (Voice: VoiceA)
         - Jane (Voice: VoiceB)
@@ -18,7 +18,7 @@ class TestParseSpeechConfigSplit(unittest.TestCase):
         self.assertEqual(speakers, ["John", "Jane"])
         self.assertEqual(transcript, "")
 
-    def test_extract_active_speakers(self):
+    def test_extract_active_speakers(self) -> None:
         transcript = """
         John: Hello!
         Jane: Hi!
@@ -27,7 +27,7 @@ class TestParseSpeechConfigSplit(unittest.TestCase):
         speakers = _extract_active_speakers(transcript)
         self.assertEqual(speakers, ["John", "Jane"])
 
-    def test_build_speech_config(self):
+    def test_build_speech_config(self) -> None:
         active_speakers = ["John", "Jane"]
         speaker_to_voice = {"John": "VoiceA", "Jane": "VoiceB"}
         config = _build_speech_config(active_speakers, speaker_to_voice)
@@ -39,7 +39,7 @@ class TestParseSpeechConfigSplit(unittest.TestCase):
             ],
         )
 
-    def test_build_speech_config_fallback_active(self):
+    def test_build_speech_config_fallback_active(self) -> None:
         active_speakers = ["John", "Bob"]
         speaker_to_voice = {"John": "VoiceA"}
         config = _build_speech_config(active_speakers, speaker_to_voice)
@@ -51,7 +51,7 @@ class TestParseSpeechConfigSplit(unittest.TestCase):
             ],
         )
 
-    def test_build_speech_config_fallback_preamble(self):
+    def test_build_speech_config_fallback_preamble(self) -> None:
         active_speakers = []
         speaker_to_voice = {"John": "VoiceA", "Jane": "VoiceB"}
         config = _build_speech_config(active_speakers, speaker_to_voice)
@@ -63,7 +63,7 @@ class TestParseSpeechConfigSplit(unittest.TestCase):
             ],
         )
 
-    def test_build_speech_config_single(self):
+    def test_build_speech_config_single(self) -> None:
         active_speakers = ["John"]
         speaker_to_voice = {"John": "VoiceA"}
         config = _build_speech_config(active_speakers, speaker_to_voice)
@@ -75,7 +75,7 @@ class TestParseSpeechConfigSplit(unittest.TestCase):
             ],
         )
 
-    def test_build_speech_config_empty(self):
+    def test_build_speech_config_empty(self) -> None:
         active_speakers = []
         speaker_to_voice = {}
         config = _build_speech_config(active_speakers, speaker_to_voice)

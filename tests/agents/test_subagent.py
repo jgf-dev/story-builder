@@ -1,3 +1,4 @@
+from google.genai.types import SafetySetting
 import os
 import unittest
 from pathlib import Path
@@ -13,7 +14,7 @@ from tests.helpers_external_fakes import (
 
 
 class TestSubagent(unittest.TestCase):
-    def test_analyzer_direct(self):
+    def test_analyzer_direct(self) -> None:
         project_root = Path(__file__).resolve().parents[2]
         load_dotenv(project_root / ".env")
 
@@ -88,7 +89,7 @@ class TestSubagent(unittest.TestCase):
             self.assertGreater(len(response.text), 0)
             client.models.generate_content.assert_called_once()
 
-    def _live_analyzer(self, cleaned_content, analyzer_prompt, safety_settings):
+    def _live_analyzer(self, cleaned_content: str, analyzer_prompt: str, safety_settings: list[SafetySetting]) -> None:
         """Opt-in real Vertex generate_content (STORYBUILDER_LIVE_API=1)."""
         from google import genai
 

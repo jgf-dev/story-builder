@@ -1,5 +1,9 @@
 """Extract Named Entities from stories using spaCy."""
 
+from sqlite3 import Cursor
+from sqlite3 import Connection
+from spacy.language import Language
+from argparse import Namespace
 import argparse
 import sqlite3
 from collections import Counter
@@ -25,7 +29,7 @@ ALLOWED_LABELS = {
 }
 
 
-def init_db(db_path):
+def init_db(db_path) -> Connection:
     """Initialize the SQLite database."""
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
@@ -55,13 +59,13 @@ def init_db(db_path):
     return conn
 
 
-def is_processed(cursor, filepath):
+def is_processed(cursor: Cursor, filepath: str):
     """Check if a file has already been processed."""
     cursor.execute("SELECT id FROM stories WHERE filepath = ?", (filepath,))
     return cursor.fetchone() is not None
 
 
-def parse_args():
+def parse_args() -> Namespace:
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
         description="Extract Named Entities from stories using spaCy.",
@@ -104,7 +108,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def load_spacy_model(model_name, use_gpu):
+def load_spacy_model(model_name, use_gpu) -> Language | None:
     """Load the spaCy model with optional GPU support."""
     try:
         if use_gpu:
@@ -126,7 +130,7 @@ def load_spacy_model(model_name, use_gpu):
         return None
 
 
-def process_file(filepath_str, nlp, cursor):
+def process_file(filepath_str: str, nlp: Language, cursor: Cursor) -> None:
     """Extract entities from a text file and save them to the database."""
     text = Path(filepath_str).read_text(encoding="utf-8")
 
@@ -150,7 +154,7 @@ def process_file(filepath_str, nlp, cursor):
     )
 
 
-def main():
+def main() -> None:
     """Main execution block."""
     args = parse_args()
 

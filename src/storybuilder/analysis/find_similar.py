@@ -3,7 +3,7 @@ import argparse
 import chromadb
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         description="Find similar stories based on average plot embeddings.",
     )

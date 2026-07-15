@@ -7,19 +7,19 @@ from storybuilder.downloader import network
 
 
 class TestCLI(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         # Reset network state before each test
         self.original_proxies = network.PROXIES
         self.original_rotation = network.ENABLE_ROTATION
         network.PROXIES = None
         network.ENABLE_ROTATION = False
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         # Restore network state after each test
         network.PROXIES = self.original_proxies
         network.ENABLE_ROTATION = self.original_rotation
 
-    def test_setup_network_no_options(self):
+    def test_setup_network_no_options(self) -> None:
         args = argparse.Namespace(socks5_proxy=None, rotate_on_refusal=False)
         result = _setup_network(args)
 
@@ -28,7 +28,7 @@ class TestCLI(unittest.TestCase):
         self.assertFalse(network.ENABLE_ROTATION)
 
     @patch("builtins.print")
-    def test_setup_network_proxy_no_socks_module(self, mock_print):
+    def test_setup_network_proxy_no_socks_module(self, mock_print) -> None:
         args = argparse.Namespace(
             socks5_proxy="192.168.1.1:1080", rotate_on_refusal=False
         )
@@ -43,7 +43,7 @@ class TestCLI(unittest.TestCase):
             "Error: SOCKS proxy support requires the 'pysocks' package."
         )
 
-    def test_setup_network_proxy_without_prefix(self):
+    def test_setup_network_proxy_without_prefix(self) -> None:
         args = argparse.Namespace(
             socks5_proxy="192.168.1.1:1080", rotate_on_refusal=False
         )
@@ -58,7 +58,7 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(network.PROXIES, {"http": expected_url, "https": expected_url})
         self.assertFalse(network.ENABLE_ROTATION)
 
-    def test_setup_network_proxy_with_prefix(self):
+    def test_setup_network_proxy_with_prefix(self) -> None:
         args = argparse.Namespace(
             socks5_proxy="socks5://192.168.1.1:1080", rotate_on_refusal=False
         )
@@ -71,7 +71,7 @@ class TestCLI(unittest.TestCase):
         expected_url = "socks5://192.168.1.1:1080"
         self.assertEqual(network.PROXIES, {"http": expected_url, "https": expected_url})
 
-    def test_setup_network_rotation_enabled(self):
+    def test_setup_network_rotation_enabled(self) -> None:
         args = argparse.Namespace(socks5_proxy=None, rotate_on_refusal=True)
 
         result = _setup_network(args)
@@ -84,31 +84,31 @@ class TestCLI(unittest.TestCase):
 class TestCLIArgsAndDates(unittest.TestCase):
     """Tests for cli argument parsing and date handling (previously very low coverage)."""
 
-    def test_parse_args_required_category(self):
+    def test_parse_args_required_category(self) -> None:
         from storybuilder.downloader.cli import _parse_args
         with patch("sys.argv", ["prog", "--category", "gay"]):
             args = _parse_args()
             self.assertEqual(args.category, "gay")
             self.assertEqual(args.start_date, "1990-01-01")
 
-    def test_parse_dates_valid(self):
+    def test_parse_dates_valid(self) -> None:
         from storybuilder.downloader.cli import _parse_dates
         start, end = _parse_dates("2024-01-01", "2024-12-31")
         self.assertIsNotNone(start)
         self.assertEqual(end.year, 2024)
 
-    def test_parse_dates_invalid_start(self):
+    def test_parse_dates_invalid_start(self) -> None:
         from storybuilder.downloader.cli import _parse_dates
         start, end = _parse_dates("not-a-date", None)
         self.assertIsNone(start)
 
-    def test_parse_dates_no_end_uses_today(self):
+    def test_parse_dates_no_end_uses_today(self) -> None:
         from storybuilder.downloader.cli import _parse_dates
         start, end = _parse_dates("2020-01-01", None)
         self.assertIsNotNone(end)
         self.assertGreaterEqual(end, start)
 
-    def test_merge_targets_dedups(self):
+    def test_merge_targets_dedups(self) -> None:
         from storybuilder.downloader.cli import _merge_targets
         targets = {}
         subs = [
@@ -127,7 +127,7 @@ class TestCLICacheIntegration(unittest.TestCase):
     @patch("storybuilder.downloader.cli.get_subcategories")
     @patch("storybuilder.downloader.cli._scrape_subcategories")
     @patch("storybuilder.downloader.cli._download_stories")
-    def test_main_loads_and_saves_cache(self, mock_download, mock_scrape, mock_get_subs, mock_save, mock_load):
+    def test_main_loads_and_saves_cache(self, mock_download, mock_scrape, mock_get_subs, mock_save, mock_load) -> None:
         from storybuilder.downloader.cli import main
         import argparse
 
@@ -162,7 +162,7 @@ class TestCLIEarlyReturns(unittest.TestCase):
     @patch("storybuilder.downloader.cli._print_config")
     @patch("storybuilder.downloader.cli._parse_dates")
     @patch("storybuilder.downloader.cli._setup_network")
-    def test_main_early_return_on_network_failure(self, mock_net, mock_dates, mock_print, mock_subs, mock_save, mock_load, mock_scrape, mock_dl):
+    def test_main_early_return_on_network_failure(self, mock_net, mock_dates, mock_print, mock_subs, mock_save, mock_load, mock_scrape, mock_dl) -> None:
         """main() returns early when _setup_network returns False."""
         from storybuilder.downloader.cli import main
         import argparse
@@ -190,7 +190,7 @@ class TestCLIEarlyReturns(unittest.TestCase):
     @patch("storybuilder.downloader.cli._print_config")
     @patch("storybuilder.downloader.cli._parse_dates")
     @patch("storybuilder.downloader.cli._setup_network")
-    def test_main_early_return_on_invalid_dates(self, mock_net, mock_dates, mock_print, mock_subs, mock_save, mock_load, mock_scrape, mock_dl):
+    def test_main_early_return_on_invalid_dates(self, mock_net, mock_dates, mock_print, mock_subs, mock_save, mock_load, mock_scrape, mock_dl) -> None:
         """main() returns early when _parse_dates returns None."""
         from storybuilder.downloader.cli import main
         import argparse
@@ -219,7 +219,7 @@ class TestCLIEarlyReturns(unittest.TestCase):
     @patch("storybuilder.downloader.cli._print_config")
     @patch("storybuilder.downloader.cli._parse_dates")
     @patch("storybuilder.downloader.cli._setup_network")
-    def test_main_early_return_on_no_subcategories(self, mock_net, mock_dates, mock_print, mock_subs, mock_save, mock_load, mock_scrape, mock_dl):
+    def test_main_early_return_on_no_subcategories(self, mock_net, mock_dates, mock_print, mock_subs, mock_save, mock_load, mock_scrape, mock_dl) -> None:
         """main() returns early when get_subcategories returns empty."""
         from storybuilder.downloader.cli import main
         import argparse
@@ -256,7 +256,7 @@ class TestCLICloudPaths(unittest.TestCase):
     @patch("storybuilder.downloader.cli._print_config")
     @patch("storybuilder.downloader.cli._parse_dates")
     @patch("storybuilder.downloader.cli._setup_network")
-    def test_main_uploads_to_gcs_when_gcs_bucket_set(self, mock_net, mock_dates, mock_print, mock_subs, mock_save, mock_load, mock_scrape, mock_dl, mock_close, mock_opt, mock_upload):
+    def test_main_uploads_to_gcs_when_gcs_bucket_set(self, mock_net, mock_dates, mock_print, mock_subs, mock_save, mock_load, mock_scrape, mock_dl, mock_close, mock_opt, mock_upload) -> None:
         """main() calls _upload_to_cloud when db and gcs_bucket are provided."""
         from storybuilder.downloader.cli import main
         import argparse
@@ -291,7 +291,7 @@ class TestCLICloudPaths(unittest.TestCase):
     @patch("storybuilder.downloader.cli._print_config")
     @patch("storybuilder.downloader.cli._parse_dates")
     @patch("storybuilder.downloader.cli._setup_network")
-    def test_main_uploads_to_s3_when_s3_bucket_set(self, mock_net, mock_dates, mock_print, mock_subs, mock_save, mock_load, mock_scrape, mock_dl, mock_close, mock_opt, mock_upload):
+    def test_main_uploads_to_s3_when_s3_bucket_set(self, mock_net, mock_dates, mock_print, mock_subs, mock_save, mock_load, mock_scrape, mock_dl, mock_close, mock_opt, mock_upload) -> None:
         """main() calls _upload_to_cloud when db and s3_bucket are provided."""
         from storybuilder.downloader.cli import main
         import argparse
@@ -319,7 +319,7 @@ class TestCLICloudPaths(unittest.TestCase):
 class TestCLIInternalFunctions(unittest.TestCase):
     """Tests for internal CLI functions: _print_config, download orchestration."""
 
-    def test_print_config_basic(self):
+    def test_print_config_basic(self) -> None:
         """Test _print_config prints expected config."""
         from storybuilder.downloader.cli import _print_config
         import io
@@ -353,7 +353,7 @@ class TestCLIInternalFunctions(unittest.TestCase):
         self.assertIn("1.0", output)
         self.assertIn("4", output)  # max_workers
 
-    def test_print_config_with_db(self):
+    def test_print_config_with_db(self) -> None:
         """Test _print_config includes database when set."""
         from storybuilder.downloader.cli import _print_config
         import io
@@ -385,7 +385,7 @@ class TestCLIInternalFunctions(unittest.TestCase):
         self.assertIn("Database:", output)
         self.assertIn("stories.db", output)
 
-    def test_print_config_with_proxy_and_rotation(self):
+    def test_print_config_with_proxy_and_rotation(self) -> None:
         """Test _print_config shows proxy and rotation settings."""
         from storybuilder.downloader.cli import _print_config
         import io
@@ -417,7 +417,7 @@ class TestCLIInternalFunctions(unittest.TestCase):
         self.assertIn("rotation", output.lower())
         self.assertIn("DISABLED", output)  # force disables early-stop
 
-    def test_merge_targets_dedup_keys(self):
+    def test_merge_targets_dedup_keys(self) -> None:
         """Test _merge_targets combines output_paths for same key."""
         from storybuilder.downloader.cli import _merge_targets
 
@@ -434,7 +434,7 @@ class TestCLIInternalFunctions(unittest.TestCase):
         self.assertEqual(len(all_targets[("cat", "slug2")]["output_paths"]), 1)
 
     @patch("storybuilder.downloader.cli.process_subcategory")
-    def test_scrape_subcategories_parallel(self, mock_process):
+    def test_scrape_subcategories_parallel(self, mock_process) -> None:
         """Test parallel scraping when max_scraping > 1."""
         from storybuilder.downloader.cli import _scrape_subcategories
 
@@ -455,7 +455,7 @@ class TestCLIInternalFunctions(unittest.TestCase):
         self.assertEqual(mock_process.call_count, 2)
 
     @patch("storybuilder.downloader.cli.process_subcategory")
-    def test_scrape_subcategories_sequential(self, mock_process):
+    def test_scrape_subcategories_sequential(self, mock_process) -> None:
         """Test sequential scraping when max_scraping == 1."""
         from storybuilder.downloader.cli import _scrape_subcategories
 
@@ -476,7 +476,7 @@ class TestCLIInternalFunctions(unittest.TestCase):
         mock_process.assert_called_once()
 
     @patch("storybuilder.downloader.cli.download_single_target")
-    def test_download_stories_parallel(self, mock_download):
+    def test_download_stories_parallel(self, mock_download) -> None:
         """Test parallel download orchestration."""
         from storybuilder.downloader.cli import _download_stories_parallel
 
@@ -492,7 +492,7 @@ class TestCLIInternalFunctions(unittest.TestCase):
         self.assertEqual(mock_download.call_count, 2)
 
     @patch("storybuilder.downloader.cli.download_single_target")
-    def test_download_stories_sequential(self, mock_download):
+    def test_download_stories_sequential(self, mock_download) -> None:
         """Test sequential download orchestration."""
         from storybuilder.downloader.cli import _download_stories_sequential
 
@@ -509,7 +509,7 @@ class TestCLIInternalFunctions(unittest.TestCase):
 
     @patch("storybuilder.downloader.cli._download_stories_parallel")
     @patch("storybuilder.downloader.cli._download_stories_sequential")
-    def test_download_stories_chooses_parallel(self, mock_seq, mock_par):
+    def test_download_stories_chooses_parallel(self, mock_seq, mock_par) -> None:
         """Test _download_stories chooses parallel when max_workers > 1."""
         from storybuilder.downloader.cli import _download_stories
 
@@ -526,7 +526,7 @@ class TestCLIInternalFunctions(unittest.TestCase):
 
     @patch("storybuilder.downloader.cli._download_stories_parallel")
     @patch("storybuilder.downloader.cli._download_stories_sequential")
-    def test_download_stories_chooses_sequential(self, mock_seq, mock_par):
+    def test_download_stories_chooses_sequential(self, mock_seq, mock_par) -> None:
         """Test _download_stories chooses sequential when max_workers == 1."""
         from storybuilder.downloader.cli import _download_stories
 
@@ -547,7 +547,7 @@ class TestUploadToCloud(unittest.TestCase):
 
     @patch("storybuilder.downloader.cli.upload_many_s3")
     @patch("storybuilder.downloader.cli.upload_many_gcs")
-    def test_upload_to_cloud_s3_only(self, mock_gcs, mock_s3):
+    def test_upload_to_cloud_s3_only(self, mock_gcs, mock_s3) -> None:
         """Test upload to S3 only when s3_bucket is set."""
         from storybuilder.downloader.cli import _upload_to_cloud
         import tempfile
@@ -575,7 +575,7 @@ class TestUploadToCloud(unittest.TestCase):
 
     @patch("storybuilder.downloader.cli.upload_many_s3")
     @patch("storybuilder.downloader.cli.upload_many_gcs")
-    def test_upload_to_cloud_gcs_only(self, mock_gcs, mock_s3):
+    def test_upload_to_cloud_gcs_only(self, mock_gcs, mock_s3) -> None:
         """Test upload to GCS only when gcs_bucket is set."""
         from storybuilder.downloader.cli import _upload_to_cloud
         import tempfile
@@ -602,7 +602,7 @@ class TestUploadToCloud(unittest.TestCase):
 
     @patch("storybuilder.downloader.cli.upload_many_s3")
     @patch("storybuilder.downloader.cli.upload_many_gcs")
-    def test_upload_to_cloud_fallback_to_nifty_index(self, mock_gcs, mock_s3):
+    def test_upload_to_cloud_fallback_to_nifty_index(self, mock_gcs, mock_s3) -> None:
         """Test fallback to nifty-index when no cloud buckets set but db exists."""
         from storybuilder.downloader.cli import _upload_to_cloud
         import tempfile
@@ -630,7 +630,7 @@ class TestUploadToCloud(unittest.TestCase):
 
     @patch("storybuilder.downloader.cli.upload_many_s3")
     @patch("storybuilder.downloader.cli.upload_many_gcs")
-    def test_upload_to_cloud_handles_empty_output(self, mock_gcs, mock_s3):
+    def test_upload_to_cloud_handles_empty_output(self, mock_gcs, mock_s3) -> None:
         """Test upload handles non-existent output directory."""
         from storybuilder.downloader.cli import _upload_to_cloud
         import tempfile
@@ -656,21 +656,21 @@ class TestUploadToCloud(unittest.TestCase):
 class TestStorageFunctions(unittest.TestCase):
     """Tests for storage.py helper functions."""
 
-    def test_s3_object_key_with_prefix(self):
+    def test_s3_object_key_with_prefix(self) -> None:
         """Test _s3_object_key generates correct key with prefix."""
         from storybuilder.downloader.storage import _s3_object_key
 
         key = _s3_object_key("prefix", "path/to/file.txt")
         self.assertEqual(key, "prefix/path/to/file.txt")
 
-    def test_s3_object_key_without_prefix(self):
+    def test_s3_object_key_without_prefix(self) -> None:
         """Test _s3_object_key generates correct key without prefix."""
         from storybuilder.downloader.storage import _s3_object_key
 
         key = _s3_object_key("", "path/to/file.txt")
         self.assertEqual(key, "path/to/file.txt")
 
-    def test_upload_many_gcs_empty_returns_early(self):
+    def test_upload_many_gcs_empty_returns_early(self) -> None:
         """upload_many_gcs returns immediately when filenames is empty."""
         from storybuilder.downloader.storage import upload_many_gcs
 
@@ -678,14 +678,14 @@ class TestStorageFunctions(unittest.TestCase):
         result = upload_many_gcs("bucket", "prefix", [])
         self.assertIsNone(result)
 
-    def test_upload_many_s3_empty_returns_early(self):
+    def test_upload_many_s3_empty_returns_early(self) -> None:
         """upload_many_s3 returns immediately when filenames is empty."""
         from storybuilder.downloader.storage import upload_many_s3
 
         result = upload_many_s3("bucket", "prefix", [])
         self.assertIsNone(result)
 
-    def test_upload_many_uses_gcs(self):
+    def test_upload_many_uses_gcs(self) -> None:
         """upload_many delegates to upload_many_gcs."""
         from storybuilder.downloader.storage import upload_many
         from unittest.mock import patch

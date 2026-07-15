@@ -71,7 +71,7 @@ class RubricEvaluator:
         self,
         dimensions: list[RubricDimension],
         threshold: float = 0.7,
-    ):
+    ) -> None:
         total_weight = sum(d.weight for d in dimensions)
         if abs(total_weight - 1.0) > 0.001:
             logger.warning(

@@ -1,3 +1,4 @@
+from datetime import date
 import datetime
 import os
 import re
@@ -20,7 +21,7 @@ seen_folders = set()
 seen_folders_lock = threading.Lock()
 
 
-def _extract_subcategories_from_html(soup, url):
+def _extract_subcategories_from_html(soup: BeautifulSoup, url: str):
     subcategories = []
 
     # Nifty pages have lists of subcategories under list-group-item class
@@ -88,7 +89,7 @@ def get_subcategories(category, delay):
     return filtered
 
 
-def parse_listing_rows(soup):
+def parse_listing_rows(soup: BeautifulSoup):
     """
     Parses listing rows from Nifty index pages.
     Handles both new 'div.ftr' style rows and old 'tr' style table rows.
@@ -225,14 +226,14 @@ def _scrape_subcategory_pages(sub_url, start_date, delay, force_scan, use_cache,
     return scraped_stories, reached_end
 
 
-def _merge_and_save_stories(sub_url, scraped_stories, cached_stories, is_complete, reached_end):
+def _merge_and_save_stories(sub_url, scraped_stories, cached_stories, is_complete, reached_end: bool):
     # Merge scraped stories with cached stories
     scraped_urls = {s["url"] for s in scraped_stories}
     remaining_cached = [s for s in cached_stories if s["url"] not in scraped_urls]
     merged_stories = scraped_stories + remaining_cached
 
     # Sort merged stories by date descending (latest first)
-    def get_sort_key(s):
+    def get_sort_key(s) -> date:
         try:
             return datetime.datetime.strptime(s["date"], "%Y-%m-%d").date()
         except Exception:

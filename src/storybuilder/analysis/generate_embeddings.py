@@ -1,3 +1,7 @@
+from sentence_transformers.sentence_transformer.model import SentenceTransformer
+from chromadb.api.models.Collection import Collection
+from chromadb.api import ClientAPI
+from argparse import Namespace
 import argparse
 from pathlib import Path
 
@@ -8,13 +12,13 @@ from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
 
 
-def get_chunks(text, chunk_size=200):
+def get_chunks(text: str, chunk_size=200) -> list[str]:
     """Splits text into chunks of approximately `chunk_size` words."""
     words = text.split()
     return [" ".join(words[i : i + chunk_size]) for i in range(0, len(words), chunk_size)]
 
 
-def parse_args():
+def parse_args() -> Namespace:
     parser = argparse.ArgumentParser(description="Generate embeddings for stories and store in ChromaDB.")
     parser.add_argument(
         "--limit",
@@ -43,7 +47,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def setup_collections(db_path):
+def setup_collections(db_path) -> tuple[ClientAPI, Collection, Collection]:
     chroma_client = chromadb.PersistentClient(path=db_path)
 
     collection_chunks = chroma_client.get_or_create_collection(name="story_chunks", metadata={"hnsw:space": "cosine"})
@@ -56,7 +60,7 @@ def setup_collections(db_path):
     return chroma_client, collection_chunks, collection_averages
 
 
-def process_story(filepath_str, collection_chunks, collection_averages, model):
+def process_story(filepath_str: str, collection_chunks: Collection, collection_averages: Collection, model: SentenceTransformer) -> bool:
     existing = collection_averages.get(ids=[filepath_str])
     if existing and existing["ids"]:
         return False
@@ -99,7 +103,7 @@ def process_story(filepath_str, collection_chunks, collection_averages, model):
         return False
 
 
-def main():
+def main() -> None:
     args = parse_args()
     chroma_client, collection_chunks, collection_averages = setup_collections(
         args.db_path,

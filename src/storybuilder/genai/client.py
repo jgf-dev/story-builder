@@ -1,3 +1,4 @@
+from google.genai.client import Client
 import argparse
 import base64
 import glob
@@ -14,7 +15,7 @@ from google import genai
 load_dotenv()
 
 
-def wave_file_writer(filename, pcm, channels=1, rate=24000, sample_width=2) -> None:
+def wave_file_writer(filename, pcm: bytes, channels=1, rate=24000, sample_width=2) -> None:
     with wave.open(filename, "wb") as wf:  # type: ignore[attr-defined]
         wf.setnchannels(channels)  # pylint: disable=no-member
         wf.setsampwidth(sample_width)  # pylint: disable=no-member
@@ -47,7 +48,7 @@ def _parse_voice_mappings(markdown_content):
     return speaker_to_voice, speakers, transcript_text
 
 
-def _extract_active_speakers(transcript):
+def _extract_active_speakers(transcript: str):
     """Extracts active speakers actually speaking in the transcript in order of appearance."""
     active_speakers = []
     if transcript is None:
@@ -88,14 +89,14 @@ def _build_speech_config(active_speakers, speaker_to_voice):
     return speech_config
 
 
-def parse_speech_config(markdown_content):
+def parse_speech_config(markdown_content: str):
     """Parses the markdown content to extract speakers and voices, dynamically matching active speakers in the transcript."""
     speaker_to_voice, _, transcript = _parse_voice_mappings(markdown_content)
     active_speakers = _extract_active_speakers(transcript)
     return _build_speech_config(active_speakers, speaker_to_voice)
 
 
-def get_gemini_api_keys():
+def get_gemini_api_keys() -> list[tuple[str, str]]:
     keys = []
     primary = os.getenv("GEMINI_API_KEY")
     if primary:
@@ -126,7 +127,7 @@ def _classify_error(error_msg: str) -> tuple[bool, bool, bool]:
     return is_invalid_key, is_quota, is_session_not_found
 
 
-def _handle_exception(e, api_state, previous_id, keys_tried, attempt, md_file):
+def _handle_exception(e: Exception, api_state, previous_id, keys_tried, attempt, md_file):
     is_invalid_key, is_quota, is_session_not_found = _classify_error(str(e))
 
     if is_session_not_found and previous_id is not None:
@@ -174,7 +175,7 @@ def _save_audio_from_interaction(interaction, wav_file, md_file) -> None:
     print(f"  Saved audio to {pathlib.Path(wav_file).name}")
 
 
-def process_file(md_file, wav_file, previous_id, api_state):
+def process_file(md_file: str, wav_file: str, previous_id, api_state: dict[str, Client | int | list[tuple[str, str]]]):
     client = api_state["client"]
     api_keys = api_state["api_keys"]
     current_key_idx = api_state["current_key_idx"]

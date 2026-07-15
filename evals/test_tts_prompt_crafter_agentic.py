@@ -134,7 +134,7 @@ class TestTTSPromptCrafterGreetings:
     """Evaluate greeting/capability responses."""
 
     @pytest.mark.parametrize("query", GREETING_QUERIES)
-    def test_greeting_response(self, adk_events, query):
+    def test_greeting_response(self, adk_events, query) -> None:
         """Agent should respond appropriately to greetings."""
         events = adk_events(query)
 
@@ -182,7 +182,7 @@ class TestTTSPromptCrafterPipeline:
 
     @pytest.mark.slow
     @pytest.mark.parametrize("query", PIPELINE_QUERIES)
-    def test_pipeline_execution(self, adk_events, query):
+    def test_pipeline_execution(self, adk_events, query) -> None:
         """Agent should process a story through the full pipeline."""
         events = adk_events(query)
 
@@ -209,7 +209,7 @@ class TestTTSPromptCrafterPipeline:
 class TestTTSPromptCrafterEdgeCases:
     """Evaluate edge case handling."""
 
-    def test_missing_story(self, adk_events):
+    def test_missing_story(self, adk_events) -> None:
         """Agent should handle non-existent story paths gracefully."""
         query = "Process the story at stories/text/nonexistent.md"
         events = adk_events(query)
@@ -228,7 +228,7 @@ class TestTTSPromptCrafterEdgeCases:
         has_error_response = any(indicator in response.lower() for indicator in error_indicators)
         assert has_error_response, f"Agent should acknowledge the missing file.\nResponse: {response[:200]}"
 
-    def test_empty_query(self, adk_events):
+    def test_empty_query(self, adk_events) -> None:
         """Agent should handle empty queries gracefully."""
         events = adk_events("")
 
@@ -259,7 +259,7 @@ class TestTTSPromptCrafterReflection:
     ]
 
     @pytest.mark.parametrize("query", GREETING_QUERIES[:2])
-    def test_self_reflection_on_greetings(self, adk_events, query):
+    def test_self_reflection_on_greetings(self, adk_events, query) -> None:
         """Verify agent outputs pass self-reflection criteria."""
         events = adk_events(query)
 

@@ -201,7 +201,7 @@ def validate_eval_set_structure(eval_set: dict, file_path: str) -> list[str]:
     return issues
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Run ADK evaluation sets")
     parser.add_argument(
         "--eval-set",

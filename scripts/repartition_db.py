@@ -102,7 +102,7 @@ def process_source_database(src_path: str, temp_dir: Path, new_conns: dict) -> i
     return row_count
 
 
-def finalize_new_databases(new_conns: dict):
+def finalize_new_databases(new_conns: dict) -> None:
     """Commit writes and build FTS5 indexes for all new databases."""
     print("Finalizing new databases and building FTS5 indexes...")
     for target_path, conn in new_conns.items():
@@ -114,7 +114,7 @@ def finalize_new_databases(new_conns: dict):
         conn.close()
 
 
-def swap_db_directories(db_path: Path, temp_dir: Path):
+def swap_db_directories(db_path: Path, temp_dir: Path) -> None:
     """Back up the old database directory and replace it with the new partitioned directory."""
     backup_dir = db_path.parent / "db_backup"
     if backup_dir.exists():
@@ -126,7 +126,7 @@ def swap_db_directories(db_path: Path, temp_dir: Path):
     print(f"Migration completed successfully! Old databases backed up to {backup_dir}")
 
 
-def repartition_dbs(db_dir: str):
+def repartition_dbs(db_dir: str) -> None:
     db_path = Path(db_dir)
     if not db_path.exists() or not db_path.is_dir():
         print(f"Directory {db_dir} does not exist.")

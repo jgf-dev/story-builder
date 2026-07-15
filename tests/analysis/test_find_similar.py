@@ -10,7 +10,7 @@ class TestFindSimilar(unittest.TestCase):
     @patch("sys.stdout", new_callable=StringIO)
     @patch("storybuilder.analysis.find_similar.chromadb.PersistentClient")
     @patch("sys.argv", ["find_similar.py", "test_story.txt"])
-    def test_missing_collection_error(self, mock_client_class, mock_stdout):
+    def test_missing_collection_error(self, mock_client_class, mock_stdout) -> None:
         # Setup mock client
         mock_client = MagicMock()
         mock_client_class.return_value = mock_client
@@ -32,7 +32,7 @@ class TestFindSimilar(unittest.TestCase):
 
     @patch("storybuilder.analysis.find_similar.chromadb.PersistentClient")
     @patch("storybuilder.analysis.find_similar.argparse.ArgumentParser.parse_args")
-    def test_missing_story_result_none(self, mock_parse_args, mock_chroma_client):
+    def test_missing_story_result_none(self, mock_parse_args, mock_chroma_client) -> None:
         # Setup mock args
         mock_args = MagicMock()
         mock_args.target_story = "nonexistent_story.txt"
@@ -67,7 +67,7 @@ class TestFindSimilar(unittest.TestCase):
 
     @patch("storybuilder.analysis.find_similar.chromadb.PersistentClient")
     @patch("storybuilder.analysis.find_similar.argparse.ArgumentParser.parse_args")
-    def test_missing_story_embeddings_none(self, mock_parse_args, mock_chroma_client):
+    def test_missing_story_embeddings_none(self, mock_parse_args, mock_chroma_client) -> None:
         # Setup mock args
         mock_args = MagicMock()
         mock_args.target_story = "nonexistent_story.txt"
@@ -104,7 +104,7 @@ class TestFindSimilar(unittest.TestCase):
     @patch("storybuilder.analysis.find_similar.argparse.ArgumentParser.parse_args")
     def test_missing_story_embeddings_empty_list(
         self, mock_parse_args, mock_chroma_client
-    ):
+    ) -> None:
         # Setup mock args
         mock_args = MagicMock()
         mock_args.target_story = "nonexistent_story.txt"

@@ -1,8 +1,10 @@
+from datetime import datetime
+from datetime import date
 import datetime
 import re
 
 
-def _adjust_year(dt, reference_date):
+def _adjust_year(dt: datetime, reference_date):
     year = reference_date.year
     dt = dt.replace(year=year)
     if dt > reference_date:
@@ -10,7 +12,7 @@ def _adjust_year(dt, reference_date):
     return dt
 
 
-def _parse_with_year(date_str):
+def _parse_with_year(date_str: str) -> date | None:
     for fmt in ("%b %d %Y", "%B %d %Y"):
         try:
             dt = datetime.datetime.strptime(date_str, fmt)
@@ -20,7 +22,7 @@ def _parse_with_year(date_str):
     return None
 
 
-def _parse_with_time(date_str, reference_date):
+def _parse_with_time(date_str: str, reference_date):
     for fmt in ("%b %d %H:%M", "%B %d %H:%M"):
         try:
             dt = datetime.datetime.strptime(date_str, fmt)
@@ -30,7 +32,7 @@ def _parse_with_time(date_str, reference_date):
     return None
 
 
-def _parse_fallback(date_str, reference_date):
+def _parse_fallback(date_str: str, reference_date):
     try:
         match = re.match(r"^([a-zA-Z]+)\s+(\d+)$", date_str)
         if match:

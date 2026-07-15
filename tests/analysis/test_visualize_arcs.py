@@ -8,7 +8,7 @@ from storybuilder.analysis.visualize_arcs import main
 
 
 class TestVisualizeArcs(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.temp_dir = tempfile.TemporaryDirectory()
         self.db_path = os.path.join(self.temp_dir.name, "test_sentiment.db")
         self.conn = sqlite3.connect(self.db_path)
@@ -63,13 +63,13 @@ class TestVisualizeArcs(unittest.TestCase):
 
         self.conn.commit()
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         self.conn.close()
         self.temp_dir.cleanup()
 
     @patch("sys.argv", ["visualize_arcs.py", "--db-path", ""])
     @patch("plotly.graph_objects.Figure.write_html")
-    def test_visualize_arcs(self, mock_write_html):
+    def test_visualize_arcs(self, mock_write_html) -> None:
         # We need to dynamically patch sys.argv because db_path is generated in setUp
         with patch(
             "sys.argv",
@@ -80,7 +80,7 @@ class TestVisualizeArcs(unittest.TestCase):
         mock_write_html.assert_called_once_with("arc_mock_story_dir.html")
 
     @patch("plotly.graph_objects.Figure.write_html")
-    def test_visualize_arcs_no_story(self, mock_write_html):
+    def test_visualize_arcs_no_story(self, mock_write_html) -> None:
         with patch("sys.argv", ["visualize_arcs.py", "--db-path", self.db_path]):
             main()
 
@@ -88,7 +88,7 @@ class TestVisualizeArcs(unittest.TestCase):
 
     @patch("sys.stdout.write")
     @patch("plotly.graph_objects.Figure.write_html")
-    def test_visualize_arcs_empty_db(self, mock_write_html, mock_stdout):
+    def test_visualize_arcs_empty_db(self, mock_write_html, mock_stdout) -> None:
         # Create an empty db
         empty_db_path = os.path.join(self.temp_dir.name, "empty.db")
         conn = sqlite3.connect(empty_db_path)

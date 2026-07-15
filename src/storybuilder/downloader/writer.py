@@ -9,7 +9,7 @@ from .cache import safe_print
 from .network import fetch_page
 
 
-def _parse_html_story(response_text):
+def _parse_html_story(response_text: str) -> tuple[str, str, str]:
     title = ""
     author = ""
     story_text = ""
@@ -47,7 +47,7 @@ def _parse_html_story(response_text):
     return title, author, story_text
 
 
-def _parse_text_story(raw_text):
+def _parse_text_story(raw_text: str):
     title = ""
     author = ""
     story_text = raw_text
@@ -68,7 +68,7 @@ def _parse_text_story(raw_text):
     return title, author, story_text
 
 
-def _format_header(title, author, story_date, story_url):
+def _format_header(title, author, story_date, story_url) -> str:
     header = "=" * 80 + "\n"
     header += f"Title: {title or 'Unknown'}\n"
     header += f"Author: {author or 'Unknown'}\n"
@@ -78,7 +78,7 @@ def _format_header(title, author, story_date, story_url):
     return header
 
 
-def save_story(story_url, output_path, story_date, delay):
+def save_story(story_url, output_path, story_date, delay) -> bool:
     """
     Downloads the story from story_url and saves it to output_path.
     If the response is HTML, extracts plain text from body paragraphs.
@@ -123,7 +123,7 @@ def save_story(story_url, output_path, story_date, delay):
     return True
 
 
-def _is_already_downloaded(idx_str, url, output_paths, story_date):
+def _is_already_downloaded(idx_str, url, output_paths, story_date) -> bool:
     if db.get_conn() is not None:
         # Check if all paths exist in the database
         all_exist = True
@@ -147,7 +147,7 @@ def _is_already_downloaded(idx_str, url, output_paths, story_date):
     return False
 
 
-def _replicate_story(primary_path, output_paths, story_date):
+def _replicate_story(primary_path, output_paths, story_date) -> None:
     if len(output_paths) <= 1:
         return
 
@@ -178,7 +178,7 @@ def _replicate_story(primary_path, output_paths, story_date):
                 )
 
 
-def download_single_target(idx_str, url, output_paths, story_date, delay, force=False):
+def download_single_target(idx_str, url, output_paths, story_date, delay, force: bool=False) -> bool:
     """
     Downloads a single target story and handles duplicate copy replication.
     Returns True if successful, False otherwise.

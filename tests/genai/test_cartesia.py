@@ -8,7 +8,7 @@ from storybuilder.genai.cartesia_client import (
 
 
 class TestCartesiaClient(unittest.TestCase):
-    def test_parse_speech_config_cartesia(self):
+    def test_parse_speech_config_cartesia(self) -> None:
         markdown_content = """
         ### DIRECTOR'S NOTES
         Style:
@@ -22,7 +22,7 @@ class TestCartesiaClient(unittest.TestCase):
         self.assertEqual(config["Levi"], VOICE_MAP["kyle"])
         self.assertEqual(config["Kerry"], "6ccbfb76-1fc6-48f7-b71d-91ac6298247b")
 
-    def test_parse_transcript_segments(self):
+    def test_parse_transcript_segments(self) -> None:
         markdown_content = """# AUDIO PROFILE
         ### DIRECTOR'S NOTES
         - Jace (Voice: Algenib)

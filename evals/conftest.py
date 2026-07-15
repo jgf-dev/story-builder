@@ -9,6 +9,7 @@ Fixtures:
     evaluation_datasets: Path to the evaluation datasets directory.
 """
 
+from google.adk.agents.llm_agent import LlmAgent
 import json
 from pathlib import Path
 
@@ -57,7 +58,7 @@ def load_jsonl(request):
 
 
 @pytest.fixture(scope="session")
-def tts_agent():
+def tts_agent() -> LlmAgent:
     """Return the TTS Prompt Crafter root agent.
 
     The agent is a Google ADK LlmAgent with sub-agents for story
@@ -72,7 +73,7 @@ def tts_agent():
 
 
 @pytest.fixture(scope="session")
-def tts_runner(tts_agent):
+def tts_runner(tts_agent) -> Runner:
     """Return an ADK Runner configured for the TTS agent.
 
     Uses InMemorySessionService for stateless evaluation runs

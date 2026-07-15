@@ -1,3 +1,7 @@
+from sqlite3 import Cursor
+from sqlite3 import Connection
+from spacy.language import Language
+from argparse import Namespace
 import argparse
 import re
 import sqlite3
@@ -25,7 +29,7 @@ ALLOWED_LABELS = {
 }
 
 
-def init_db(db_path):
+def init_db(db_path) -> Connection:
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     cursor.execute(
@@ -85,7 +89,7 @@ def get_sentiment_value(result):
     return 0.0
 
 
-def extract_chapter_number(filename):
+def extract_chapter_number(filename) -> int:
     """Attempts to extract a chapter number from a filename like 'story-name-12.txt'."""
     match = re.search(r"-(\d+)\.txt$", filename)
     if match:
@@ -98,7 +102,7 @@ def extract_chapter_number(filename):
     return 0
 
 
-def parse_args():
+def parse_args() -> Namespace:
     parser = argparse.ArgumentParser(
         description="Analyze narrative sentiment and entity interactions.",
     )
@@ -181,7 +185,7 @@ def load_models(spacy_model_name, sentiment_model_name, use_gpu):
     return nlp, sentiment_pipe
 
 
-def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe):
+def process_chapter(filepath, chapter_idx: int, story_id, cursor, nlp, sentiment_pipe) -> None:
     try:
         text = filepath.read_text(encoding="utf-8")
     except FileNotFoundError:
@@ -244,7 +248,7 @@ def process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe
         )
 
 
-def process_story(story_dir, filepaths, cursor, conn, nlp, sentiment_pipe):
+def process_story(story_dir: str, filepaths, cursor: Cursor, conn: Connection, nlp: Language, sentiment_pipe) -> bool:
     cursor.execute("SELECT id FROM stories WHERE story_dir = ?", (story_dir,))
     if cursor.fetchone():
         print(f"Skipping already processed story: {story_dir}")
@@ -274,7 +278,7 @@ def process_story(story_dir, filepaths, cursor, conn, nlp, sentiment_pipe):
     return True
 
 
-def main():
+def main() -> None:
     args = parse_args()
 
     multi_stories = find_multi_chapter_stories(args.stories_dir, args.subcategory)

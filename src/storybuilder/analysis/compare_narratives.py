@@ -9,7 +9,7 @@ from scipy.interpolate import interp1d
 from sklearn.cluster import KMeans
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         description="Compare and cluster narrative trajectories.",
     )

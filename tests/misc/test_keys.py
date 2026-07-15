@@ -12,7 +12,7 @@ from tests.helpers_external_fakes import (
 
 
 class TestKeys(unittest.TestCase):
-    def test_vertex_ai_client(self):
+    def test_vertex_ai_client(self) -> None:
         project_root = Path(__file__).resolve().parents[2]
         load_dotenv(project_root / ".env")
 
@@ -37,7 +37,7 @@ class TestKeys(unittest.TestCase):
             mock_ctor.assert_called()
             client.models.generate_content.assert_called_once()
 
-    def _live_vertex_ai_client(self):
+    def _live_vertex_ai_client(self) -> None:
         """Opt-in real Vertex probe (STORYBUILDER_LIVE_API=1)."""
         from google import genai
 

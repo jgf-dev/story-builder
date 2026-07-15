@@ -8,7 +8,7 @@ from storybuilder.analysis.extract_entities import init_db, is_processed, main
 
 
 class TestExtractEntities(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         # Create a temporary database file
         self.db_fd, self.db_path = tempfile.mkstemp()
         self.conn = sqlite3.connect(self.db_path)
@@ -16,13 +16,13 @@ class TestExtractEntities(unittest.TestCase):
         # Create a temporary directory for test text files
         self.stories_dir = tempfile.TemporaryDirectory()
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         self.conn.close()
         os.close(self.db_fd)
         os.unlink(self.db_path)
         self.stories_dir.cleanup()
 
-    def test_init_db(self):
+    def test_init_db(self) -> None:
         conn = init_db(self.db_path)
         cursor = conn.cursor()
 
@@ -39,7 +39,7 @@ class TestExtractEntities(unittest.TestCase):
 
         conn.close()
 
-    def test_is_processed(self):
+    def test_is_processed(self) -> None:
         conn = init_db(self.db_path)
         cursor = conn.cursor()
 
@@ -63,7 +63,7 @@ class TestExtractEntities(unittest.TestCase):
     @patch("storybuilder.analysis.extract_entities.set_gpu_allocator")
     def test_main_happy_path(
         self, mock_set_gpu, mock_require_gpu, mock_spacy_load, mock_parse_args
-    ):
+    ) -> None:
         # Setup mocks
         mock_args = MagicMock()
         mock_args.db_path = self.db_path
@@ -113,7 +113,7 @@ class TestExtractEntities(unittest.TestCase):
 
     @patch("argparse.ArgumentParser.parse_args")
     @patch("spacy.load")
-    def test_main_skip_processed(self, mock_spacy_load, mock_parse_args):
+    def test_main_skip_processed(self, mock_spacy_load, mock_parse_args) -> None:
         # Pre-populate db with the file
         test_file_path = str(Path(self.stories_dir.name) / "test1.txt")
         conn = init_db(self.db_path)
@@ -147,7 +147,7 @@ class TestExtractEntities(unittest.TestCase):
 
     @patch("argparse.ArgumentParser.parse_args")
     @patch("spacy.load")
-    def test_main_force_reprocess(self, mock_spacy_load, mock_parse_args):
+    def test_main_force_reprocess(self, mock_spacy_load, mock_parse_args) -> None:
         # Pre-populate db with the file and an old entity
         test_file_path = str(Path(self.stories_dir.name) / "test1.txt")
         conn = init_db(self.db_path)
@@ -204,7 +204,7 @@ class TestExtractEntities(unittest.TestCase):
 
     @patch("argparse.ArgumentParser.parse_args")
     @patch("spacy.load")
-    def test_main_model_not_found(self, mock_spacy_load, mock_parse_args):
+    def test_main_model_not_found(self, mock_spacy_load, mock_parse_args) -> None:
         # Setup mocks to raise OSError
         mock_args = MagicMock()
         mock_args.db_path = self.db_path
@@ -239,7 +239,7 @@ class TestExtractEntities(unittest.TestCase):
         mock_require_gpu,
         mock_spacy_load,
         mock_parse_args,
-    ):
+    ) -> None:
         # Setup mocks
         mock_args = MagicMock()
         mock_args.db_path = self.db_path
@@ -276,7 +276,7 @@ class TestExtractEntities(unittest.TestCase):
 
     @patch("argparse.ArgumentParser.parse_args")
     @patch("spacy.load")
-    def test_main_error_processing_file(self, mock_spacy_load, mock_parse_args):
+    def test_main_error_processing_file(self, mock_spacy_load, mock_parse_args) -> None:
         # Setup mocks
         mock_args = MagicMock()
         mock_args.db_path = self.db_path
@@ -329,7 +329,7 @@ class TestExtractEntities(unittest.TestCase):
         mock_require_gpu_thinc,
         mock_require_gpu_spacy,
         mock_spacy_load,
-    ):
+    ) -> None:
         from storybuilder.analysis.extract_entities import load_spacy_model
 
         # Setup mock nlp object
@@ -364,7 +364,7 @@ class TestExtractEntities(unittest.TestCase):
         mock_require_gpu_thinc,
         mock_require_gpu_spacy,
         mock_spacy_load,
-    ):
+    ) -> None:
         from storybuilder.analysis.extract_entities import load_spacy_model
 
         # Setup mock nlp object
@@ -391,7 +391,7 @@ class TestExtractEntities(unittest.TestCase):
 
     @patch("builtins.print")
     @patch("storybuilder.analysis.extract_entities.spacy.load")
-    def test_load_spacy_model_oserror(self, mock_spacy_load, mock_print):
+    def test_load_spacy_model_oserror(self, mock_spacy_load, mock_print) -> None:
         from storybuilder.analysis.extract_entities import load_spacy_model
 
         # Setup mock to raise OSError

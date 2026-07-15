@@ -1,3 +1,4 @@
+from unittest.mock import MagicMock
 import unittest
 import argparse
 from unittest.mock import patch, MagicMock
@@ -8,7 +9,7 @@ from storybuilder.analysis.generate_embeddings import get_chunks, main
 
 
 class TestGenerateEmbeddings(unittest.TestCase):
-    def test_get_chunks(self):
+    def test_get_chunks(self) -> None:
         text = "This is a simple text that we want to split into smaller chunks"
 
         # Split into chunks of 3 words
@@ -28,7 +29,7 @@ class TestGenerateEmbeddings(unittest.TestCase):
     @patch("storybuilder.analysis.generate_embeddings.Path.rglob")
     def test_main(
         self, mock_rglob, mock_sentence_transformer, mock_chroma_client, mock_parse_args
-    ):
+    ) -> None:
         # 1. Setup mocks
         # Mock CLI arguments
         args = argparse.Namespace(
@@ -46,7 +47,7 @@ class TestGenerateEmbeddings(unittest.TestCase):
         mock_averages_collection = MagicMock()
 
         # When get_or_create_collection is called, return different mock collections
-        def side_effect(name, metadata=None):
+        def side_effect(name, metadata=None) -> MagicMock | None:
             if name == "story_chunks":
                 return mock_chunks_collection
             elif name == "story_averages":
@@ -126,7 +127,7 @@ class TestGenerateEmbeddings(unittest.TestCase):
     @patch("storybuilder.analysis.generate_embeddings.Path.rglob")
     def test_main_skip_existing(
         self, mock_rglob, mock_sentence_transformer, mock_chroma_client, mock_parse_args
-    ):
+    ) -> None:
         # Mock CLI arguments
         args = argparse.Namespace(
             limit=2,
@@ -142,7 +143,7 @@ class TestGenerateEmbeddings(unittest.TestCase):
         mock_chunks_collection = MagicMock()
         mock_averages_collection = MagicMock()
 
-        def side_effect(name, metadata=None):
+        def side_effect(name, metadata=None) -> MagicMock | None:
             if name == "story_chunks":
                 return mock_chunks_collection
             elif name == "story_averages":
@@ -174,7 +175,7 @@ class TestGenerateEmbeddings(unittest.TestCase):
     @patch("storybuilder.analysis.generate_embeddings.Path.rglob")
     def test_main_error_handling(
         self, mock_rglob, mock_sentence_transformer, mock_chroma_client, mock_parse_args
-    ):
+    ) -> None:
         # Mock CLI arguments
         args = argparse.Namespace(
             limit=2,
@@ -190,7 +191,7 @@ class TestGenerateEmbeddings(unittest.TestCase):
         mock_chunks_collection = MagicMock()
         mock_averages_collection = MagicMock()
 
-        def side_effect(name, metadata=None):
+        def side_effect(name, metadata=None) -> MagicMock | None:
             if name == "story_chunks":
                 return mock_chunks_collection
             elif name == "story_averages":

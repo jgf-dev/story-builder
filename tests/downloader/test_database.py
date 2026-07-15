@@ -22,42 +22,42 @@ if _scripts_dir not in sys.path:
 class TestParseAuthor(unittest.TestCase):
     """Tests for _parse_author in storybuilder.downloader.db."""
 
-    def test_name_with_email(self):
+    def test_name_with_email(self) -> None:
         from storybuilder.downloader.db import _parse_author
 
         name, email = _parse_author("John Doe <john@example.com>")
         self.assertEqual(name, "John Doe")
         self.assertEqual(email, "john@example.com")
 
-    def test_bare_email(self):
+    def test_bare_email(self) -> None:
         from storybuilder.downloader.db import _parse_author
 
         name, email = _parse_author("anon@test.org")
         self.assertIsNone(name)
         self.assertEqual(email, "anon@test.org")
 
-    def test_name_only(self):
+    def test_name_only(self) -> None:
         from storybuilder.downloader.db import _parse_author
 
         name, email = _parse_author("Jane Austen")
         self.assertEqual(name, "Jane Austen")
         self.assertIsNone(email)
 
-    def test_none_input(self):
+    def test_none_input(self) -> None:
         from storybuilder.downloader.db import _parse_author
 
         name, email = _parse_author(None)
         self.assertIsNone(name)
         self.assertIsNone(email)
 
-    def test_empty_string(self):
+    def test_empty_string(self) -> None:
         from storybuilder.downloader.db import _parse_author
 
         name, email = _parse_author("")
         self.assertIsNone(name)
         self.assertIsNone(email)
 
-    def test_name_with_angle_brackets_in_name(self):
+    def test_name_with_angle_brackets_in_name(self) -> None:
         from storybuilder.downloader.db import _parse_author
 
         name, email = _parse_author("<Special> Author <special@example.com>")
@@ -68,7 +68,7 @@ class TestParseAuthor(unittest.TestCase):
 class TestParseOutputPath(unittest.TestCase):
     """Tests for _parse_output_path in storybuilder.downloader.db."""
 
-    def test_multi_chapter_story(self):
+    def test_multi_chapter_story(self) -> None:
         from storybuilder.downloader.db import _parse_output_path
 
         orientation, category, slug, num = _parse_output_path(
@@ -79,7 +79,7 @@ class TestParseOutputPath(unittest.TestCase):
         self.assertEqual(slug, "my-story")
         self.assertEqual(num, 3)
 
-    def test_single_chapter_flat(self):
+    def test_single_chapter_flat(self) -> None:
         from storybuilder.downloader.db import _parse_output_path
 
         orientation, category, slug, num = _parse_output_path(
@@ -90,7 +90,7 @@ class TestParseOutputPath(unittest.TestCase):
         self.assertEqual(slug, "my-story")
         self.assertIsNone(num)
 
-    def test_short_path_fallback(self):
+    def test_short_path_fallback(self) -> None:
         from storybuilder.downloader.db import _parse_output_path
 
         # 3-part path: only output_dir/orientation/file — category = parts[2] = filename
@@ -103,7 +103,7 @@ class TestParseOutputPath(unittest.TestCase):
         self.assertEqual(slug, "story")  # stem of filename
         self.assertIsNone(num)
 
-    def test_orientation_is_category(self):
+    def test_orientation_is_category(self) -> None:
         from storybuilder.downloader.db import _parse_output_path
 
         orientation, category, slug, num = _parse_output_path(
@@ -114,7 +114,7 @@ class TestParseOutputPath(unittest.TestCase):
         self.assertEqual(slug, "title")
         self.assertEqual(num, 1)
 
-    def test_filename_without_chapter(self):
+    def test_filename_without_chapter(self) -> None:
         from storybuilder.downloader.db import _parse_output_path
 
         # 5-part path: downloads/gay/adult-friends/multi/my-story.txt
@@ -127,7 +127,7 @@ class TestParseOutputPath(unittest.TestCase):
         self.assertEqual(slug, "multi")  # parts[3], the subdirectory
         self.assertIsNone(num)
 
-    def test_html_file(self):
+    def test_html_file(self) -> None:
         from storybuilder.downloader.db import _parse_output_path
 
         orientation, category, slug, num = _parse_output_path(
@@ -142,18 +142,18 @@ class TestParseOutputPath(unittest.TestCase):
 class TestDatabaseInit(unittest.TestCase):
     """Tests for init_db, schema, and indexes."""
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.temp_dir = tempfile.mkdtemp()
         self.db_path = os.path.join(self.temp_dir, "test.db")
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         # Reset the db module's global connection
         from storybuilder.downloader import db
 
         db.close_db()
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def test_init_db_creates_tables(self):
+    def test_init_db_creates_tables(self) -> None:
         from storybuilder.downloader.db import close_db
         from storybuilder.downloader.db import init_db
 
@@ -170,7 +170,7 @@ class TestDatabaseInit(unittest.TestCase):
         finally:
             close_db()
 
-    def test_init_db_creates_indexes(self):
+    def test_init_db_creates_indexes(self) -> None:
         from storybuilder.downloader.db import close_db
         from storybuilder.downloader.db import init_db
 
@@ -187,7 +187,7 @@ class TestDatabaseInit(unittest.TestCase):
         finally:
             close_db()
 
-    def test_init_db_has_orientation_column(self):
+    def test_init_db_has_orientation_column(self) -> None:
         from storybuilder.downloader.db import close_db
         from storybuilder.downloader.db import init_db
 
@@ -203,7 +203,7 @@ class TestDatabaseInit(unittest.TestCase):
         finally:
             close_db()
 
-    def test_init_db_wal_mode(self):
+    def test_init_db_wal_mode(self) -> None:
         from storybuilder.downloader.db import close_db
         from storybuilder.downloader.db import init_db
 
@@ -214,7 +214,7 @@ class TestDatabaseInit(unittest.TestCase):
         finally:
             close_db()
 
-    def test_init_db_migrates_email_date_column(self):
+    def test_init_db_migrates_email_date_column(self) -> None:
         from storybuilder.downloader.db import close_db
         from storybuilder.downloader.db import init_db
 
@@ -317,17 +317,17 @@ class TestDatabaseInit(unittest.TestCase):
 class TestInsertStory(unittest.TestCase):
     """Tests for insert_story function."""
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.temp_dir = tempfile.mkdtemp()
         self.db_path = os.path.join(self.temp_dir, "test.db")
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         from storybuilder.downloader import db
 
         db.close_db()
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def test_insert_and_retrieve(self):
+    def test_insert_and_retrieve(self) -> None:
         from storybuilder.downloader.db import close_db
         from storybuilder.downloader.db import init_db
         from storybuilder.downloader.db import insert_story
@@ -365,7 +365,7 @@ class TestInsertStory(unittest.TestCase):
         finally:
             close_db()
 
-    def test_insert_no_author(self):
+    def test_insert_no_author(self) -> None:
         from storybuilder.downloader.db import close_db
         from storybuilder.downloader.db import init_db
         from storybuilder.downloader.db import insert_story
@@ -388,7 +388,7 @@ class TestInsertStory(unittest.TestCase):
         finally:
             close_db()
 
-    def test_replace_on_duplicate_path(self):
+    def test_replace_on_duplicate_path(self) -> None:
         from storybuilder.downloader.db import close_db
         from storybuilder.downloader.db import init_db
         from storybuilder.downloader.db import insert_story
@@ -419,7 +419,7 @@ class TestInsertStory(unittest.TestCase):
         finally:
             close_db()
 
-    def test_char_and_word_count(self):
+    def test_char_and_word_count(self) -> None:
         from storybuilder.downloader.db import close_db
         from storybuilder.downloader.db import init_db
         from storybuilder.downloader.db import insert_story
@@ -445,17 +445,17 @@ class TestInsertStory(unittest.TestCase):
 class TestFTSSearch(unittest.TestCase):
     """Tests for FTS5 full-text search."""
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.temp_dir = tempfile.mkdtemp()
         self.db_path = os.path.join(self.temp_dir, "test.db")
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         from storybuilder.downloader import db
 
         db.close_db()
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def test_fts_search_finds_content(self):
+    def test_fts_search_finds_content(self) -> None:
         from storybuilder.downloader.db import close_db
         from storybuilder.downloader.db import init_db
         from storybuilder.downloader.db import insert_story
@@ -498,7 +498,7 @@ class TestFTSSearch(unittest.TestCase):
         finally:
             close_db()
 
-    def test_fts_update_on_replace(self):
+    def test_fts_update_on_replace(self) -> None:
         from storybuilder.downloader.db import close_db
         from storybuilder.downloader.db import init_db
         from storybuilder.downloader.db import insert_story
@@ -542,7 +542,7 @@ class TestFTSSearch(unittest.TestCase):
         finally:
             close_db()
 
-    def test_optimize_fts_all(self):
+    def test_optimize_fts_all(self) -> None:
         from storybuilder.downloader import db
 
         # Initialize with monolithic database path
@@ -577,19 +577,19 @@ class TestFTSSearch(unittest.TestCase):
 class TestParseHeader(unittest.TestCase):
     """Tests for parse_header in import_to_sqlite.py."""
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.temp_dir = tempfile.mkdtemp()
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def _write_story_file(self, fname, content):
+    def _write_story_file(self, fname: str, content: str) -> str:
         path = os.path.join(self.temp_dir, fname)
         with open(path, "w", encoding="utf-8") as f:
             f.write(content)
         return path
 
-    def test_standard_header(self):
+    def test_standard_header(self) -> None:
         content = (
             "=" * 80 + "\n"
             "Title: My Story\n"
@@ -614,7 +614,7 @@ class TestParseHeader(unittest.TestCase):
         self.assertIn("Once upon a time", result["content"])
         self.assertIn("multiple paragraphs", result["content"])
 
-    def test_header_with_email_date(self):
+    def test_header_with_email_date(self) -> None:
         content = (
             "=" * 80 + "\n"
             "Title: Email Story\n"
@@ -631,13 +631,13 @@ class TestParseHeader(unittest.TestCase):
         self.assertIsNone(result["author_name"])
         self.assertEqual(result["author_email"], "user@host.com")
 
-    def test_missing_file(self):
+    def test_missing_file(self) -> None:
         import import_to_sqlite
 
         result = import_to_sqlite.parse_header("/nonexistent/file.txt")
         self.assertIsNone(result)
 
-    def test_no_header_marker(self):
+    def test_no_header_marker(self) -> None:
         content = "Just plain text without any header markers.\n"
         path = self._write_story_file("noheader.txt", content)
         import import_to_sqlite
@@ -645,7 +645,7 @@ class TestParseHeader(unittest.TestCase):
         result = import_to_sqlite.parse_header(path)
         self.assertIsNone(result)
 
-    def test_minimal_header(self):
+    def test_minimal_header(self) -> None:
         import import_to_sqlite
 
         content = (
@@ -661,7 +661,7 @@ class TestParseHeader(unittest.TestCase):
         self.assertEqual(result["title"], "Minimal")
         self.assertEqual(result["content"], "body")
 
-    def test_empty_content(self):
+    def test_empty_content(self) -> None:
         import import_to_sqlite
 
         content = (
@@ -680,16 +680,16 @@ class TestParseHeader(unittest.TestCase):
 class TestMonolithicDatabase(unittest.TestCase):
     """Tests for monolithic SQLModel-based database in db.py."""
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.temp_dir = tempfile.mkdtemp()
         self.db_path = os.path.join(self.temp_dir, "stories.db")
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         from storybuilder.downloader import db
         db.close_db()
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def test_init_db_creates_schema(self):
+    def test_init_db_creates_schema(self) -> None:
         from storybuilder.downloader import db
         conn = db.init_db(self.db_path)
         self.assertIsNotNone(conn)
@@ -702,7 +702,7 @@ class TestMonolithicDatabase(unittest.TestCase):
         cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='stories_fts'")
         self.assertIsNotNone(cursor.fetchone())
 
-    def test_insert_and_retrieve_story(self):
+    def test_insert_and_retrieve_story(self) -> None:
         from storybuilder.downloader import db
         db.init_db(self.db_path)
 
@@ -727,7 +727,7 @@ class TestMonolithicDatabase(unittest.TestCase):
         self.assertEqual(story["story_date"], "2026-07-05")
         self.assertEqual(story["content"], "This is the content of my special test story with unique word banana.")
 
-    def test_execute_query(self):
+    def test_execute_query(self) -> None:
         from storybuilder.downloader import db
         db.init_db(self.db_path)
         db.insert_story(
@@ -743,7 +743,7 @@ class TestMonolithicDatabase(unittest.TestCase):
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["cnt"], 1)
 
-    def test_search_stories_fts(self):
+    def test_search_stories_fts(self) -> None:
         from storybuilder.downloader import db
         db.init_db(self.db_path)
         db.insert_story(
@@ -763,19 +763,19 @@ class TestMonolithicDatabase(unittest.TestCase):
 
 
 class TestImportToSQLite(unittest.TestCase):
-    def _write_story_file(self, filename, content):
+    def _write_story_file(self, filename: str, content: str) -> str:
         path = os.path.join(self.temp_dir, filename)
         with open(path, "w", encoding="utf-8") as f:
             f.write(content)
         return path
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.temp_dir = tempfile.mkdtemp()
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def test_parse_header_valid(self):
+    def test_parse_header_valid(self) -> None:
         import import_to_sqlite
 
         content = (
@@ -802,7 +802,7 @@ class TestImportToSQLite(unittest.TestCase):
             result["content"], "This is the body of the story.\nIt has multiple lines."
         )
 
-    def test_parse_header_missing_fields(self):
+    def test_parse_header_missing_fields(self) -> None:
         import import_to_sqlite
 
         content = (
@@ -822,7 +822,7 @@ class TestImportToSQLite(unittest.TestCase):
         self.assertEqual(result["publication_date"], "2024-02-01")
         self.assertEqual(result["content"], "Body content here.")
 
-    def test_parse_header_invalid_format(self):
+    def test_parse_header_invalid_format(self) -> None:
         import import_to_sqlite
 
         # Missing the second divider
@@ -836,7 +836,7 @@ class TestImportToSQLite(unittest.TestCase):
         result = import_to_sqlite.parse_header(path)
         self.assertIsNone(result)
 
-    def test_minimal_header(self):
+    def test_minimal_header(self) -> None:
         import import_to_sqlite
 
         content = (
@@ -852,7 +852,7 @@ class TestImportToSQLite(unittest.TestCase):
         self.assertEqual(result["title"], "Minimal")
         self.assertEqual(result["content"], "body")
 
-    def test_empty_content(self):
+    def test_empty_content(self) -> None:
         import import_to_sqlite
 
         content = (
@@ -871,7 +871,7 @@ class TestImportToSQLite(unittest.TestCase):
 class TestDBSearch(unittest.TestCase):
     """Tests for search_stories and related functions."""
 
-    def setUp(self):
+    def setUp(self) -> None:
         import tempfile
         from storybuilder.downloader import db
 
@@ -896,44 +896,44 @@ class TestDBSearch(unittest.TestCase):
             content="An adventure in the mountains",
         )
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         import shutil
         shutil.rmtree(self.temp_dir)
 
-    def test_search_stories_basic(self):
+    def test_search_stories_basic(self) -> None:
         from storybuilder.downloader import db
 
         results = db.search_stories("love")
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0]["title"], "Love Story")
 
-    def test_search_stories_with_category_filter(self):
+    def test_search_stories_with_category_filter(self) -> None:
         from storybuilder.downloader import db
 
         results = db.search_stories("adventure", category="gay")
         self.assertIsInstance(results, list)
 
-    def test_search_stories_with_author_filter(self):
+    def test_search_stories_with_author_filter(self) -> None:
         from storybuilder.downloader import db
 
         results = db.search_stories("", author="Author A")
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0]["author_name"], "Author A")
 
-    def test_search_stories_date_range(self):
+    def test_search_stories_date_range(self) -> None:
         from storybuilder.downloader import db
 
         results = db.search_stories("", date_from="2024-06-01", date_to="2024-06-30")
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0]["title"], "Love Story")
 
-    def test_search_stories_no_results(self):
+    def test_search_stories_no_results(self) -> None:
         from storybuilder.downloader import db
 
         results = db.search_stories("nonexistent_word_xyz")
         self.assertEqual(len(results), 0)
 
-    def test_search_stories_limit(self):
+    def test_search_stories_limit(self) -> None:
         from storybuilder.downloader import db
 
         results = db.search_stories("", limit=1)
@@ -946,7 +946,7 @@ class TestDBParseOutputPath(unittest.TestCase):
     Path format: output_dir/orientation/category/file (relative, no leading /)
     """
 
-    def test_parse_4part_path(self):
+    def test_parse_4part_path(self) -> None:
         """4-part: output/orientation/category/file"""
         from storybuilder.downloader.db import _parse_output_path
 
@@ -957,7 +957,7 @@ class TestDBParseOutputPath(unittest.TestCase):
         self.assertEqual(category, "romance")
         self.assertEqual(story_slug, "story")
 
-    def test_parse_5part_path(self):
+    def test_parse_5part_path(self) -> None:
         """5-part: output/orientation/category/slug/file"""
         from storybuilder.downloader.db import _parse_output_path
 
@@ -968,7 +968,7 @@ class TestDBParseOutputPath(unittest.TestCase):
         self.assertEqual(category, "series")
         self.assertEqual(story_slug, "my-story")
 
-    def test_parse_3part_path(self):
+    def test_parse_3part_path(self) -> None:
         """3-part: output/orientation/file"""
         from storybuilder.downloader.db import _parse_output_path
 
@@ -979,7 +979,7 @@ class TestDBParseOutputPath(unittest.TestCase):
         self.assertEqual(category, "some-story.txt")  # full filename for 3-part
         self.assertEqual(story_slug, "some-story")
 
-    def test_parse_with_chapter_suffix(self):
+    def test_parse_with_chapter_suffix(self) -> None:
         from storybuilder.downloader.db import _parse_output_path
 
         orientation, category, story_slug, chapter = _parse_output_path(
@@ -988,7 +988,7 @@ class TestDBParseOutputPath(unittest.TestCase):
         self.assertEqual(story_slug, "chapter")
         self.assertEqual(chapter, 5)
 
-    def test_parse_invalid_too_short(self):
+    def test_parse_invalid_too_short(self) -> None:
         from storybuilder.downloader.db import _parse_output_path
 
         with self.assertRaises(ValueError):
@@ -998,7 +998,7 @@ class TestDBParseOutputPath(unittest.TestCase):
 class TestDBContentOperations(unittest.TestCase):
     """Tests for content update/delete operations."""
 
-    def setUp(self):
+    def setUp(self) -> None:
         import tempfile
         from storybuilder.downloader import db
 
@@ -1006,11 +1006,11 @@ class TestDBContentOperations(unittest.TestCase):
         self.db_path = os.path.join(self.temp_dir, "test.db")
         db.init_db(self.db_path)
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         import shutil
         shutil.rmtree(self.temp_dir)
 
-    def test_get_story_returns_all_fields(self):
+    def test_get_story_returns_all_fields(self) -> None:
         from storybuilder.downloader import db
 
         db.insert_story(

@@ -65,7 +65,7 @@ class ReflectionEvaluator:
         criteria: list[dict[str, str]],
         score_threshold: float = 0.8,
         max_iterations: int = 3,
-    ):
+    ) -> None:
         self.criteria = criteria
         self.score_threshold = score_threshold
         self.max_iterations = max_iterations
@@ -181,7 +181,7 @@ class LLMJudgeReflectionEvaluator(ReflectionEvaluator):
         criteria: list[dict[str, str]],
         score_threshold: float = 0.8,
         max_iterations: int = 3,
-    ):
+    ) -> None:
         super().__init__(criteria, score_threshold, max_iterations)
         self.judge_fn = judge_fn
 

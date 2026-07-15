@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 class TestDashboardStreamlitUI(unittest.TestCase):
     """Tests for Streamlit dashboard UI - simpler integration tests."""
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.temp_dir = tempfile.mkdtemp()
         self.db_dir = os.path.join(self.temp_dir, "db")
         Path(self.db_dir).mkdir(exist_ok=True, parents=True)
@@ -32,10 +32,10 @@ class TestDashboardStreamlitUI(unittest.TestCase):
             content="Test content",
         )
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def test_dashboard_module_imports(self):
+    def test_dashboard_module_imports(self) -> None:
         """Test that all dashboard modules can be imported."""
         from storybuilder.dashboard import config, data
         from storybuilder.dashboard.pages import archive_stats, favorites_tags, read_story, search_explorer
@@ -45,7 +45,7 @@ class TestDashboardStreamlitUI(unittest.TestCase):
         self.assertTrue(hasattr(data, "query_stories"))
         self.assertTrue(hasattr(sidebar, "render_sidebar"))
 
-    def test_dashboard_pages_have_render_functions(self):
+    def test_dashboard_pages_have_render_functions(self) -> None:
         """Test that all dashboard pages have render functions."""
         from storybuilder.dashboard.pages import archive_stats, favorites_tags, read_story, search_explorer
 
@@ -54,7 +54,7 @@ class TestDashboardStreamlitUI(unittest.TestCase):
         self.assertTrue(callable(read_story.render_read_story))
         self.assertTrue(callable(search_explorer.render_search_explorer))
 
-    def test_config_constants(self):
+    def test_config_constants(self) -> None:
         """Test dashboard config constants."""
         from storybuilder.dashboard.config import BRACKET_LABELS, LONG_YEAR
 
@@ -63,7 +63,7 @@ class TestDashboardStreamlitUI(unittest.TestCase):
         self.assertIn("Short (<1K)", BRACKET_LABELS)
         self.assertIn("Epic (>50K)", BRACKET_LABELS)
 
-    def test_data_functions_available(self):
+    def test_data_functions_available(self) -> None:
         """Test that data module exposes expected functions."""
         from storybuilder.dashboard import data
 
@@ -84,7 +84,7 @@ class TestDashboardStreamlitUI(unittest.TestCase):
                 f"data module should have {func_name}"
             )
 
-    def test_launcher_script_imports_work(self):
+    def test_launcher_script_imports_work(self) -> None:
         """Test that scripts/dashboard.py can import all needed modules."""
         import sys
         from pathlib import Path

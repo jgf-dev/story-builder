@@ -120,5 +120,6 @@
     "sonarlint.connectedMode.project": {
         "connectionId": "jgf-dev",
         "projectKey": "jgf-dev_story-builder"
-    }
+    },
+    "sarif-viewer.connectToGithubCodeScanning": "off"
 }

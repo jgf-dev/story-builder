@@ -337,7 +337,7 @@ def _upload_to_cloud(args: argparse.Namespace) -> None:
         upload_many_gcs("nifty-index", db_files, source_directory=source_dir)
 
 
-def main():
+def main() -> None:
     args = _parse_args()
 
     if not _setup_network(args):

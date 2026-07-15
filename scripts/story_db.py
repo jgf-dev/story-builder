@@ -22,6 +22,7 @@ Usage:
     python scripts/story_db.py stats --category college
 """
 
+from argparse import Namespace
 import argparse
 import os
 import sqlite3
@@ -41,7 +42,7 @@ def connect(db_path: str) -> sqlite3.Connection:
     return conn
 
 
-def _resolve_connection(args) -> "tuple[sqlite3.Connection, list[str] | None]":
+def _resolve_connection(args: Namespace) -> "tuple[sqlite3.Connection, list[str] | None]":
     """Resolve connection from args, supporting both --db and --db-dir.
 
     Returns (conn, db_paths) where db_paths is always None (monolithic mode).
@@ -60,7 +61,7 @@ def _resolve_connection(args) -> "tuple[sqlite3.Connection, list[str] | None]":
 # ——— Search ————————————————————————————————————————————————————————————————————
 
 
-def cmd_search(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None):
+def cmd_search(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None) -> None:
     """Full-text search across titles, authors, and content."""
     conditions = ["stories_fts MATCH ?"]
     params = [args.query]
@@ -114,7 +115,7 @@ def cmd_search(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = No
 # ——— Get ————————————————————————————————————————————————————————————————————————
 
 
-def cmd_get(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None):
+def cmd_get(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None) -> None:
     """Retrieve a specific story or all chapters of a story."""
     slug = args.slug
 
@@ -171,7 +172,7 @@ def cmd_get(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None)
 # ——— List ———————————————————————————————————————————————————————————————————————
 
 
-def cmd_list(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None):
+def cmd_list(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None) -> None:
     """Browse stories with filters."""
     conditions = ["1=1"]
     params = []
@@ -227,7 +228,7 @@ def cmd_list(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None
 # ——— Stats ——————————————————————————————————————————————————————————————————————
 
 
-def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None):
+def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None) -> None:
     """Show database statistics."""
     where = ""
     params = []
@@ -294,7 +295,7 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
 # ——— Main ————————————————————————————————————————————————————————————————————————
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Query the stories SQLite database")
     parser.add_argument(
         "--db",

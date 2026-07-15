@@ -15,7 +15,7 @@ from storybuilder.analysis.compare_narratives import main
 
 
 class TestCompareNarratives(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.temp_dir = tempfile.mkdtemp()
         self.db_path = str(Path(self.temp_dir) / "test_sentiment.db")
         self.conn = sqlite3.connect(self.db_path)
@@ -38,11 +38,11 @@ class TestCompareNarratives(unittest.TestCase):
         """)
         self.conn.commit()
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         self.conn.close()
         shutil.rmtree(self.temp_dir)
 
-    def test_insufficient_stories(self):
+    def test_insufficient_stories(self) -> None:
         # Only add 2 stories
         self.conn.execute(
             "INSERT INTO stories (id, story_dir, subcategory) VALUES (1, 'dir1', 'cat1')"
@@ -62,7 +62,7 @@ class TestCompareNarratives(unittest.TestCase):
         output = captured_output.getvalue()
         self.assertIn("Error: Not enough stories (2) to form 4 clusters.", output)
 
-    def test_skip_short_stories(self):
+    def test_skip_short_stories(self) -> None:
         # Add 4 stories
         for i in range(1, 5):
             self.conn.execute(
@@ -91,7 +91,7 @@ class TestCompareNarratives(unittest.TestCase):
         self.assertIn("Skipping dir1 (only 10 sentences)", output)
         self.assertIn("No valid trajectories found.", output)
 
-    def test_successful_clustering(self):
+    def test_successful_clustering(self) -> None:
         # Add 4 stories
         for i in range(1, 5):
             self.conn.execute(

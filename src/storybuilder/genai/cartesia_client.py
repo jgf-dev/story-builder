@@ -48,7 +48,7 @@ def wave_file(filename, pcm, channels=1, rate=24000, sample_width=2) -> None:
         wf.writeframes(pcm)  # pylint: disable=no-member
 
 
-def parse_speech_config_cartesia(markdown_content):
+def parse_speech_config_cartesia(markdown_content: str):
     """
     Parses the markdown content preamble to map speakers to Cartesia voice UUIDs.
     If a character is mapped to a GenAI voice name, resolves it via VOICE_MAP.
@@ -103,7 +103,7 @@ def _resolve_voice_id(speaker: str, speaker_to_voice_id: dict, default_voice_id:
     return default_voice_id
 
 
-def parse_transcript_segments(markdown_content, speaker_to_voice_id, default_voice_id):
+def parse_transcript_segments(markdown_content: str, speaker_to_voice_id, default_voice_id) -> list[tuple[str | None, str]]:
     """
     Parses the transcript section into contiguous segments spoken by the same voice ID.
     This minimizes API requests by grouping adjacent lines spoken by the same character.
@@ -136,7 +136,7 @@ def parse_transcript_segments(markdown_content, speaker_to_voice_id, default_voi
     return segments
 
 
-def generate_segment_audio(api_key, text, voice_id, rate=24000):
+def generate_segment_audio(api_key, text: str, voice_id: str | None, rate=24000):
     """
     Calls Cartesia's REST API endpoint /tts/bytes to synthesize a single speech segment.
     Returns the raw PCM s16le bytes.
@@ -185,7 +185,7 @@ def generate_segment_audio(api_key, text, voice_id, rate=24000):
     raise RuntimeError(f"Failed to generate segment after {max_retries} attempts.")
 
 
-def process_file_cartesia(md_file, wav_file, api_key, rate=24000):
+def process_file_cartesia(md_file: str, wav_file: str, api_key: str, rate=24000) -> None:
     """Processes a single markdown file and generates matched WAVs using Cartesia."""
     print(f"Processing {os.path.basename(md_file)} with Cartesia...")
     content = pathlib.Path(md_file).read_text()
@@ -226,7 +226,7 @@ def process_file_cartesia(md_file, wav_file, api_key, rate=24000):
         print("  Skipped saving WAV due to synthesis failure.")
 
 
-def process_directory_cartesia(directory, rate=24000):
+def process_directory_cartesia(directory, rate=24000) -> None:
     """Processes a directory of scene part markdown files and generates matched WAVs using Cartesia."""
     api_key = os.getenv("CARTESIA_API_KEY")
     if not api_key:

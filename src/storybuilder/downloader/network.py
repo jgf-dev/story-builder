@@ -1,3 +1,4 @@
+from requests.models import Response
 import time
 
 import requests
@@ -11,14 +12,14 @@ PROXIES = None
 ENABLE_ROTATION: bool = False
 
 
-def safe_print(*args, **kwargs):
+def safe_print(*args, **kwargs) -> None:
     # This will be overridden or imported from utils later, but let's import it locally inside the package
     from .cache import safe_print as cache_safe_print
 
     cache_safe_print(*args, **kwargs)
 
 
-def rotate_windscribe_ip():
+def rotate_windscribe_ip() -> bool:
     """
     Rotates the IP address using windscribe-cli.
     """
@@ -45,7 +46,7 @@ def rotate_windscribe_ip():
         return False
 
 
-def fetch_page(url, delay, headers=None, max_retries=3):
+def fetch_page(url, delay, headers=None, max_retries: int=3) -> Response | None:
     """
     Fetches a URL with retries and custom headers.
     Optionally routes through global proxies and triggers Windscribe IP rotation on refusal.

@@ -5,7 +5,7 @@ from storybuilder.analysis.visualize_tsne import main, parse_args
 
 class TestVisualizeTSNE(unittest.TestCase):
     @patch("sys.argv", ["visualize_tsne.py"])
-    def test_parse_args_defaults(self):
+    def test_parse_args_defaults(self) -> None:
         args = parse_args()
         self.assertEqual(args.db_path, "./chroma_db")
         self.assertEqual(args.output, "tsne_visualization.html")
@@ -23,7 +23,7 @@ class TestVisualizeTSNE(unittest.TestCase):
             "50.5",
         ],
     )
-    def test_parse_args_custom(self):
+    def test_parse_args_custom(self) -> None:
         args = parse_args()
         self.assertEqual(args.db_path, "./custom_db")
         self.assertEqual(args.output, "custom.html")
@@ -32,7 +32,7 @@ class TestVisualizeTSNE(unittest.TestCase):
     @patch("storybuilder.analysis.visualize_tsne.chromadb.PersistentClient")
     @patch("storybuilder.analysis.visualize_tsne.pio.write_html")
     @patch("sys.argv", ["visualize_tsne.py", "--perplexity", "2"])
-    def test_main(self, mock_write_html, mock_chroma_client):
+    def test_main(self, mock_write_html, mock_chroma_client) -> None:
         # Setup mock chroma
         mock_client = MagicMock()
         mock_chroma_client.return_value = mock_client

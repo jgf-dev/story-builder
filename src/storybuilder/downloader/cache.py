@@ -11,7 +11,7 @@ cache_lock = threading.Lock()
 metadata_cache = {}
 
 
-def safe_print(*args, **kwargs):
+def safe_print(*args, **kwargs) -> None:
     """
     Thread-safe print to avoid interleaved output.
     """
@@ -19,7 +19,7 @@ def safe_print(*args, **kwargs):
         print(*args, **kwargs)
 
 
-def load_cache(cache_dir):
+def load_cache(cache_dir) -> None:
     """
     Loads the metadata cache from cache_dir/metadata_cache.json.
     """
@@ -42,7 +42,7 @@ def load_cache(cache_dir):
     print()
 
 
-def save_cache(cache_dir):
+def save_cache(cache_dir) -> None:
     """
     Saves the metadata cache to cache_dir/metadata_cache.json.
     """

@@ -79,12 +79,12 @@ def agent_dir(request) -> Path:
 class TestEvalSetDiscovery:
     """Verify that eval set files exist for all agents."""
 
-    def test_tts_prompt_crafter_has_evals(self):
+    def test_tts_prompt_crafter_has_evals(self) -> None:
         """TTS Prompt Crafter should have at least one eval set."""
         evals = discover_eval_sets(TTS_AGENT_DIR)
         assert len(evals) >= 1, f"No .evalset.json files found in {TTS_AGENT_DIR}"
 
-    def test_cartesia_agent_has_evals(self):
+    def test_cartesia_agent_has_evals(self) -> None:
         """Cartesia TTS agent should have at least one eval set."""
         evals = discover_eval_sets(CARTESIA_AGENT_DIR)
         assert len(evals) >= 1, f"No .evalset.json files found in {CARTESIA_AGENT_DIR}"
@@ -98,7 +98,7 @@ class TestEvalSetStructure:
         discover_eval_sets(TTS_AGENT_DIR) + discover_eval_sets(CARTESIA_AGENT_DIR),
         ids=lambda p: p.parent.name + "/" + p.stem,
     )
-    def test_eval_set_structure(self, eval_path: Path):
+    def test_eval_set_structure(self, eval_path: Path) -> None:
         """Each eval set must have valid structure."""
         assert eval_path.exists(), f"Eval set not found: {eval_path}"
 
@@ -111,7 +111,7 @@ class TestEvalSetStructure:
 
         )
 
-    def test_all_eval_sets_have_unique_ids(self):
+    def test_all_eval_sets_have_unique_ids(self) -> None:
         """Eval set IDs across all agents must be unique."""
         seen_ids: dict[str, list[str]] = {}
         all_evals = discover_eval_sets(TTS_AGENT_DIR) + discover_eval_sets(CARTESIA_AGENT_DIR)
@@ -138,7 +138,7 @@ class TestEvalRunViaADK:
         discover_eval_sets(TTS_AGENT_DIR),
         ids=lambda p: p.stem,
     )
-    def test_run_tts_eval_set(self, eval_path: Path):
+    def test_run_tts_eval_set(self, eval_path: Path) -> None:
         """Run a TTS Prompt Crafter eval set through the ADK evaluator.
 
         This test requires the ADK evaluation module and a valid
@@ -155,5 +155,5 @@ class TestEvalRunViaADK:
 
     @pytest.mark.slow
     @pytest.mark.skip(reason="Cartesia TTS agent tools not yet implemented")
-    def test_run_cartesia_eval_set(self):
+    def test_run_cartesia_eval_set(self) -> None:
         """Cartesia eval sets can be run once tools are implemented."""

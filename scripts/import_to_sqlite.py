@@ -261,7 +261,7 @@ def _flush_batch(conn: sqlite3.Connection, batch: list, force: bool) -> int:
 # ——— Main ——————————————————————————————————————————————————————————————————————
 
 
-def main():
+def main() -> None:
     global _start_time
 
     parser = argparse.ArgumentParser(

@@ -1,3 +1,6 @@
+from sqlite3 import Connection
+from plotly.graph_objs._figure import Figure
+from pandas.core.frame import DataFrame
 import argparse
 import sqlite3
 from pathlib import Path
@@ -6,7 +9,7 @@ import pandas as pd
 import plotly.graph_objects as go
 
 
-def fetch_story(conn, story_query=None):
+def fetch_story(conn: Connection, story_query=None):
     if story_query:
         df_story = pd.read_sql_query(
             "SELECT id, story_dir FROM stories WHERE story_dir LIKE ?",
@@ -22,7 +25,7 @@ def fetch_story(conn, story_query=None):
     return int(df_story.iloc[0]["id"]), df_story.iloc[0]["story_dir"]
 
 
-def get_overall_sentiment(conn, story_id, window):
+def get_overall_sentiment(conn: Connection, story_id: int, window) -> DataFrame:
     df_sentences = pd.read_sql_query(
         """
         SELECT id, chapter_index, sentence_index, sentiment_score
@@ -41,7 +44,7 @@ def get_overall_sentiment(conn, story_id, window):
     return df_sentences
 
 
-def get_top_characters(conn, story_id, limit=5):
+def get_top_characters(conn: Connection, story_id: int, limit=5):
     df_chars = pd.read_sql_query(
         """
         SELECT entity_text, COUNT(*) as freq
@@ -58,7 +61,7 @@ def get_top_characters(conn, story_id, limit=5):
     return df_chars["entity_text"].tolist()
 
 
-def get_character_sentiment(conn, story_id, char, df_sentences, window):
+def get_character_sentiment(conn: Connection, story_id: int, char, df_sentences: DataFrame, window) -> DataFrame:
     char_sentences = pd.read_sql_query(
         """
         SELECT sentences.id, sentiment_score
@@ -81,7 +84,7 @@ def get_character_sentiment(conn, story_id, char, df_sentences, window):
     return char_sentences
 
 
-def plot_narrative_arcs(story_dir, df_sentences, char_arcs):
+def plot_narrative_arcs(story_dir, df_sentences: DataFrame, char_arcs) -> tuple[Figure, str]:
     fig = go.Figure()
 
     fig.add_trace(
@@ -118,7 +121,7 @@ def plot_narrative_arcs(story_dir, df_sentences, char_arcs):
     return fig, story_name
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         description="Visualize narrative arcs from sentiment_analysis.db",
     )

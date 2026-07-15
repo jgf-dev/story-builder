@@ -31,12 +31,12 @@ from storybuilder.downloader.scraper import parse_listing_rows
 
 
 class TestDateParsingLogic(unittest.TestCase):
-    def test_parse_with_year(self):
+    def test_parse_with_year(self) -> None:
         # MMM DD YYYY
         self.assertEqual(parse_nifty_date("Dec  4  2025"), datetime.date(2025, 12, 4))
         self.assertEqual(parse_nifty_date("Jun 06 2024"), datetime.date(2024, 6, 6))
 
-    def test_parse_recent_format_no_year(self):
+    def test_parse_recent_format_no_year(self) -> None:
         # MMM DD HH:MM
         ref_date = datetime.datetime(2026, 6, 10, 12, 0)
         # In past relative to ref_date, so stays 2026
@@ -50,13 +50,13 @@ class TestDateParsingLogic(unittest.TestCase):
             datetime.date(2025, 12, 12),
         )
 
-    def test_fallback_parsing(self):
+    def test_fallback_parsing(self) -> None:
         ref_date = datetime.datetime(2026, 6, 10, 12, 0)
         self.assertEqual(parse_nifty_date("Jun 6", ref_date), datetime.date(2026, 6, 6))
 
 
 class TestScrapingHTML(unittest.TestCase):
-    def test_parse_listing_rows_ftr(self):
+    def test_parse_listing_rows_ftr(self) -> None:
         from bs4 import BeautifulSoup
 
         html = """
@@ -74,7 +74,7 @@ class TestScrapingHTML(unittest.TestCase):
         self.assertEqual(rows[0]["name"], "Story Title")
         self.assertEqual(rows[0]["href"], "story1.txt")
 
-    def test_parse_listing_rows_table(self):
+    def test_parse_listing_rows_table(self) -> None:
         from bs4 import BeautifulSoup
 
         html = """
@@ -97,10 +97,10 @@ class TestScrapingHTML(unittest.TestCase):
 
 
 class TestCache(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         cache.metadata_cache = {}
 
-    def test_cache_loading_and_saving(self):
+    def test_cache_loading_and_saving(self) -> None:
         temp_dir = tempfile.mkdtemp()
         try:
             cache.metadata_cache = {"some_key": "some_value"}
@@ -115,7 +115,7 @@ class TestCache(unittest.TestCase):
 
 class TestNetwork(unittest.TestCase):
     @unittest.mock.patch("requests.get")
-    def test_fetch_page_success(self, mock_get):
+    def test_fetch_page_success(self, mock_get) -> None:
         from storybuilder.downloader.network import fetch_page
 
         mock_response = unittest.mock.Mock()
@@ -127,7 +127,7 @@ class TestNetwork(unittest.TestCase):
         mock_get.assert_called_once()
 
     @unittest.mock.patch("requests.get")
-    def test_fetch_page_404(self, mock_get):
+    def test_fetch_page_404(self, mock_get) -> None:
         from storybuilder.downloader.network import fetch_page
 
         mock_response = unittest.mock.Mock()
@@ -139,7 +139,7 @@ class TestNetwork(unittest.TestCase):
 
     @unittest.mock.patch("storybuilder.downloader.network.rotate_windscribe_ip")
     @unittest.mock.patch("requests.get")
-    def test_fetch_page_retry_and_rotate(self, mock_get, mock_rotate):
+    def test_fetch_page_retry_and_rotate(self, mock_get, mock_rotate) -> None:
         from storybuilder.downloader import network
 
         old_rot = network.ENABLE_ROTATION
@@ -163,7 +163,7 @@ class TestNetwork(unittest.TestCase):
 class TestDBIntegration(unittest.TestCase):
     """Tests for the new DB layer, specifically around downloader integration."""
 
-    def setUp(self):
+    def setUp(self) -> None:
         # Use a temporary database for tests
         self.db_path = "/tmp/test_downloader_integration.db"
         if Path(self.db_path).exists():
@@ -242,7 +242,7 @@ class TestDBIntegration(unittest.TestCase):
         except Exception as e:
             self.fail(f"Error setting up mocks: {e}")
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         # Clean up mocks and temp DB
         self.patcher.stop()
         self.patcher_writer.stop()
@@ -258,12 +258,12 @@ class TestDBIntegration(unittest.TestCase):
             if Path(self.db_path + ext).exists():
                 Path(self.db_path + ext).unlink()
 
-    def test_downloader_integration_saves_to_db(self):
+    def test_downloader_integration_saves_to_db(self) -> None:
         """Verify that downloader saves stories to the specified DB."""
         from storybuilder.downloader import cli
 
         # Mock save_story to simulate successful download and return metadata
-        def mock_save(url, output_path, story_date, delay):
+        def mock_save(url, output_path, story_date, delay) -> bool:
             Path(os.path.dirname(output_path)).mkdir(exist_ok=True, parents=True)
             Path(output_path).write_text(f"Mock content for {output_path}", encoding="utf-8")
             # Insert into SQLite database to verify integration
@@ -310,7 +310,7 @@ class TestDBIntegration(unittest.TestCase):
 
 
 class TestSplitPrompts(unittest.TestCase):
-    def test_split_line_to_sentences(self):
+    def test_split_line_to_sentences(self) -> None:
         line = "Jace: No, that's not what I meant. [gasp] I want you here. But are you sure?"
         sentences = split_prompts.split_line_to_sentences(line, "Jace")
         self.assertEqual(len(sentences), 3)
@@ -318,7 +318,7 @@ class TestSplitPrompts(unittest.TestCase):
         self.assertEqual(sentences[1], "Jace: [gasp] I want you here.")
         self.assertEqual(sentences[2], "Jace: But are you sure?")
 
-    def test_split_line_to_sentences_no_split_in_brackets(self):
+    def test_split_line_to_sentences_no_split_in_brackets(self) -> None:
         line = "Jace: [sighs, whispering closely. soft pace] I remember everything. And I want you."
         sentences = split_prompts.split_line_to_sentences(line, "Jace")
         # Should split on the period after bracket, not inside bracket
@@ -329,7 +329,7 @@ class TestSplitPrompts(unittest.TestCase):
         )
         self.assertEqual(sentences[1], "Jace: And I want you.")
 
-    def test_filter_preamble_speakers(self):
+    def test_filter_preamble_speakers(self) -> None:
         preamble = """# AUDIO PROFILE: Levi & Jace
 ### DIRECTOR'S NOTES
 Style:
@@ -344,7 +344,7 @@ Pace: Slow pacing.
         self.assertIn("Levi (Voice: Zubenelgenubi)", filtered)
         self.assertNotIn("Narrator (Voice: Kore)", filtered)
 
-    def test_process_files_splitting(self):
+    def test_process_files_splitting(self) -> None:
         # Setup a temporary directory to test process_files
         temp_dir = tempfile.mkdtemp()
         try:
@@ -401,7 +401,7 @@ Jace: Fourth line.
         finally:
             shutil.rmtree(temp_dir)
 
-    def test_adjacent_tags_warning(self):
+    def test_adjacent_tags_warning(self) -> None:
         """Test that adjacent tags (e.g., [sighs][whispers]) produce a warning but don't crash."""
         temp_dir = tempfile.mkdtemp()
         try:

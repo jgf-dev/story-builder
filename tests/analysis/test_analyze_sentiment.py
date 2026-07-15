@@ -13,7 +13,7 @@ from storybuilder.analysis.analyze_sentiment import (
 
 
 class TestAnalyzeSentiment(unittest.TestCase):
-    def test_get_sentiment_value(self):
+    def test_get_sentiment_value(self) -> None:
         # Positive sentiment
         self.assertEqual(get_sentiment_value({"label": "POSITIVE", "score": 0.9}), 0.9)
         self.assertEqual(get_sentiment_value({"label": "positive", "score": 0.5}), 0.5)
@@ -26,7 +26,7 @@ class TestAnalyzeSentiment(unittest.TestCase):
         self.assertEqual(get_sentiment_value({"label": "NEUTRAL", "score": 0.9}), 0.0)
         self.assertEqual(get_sentiment_value({"label": "unknown", "score": 0.1}), 0.0)
 
-    def test_extract_chapter_number(self):
+    def test_extract_chapter_number(self) -> None:
         self.assertEqual(extract_chapter_number("story-name-12.txt"), 12)
         self.assertEqual(extract_chapter_number("story-name-1.txt"), 1)
         self.assertEqual(extract_chapter_number("chapter4.txt"), 4)
@@ -34,7 +34,7 @@ class TestAnalyzeSentiment(unittest.TestCase):
         self.assertEqual(extract_chapter_number("some_random_text.txt"), 0)
         self.assertEqual(extract_chapter_number("no_numbers_here.txt"), 0)
 
-    def test_init_db(self):
+    def test_init_db(self) -> None:
         with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp:
             db_path = tmp.name
 
@@ -77,7 +77,7 @@ class TestAnalyzeSentiment(unittest.TestCase):
             "--gpu",
         ],
     )
-    def test_main_no_stories(self, mock_init_db, mock_pipeline, mock_spacy_load):
+    def test_main_no_stories(self, mock_init_db, mock_pipeline, mock_spacy_load) -> None:
         # When no stories exist, main should just return early.
         with patch("pathlib.Path.rglob", return_value=[]):
             main()
@@ -90,7 +90,7 @@ class TestAnalyzeSentiment(unittest.TestCase):
         "sys.argv",
         ["analyze_sentiment.py", "--stories-dir", "fake_dir", "--limit-stories", "1"],
     )
-    def test_main_with_stories(self, mock_init_db, mock_pipeline, mock_spacy_load):
+    def test_main_with_stories(self, mock_init_db, mock_pipeline, mock_spacy_load) -> None:
         # Create a mock database connection
         mock_conn = MagicMock()
         mock_cursor = MagicMock()

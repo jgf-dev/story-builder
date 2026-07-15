@@ -1,3 +1,4 @@
+from types import ModuleType
 import importlib
 
 from . import agents
@@ -9,7 +10,7 @@ from . import genai
 __all__ = ["agents", "analysis", "downloader", "genai"]
 
 
-def __getattr__(name):
+def __getattr__(name) -> ModuleType:
     if name == "cartesia":
         # Attempt to lazily load cartesia (could be third-party or formerly local)
         try:

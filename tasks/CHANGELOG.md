@@ -11,6 +11,21 @@ Fixed the Mergify merge queue configuration so test-check detection references a
 ### Fixed
 - Replaced the invalid `check-success = .*test.*` condition (which used the literal-match `=` operator and would never match a real check) with the regex-match operator and an anchored pattern `check-success ~= ^run_tests / test-results$` in `queue_rules.merge_conditions`.
 - Applied the same anchored `^run_tests / test-results$` pattern to `merge_protections_settings.auto_merge_conditions`, replacing the overly broad `.*[Tt]est.*` regex that could match unintended check names, and keeping both sections consistent with the check produced by `.github/workflows/test.yml`.
+## [PR-1363](https://github.com/jgf-dev/story-builder/pull/1363) - 2026-07-15
+
+### Summary
+Fixed CI path filter so changes to `src/storybuilder/dashboard/**` trigger the downloader test job.
+
+### Fixed
+- Added `src/storybuilder/dashboard/**` to the `downloader` paths-filter in `.github/workflows/test.yml` so that dashboard page changes (e.g. `read_story.py`) now trigger `test-downloader` and execute the existing dashboard Streamlit tests.
+- Fixed leaking global state between downloader tests that made `test-downloader` (and thus `test-results`) fail once the job started running. Added `tests/downloader/conftest.py` with an autouse fixture that resets `db._conn`/`_engine` (via `close_db()`) and clears `scraper.seen_folders` after every test, so tests that call `db.init_db` or scrape folders no longer corrupt later tests.
+## [PR-1370](https://github.com/jgf2/story-builder/pull/1370) - 2026-07-15
+
+### Summary
+Fixed the Mergify merge queue configuration so the test-check gating conditions actually match the split CI test jobs.
+
+### Fixed
+- Fixed the Mergify `queue_rules.merge_conditions` test-check gate in `.mergify.yml`. It previously used the literal-match operator against a check name that no CI job produces (`check-success = Run Tests` / `check-success = .*test.*`), so the queue rule never gated on tests. It now uses the regex-match operator with the aggregate check name (`check-success ~= ^run_tests / test-results$`), consistent with `merge_protections_settings.auto_merge_conditions`.
 ## [PR-1368](https://github.com/jgf2/story-builder/pull/1368) - 2026-07-15
 
 ### Summary

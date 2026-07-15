@@ -28,7 +28,7 @@ scopes:
 pull_request_rules:
   - name: Auto-merge approved PRs
     conditions:
-      - base = main
+      - check-success = test-results
       - check-success = .*test.*
     actions:
       merge:

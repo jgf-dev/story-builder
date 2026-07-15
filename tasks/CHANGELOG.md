@@ -370,7 +370,7 @@ Followed up on PR #1365 by keeping downloader-specific test isolation scoped to 
 - Prevented downloader cleanup from running around unrelated test suites.
 - Ensured the genai database integration test closes stale downloader state before initialization.
 
-## [PR-XXXX](https://github.com/jgf-dev/story-builder/pull/XXXX) - 2026-07-15
+## [PR-1374](https://github.com/jgf-dev/story-builder/pull/1374) - 2026-07-15
 
 ### Summary
 

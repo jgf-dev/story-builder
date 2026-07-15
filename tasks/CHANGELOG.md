@@ -3,6 +3,15 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
+## [PR-1369](https://github.com/jgf2/story-builder/pull/1369) - 2026-07-15
+
+### Summary
+Fixed the Mergify merge queue configuration so test-check detection references a check that actually exists in CI.
+
+### Fixed
+- Replaced the invalid `check-success = .*test.*` condition (which used the literal-match `=` operator and would never match a real check) with the regex-match operator and an anchored pattern `check-success ~= ^run_tests / test-results$` in `queue_rules.merge_conditions`.
+- Applied the same anchored `^run_tests / test-results$` pattern to `merge_protections_settings.auto_merge_conditions`, replacing the overly broad `.*[Tt]est.*` regex that could match unintended check names, and keeping both sections consistent with the check produced by `.github/workflows/test.yml`.
+
 ## [af1d7aed](https://github.com/jgf2/story-builder/commit/af1d7aed) - 2026-07-15
 
 ### Summary

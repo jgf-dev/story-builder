@@ -317,11 +317,11 @@ uv run ruff check <resolved_files>
 
 Please refresh/reload your browser tab running the Streamlit app. This will force a script rerun, which now dynamically reloads all submodules, initializes the database partition engine, and displays the stories.
 
-## [PR-1365](https://github.com/jgf-dev/story-builder/pull/1365) - 2026-07-15
+## [PR-1371](https://github.com/jgf-dev/story-builder/pull/1371) - 2026-07-15
 
 ### Summary
 
-Expanded dashboard page coverage while keeping downloader-specific test isolation scoped to downloader tests.
+Followed up on PR #1365 by keeping downloader-specific test isolation scoped to downloader tests.
 
 ### Added
 
@@ -335,3 +335,4 @@ Expanded dashboard page coverage while keeping downloader-specific test isolatio
 ### Fixed
 
 - Prevented downloader cleanup from running around unrelated test suites.
+- Ensured the genai database integration test closes stale downloader state before initialization.

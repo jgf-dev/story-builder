@@ -3,7 +3,7 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
-## [PR-1368](https://github.com/jgf-dev/story-builder/pull/1368) - 2026-07-15
+## [PR-1368](https://github.com/jgf2/story-builder/pull/1368) - 2026-07-15
 
 ### Summary
 Hardened the Mergify auto-merge `pull_request_rules` introduced in this PR to address Devin Review findings.

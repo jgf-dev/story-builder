@@ -3,6 +3,20 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
+## [af1d7aed](https://github.com/jgf2/story-builder/commit/af1d7aed) - 2026-07-15
+
+### Summary
+Resolved all pre-existing Ruff lint warnings and complexity issues in the dashboard codebase (data.py, archive_stats.py, favorites_tags.py, and read_story.py).
+
+### Added
+- Added `get_favorites_publication_years()` helper in `data.py` to resolve publication years in bulk and offload database logic from the UI layer.
+- Added `_safe_query()` helper to execute queries cleanly and fetch rows without nested try blocks.
+
+### Changed
+- Flattened the nested control flow inside `read_story.py` using early return guards.
+- Reduced the local variable counts in `archive_stats.py` by consolidating metric/chart columns and reusing the Plotly figures.
+- Reformatted long HTML template cards to adhere to the 120-character line-length constraint.
+
 ## [862c2e9](https://github.com/jgf2/story-builder/commit/862c2e9f) - 2026-07-15
 
 ### Summary

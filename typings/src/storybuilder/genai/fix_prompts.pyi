@@ -4,7 +4,7 @@ import glob
 import os
 import pathlib
 import re
-from dotenv import load_dotenv
+from storybuilder.utils.env import load_env
 from google import genai
 
 api_key: str | None

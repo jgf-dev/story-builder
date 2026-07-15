@@ -4,7 +4,7 @@ import pathlib
 import warnings
 from enum import Enum, StrEnum
 from functools import cached_property
-from dotenv import load_dotenv
+from storybuilder.utils.env import load_env
 from google.adk.agents import LlmAgent
 from google.adk.artifacts.in_memory_artifact_service import InMemoryArtifactService
 from google.adk.memory.vertex_ai_memory_bank_service import VertexAiMemoryBankService
@@ -29,7 +29,6 @@ from .tools import read_story
 from .tools import split_scene_files
 from .tools import write_scene_file
 
-dotenv_path: Path
 logger: Logger
 safety_settings: list[SafetySetting]
 

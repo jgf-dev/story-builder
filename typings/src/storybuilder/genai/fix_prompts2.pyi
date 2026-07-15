@@ -2,7 +2,7 @@ import os
 import pathlib
 import re
 import sys
-from dotenv import load_dotenv
+from storybuilder.utils.env import load_env
 from google import genai
 from google.genai import types
 

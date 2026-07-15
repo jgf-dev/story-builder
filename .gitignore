@@ -33,3 +33,4 @@ test.db
 .benchmarks
 coverage_html/
 *.7z.*
+tasks/lint.ruff

@@ -5,9 +5,10 @@ import os
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
-from dotenv import load_dotenv
 from google.genai import types
-from tests.helpers_external_fakes import fake_run_async, live_api_enabled
+from storybuilder.utils.env import load_env
+from tests.helpers_external_fakes import fake_run_async
+from tests.helpers_external_fakes import live_api_enabled
 
 
 class TestAgentSmoke(unittest.IsolatedAsyncioTestCase):

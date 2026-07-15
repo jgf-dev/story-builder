@@ -9,7 +9,7 @@ import pathlib
 import re
 import time
 import wave
-from dotenv import load_dotenv
+from storybuilder.utils.env import load_env
 from google import genai
 
 

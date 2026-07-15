@@ -8,7 +8,7 @@ import re
 import time
 import wave
 import requests
-from dotenv import load_dotenv
+from storybuilder.utils.env import load_env
 
 VOICE_MAP: dict[str, str]
 NAME_FALLBACK_MAP: dict[str, str]

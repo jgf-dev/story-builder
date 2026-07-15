@@ -3,6 +3,15 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
+## [PR-1372](https://github.com/jgf-dev/story-builder/pull/1372) - 2026-07-15
+
+### Summary
+Fixed the SonarCloud "B Maintainability Rating on New Code" quality-gate failure in `dashboard.html`.
+
+### Fixed
+- Replaced the redundant ARIA list semantics (`<div class="notes" role="list">` / `<div class="tip" role="listitem">`) in the notes section with native `<ul>`/`<li>` elements, resolving the SonarCloud Web:S6819 code smells ("use a native HTML element instead of an ARIA role that duplicates it") that dropped the new-code maintainability rating to B.
+- Reset default list styling on `.notes` (`margin: 0; list-style: none;`) so the visual layout is unchanged.
+
 ## [PR-1369](https://github.com/jgf-dev/story-builder/pull/1369) - 2026-07-15
 
 ### Summary

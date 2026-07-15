@@ -101,4 +101,3 @@ def clean_globals():
         close_db = None
     if close_db is not None:
         close_db()
-

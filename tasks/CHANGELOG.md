@@ -3,6 +3,29 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
+## [PR-1364](https://github.com/jgf-dev/story-builder/pull/1364) - 2026-07-15
+
+### Summary
+
+Added dashboard page test coverage and an authorized, dependency-pinned OpenCode workflow.
+
+### Added
+
+- Dashboard configuration, sidebar, archive statistics, favorites, story reader, and search explorer tests.
+- Test isolation for shared downloader database and scraper state.
+- An OpenCode comment workflow restricted to trusted repository contributors.
+
+### Removed
+
+- Support for the ambiguous `/oc` workflow command alias.
+
+### Fixed
+
+- Pinned the OpenCode action to an immutable commit SHA.
+- Corrected SonarCloud exclusion property names and recursive glob patterns.
+- Triggered dashboard tests when dashboard source files change.
+- Standardized selected-story year state and dashboard tests on integer values.
+
 ## [af1d7aed](https://github.com/jgf2/story-builder/commit/af1d7aed) - 2026-07-15
 
 ### Summary

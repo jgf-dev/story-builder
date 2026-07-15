@@ -13,7 +13,7 @@ def _reset_downloader_globals() -> None:
 
 @pytest.fixture(autouse=True)
 def clean_globals() -> Generator[None, None, None]:
-	"""Reset downloader global state around each downloader test."""
-	_reset_downloader_globals()
-	yield
-	_reset_downloader_globals()
+    """Reset downloader global state around each downloader test."""
+    _reset_downloader_globals()
+    yield
+    _reset_downloader_globals()

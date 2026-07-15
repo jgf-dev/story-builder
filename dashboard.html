@@ -266,11 +266,11 @@
 
     <main class="grid">
       <section class="card">
-        <div class="hd">
+        <header class="hd">
           <h2>TASKS.md Editor</h2>
           <p class="sub">Open the workspace task board file, edit it directly, then save it back.</p>
-        </div>
-        <div class="toolbar">
+        </header>
+        <div class="toolbar" role="group" aria-label="Editor actions">
           <input id="fileInput" class="sr-only" type="file" accept=".md,text/markdown,text/plain">
           <label class="file-label" for="fileInput">Load TASKS.md</label>
           <button class="primary" id="saveBtn" title="No unsaved changes" aria-keyshortcuts="Control+S Meta+S" disabled>Save</button>
@@ -283,10 +283,10 @@
 
       <aside class="sidebar">
         <section class="card">
-          <div class="hd">
+          <header class="hd">
             <h2>Quick Stats</h2>
             <p class="sub">Derived from the current file contents.</p>
-          </div>
+          </header>
           <div class="stats">
             <div class="stat"><span class="k">Active</span><span class="v" id="activeCount">0</span></div>
             <div class="stat"><span class="k">Waiting</span><span class="v" id="waitingCount">0</span></div>
@@ -296,18 +296,18 @@
         </section>
 
         <section class="card">
-          <div class="hd">
+          <header class="hd">
             <h2>How To Use</h2>
             <p class="sub">A quick reminder for the local workflow.</p>
+          </header>
+          <div class="notes" role="list">
+            <div class="tip" role="listitem">Load your `TASKS.md`, make changes, and hit Save.</div>
+            <div class="tip" role="listitem">If you want the full productivity setup, run `/productivity:start`.</div>
+            <div class="tip" role="listitem">Keep tasks in the exact markdown sections the shared task board expects.</div>
           </div>
-          <div class="notes">
-            <div class="tip">Load your `TASKS.md`, make changes, and hit Save.</div>
-            <div class="tip">If you want the full productivity setup, run `/productivity:start`.</div>
-            <div class="tip">Keep tasks in the exact markdown sections the shared task board expects.</div>
-          </div>
-          <div class="footer">
+          <footer class="footer">
             This dashboard does not depend on a server. It edits the file through the browser's file picker and download flow.
-          </div>
+          </footer>
         </section>
       </aside>
     </main>

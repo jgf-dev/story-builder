@@ -1,7 +1,7 @@
+import os
 import sys
 
 import streamlit as st
-
 
 # Shared Constants
 LONG_YEAR = 4
@@ -16,24 +16,39 @@ BRACKET_LABELS = [
 
 
 def get_db_dir() -> str:
-    """Retrieve the DB directory path, dynamically checking for active testing mocks."""
-    if "dashboard" in sys.modules:
-        return getattr(sys.modules["dashboard"], "DB_DIR", "stories/db")
+    """Retrieve the DB directory path, dynamically checking for environment variables or active testing mocks."""
+    if "STORYBUILDER_DB_DIR" in os.environ:
+        return os.environ["STORYBUILDER_DB_DIR"]
+    for mod_name in ("__main__", "dashboard"):
+        if mod_name in sys.modules:
+            val = getattr(sys.modules[mod_name], "DB_DIR", None)
+            if val is not None:
+                return val
     return "stories/db"
 
 
 def get_nlp_db_path() -> str:
-    """Retrieve the NLP DB path, dynamically checking for active testing mocks."""
-    if "dashboard" in sys.modules:
-        return getattr(sys.modules["dashboard"], "NLP_DB_PATH", "stories/db/nlp_analysis.db")
-    return "stories/db/nlp_analysis.db"
+    """Retrieve the NLP DB path, dynamically checking for environment variables or active testing mocks."""
+    if "STORYBUILDER_NLP_DB_PATH" in os.environ:
+        return os.environ["STORYBUILDER_NLP_DB_PATH"]
+    for mod_name in ("__main__", "dashboard"):
+        if mod_name in sys.modules:
+            val = getattr(sys.modules[mod_name], "NLP_DB_PATH", None)
+            if val is not None:
+                return val
+    return os.path.join(get_db_dir(), "nlp_analysis.db")
 
 
 def get_meta_db_path() -> str:
-    """Retrieve the metadata DB path, dynamically checking for active testing mocks."""
-    if "dashboard" in sys.modules:
-        return getattr(sys.modules["dashboard"], "META_DB_PATH", "stories/db/dashboard_metadata.db")
-    return "stories/db/dashboard_metadata.db"
+    """Retrieve the metadata DB path, dynamically checking for environment variables or active testing mocks."""
+    if "STORYBUILDER_META_DB_PATH" in os.environ:
+        return os.environ["STORYBUILDER_META_DB_PATH"]
+    for mod_name in ("__main__", "dashboard"):
+        if mod_name in sys.modules:
+            val = getattr(sys.modules[mod_name], "META_DB_PATH", None)
+            if val is not None:
+                return val
+    return os.path.join(get_db_dir(), "dashboard_metadata.db")
 
 
 def setup_page() -> None:

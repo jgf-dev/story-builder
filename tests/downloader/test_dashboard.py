@@ -643,18 +643,21 @@ class TestDashboardDataFunctions(unittest.TestCase):
             # Verify we got results
             self.assertEqual(len(rows), 2, "Should retrieve both stories")
 
+            import datetime
+            current_year = datetime.datetime.now(datetime.timezone.utc).year
+
             # Check that we can extract years without crashing
             path_to_year = {}
             for row in rows:
                 pub_date = row[1] if len(row) > 1 else None
                 try:
-                    y = int(str(pub_date)[:4]) if pub_date and len(str(pub_date)) >= 4 else 2026
+                    y = int(str(pub_date)[:4]) if pub_date and len(str(pub_date)) >= 4 else current_year
                 except (ValueError, TypeError):
-                    y = 2026
+                    y = current_year
                 path_to_year[row[0]] = y
 
             self.assertEqual(path_to_year["stories/gay/college/story1/part-1.txt"], 2020, "Should extract year 2020")
-            self.assertEqual(path_to_year["stories/gay/college/story2/part-1.txt"], 2026, "Should default to 2026 for None")
+            self.assertEqual(path_to_year["stories/gay/college/story2/part-1.txt"], current_year, f"Should default to {current_year} for None")
         finally:
             del sys.modules["dashboard"]
 

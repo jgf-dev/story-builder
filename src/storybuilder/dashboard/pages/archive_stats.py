@@ -1,3 +1,5 @@
+import datetime
+
 import plotly.express as px
 import streamlit as st
 
@@ -32,7 +34,8 @@ def render_archive_stats() -> None:
     st.markdown("---")
 
     # 1. Timeline Chart
-    st.subheader("📈 Publications Timeline (1990 - 2026)")
+    current_year = datetime.datetime.now(datetime.UTC).year
+    st.subheader(f"📈 Publications Timeline (1990 - {current_year})")
     fig_line = px.line(
         df_years,
         x="Year",

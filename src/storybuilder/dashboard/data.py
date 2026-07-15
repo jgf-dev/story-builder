@@ -1,3 +1,4 @@
+import datetime
 import sqlite3
 from dataclasses import dataclass
 from logging import getLogger
@@ -6,13 +7,8 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-from storybuilder.dashboard.config import BRACKET_LABELS
-from storybuilder.dashboard.config import LONG_YEAR
-from storybuilder.dashboard.config import get_db_dir
-from storybuilder.dashboard.config import get_meta_db_path
-from storybuilder.dashboard.config import get_nlp_db_path
+from storybuilder.dashboard.config import BRACKET_LABELS, LONG_YEAR, get_db_dir, get_meta_db_path, get_nlp_db_path
 from storybuilder.downloader import db as storybuilder_db
-
 
 logger = getLogger(__name__)
 
@@ -251,7 +247,7 @@ def _extract_db_year(pub_date: str | int | None) -> int:
             return int(str(pub_date)[:4])
     except (ValueError, TypeError) as exc:
         logger.debug("Failed to extract year from publication_date=%r: %s", pub_date, exc)
-    return 2026
+    return datetime.datetime.now(datetime.UTC).year
 
 
 def _filter_by_entity_suffixes(
@@ -335,7 +331,7 @@ def get_story_by_path(story_path: str, db_year: int | str | None = None) -> dict
             if isinstance(row, sqlite3.Row) or hasattr(row, "keys"):
                 return dict(row)
             cols = [col[0] for col in cursor.description]
-            return dict(zip(cols, row))
+            return dict(zip(cols, row, strict=False))
         return None
     except Exception:
         logger.exception("Failed to retrieve story by path: %s", story_path)

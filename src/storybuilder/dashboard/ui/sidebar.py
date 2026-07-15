@@ -1,9 +1,9 @@
+import datetime
 from pathlib import Path
 
 import streamlit as st
 
-from storybuilder.dashboard.data import get_db_files
-from storybuilder.dashboard.data import get_filter_options
+from storybuilder.dashboard.data import get_db_files, get_filter_options
 
 
 def render_sidebar() -> tuple[str, dict]:
@@ -37,12 +37,14 @@ def render_sidebar() -> tuple[str, dict]:
 
     # Year Range Slider
     db_files = get_db_files()
+    current_year = datetime.datetime.now(datetime.UTC).year
+
     if db_files:
         try:
             min_year = int(Path(db_files[0]).stem)
             max_year = int(Path(db_files[-1]).stem)
         except ValueError:
-            min_year, max_year = 1990, 2026
+            min_year, max_year = 1990, current_year
 
         if min_year == max_year:
             year_range = (min_year, max_year)
@@ -55,7 +57,7 @@ def render_sidebar() -> tuple[str, dict]:
                 (min_year, max_year),
             )
     else:
-        year_range = (1990, 2026)
+        year_range = (1990, current_year)
 
     # Named Entity Filter Sub-section
     st.sidebar.markdown("---")

@@ -2,8 +2,7 @@ import html
 
 import streamlit as st
 
-from storybuilder.dashboard.data import StorySearchQuery
-from storybuilder.dashboard.data import query_stories
+from storybuilder.dashboard.data import StorySearchQuery, query_stories
 
 
 def render_search_explorer(filters: dict) -> None:
@@ -70,7 +69,7 @@ def render_search_explorer(filters: dict) -> None:
         st.markdown(card_html, unsafe_allow_html=True)
 
         # Action buttons on the card
-        col1, col2 = st.columns([1, 8])
+        col1, _col2 = st.columns([1, 8])
         with col1:
             if st.button("Read", key=f"read_{res['path']}_{res['db_year']}"):
                 st.session_state.selected_story_path = res["path"]

@@ -1,3 +1,4 @@
+import datetime
 import html
 
 import streamlit as st
@@ -22,12 +23,14 @@ def render_favorites_tags() -> None:
                 all_tags.update(t.strip() for t in f["tags"].split(","))
 
         # Tag filter selector
-        filter_tag = st.selectbox("Filter Favorites by Tag", ["All"] + sorted(list(all_tags)))
+        filter_tag = st.selectbox("Filter Favorites by Tag", ["All", *sorted(all_tags)])
 
         st.write("---")
         # Expected optimization impact: Resolving N favorite stories in M year partitions
         # O(N * M) individual DB queries -> O(M) queries with IN clauses.
         # Significantly improves load time of the Favorites tab, reducing it from seconds to milliseconds.
+        current_year = datetime.datetime.now(datetime.UTC).year
+
         fav_paths = [f["story_path"] for f in favorites]
         path_to_db_year = {}
         if fav_paths:
@@ -45,9 +48,9 @@ def render_favorites_tags() -> None:
                     for row in cursor.fetchall():
                         pub_date = row[1] if len(row) > 1 else None
                         try:
-                            y = int(str(pub_date)[:4]) if pub_date and len(str(pub_date)) >= 4 else 2026
+                            y = int(str(pub_date)[:4]) if pub_date and len(str(pub_date)) >= 4 else current_year
                         except (ValueError, TypeError):
-                            y = 2026
+                            y = current_year
                         path_to_db_year[row[0]] = y
             except Exception as e:
                 st.warning(f"Could not resolve story paths from database: {e}")
@@ -79,10 +82,10 @@ def render_favorites_tags() -> None:
                     """,
                     unsafe_allow_html=True,
                 )
-                col1, col2 = st.columns([1, 8])
+                col1, _col2 = st.columns([1, 8])
                 with col1:
                     # Attempt to resolve database year based on path to load it in reader
-                    db_year: str = str(path_to_db_year.get(f["story_path"], 2026))
+                    db_year: str = str(path_to_db_year.get(f["story_path"], current_year))
                     if st.button("Read", key=f"read_fav_{f['story_path']}"):
                         st.session_state.selected_story_path = f["story_path"]
                         st.session_state.selected_story_year = db_year

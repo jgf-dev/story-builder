@@ -1,10 +1,8 @@
-import streamlit as st
 import textwrap
 
-from storybuilder.dashboard.data import add_favorite
-from storybuilder.dashboard.data import get_favorites
-from storybuilder.dashboard.data import get_story_by_path
-from storybuilder.dashboard.data import remove_favorite
+import streamlit as st
+
+from storybuilder.dashboard.data import add_favorite, get_favorites, get_story_by_path, remove_favorite
 
 
 def render_read_story() -> None:
@@ -102,8 +100,9 @@ def render_read_story() -> None:
                 )
 
             st.write(
-                f"**Category:** `{story['category']}` | **Published:** `{story['publication_date'] or 'Unknown'}` | **Words:** `{(story.get('word_count') or 0):,}`",
-
+                f"**Category:** `{story['category']}` | "
+                f"**Published:** `{story['publication_date'] or 'Unknown'}` | "
+                f"**Words:** `{(story.get('word_count') or 0):,}`"
             )
             st.markdown("---")
 

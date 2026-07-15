@@ -3,6 +3,16 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
+## [PR-1372](https://github.com/jgf-dev/story-builder/pull/1372) - 2026-07-15
+
+### Summary
+Improved the dashboard's semantic structure while preserving its existing layout.
+
+### Fixed
+- Replaced generic note containers with native `<ul>` and `<li>` elements and reset their default visual styling.
+- Scoped the page-header layout styles so semantic card headers retain their original spacing.
+- Updated the accessibility guidance to prefer native list elements over generic ARIA grouping.
+
 ## [PR-1369](https://github.com/jgf-dev/story-builder/pull/1369) - 2026-07-15
 
 ### Summary

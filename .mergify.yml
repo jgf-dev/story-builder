@@ -12,7 +12,7 @@ merge_queue:
 merge_protections_settings:
   auto_merge_conditions:
     - check-success = Run Tests
-  
+
 scopes:
   source:
     files:
@@ -25,3 +25,11 @@ scopes:
       scripts:
         include:
           - scripts/**/*
+pull_request_rules:
+  - name: Auto-merge approved PRs
+    conditions:
+      - base = main
+      - check-success = .*test.*
+    actions:
+      merge:
+        method: squash

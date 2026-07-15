@@ -11,6 +11,15 @@ Fixed the Mergify merge queue configuration so test-check detection references a
 ### Fixed
 - Replaced the invalid `check-success = .*test.*` condition (which used the literal-match `=` operator and would never match a real check) with the regex-match operator and an anchored pattern `check-success ~= ^run_tests / test-results$` in `queue_rules.merge_conditions`.
 - Applied the same anchored `^run_tests / test-results$` pattern to `merge_protections_settings.auto_merge_conditions`, replacing the overly broad `.*[Tt]est.*` regex that could match unintended check names, and keeping both sections consistent with the check produced by `.github/workflows/test.yml`.
+## [PR-1368](https://github.com/jgf2/story-builder/pull/1368) - 2026-07-15
+
+### Summary
+Hardened the Mergify auto-merge `pull_request_rules` introduced in this PR to address Devin Review findings.
+
+### Fixed
+- Added a `#approved-reviews-by >= 1` condition so the "Auto-merge approved PRs" rule actually requires a human approval before merging.
+- Replaced the broad `check-success =~ .*test.*` condition with the specific aggregate check `check-success ~= ^run_tests / test-results$`, so auto-merge only fires once all test jobs have succeeded instead of when any single matching job passes.
+- Restored the `base = main` condition so the rule only targets PRs into `main`.
 
 ## [PR-1364](https://github.com/jgf-dev/story-builder/pull/1364) - 2026-07-15
 

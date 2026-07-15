@@ -72,29 +72,33 @@ def clean_globals():
     # Reset seen_folders
     try:
         from storybuilder.downloader.scraper import seen_folders
+    except ImportError:
+        seen_folders = None
+    if seen_folders is not None:
         seen_folders.clear()
-    except Exception:
-        pass
 
     # Close DB
     try:
         from storybuilder.downloader.db import close_db
+    except ImportError:
+        close_db = None
+    if close_db is not None:
         close_db()
-    except Exception:
-        pass
 
     yield
 
     # Cleanup after test
     try:
         from storybuilder.downloader.scraper import seen_folders
+    except ImportError:
+        seen_folders = None
+    if seen_folders is not None:
         seen_folders.clear()
-    except Exception:
-        pass
 
     try:
         from storybuilder.downloader.db import close_db
+    except ImportError:
+        close_db = None
+    if close_db is not None:
         close_db()
-    except Exception:
-        pass
 

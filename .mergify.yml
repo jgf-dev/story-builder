@@ -24,8 +24,10 @@ scopes:
         include:
           - scripts/**/*
 pull_request_rules:
-  - name: Request reviews automatically
+  - name: Auto-merge approved PRs
     conditions:
+      - -draft
+      - conflict
       - base = main
       - "#check-failure = 0"
       - "#check-pending = 0"
@@ -47,3 +49,10 @@ merge_protections_settings:
     - "#deployment-failure = 0"
     - -conflict
     - "#check-timed-out = 0"
+      label:
+        add:
+          - "@jules"
+        remove: []
+        toggle: []
+      comment:
+        message: "@jules can you fix the merge conflicts?"

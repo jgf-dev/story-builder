@@ -93,5 +93,12 @@ merge_protections_settings:
       - "#commits-behind >= 1"
     actions:
       update: null
+merge_protections_settings:
+  auto_merge_conditions:
+    - check-success ~= .*test.*
+    - "#check-pending = 0"
+    - "#deployment-failure = 0"
+    - -conflict
+    - "#check-timed-out = 0"
 
 

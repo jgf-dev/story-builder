@@ -3,6 +3,16 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
+## [PR-1375](https://github.com/jgf-dev/story-builder/pull/1375) - 2026-07-16
+
+### Summary
+Repaired the invalid Mergify configuration while preserving safe CI, review, conflict, and branch-update automation.
+
+### Fixed
+- Restored the aggregate `run_tests / test-results` check gate and required human review conditions.
+- Combined merge-protection conditions into one valid YAML mapping and removed malformed nested rules.
+- Kept conflict notification and stale-branch update rules as valid `pull_request_rules`.
+
 ## [PR-1369](https://github.com/jgf-dev/story-builder/pull/1369) - 2026-07-15
 
 ### Summary

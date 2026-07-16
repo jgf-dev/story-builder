@@ -65,8 +65,17 @@ merge_protections_settings:
         toggle: []
       comment:
         message: "@jules can you fix the merge conflicts?"
-
-  - name: Request reviews automatically
+  - name: Fix conflicts
+      - -draft
+      - conflict
+      - base = main
+    actions:
+      label:
+        add:
+          - "@jules"
+      comment:
+        message: "@jules can you fix the merge conflicts?"
+  - name: Approve reviews automatically
     conditions:
       - -draft
       - review-requested = 1

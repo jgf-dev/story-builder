@@ -34,3 +34,5 @@ test.db
 coverage_html/
 *.7z.*
 tasks/lint.ruff
+
+.idea/

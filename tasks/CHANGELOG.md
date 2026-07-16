@@ -379,3 +379,21 @@ Followed up on PR #1365 by keeping downloader-specific test isolation scoped to 
 
 - Prevented downloader cleanup from running around unrelated test suites.
 - Ensured the genai database integration test closes stale downloader state before initialization.
+
+## [PR-1374](https://github.com/jgf-dev/story-builder/pull/1374) - 2026-07-15
+
+### Summary
+
+Restored the recursive SonarCloud exclusions required to keep default-branch analysis scoped to production code.
+
+### Added
+
+- Recursive SonarCloud exclusions for tests, scripts, and documentation.
+
+### Removed
+
+- None.
+
+### Fixed
+
+- Prevented non-production files from affecting the default branch quality gate.

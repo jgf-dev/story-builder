@@ -2,13 +2,17 @@ queue_rules:
   - name: checks-pass
     merge_conditions:
       - "#check-failure = 0"
-      - check-success ~= ^run_tests / test-results$
+      - check-success = Run Tests
 merge_queue:
   status_comments: all
   queue_controls_comment: true
   skip_intermediate_results: false
   reset_on_external_merge: always
   max_parallel_checks: 3
+merge_protections_settings:
+  auto_merge_conditions:
+    - check-success = Run Tests
+
 scopes:
   source:
     files:
@@ -21,16 +25,14 @@ scopes:
       scripts:
         include:
           - scripts/**/*
-merge_protections_settings:
-  auto_merge_conditions:
-    - check-success ~= ^run_tests / test-results$
 pull_request_rules:
   - name: Auto-merge approved PRs
     conditions:
       - base = main
-      - "#approved-reviews-by >= 1"
-      - "#changes-requested-reviews-by = 0"
-      - check-success ~= ^run_tests / test-results$
+      - "#check-failure = 0"
+      - "#check-pending = 0"
+      - "#deployment-failure = 0"
+      - check-success ~= test
     actions:
       merge:
         method: squash

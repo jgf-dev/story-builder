@@ -3,22 +3,6 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
-## [PR-1363](https://github.com/jgf-dev/story-builder/pull/1363) - 2026-07-15
-
-### Summary
-Fixed CI path filter so changes to `src/storybuilder/dashboard/**` trigger the downloader test job.
-
-### Fixed
-- Added `src/storybuilder/dashboard/**` to the `downloader` paths-filter in `.github/workflows/test.yml` so that dashboard page changes (e.g. `read_story.py`) now trigger `test-downloader` and execute the existing dashboard Streamlit tests.
-
-## [PR-1363](https://github.com/jgf-dev/story-builder/pull/1363) - 2026-07-15
-
-### Summary
-Fixed CI path filter so changes to `src/storybuilder/dashboard/**` trigger the downloader test job.
-
-### Fixed
-- Added `src/storybuilder/dashboard/**` to the `downloader` paths-filter in `.github/workflows/test.yml` so that dashboard page changes (e.g. `read_story.py`) now trigger `test-downloader` and execute the existing dashboard Streamlit tests.
-
 ## [6b00bc3e](https://github.com/jgf2/story-builder/commit/6b00bc3e7a996a1b0beb0805609ee0b593288596) - 2026-07-15
 
 ### Summary

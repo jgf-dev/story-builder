@@ -77,4 +77,11 @@ merge_protections_settings:
         message: Merge conflicts fixed
       queue:
         name: checks-pass
+  - name: Keep PRs up to date
+    conditions:
+      - -draft
+      - "#commits-behind >= 1"
+    actions:
+      update: null
+
 

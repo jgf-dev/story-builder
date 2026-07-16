@@ -38,7 +38,7 @@
       padding: 32px 20px 48px;
     }
 
-    .shell > header {
+    header {
       display: grid;
       gap: 12px;
       margin-bottom: 20px;
@@ -221,9 +221,7 @@
     }
 
     .notes {
-      margin: 0;
       padding: 0 20px 20px;
-      list-style: none;
       display: grid;
       gap: 12px;
       color: var(--muted);
@@ -272,7 +270,7 @@
           <h2>TASKS.md Editor</h2>
           <p class="sub">Open the workspace task board file, edit it directly, then save it back.</p>
         </header>
-        <div class="toolbar" role="toolbar" aria-label="Editor actions">
+        <div class="toolbar" role="group" aria-label="Editor actions">
           <input id="fileInput" class="sr-only" type="file" accept=".md,text/markdown,text/plain">
           <label class="file-label" for="fileInput">Load TASKS.md</label>
           <button class="primary" id="saveBtn" title="No unsaved changes" aria-keyshortcuts="Control+S Meta+S" disabled>Save</button>
@@ -302,11 +300,11 @@
             <h2>How To Use</h2>
             <p class="sub">A quick reminder for the local workflow.</p>
           </header>
-          <ul class="notes">
-            <li class="tip">Load your `TASKS.md`, make changes, and hit Save.</li>
-            <li class="tip">If you want the full productivity setup, run `/productivity:start`.</li>
-            <li class="tip">Keep tasks in the exact markdown sections the shared task board expects.</li>
-          </ul>
+          <div class="notes" role="group">
+            <div class="tip">Load your `TASKS.md`, make changes, and hit Save.</div>
+            <div class="tip">If you want the full productivity setup, run `/productivity:start`.</div>
+            <div class="tip">Keep tasks in the exact markdown sections the shared task board expects.</div>
+          </div>
           <footer class="footer">
             This dashboard does not depend on a server. It edits the file through the browser's file picker and download flow.
           </footer>
@@ -335,7 +333,6 @@
     const somedayCount = document.getElementById('somedayCount');
     const doneCount = document.getElementById('doneCount');
     const saveBtn = document.getElementById('saveBtn');
-    const toolbar = document.querySelector('[role="toolbar"]');
 
     let currentFileName = 'TASKS.md';
     let currentHandle = null;
@@ -346,7 +343,6 @@
       if (isDirty === dirty) return;
       isDirty = dirty;
       saveBtn.disabled = !isDirty;
-      syncToolbarTabStop();
       saveBtn.title = isDirty ? 'Save (Ctrl+S / Cmd+S)' : 'No unsaved changes';
       if (isDirty) {
         document.title = '* ' + document.title.replace(/^\*\s*/, '');
@@ -358,35 +354,14 @@
       status.textContent = message;
     }
 
-    function getToolbarControls() {
-      return Array.from(toolbar.querySelectorAll('input, button'))
-        .filter((control) => !control.disabled);
-    }
-
-    function syncToolbarTabStop(preferredControl = document.activeElement) {
-      const controls = getToolbarControls();
-      if (!controls.length) return;
-      const activeControl = controls.includes(preferredControl)
-        ? preferredControl
-        : controls.find((control) => control.tabIndex === 0) || controls[0];
-      toolbar.querySelectorAll('input, button').forEach((control) => {
-        control.tabIndex = control === activeControl ? 0 : -1;
-      });
-    }
-
     function countItems(text, sectionName) {
-      const lines = text.split('\n');
-      const heading = `## ${sectionName}`;
-      const startIndex = lines.findIndex((line) => line.trim() === heading);
-      if (startIndex === -1) return 0;
-
-      let count = 0;
-      for (let index = startIndex + 1; index < lines.length; index += 1) {
-        const line = lines[index].trim();
-        if (/^##\s+/.test(line)) break;
-        if (/^- \[[ xX]\](?:\s|$)/.test(line)) count += 1;
-      }
-      return count;
+      const regex = new RegExp(`^## ${sectionName}\\\\s*$([\\\\s\\\\S]*?)(?=^## |\\n?$)`, 'm');
+      const match = text.match(regex);
+      if (!match) return 0;
+      return match[1]
+        .split('\\n')
+        .filter((line) => /^- \\[[ x]\\]/.test(line.trim()))
+        .length;
     }
 
     function updateStats(text) {
@@ -488,34 +463,6 @@
       setDirty(editor.value !== lastSavedContent);
     });
 
-    toolbar.addEventListener('focusin', (e) => {
-      if (e.target.matches('input, button') && !e.target.disabled) {
-        syncToolbarTabStop(e.target);
-      }
-    });
-    toolbar.addEventListener('keydown', (e) => {
-      const controls = getToolbarControls();
-      const currentIndex = controls.indexOf(document.activeElement);
-      if (currentIndex === -1) return;
-
-      let nextIndex;
-      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-        nextIndex = (currentIndex + 1) % controls.length;
-      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-        nextIndex = (currentIndex - 1 + controls.length) % controls.length;
-      } else if (e.key === 'Home') {
-        nextIndex = 0;
-      } else if (e.key === 'End') {
-        nextIndex = controls.length - 1;
-      } else {
-        return;
-      }
-
-      e.preventDefault();
-      syncToolbarTabStop(controls[nextIndex]);
-      controls[nextIndex].focus();
-    });
-
     window.addEventListener('beforeunload', (e) => {
       if (isDirty) {
         e.preventDefault();
@@ -530,7 +477,6 @@
         }
       }
     });
-    syncToolbarTabStop(fileInput);
     loadText(template, 'TASKS.md');
   </script>
 </body>

@@ -3,18 +3,6 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
-## [PR-1372](https://github.com/jgf-dev/story-builder/pull/1372) - 2026-07-15
-
-### Summary
-Improved the dashboard's semantic structure while preserving its existing layout.
-
-### Fixed
-- Replaced generic note containers with native `<ul>` and `<li>` elements and reset their default visual styling.
-- Scoped the page-header layout styles so semantic card headers retain their original spacing.
-- Updated the accessibility guidance to prefer native list elements over generic ARIA grouping.
-- Fixed Quick Stats parsing so checklist items are counted within the correct task section.
-- Added arrow-key, Home, and End navigation with a single tab stop for the editor toolbar.
-
 ## [PR-1369](https://github.com/jgf-dev/story-builder/pull/1369) - 2026-07-15
 
 ### Summary
@@ -361,23 +349,3 @@ uv run ruff check <resolved_files>
 - **Validation**: All 169 unit tests passed successfully.
 
 Please refresh/reload your browser tab running the Streamlit app. This will force a script rerun, which now dynamically reloads all submodules, initializes the database partition engine, and displays the stories.
-
-## [PR-1371](https://github.com/jgf-dev/story-builder/pull/1371) - 2026-07-15
-
-### Summary
-
-Followed up on PR #1365 by keeping downloader-specific test isolation scoped to downloader tests.
-
-### Added
-
-- Unit tests for dashboard configuration, navigation, archive statistics, favorites, story reading, and search pages.
-- Downloader-scoped cleanup for database connections and the scraper folder cache.
-
-### Removed
-
-- The invalid and redundant SonarQube exclusion property for paths already outside `sonar.sources`.
-
-### Fixed
-
-- Prevented downloader cleanup from running around unrelated test suites.
-- Ensured the genai database integration test closes stale downloader state before initialization.

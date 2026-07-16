@@ -1,3 +1,3 @@
-## 2024-03-04 - Prefer native list elements
-**Learning:** Native `<ul>` and `<li>` elements provide list semantics without redundant ARIA roles, and their default bullets, margin, and padding can be reset with CSS when the visual design requires it.
-**Action:** Use native list elements for lists and adjust their presentation with CSS instead of applying list or group roles to generic containers.
+## 2024-03-04 - Use ARIA roles for lists when CSS cannot be changed
+**Learning:** Using <div role="list"> and <div role="listitem"> allows exposing list semantics to screen readers without introducing the default user-agent styling (bullets, padding) associated with native <ul> and <li> tags. However, SonarQube flags this as a violation of `prefer-native-element` (or similar). In constrained environments without CSS control, it may be better to use `role="group"` or accept the lack of explicit list semantics to pass strict linting gates, rather than force list ARIA roles on non-list elements.
+**Action:** When adding list semantics without CSS control, evaluate whether the CI linter will reject `role="list"` on `<div>` tags before applying them. Use `role="group"` as a fallback to group related items logically without triggering native element preferences.

@@ -166,7 +166,6 @@ class TestDBIntegration(unittest.TestCase):
     def setUp(self) -> None:
         # Use a temporary database for tests
         self.db_path = "/tmp/test_downloader_integration.db"
-        close_db()
         if Path(self.db_path).exists():
             Path(self.db_path).unlink()
         for ext in ["-wal", "-shm"]:

@@ -24,9 +24,8 @@ scopes:
         include:
           - scripts/**/*
 pull_request_rules:
-  - name: New rule
+  - name: Fix conflicts
     conditions:
-      - -draft
       - conflict
       - base = main
       - "#check-failure = 0"
@@ -56,3 +55,26 @@ merge_protections_settings:
         toggle: []
       comment:
         message: "@jules can you fix the merge conflicts?"
+      queue:
+        name: checks-pass
+    actions:
+      label:
+        add:
+          - "@jules"
+        remove: []
+        toggle: []
+      comment:
+        message: "@jules can you fix the merge conflicts?"
+
+  - name: Request reviews automatically
+    conditions:
+      - -draft
+      - review-requested = 1
+      - changes-requested-reviews-by = jules
+      - -conflict
+    actions:
+      review:
+        message: Merge conflicts fixed
+      queue:
+        name: checks-pass
+

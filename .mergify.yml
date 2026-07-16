@@ -24,7 +24,7 @@ scopes:
         include:
           - scripts/**/*
 pull_request_rules:
-  - name: Auto-merge approved PRs
+  - name: New rule
     conditions:
       - -draft
       - conflict

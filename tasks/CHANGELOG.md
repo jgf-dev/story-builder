@@ -3,6 +3,17 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
+## [PR-1385](https://github.com/jgf-dev/story-builder/pull/1385) - 2026-07-16
+
+### Summary
+Used a native list for the dashboard's Quick Stats and added a UX verification script.
+
+### Added
+- `scripts/verify_ux.py`, a Playwright script that renders `dashboard.html` and captures a screenshot/video for UX verification.
+
+### Fixed
+- Replaced the generic `<div>`-based Quick Stats block with semantic `<ul>`/`<li>` elements, adding an `aria-label` for screen readers.
+
 ## [PR-1375](https://github.com/jgf-dev/story-builder/pull/1375) - 2026-07-16
 
 ### Summary

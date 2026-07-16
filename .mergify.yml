@@ -66,6 +66,7 @@ merge_protections_settings:
       comment:
         message: "@jules can you fix the merge conflicts?"
   - name: Fix conflicts
+    conditions:
       - -draft
       - conflict
       - base = main

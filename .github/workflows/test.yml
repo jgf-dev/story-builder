@@ -31,11 +31,11 @@ jobs:
               - 'src/storybuilder/downloader/**'
               - 'scripts/import_to_sqlite.py'
               - 'scripts/story_db.py'
+              - 'tests/downloader/**'
             dashboard:
               - 'src/storybuilder/dashboard/**'
               - 'src/storybuilder/downloader/**'
               - 'scripts/dashboard.py'
-              - 'tests/dashboard/**'
               - 'tests/dashboard/**'
             genai:
               - 'src/storybuilder/genai/**'

@@ -256,7 +256,7 @@ class TestDashboardPages(unittest.TestCase):
     def test_render_read_story_load_error(self, mock_st, mock_get_story) -> None:
         from storybuilder.dashboard.pages.read_story import render_read_story
         
-        mock_st.session_state = MockSessionState(selected_story_path="path.txt", selected_story_year="2025")
+        mock_st.session_state = MockSessionState(selected_story_path="path.txt", selected_story_year=2025)
         mock_get_story.return_value = None
         
         render_read_story()

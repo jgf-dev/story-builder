@@ -270,7 +270,7 @@ class TestDashboardPages(unittest.TestCase):
     def test_render_read_story_is_favorite_update_and_remove(self, mock_st, mock_get_story, mock_get_favorites, mock_add_favorite, mock_remove_favorite) -> None:
         from storybuilder.dashboard.pages.read_story import render_read_story
         
-        mock_st.session_state = MockSessionState(selected_story_path="path1.txt", selected_story_year="2025")
+        mock_st.session_state = MockSessionState(selected_story_path="path1.txt", selected_story_year=2025)
         story = {
             "path": "path1.txt", "title": "Story Title", "author_name": "Author A",
             "category": "college", "publication_date": "2025-01-01", "url": "http://url",
@@ -312,7 +312,7 @@ class TestDashboardPages(unittest.TestCase):
     def test_render_read_story_not_favorite_add(self, mock_st, mock_get_story, mock_get_favorites, mock_add_favorite) -> None:
         from storybuilder.dashboard.pages.read_story import render_read_story
         
-        mock_st.session_state = MockSessionState(selected_story_path="path1.txt", selected_story_year="2025")
+        mock_st.session_state = MockSessionState(selected_story_path="path1.txt", selected_story_year=2025)
         story = {
             "path": "path1.txt", "title": "Story Title", "author_name": "Author A",
             "category": "college", "publication_date": "2025-01-01", "url": "http://url",

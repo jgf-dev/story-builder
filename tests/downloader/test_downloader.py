@@ -790,9 +790,9 @@ class TestScraperMultiChapter(unittest.TestCase):
         mock_fetch.assert_called_once()
 
     def test_process_directory_story(self) -> None:
+        """Test _process_directory_story generates chapter targets."""
         import storybuilder.downloader.scraper
         storybuilder.downloader.scraper.seen_folders.clear()
-        """Test _process_directory_story generates chapter targets."""
         from storybuilder.downloader.scraper import _process_directory_story
         import argparse
 

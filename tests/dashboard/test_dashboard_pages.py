@@ -362,7 +362,7 @@ class TestDashboardPages(unittest.TestCase):
         
         results = [
             {
-                "path": "path1.txt", "db_year": "2025", "title": "Title 1", "author_name": "Author 1",
+                "path": "path1.txt", "db_year": 2025, "title": "Title 1", "author_name": "Author 1",
                 "category": "college", "publication_date": "2025-01-01", "word_count": 1000,
                 "snippet": "___HIGHLIGHT_START___match___HIGHLIGHT_END___ in text"
             }
@@ -382,7 +382,7 @@ class TestDashboardPages(unittest.TestCase):
         render_search_explorer(filters)
         
         self.assertEqual(mock_st.session_state.selected_story_path, "path1.txt")
-        self.assertEqual(mock_st.session_state.selected_story_year, "2025")
+        self.assertEqual(mock_st.session_state.selected_story_year, 2025)
         self.assertEqual(mock_st.session_state["nav_page"], "📖 Read Story")
         mock_st.rerun.assert_called_once()
 

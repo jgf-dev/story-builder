@@ -32,5 +32,6 @@ pull_request_rules:
       - "#changes-requested-reviews-by = 0"
       - check-success ~= ^run_tests / test-results$
     actions:
-      merge:
+      queue:
+        name: checks-pass
         method: squash

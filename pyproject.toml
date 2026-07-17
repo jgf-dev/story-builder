@@ -10,16 +10,16 @@ dependencies = [
     "braintrust>=0.26.0",
     "cartesia>=3.3.0",
     "chromadb>=1.5.9",
-    "google-adk[a2a,all,db,eval]>=2.2.0",
+    "google-adk[a2a,all,db,eval]>=2.5.0",
     "google-cloud-aiplatform[adk,ag2,agent-engines]>=1.158.0",
     "google-cloud-storage>=3.12.0",
     "google-genai>=2.10.0",
     "matplotlib>=3.11.0",
     "openai>=2.44.0",
     "opentelemetry-distro>=0.63b1",
-    "opentelemetry-exporter-otlp",
+    "opentelemetry-exporter-otlp>=1.42.1",
     "pandas>=3.0.3",
-    "plotly>=6.8.0",
+    "plotly>=6.9.0",
     "pysocks>=1.7.1",
     "python-dotenv>=1.2.2",
     "requests>=2.34.2",
@@ -35,20 +35,21 @@ dependencies = [
     "opentelemetry-instrumentation-dbapi==0.63b1",
     "opentelemetry-instrumentation-logging==0.63b1",
     "opentelemetry-instrumentation-sqlite3==0.63b1",
-    "opentelemetry-instrumentation-openai-v2",
+    "opentelemetry-instrumentation-openai-v2>=2.4b0",
     "opentelemetry-instrumentation-vertexai>=0.62.1",
-    "opentelemetry.exporter.otlp.proto.http",
+    "opentelemetry-exporter-otlp-proto-http>=1.42.1",
     "dotenv>=0.9.9",
     "sqlmodel>=0.0.39",
     "huggingface_hub>=0.25.0",
+    "a2a-sdk==1.1.1",
 ]
 
 [project.scripts]
 downloader = "storybuilder.downloader.cli:main"
-genai-tts  = "storybuilder.genai.tts:main"
+genai-tts = "storybuilder.genai.tts:main"
 
 [build-system]
-requires      = ["uv_build>=0.11.15,<0.12.0"]
+requires = ["uv_build>=0.11.15,<0.12.0"]
 build-backend = "uv_build"
 
 #[tool.uv.extra-build-dependencies]
@@ -80,37 +81,37 @@ force-exclude = """
 """
 
 [tool.isort]
-py_version                     = 312
-sections                       = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
-default_section                = "THIRDPARTY"
-known_third_party              = []
-known_first_party              = []
-known_local_folder             = []
-multi_line_output              = 3
-include_trailing_comma         = true
-force_grid_wrap                = 0
-use_parentheses                = true
+py_version = 312
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+default_section = "THIRDPARTY"
+known_third_party = []
+known_first_party = []
+known_local_folder = []
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
 ensure_newline_before_comments = true
-line_length                    = 120
-split_on_trailing_comma        = true
-lines_after_imports            = 2
-force_single_line              = true
-skip_glob                      = ["docs/*", "setup.py", "typings/*"]
-filter_files                   = true
+line_length = 120
+split_on_trailing_comma = true
+lines_after_imports = 2
+force_single_line = true
+skip_glob = ["docs/*", "setup.py", "typings/*"]
+filter_files = true
 
 [tool.ruff]
 target-version = "py312"
-line-length    = 120
-indent-width   = 4
+line-length = 120
+indent-width = 4
 extend-exclude = ["docs", "test", "tests", "typings"]
 
 [tool.ruff.lint]
-select             = ["F", "E"]
-extend-select      = ["ALL"]
-ignore             = ["D", "CPY", "T20", "DOC", "PGH"]
-fixable            = ["ALL"]
-unfixable          = []
-preview            = true
+select = ["F", "E"]
+extend-select = ["ALL"]
+ignore = ["D", "CPY", "T20", "DOC", "PGH"]
+fixable = ["ALL"]
+unfixable = []
+preview = true
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [tool.ruff.lint.mccabe]
@@ -120,35 +121,33 @@ max-complexity = 24
 ignore-overlong-task-comments = true
 
 [tool.ruff.lint.flake8-annotations]
-allow-star-arg-any   = false
+allow-star-arg-any = false
 ignore-fully-untyped = false
 
 [tool.ruff.lint.pylint]
-max-args       = 5
-max-branches   = 12
-max-locals     = 15
+max-args = 5
+max-branches = 12
+max-locals = 15
 max-statements = 50
 
 [tool.ruff.format]
-quote-style               = "double"
-indent-style              = "tab"
+quote-style = "double"
+indent-style = "tab"
 skip-magic-trailing-comma = false
-line-ending               = "auto"
-preview                   = false
-docstring-code-format     = true
+line-ending = "auto"
+preview = false
+docstring-code-format = true
 
 [dependency-groups]
 dev = [
-    "a>=1.0",
     "black>=26.5.1",
     "isort>=8.0.1",
-    "pylint>=3.0.0",
-    "pytest>=9.0.3",
+    "pylint>=4.0.6",
+    "pytest>=9.1.1",
     "pytest-mergify>=2026.7.7.1",
     "pytest-benchmark>=5.2.3",
     "pytest-cov>=7.1.0",
-    "pytest-mergify>=2026.7.7.1",
-    "ruff>=0.15.20",
+    "ruff>=0.15.22",
     "pre-commit>=4.6.0",
     "nbqa>=1.9.1",
     "codecov>=2.1.13",
@@ -156,7 +155,7 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-testpaths  = ["tests"]
+testpaths = ["tests"]
 pythonpath = ["."]
 
 # Temporary disable test in agent

@@ -35,3 +35,4 @@ coverage_html/
 *.7z.*
 tasks/lint.ruff
 .idea/
+tasks/flags/

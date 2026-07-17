@@ -207,7 +207,7 @@ class TestDashboardPages(unittest.TestCase):
         render_favorites_tags()
         
         self.assertEqual(mock_st.session_state.selected_story_path, "path1.txt")
-        self.assertEqual(mock_st.session_state.selected_story_year, "2025")
+        self.assertEqual(mock_st.session_state.selected_story_year, 2025)
         mock_st.rerun.assert_called_once()
 
     @patch("storybuilder.dashboard.pages.favorites_tags.get_favorites_publication_years")

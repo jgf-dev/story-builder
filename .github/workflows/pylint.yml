@@ -29,10 +29,8 @@ jobs:
       - name: Run pylint
         run: uv run pylint --errors-only src/
 
-      - name: Install the code linting and formatting tool Ruff
-        run: pipx install ruff
       - name: Lint code with Ruff
-        run: ruff check --output-format=github
+        run: uv run ruff check --output-format=github
         
       - name: Check code formatting with Ruff
         run: ruff format --diff

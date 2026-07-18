@@ -354,7 +354,15 @@ def main() -> None:
         print("No subcategories found. Exiting.")
         return
 
-    load_cache(args.output_dir)
+    cache_dir = "stories/db"
+    if args.db:
+        db_path = Path(args.db)
+        if db_path.is_dir() or (not args.db.endswith(".db") and not db_path.suffix):
+            cache_dir = str(db_path)
+        else:
+            cache_dir = str(db_path.parent) or "."
+
+    load_cache(cache_dir)
 
     try:
         all_story_targets = _scrape_subcategories(
@@ -364,7 +372,7 @@ def main() -> None:
             args,
         )
     finally:
-        save_cache(args.output_dir)
+        save_cache(cache_dir)
 
     _download_stories(all_story_targets, args)
 

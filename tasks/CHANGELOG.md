@@ -89,6 +89,38 @@ Added dashboard page test coverage and an authorized, dependency-pinned OpenCode
 - Triggered dashboard tests when dashboard source files change.
 - Standardized selected-story year state and dashboard tests on integer values.
 
+## [PR-1363](https://github.com/jgf-dev/story-builder/pull/1363) - 2026-07-15
+
+### Summary
+Fixed CI path filter so changes to `src/storybuilder/dashboard/**` trigger the downloader test job.
+
+### Fixed
+- Added `src/storybuilder/dashboard/**` to the `downloader` paths-filter in `.github/workflows/test.yml` so that dashboard page changes (e.g. `read_story.py`) now trigger `test-downloader` and execute the existing dashboard Streamlit tests.
+
+## [6b00bc3e](https://github.com/jgf2/story-builder/commit/6b00bc3e7a996a1b0beb0805609ee0b593288596) - 2026-07-15
+
+### Summary
+Decoupled the Streamlit dashboard tests from the downloader tests by moving the files and establishing a dedicated CI job.
+
+### Added
+- Added a new `test-dashboard` CI job in `.github/workflows/test.yml` that runs pytest on `tests/dashboard`.
+- Added a `dashboard` filter to the `changes` path-filter job to detect changes to `src/storybuilder/dashboard/**`, `scripts/dashboard.py`, and `tests/dashboard/**`.
+
+### Removed
+- Removed dashboard code and script paths from the `downloader` path-filter in `.github/workflows/test.yml`.
+
+### Changed
+- Moved dashboard unit and integration test files from `tests/downloader/` to `tests/dashboard/`.
+- Updated dependencies for `test-results` and `post-coverage` jobs to include `test-dashboard`.
+
+## [PR-1363](https://github.com/jgf-dev/story-builder/pull/1363) - 2026-07-15
+
+### Summary
+Fixed CI path filter so changes to `src/storybuilder/dashboard/**` trigger the downloader test job.
+
+### Fixed
+- Added `src/storybuilder/dashboard/**` to the `downloader` paths-filter in `.github/workflows/test.yml` so that dashboard page changes (e.g. `read_story.py`) now trigger `test-downloader` and execute the existing dashboard Streamlit tests.
+
 ## [af1d7aed](https://github.com/jgf2/story-builder/commit/af1d7aed) - 2026-07-15
 
 ### Summary

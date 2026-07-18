@@ -161,7 +161,7 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
             "error": str(e),
         }
     except Exception as e:
-        logger.exception("Error running eval set '%s'", eval_name)
+        logger.exception("Error running eval set '%s'", eval_name, exc_info=e)
         return {"status": "error", "eval_set": eval_name, "error": str(e)}
 
 

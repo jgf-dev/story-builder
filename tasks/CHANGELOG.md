@@ -11,6 +11,83 @@ Fixed CI path filter so changes to `src/storybuilder/dashboard/**` trigger the d
 ### Fixed
 - Added `src/storybuilder/dashboard/**` to the `downloader` paths-filter in `.github/workflows/test.yml` so that dashboard page changes (e.g. `read_story.py`) now trigger `test-downloader` and execute the existing dashboard Streamlit tests.
 - Ensured exported Markdown includes a blank line between the metadata header and story content in `src/storybuilder/dashboard/pages/read_story.py`.
+## [PR-1375](https://github.com/jgf-dev/story-builder/pull/1375) - 2026-07-16
+
+### Summary
+Repaired the invalid Mergify configuration while preserving safe CI, review, conflict, and branch-update automation.
+
+### Fixed
+- Restored the aggregate `run_tests / test-results` check gate and required human review conditions.
+- Combined merge-protection conditions into one valid YAML mapping and removed malformed nested rules.
+- Kept conflict notification and stale-branch update rules as valid `pull_request_rules`.
+
+## [PR-1372](https://github.com/jgf-dev/story-builder/pull/1372) - 2026-07-15
+
+### Summary
+Improved the dashboard's semantic structure while preserving its existing layout.
+
+### Fixed
+- Replaced generic note containers with native `<ul>` and `<li>` elements and reset their default visual styling.
+- Scoped the page-header layout styles so semantic card headers retain their original spacing.
+- Updated the accessibility guidance to prefer native list elements over generic ARIA grouping.
+- Fixed Quick Stats parsing so checklist items are counted within the correct task section.
+- Added arrow-key, Home, and End navigation with a single tab stop for the editor toolbar.
+
+## [PR-1369](https://github.com/jgf-dev/story-builder/pull/1369) - 2026-07-15
+
+### Summary
+Fixed the Mergify merge queue configuration so test-check detection references a check that actually exists in CI.
+
+### Fixed
+- Replaced the invalid `check-success = .*test.*` condition (which used the literal-match `=` operator and would never match a real check) with the regex-match operator and an anchored pattern `check-success ~= ^run_tests / test-results$` in `queue_rules.merge_conditions`.
+- Applied the same anchored `^run_tests / test-results$` pattern to `merge_protections_settings.auto_merge_conditions`, replacing the overly broad `.*[Tt]est.*` regex that could match unintended check names, and keeping both sections consistent with the check produced by `.github/workflows/test.yml`.
+## [PR-1363](https://github.com/jgf-dev/story-builder/pull/1363) - 2026-07-15
+
+### Summary
+Fixed CI path filter so changes to `src/storybuilder/dashboard/**` trigger the downloader test job.
+
+### Fixed
+- Added `src/storybuilder/dashboard/**` to the `downloader` paths-filter in `.github/workflows/test.yml` so that dashboard page changes (e.g. `read_story.py`) now trigger `test-downloader` and execute the existing dashboard Streamlit tests.
+- Fixed leaking global state between downloader tests that made `test-downloader` (and thus `test-results`) fail once the job started running. Added `tests/downloader/conftest.py` with an autouse fixture that resets `db._conn`/`_engine` (via `close_db()`) and clears `scraper.seen_folders` after every test, so tests that call `db.init_db` or scrape folders no longer corrupt later tests.
+## [PR-1370](https://github.com/jgf2/story-builder/pull/1370) - 2026-07-15
+
+### Summary
+Fixed the Mergify merge queue configuration so the test-check gating conditions actually match the split CI test jobs.
+
+### Fixed
+- Fixed the Mergify `queue_rules.merge_conditions` test-check gate in `.mergify.yml`. It previously used the literal-match operator against a check name that no CI job produces (`check-success = Run Tests` / `check-success = .*test.*`), so the queue rule never gated on tests. It now uses the regex-match operator with the aggregate check name (`check-success ~= ^run_tests / test-results$`), consistent with `merge_protections_settings.auto_merge_conditions`.
+## [PR-1368](https://github.com/jgf2/story-builder/pull/1368) - 2026-07-15
+
+### Summary
+Hardened the Mergify auto-merge `pull_request_rules` introduced in this PR to address Devin Review findings.
+
+### Fixed
+- Added a `#approved-reviews-by >= 1` condition so the "Auto-merge approved PRs" rule actually requires a human approval before merging.
+- Replaced the broad `check-success =~ .*test.*` condition with the specific aggregate check `check-success ~= ^run_tests / test-results$`, so auto-merge only fires once all test jobs have succeeded instead of when any single matching job passes.
+- Restored the `base = main` condition so the rule only targets PRs into `main`.
+
+## [PR-1364](https://github.com/jgf-dev/story-builder/pull/1364) - 2026-07-15
+
+### Summary
+
+Added dashboard page test coverage and an authorized, dependency-pinned OpenCode workflow.
+
+### Added
+
+- Dashboard configuration, sidebar, archive statistics, favorites, story reader, and search explorer tests.
+- Test isolation for shared downloader database and scraper state.
+- An OpenCode comment workflow restricted to trusted repository contributors.
+
+### Removed
+
+- Support for the ambiguous `/oc` workflow command alias.
+
+### Fixed
+
+- Pinned the OpenCode action to an immutable commit SHA.
+- Corrected SonarCloud exclusion property names and recursive glob patterns.
+- Triggered dashboard tests when dashboard source files change.
+- Standardized selected-story year state and dashboard tests on integer values.
 
 ## [af1d7aed](https://github.com/jgf2/story-builder/commit/af1d7aed) - 2026-07-15
 
@@ -302,3 +379,41 @@ uv run ruff check <resolved_files>
 - **Validation**: All 169 unit tests passed successfully.
 
 Please refresh/reload your browser tab running the Streamlit app. This will force a script rerun, which now dynamically reloads all submodules, initializes the database partition engine, and displays the stories.
+
+## [PR-1371](https://github.com/jgf-dev/story-builder/pull/1371) - 2026-07-15
+
+### Summary
+
+Followed up on PR #1365 by keeping downloader-specific test isolation scoped to downloader tests.
+
+### Added
+
+- Unit tests for dashboard configuration, navigation, archive statistics, favorites, story reading, and search pages.
+- Downloader-scoped cleanup for database connections and the scraper folder cache.
+
+### Removed
+
+- The invalid and redundant SonarQube exclusion property for paths already outside `sonar.sources`.
+
+### Fixed
+
+- Prevented downloader cleanup from running around unrelated test suites.
+- Ensured the genai database integration test closes stale downloader state before initialization.
+
+## [PR-1374](https://github.com/jgf-dev/story-builder/pull/1374) - 2026-07-15
+
+### Summary
+
+Restored the recursive SonarCloud exclusions required to keep default-branch analysis scoped to production code.
+
+### Added
+
+- Recursive SonarCloud exclusions for tests, scripts, and documentation.
+
+### Removed
+
+- None.
+
+### Fixed
+
+- Prevented non-production files from affecting the default branch quality gate.

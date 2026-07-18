@@ -23,7 +23,6 @@ import os
 import sys
 from pathlib import Path
 
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
@@ -134,7 +133,12 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
                         metric_name = getattr(metric, "metric_name", "?")
                         score = getattr(metric, "score", None)
                         status = getattr(metric, "eval_status", None)
-                        status_label = {1: "PASS", 2: "FAIL", 3: "SKIP", 4: "ERROR"}.get(status, str(status or "?"))
+                        status_label = "?"
+                        if status is not None:
+                            try:
+                                status_label = {1: "PASS", 2: "FAIL", 3: "SKIP", 4: "ERROR"}[int(status)]
+                            except (KeyError, ValueError):
+                                status_label = str(status)
 
                         if score is not None:
                             print(f"    {metric_name}: {score:.4f} [{status_label}]")
@@ -157,7 +161,7 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
             "error": str(e),
         }
     except Exception as e:
-        logger.error("Error running eval set '%s': %s", eval_name, e)
+        logger.exception("Error running eval set '%s'", eval_name, exc_info=e)
         return {"status": "error", "eval_set": eval_name, "error": str(e)}
 
 
@@ -288,8 +292,8 @@ def main() -> None:
     for eval_path in all_eval_sets:
         try:
             run_eval_via_adk(eval_path, verbose=args.verbose)
-        except Exception as e:
-            logger.error("Failed to run %s: %s", eval_path.name, e)
+        except Exception:
+            logger.exception("Failed to run %s", eval_path.name)
 
 
 if __name__ == "__main__":

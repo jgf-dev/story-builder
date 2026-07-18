@@ -184,51 +184,6 @@ _start_time = 0.0
 
 
 def _flush_batch(conn: sqlite3.Connection, batch: list, force: bool) -> int:
-    try:
-        from storybuilder.downloader.db import _is_partitioned
-    except ImportError:
-        _is_partitioned = False
-
-    if _is_partitioned:
-        from storybuilder.downloader.db import _get_write_conn
-
-        conns = {}
-        for row in batch:
-            story_date = row[8]
-            c = _get_write_conn(story_date)
-            if c not in conns:
-                conns[c] = []
-            conns[c].append(row)
-        imported = 0
-        for c, rows in conns.items():
-            sql = """
-                INSERT OR REPLACE INTO stories
-                    (path, orientation, category, story_slug, chapter_num,
-                     title, author_name, author_email,
-                     publication_date, url, email_date,
-                     char_count, word_count, content)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """
-            try:
-                c.executemany(sql, rows)
-                c.commit()
-                imported += len(rows)
-            except sqlite3.IntegrityError:
-                c.rollback()
-                if force:
-                    count = 0
-                    for r in rows:
-                        try:
-                            c.execute(sql, r)
-                            c.commit()
-                            count += 1
-                        except Exception as e:
-                            print(
-                                f"[WARN] Skipping row during forced import (path={r[0]!r}): {e}",
-                                file=sys.stderr,
-                            )
-                    imported += count
-        return imported
 
     sql = """
         INSERT OR REPLACE INTO stories

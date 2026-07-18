@@ -84,7 +84,7 @@ def process_story(filepath_str: str, collection_chunks: Collection, collection_a
             ids=chunk_ids,
             embeddings=chunk_embeddings.tolist(),
             documents=chunks,
-            metadatas=chunk_metadatas,
+            metadatas=chunk_metadatas,  # pyrefly: ignore [bad-argument-type]
         )
 
         avg_embedding = np.mean(chunk_embeddings, axis=0)

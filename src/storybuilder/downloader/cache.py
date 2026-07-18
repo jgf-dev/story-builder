@@ -19,7 +19,7 @@ def safe_print(*args, **kwargs) -> None:
         print(*args, **kwargs)
 
 
-def load_cache(cache_dir) -> None:
+def load_cache(cache_dir="stories/db") -> None:
     """
     Loads the metadata cache from cache_dir/metadata_cache.json.
     """
@@ -42,7 +42,7 @@ def load_cache(cache_dir) -> None:
     print()
 
 
-def save_cache(cache_dir) -> None:
+def save_cache(cache_dir="stories/db") -> None:
     """
     Saves the metadata cache to cache_dir/metadata_cache.json.
     """

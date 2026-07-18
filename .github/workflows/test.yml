@@ -16,6 +16,7 @@ jobs:
       pull-requests: read
     outputs:
       downloader: ${{ steps.filter.outputs.downloader }}
+      dashboard: ${{ steps.filter.outputs.dashboard }}
       genai: ${{ steps.filter.outputs.genai }}
       analysis: ${{ steps.filter.outputs.analysis }}
       agents: ${{ steps.filter.outputs.agents }}
@@ -31,8 +32,11 @@ jobs:
               - 'src/storybuilder/dashboard/**'
               - 'scripts/import_to_sqlite.py'
               - 'scripts/story_db.py'
-              - 'scripts/dashboard.py'
               - 'tests/downloader/**'
+            dashboard:
+              - 'src/storybuilder/dashboard/**'
+              - 'scripts/dashboard.py'
+              - 'tests/dashboard/**'
             genai:
               - 'src/storybuilder/genai/**'
               - 'src/storybuilder/agents/cartesia_tts_prompt_crafter/**'
@@ -86,6 +90,41 @@ jobs:
         with:
           name: coverage-downloader
           path: .coverage.downloader
+
+  test-dashboard:
+    needs: changes
+    if: needs.changes.outputs.dashboard == 'true' || needs.changes.outputs.common == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4 # v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version-file: ".python-version"
+      - name: Install the project
+        run: uv sync --all-extras --dev --prerelease=allow
+      - name: Run Dashboard Tests
+        env:
+          MERGIFY_TOKEN: ${{ secrets.MERGIFY_TOKEN }}
+        run: uv run pytest --cov=src tests/dashboard
+      - name: Rename Coverage File
+        if: github.event_name == 'pull_request'
+        run: mv .coverage .coverage.dashboard
+      - name: Upload Coverage Artifact
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-dashboard
+          path: .coverage.dashboard
 
   test-genai:
     needs: changes
@@ -230,6 +269,7 @@ jobs:
   test-results:
     needs:
       - test-downloader
+      - test-dashboard
       - test-genai
       - test-analysis
       - test-agents
@@ -258,6 +298,7 @@ jobs:
   post-coverage:
     needs:
       - test-downloader
+      - test-dashboard
       - test-genai
       - test-analysis
       - test-agents

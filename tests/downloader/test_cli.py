@@ -126,8 +126,9 @@ class TestCLICacheIntegration(unittest.TestCase):
     @patch("storybuilder.downloader.cli.save_cache")
     @patch("storybuilder.downloader.cli.get_subcategories")
     @patch("storybuilder.downloader.cli._scrape_subcategories")
+    @patch("storybuilder.downloader.cli._upload_to_cloud")
     @patch("storybuilder.downloader.cli._download_stories")
-    def test_main_loads_and_saves_cache(self, mock_download, mock_scrape, mock_get_subs, mock_save, mock_load) -> None:
+    def test_main_loads_and_saves_cache(self, mock_download, mock_upload, mock_scrape, mock_get_subs, mock_save, mock_load) -> None:
         from storybuilder.downloader.cli import main
         import argparse
 

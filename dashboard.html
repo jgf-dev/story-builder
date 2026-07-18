@@ -269,8 +269,8 @@
     <main class="grid">
       <section class="card">
         <header class="hd">
-          <h2>TASKS.md Editor</h2>
-          <p class="sub">Open the workspace task board file, edit it directly, then save it back.</p>
+          <h2 id="editor-heading">TASKS.md Editor</h2>
+          <p class="sub" id="editor-desc">Open the workspace task board file, edit it directly, then save it back.</p>
         </header>
         <div class="toolbar" role="toolbar" aria-label="Editor actions">
           <input id="fileInput" class="sr-only" type="file" accept=".md,text/markdown,text/plain">
@@ -279,17 +279,17 @@
           <button id="downloadBtn" title="Download a copy to your local machine">Download Copy</button>
           <button class="warn" id="resetBtn" title="Reset editor to default template">Reset Template</button>
         </div>
-        <textarea id="editor" class="editor" spellcheck="false" aria-label="TASKS.md Editor"></textarea>
+        <textarea id="editor" class="editor" spellcheck="false" aria-labelledby="editor-heading" aria-describedby="editor-desc"></textarea>
         <div id="status" class="status" role="status" aria-live="polite">Ready.</div>
       </section>
 
       <aside class="sidebar">
         <section class="card">
           <header class="hd">
-            <h2>Quick Stats</h2>
-            <p class="sub">Derived from the current file contents.</p>
+            <h2 id="stats-heading">Quick Stats</h2>
+            <p class="sub" id="stats-desc">Derived from the current file contents.</p>
           </header>
-          <div class="stats">
+          <div class="stats" role="group" aria-labelledby="stats-heading" aria-describedby="stats-desc">
             <div class="stat"><span class="k">Active</span><span class="v" id="activeCount">0</span></div>
             <div class="stat"><span class="k">Waiting</span><span class="v" id="waitingCount">0</span></div>
             <div class="stat"><span class="k">Someday</span><span class="v" id="somedayCount">0</span></div>

@@ -3,6 +3,27 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
+## [PR-1382](https://github.com/jgf2/story-builder/pull/1382) - 2026-07-16
+
+### Summary
+Fixed CI path-filter regressions in `.github/workflows/test.yml` flagged in review.
+
+### Fixed
+- Restored `tests/downloader/**` to the `downloader` path-filter so edits to downloader tests trigger the `test-downloader` job.
+- Removed the duplicated `tests/dashboard/**` entry from the `dashboard` path-filter.
+
+
+## [PR-1383](https://github.com/jgf-dev/story-builder/pull/1383) - 2026-07-16
+
+### Summary
+Removed the duplicate dashboard test file and redundant downloader conftest that were left behind when dashboard tests were decoupled into `tests/dashboard/`.
+
+### Removed
+- Deleted `tests/downloader/test_dashboard_pages.py`, a near-identical copy of `tests/dashboard/test_dashboard_pages.py`. The duplicate basename caused a pytest `import file mismatch` collection error when the full suite ran, and having both copies double-ran the dashboard tests (once under `test-downloader`, once under `test-dashboard`).
+- Deleted `tests/downloader/conftest.py`; its global-state reset (`db.close_db()` + `scraper.seen_folders.clear()`) is already provided repo-wide by the autouse `clean_globals` fixture in `tests/conftest.py`.
+
+### Fixed
+- Fixed the SonarCloud Quality Gate failure (40% duplication and B security rating on new code) caused by the newly-added `test-dashboard` job and `opencode.yml` workflow. Added `.github/**` to `sonar.exclusions` in `sonar-project.properties` so SonarCloud Automatic Analysis scopes to application source only, consistent with the existing `sonar.sources=./src/` intent and the already-excluded `tests/`, `scripts/`, and `doc/` paths.
 ## [PR-1363](https://github.com/jgf-dev/story-builder/pull/1363) - 2026-07-15
 
 ### Summary

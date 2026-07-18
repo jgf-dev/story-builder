@@ -243,11 +243,12 @@ class TestGenAIClient(unittest.TestCase):
             self.assertIsNone(prev_id)
             self.assertTrue(should_continue)
 
-    def test_handle_exception_quota_backoff_no_rotation(self) -> None:
+    @patch("time.sleep")
+    def test_handle_exception_quota_rotation(self, mock_sleep) -> None:
         from storybuilder.genai.client import _handle_exception, ApiKeyRotator
         keys = [("KEY1", "val1"), ("KEY2", "val2")]
 
-        with patch("google.genai.Client"), patch("storybuilder.genai.client.time.sleep"):
+        with patch("google.genai.Client"):
             rotator = ApiKeyRotator(keys)
             self.assertEqual(rotator.current_key_name, "KEY1")
 
@@ -259,57 +260,14 @@ class TestGenAIClient(unittest.TestCase):
                 e, rotator, "active_session", 0, 0, "test.md"
             )
 
-            # Quota should back off on the current key: keep the session, do not rotate,
-            # increment the attempt counter, and continue.
+            # With the new backoff behavior, the key should NOT rotate on 429
+            # Instead, it waits and retries on the same key with attempt + 1
             self.assertEqual(prev_id, "active_session")
             self.assertEqual(keys_tried, 0)
             self.assertEqual(attempt, 1)
             self.assertTrue(should_continue)
             self.assertEqual(rotator.current_key_name, "KEY1")
-
-    def test_handle_exception_invalid_key_rotation_approved(self) -> None:
-        from storybuilder.genai.client import _handle_exception, ApiKeyRotator
-        keys = [("KEY1", "val1"), ("KEY2", "val2")]
-
-        with patch("google.genai.Client"), patch("builtins.input", return_value="y"):
-            rotator = ApiKeyRotator(keys)
-            self.assertEqual(rotator.current_key_name, "KEY1")
-
-            class MockException(Exception):
-                pass
-
-            e = MockException("API key not valid")
-            prev_id, keys_tried, attempt, should_continue = _handle_exception(
-                e, rotator, "active_session", 0, 0, "test.md"
-            )
-
-            # Approved rotation: drop the session, rotate, increment keys_tried, and continue.
-            self.assertIsNone(prev_id)
-            self.assertEqual(keys_tried, 1)
-            self.assertTrue(should_continue)
-            self.assertEqual(rotator.current_key_name, "KEY2")
-
-    def test_handle_exception_invalid_key_rotation_declined(self) -> None:
-        from storybuilder.genai.client import _handle_exception, ApiKeyRotator
-        keys = [("KEY1", "val1"), ("KEY2", "val2")]
-
-        with patch("google.genai.Client"), patch("builtins.input", return_value="n"):
-            rotator = ApiKeyRotator(keys)
-            self.assertEqual(rotator.current_key_name, "KEY1")
-
-            class MockException(Exception):
-                pass
-
-            e = MockException("API key not valid")
-            prev_id, keys_tried, attempt, should_continue = _handle_exception(
-                e, rotator, "active_session", 0, 0, "test.md"
-            )
-
-            # Declined rotation: keep everything as-is and stop retrying.
-            self.assertEqual(prev_id, "active_session")
-            self.assertEqual(keys_tried, 0)
-            self.assertFalse(should_continue)
-            self.assertEqual(rotator.current_key_name, "KEY1")
+            mock_sleep.assert_called_with(15)
 
 
 if __name__ == "__main__":

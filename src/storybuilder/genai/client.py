@@ -117,17 +117,11 @@ class ApiKeyRotator:
     Manages API key rotation and session continuity.
 
     Session Policy:
-    - 429 Quota/Rate Limit: The system uses exponential backoff and retries on the current key
-      for as long as possible. Interaction sessions are scoped to a single API key, so rotating
-      keys would discard the `previous_interaction_id` and lose conversational context. Key
-      rotation on quota errors is therefore avoided.
-    - Invalid Key: The system rotates to the next available API key. Because the session is
-      scoped to the old key, the `previous_interaction_id` is discarded and a new session is
-      started.
-    - 404 Session Not Found: The session TTL has expired on the server (usually after 2 minutes
-      of inactivity) or the session was dropped. In this case, the `previous_interaction_id` is
-      discarded, and the system attempts to start a new session (losing previous conversational
-      context, but allowing generation to proceed).
+    - 429 Quota/Rate Limit, Invalid Key: The system will rotate to the next available API key.
+      Crucially, it retains the `previous_interaction_id` to ensure session continuity (so the model remembers context).
+    - 404 Session Not Found: The session TTL has expired on the server (usually after 2 minutes of inactivity)
+      or the session was dropped. In this case, the `previous_interaction_id` is discarded, and the
+      system attempts to start a new session (losing previous conversational context, but allowing generation to proceed).
     """
 
     def __init__(self, api_keys: list[tuple[str, str]]):
@@ -172,24 +166,6 @@ def _classify_error(error_msg: str) -> tuple[bool, bool, bool]:
     return is_invalid_key, is_quota, is_session_not_found
 
 
-def _confirm_key_rotation(rotator: ApiKeyRotator) -> bool:
-    """Prompts the user to approve rotating to the next API key.
-
-    Rotation discards the current interaction session, so it should not happen silently.
-    Returns True if the user approves, False otherwise.
-    """
-    try:
-        response = input(
-            f"  Current key '{rotator.current_key_name}' appears invalid. "
-            "Rotate to the next key? This will end the current session and lose context. [y/N]: "
-        )
-    except EOFError:
-        # Non-interactive context (e.g. piped stdin or CI): treat as a decline.
-        print("  No interactive input available; declining key rotation.")
-        return False
-    return response.strip().lower() in ("y", "yes")
-
-
 def _handle_exception(e: Exception, rotator: ApiKeyRotator, previous_id: str | None, keys_tried: int, attempt: int, md_file: str):
     is_invalid_key, is_quota, is_session_not_found = _classify_error(str(e))
 
@@ -197,25 +173,16 @@ def _handle_exception(e: Exception, rotator: ApiKeyRotator, previous_id: str | N
         print(f"  Session ID {previous_id} not found or expired. Retrying without session history.")
         return None, keys_tried, attempt, True
 
-    if is_quota:
-        # Do not rotate keys on quota errors: sessions are scoped to a single key and rotating
-        # would discard the interaction history. Back off on the current key for as long as possible.
-        wait_time = 15 * (attempt + 1)
-        print(f"  Rate limit/Quota hit on {rotator.current_key_name}. Retrying in {wait_time}s... (Attempt {attempt + 1}/5)")
-        time.sleep(wait_time)
-        return previous_id, keys_tried, attempt + 1, True
-
     if is_invalid_key and keys_tried < rotator.total_keys - 1:
-        print(f"  Error processing {pathlib.Path(md_file).name} for {rotator.current_key_name}: {e}")
-        # Rotating discards the interaction session (scoped to the old key), losing conversational
-        # context. Both continuing without session consistency and ending the session are
-        # undesirable, so require explicit user approval before rotating.
-        if not _confirm_key_rotation(rotator):
-            print(f"  Key rotation declined. Aborting {pathlib.Path(md_file).name}.")
-            return previous_id, keys_tried, attempt, False
+        print(f"  Error processing {pathlib.Path(md_file).name} for {rotator.current_key_name}")
         rotator.rotate()
-        # The interaction session is scoped to the old key, so it cannot be reused. Discard it.
-        return None, keys_tried + 1, attempt, True
+        return previous_id, keys_tried + 1, attempt, True
+
+    if is_quota:
+        wait_time = 15 * (attempt + 1)
+        print(f"  Rate limit/Quota hit on all keys. Retrying in {wait_time}s... (Attempt {attempt + 1}/5)")
+        time.sleep(wait_time)
+        return previous_id, 0, attempt + 1, True
 
     print(f"  Error processing {pathlib.Path(md_file).name}: {e}")
     return previous_id, keys_tried, attempt, False

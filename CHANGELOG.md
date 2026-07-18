@@ -17,6 +17,7 @@ Fixed Pyrefly check static type checker diagnostics and unresolved imports in th
 - Fixed constant boolean value check in `tests/downloader/test_downloader.py` and updated test assertions.
 - Fixed mock calls type checking in `tests/agents/test_subagent.py` and `tests/misc/test_keys.py` by casting mock client calls to `Any`.
 - Fixed unused variable warning in `src/storybuilder/analysis/generate_embeddings.py`.
+- Configured pytest in `pyproject.toml` to ignore third-party/system `DeprecationWarning`s to clean up test output.
 
 ## [PR-1392](https://github.com/jgf-dev/story-builder/pull/1392) - 2026-07-16
 

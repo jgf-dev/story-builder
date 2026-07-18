@@ -40,7 +40,7 @@ dependencies = [
     "opentelemetry-exporter-otlp-proto-http>=1.42.1",
     "dotenv>=0.9.9",
     "sqlmodel>=0.0.39",
-    "huggingface_hub>=0.25.0",
+    "huggingface-hub>=0.25.0",
     "a2a-sdk==1.1.1",
 ]
 
@@ -146,6 +146,9 @@ dev = [
 [tool.pytest.ini_options]
 testpaths  = ["tests"]
 pythonpath = ["."]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
 
 # Temporary disable test in agent
 

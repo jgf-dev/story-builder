@@ -10,7 +10,7 @@ on:
 
 jobs:
   changes:
-    runs-on: [ubuntu-latest, alirun]
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: read
@@ -29,7 +29,6 @@ jobs:
           filters: |
             downloader:
               - 'src/storybuilder/downloader/**'
-              - 'src/storybuilder/dashboard/**'
               - 'scripts/import_to_sqlite.py'
               - 'scripts/story_db.py'
               - 'tests/downloader/**'

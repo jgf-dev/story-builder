@@ -6,7 +6,7 @@ on:
     branches: [main]
 jobs:
   build:
-    runs-on: [ubuntu-latest, alirun]
+    runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
@@ -28,12 +28,3 @@ jobs:
 
       - name: Run pylint
         run: uv run pylint --errors-only src/
-
-      - name: Lint code with Ruff
-        run: uv run ruff check --output-format=github
-        continue-on-error: true
-        
-      - name: Check code formatting with Ruff
-        run: uv run ruff format --diff
-        continue-on-error: true
-

@@ -67,6 +67,18 @@ project-excludes = [
     "**/typings/**",
 ]
 
+[tool.black]
+target-version = ["py312"]
+line-length = 120
+skip-string-normalization = false
+skip-magic-trailing-comma = false
+force-exclude = """
+/(
+    | docs
+    | setup.py
+)/
+"""
+
 [tool.isort]
 py_version                     = 312
 sections                       = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
@@ -128,6 +140,7 @@ docstring-code-format     = true
 [dependency-groups]
 dev = [
     "a>=1.0",
+    "black>=26.5.1",
     "isort>=8.0.1",
     "pylint>=3.0.0",
     "pytest>=9.0.3",

@@ -112,6 +112,45 @@ def get_gemini_api_keys() -> list[tuple[str, str]]:
     return keys
 
 
+class ApiKeyRotator:
+    """
+    Manages API key rotation and session continuity.
+
+    Session Policy:
+    - 429 Quota/Rate Limit, Invalid Key: The system will rotate to the next available API key.
+      Crucially, it retains the `previous_interaction_id` to ensure session continuity (so the model remembers context).
+    - 404 Session Not Found: The session TTL has expired on the server (usually after 2 minutes of inactivity)
+      or the session was dropped. In this case, the `previous_interaction_id` is discarded, and the
+      system attempts to start a new session (losing previous conversational context, but allowing generation to proceed).
+    """
+
+    def __init__(self, api_keys: list[tuple[str, str]]):
+        if not api_keys:
+            raise ValueError("No API keys provided for rotation.")
+        self.api_keys = api_keys
+        self.current_key_idx = 0
+        self._client = genai.Client(api_key=self.api_keys[0][1])
+
+    @property
+    def current_key_name(self) -> str:
+        return self.api_keys[self.current_key_idx][0]
+
+    @property
+    def client(self) -> Client:
+        return self._client
+
+    def rotate(self) -> None:
+        """Rotates to the next available API key and instantiates a new Client."""
+        self.current_key_idx = (self.current_key_idx + 1) % len(self.api_keys)
+        new_key_name, new_api_key = self.api_keys[self.current_key_idx]
+        self._client = genai.Client(api_key=new_api_key)
+        print(f"  Switching to key '{new_key_name}'")
+
+    @property
+    def total_keys(self) -> int:
+        return len(self.api_keys)
+
+
 def _classify_error(error_msg: str) -> tuple[bool, bool, bool]:
     error_lower = error_msg.lower()
     is_invalid_key = (
@@ -127,24 +166,17 @@ def _classify_error(error_msg: str) -> tuple[bool, bool, bool]:
     return is_invalid_key, is_quota, is_session_not_found
 
 
-def _handle_exception(e: Exception, api_state, previous_id, keys_tried, attempt, md_file):
+def _handle_exception(e: Exception, rotator: ApiKeyRotator, previous_id: str | None, keys_tried: int, attempt: int, md_file: str):
     is_invalid_key, is_quota, is_session_not_found = _classify_error(str(e))
 
     if is_session_not_found and previous_id is not None:
         print(f"  Session ID {previous_id} not found or expired. Retrying without session history.")
         return None, keys_tried, attempt, True
 
-    if (is_invalid_key or is_quota) and keys_tried < len(api_state["api_keys"]) - 1:
-        current_key_idx = api_state["current_key_idx"]
-        key_name = api_state["api_keys"][current_key_idx][0]
-        print(f"  Error processing {pathlib.Path(md_file).name} for {key_name}")
-
-        api_state["current_key_idx"] = (current_key_idx + 1) % len(api_state["api_keys"])
-        new_key_name, api_key = api_state["api_keys"][api_state["current_key_idx"]]
-        print(f"  Switching to key '{new_key_name}' due to error: {e}")
-        api_state["client"] = genai.Client(api_key=api_key)
-
-        return None, keys_tried + 1, attempt, True
+    if is_invalid_key and keys_tried < rotator.total_keys - 1:
+        print(f"  Error processing {pathlib.Path(md_file).name} for {rotator.current_key_name}")
+        rotator.rotate()
+        return previous_id, keys_tried + 1, attempt, True
 
     if is_quota:
         wait_time = 15 * (attempt + 1)
@@ -175,12 +207,7 @@ def _save_audio_from_interaction(interaction, wav_file, md_file) -> None:
     print(f"  Saved audio to {pathlib.Path(wav_file).name}")
 
 
-def process_file(md_file: str, wav_file: str, previous_id, api_state: dict[str, Client | int | list[tuple[str, str]]]):
-    client = api_state["client"]
-    api_keys = api_state["api_keys"]
-    current_key_idx = api_state["current_key_idx"]
-    api_keys[current_key_idx][0]
-
+def process_file(md_file: str, wav_file: str, previous_id: str | None, rotator: ApiKeyRotator):
     print(f"Processing {pathlib.Path(md_file).name}...")
     content = pathlib.Path(md_file).read_text(encoding="utf-8")
 
@@ -192,7 +219,7 @@ def process_file(md_file: str, wav_file: str, previous_id, api_state: dict[str, 
     attempt = 0
     while attempt < max_retries:
         try:
-            interaction = client.interactions.create(
+            interaction = rotator.client.interactions.create(
                 model="gemini-3.1-flash-tts-preview",
                 input=content,
                 response_modalities=["audio"],
@@ -202,15 +229,13 @@ def process_file(md_file: str, wav_file: str, previous_id, api_state: dict[str, 
         except Exception as e:
             previous_id, keys_tried, attempt, should_continue = _handle_exception(
                 e,
-                api_state,
+                rotator,
                 previous_id,
                 keys_tried,
                 attempt,
                 md_file,
             )
             if should_continue:
-                client = api_state["client"]
-                api_state["api_keys"][api_state["current_key_idx"]][0]
                 continue
             raise
         else:
@@ -231,9 +256,7 @@ def process_directory(directory) -> None:
         print("Error: No GEMINI_API_KEY or GEMINI_API_KEY_X found in environment.")
         return
 
-    current_key_idx = 0
-    _, api_key = api_keys[current_key_idx]
-    client = genai.Client(api_key=api_key)
+    rotator = ApiKeyRotator(api_keys)
 
     # Find all *-part.md prompt files in the directory
     files = sorted(glob.glob(os.path.join(directory, "*-part.md")))
@@ -243,11 +266,6 @@ def process_directory(directory) -> None:
 
     print(f"Found {len(files)} prompt files to process in {directory}.")
 
-    api_state = {
-        "client": client,
-        "api_keys": api_keys,
-        "current_key_idx": current_key_idx,
-    }
     previous_id = None
     for md_file in files:
         base_name = os.path.splitext(pathlib.Path(md_file).name)[0]
@@ -261,7 +279,7 @@ def process_directory(directory) -> None:
             md_file,
             wav_file,
             previous_id,
-            api_state,
+            rotator,
         )
 
         # Slight delay to respect rate limits

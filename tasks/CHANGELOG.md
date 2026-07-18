@@ -3,6 +3,14 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
+## [PR-1363](https://github.com/jgf-dev/story-builder/pull/1363) - 2026-07-15
+
+### Summary
+Fixed CI path filter so changes to `src/storybuilder/dashboard/**` trigger the downloader test job. Also adjusted Markdown export formatting in `read_story.py` to separate the metadata header from the story body with a blank line.
+
+### Fixed
+- Added `src/storybuilder/dashboard/**` to the `downloader` paths-filter in `.github/workflows/test.yml` so that dashboard page changes (e.g. `read_story.py`) now trigger `test-downloader` and execute the existing dashboard Streamlit tests.
+- Ensured exported Markdown includes a blank line between the metadata header and story content in `src/storybuilder/dashboard/pages/read_story.py`.
 ## [PR-1375](https://github.com/jgf-dev/story-builder/pull/1375) - 2026-07-16
 
 ### Summary

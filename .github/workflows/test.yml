@@ -34,6 +34,8 @@ jobs:
               - 'tests/downloader/**'
             dashboard:
               - 'src/storybuilder/dashboard/**'
+              - 'src/storybuilder/downloader/db.py'
+              - 'src/storybuilder/downloader/__init__.py'
               - 'scripts/dashboard.py'
               - 'tests/dashboard/**'
             genai:
@@ -51,7 +53,7 @@ jobs:
             common:
               - 'pyproject.toml'
               - 'uv.lock'
-              - '.github/workflows/**'
+              - '.github/workflows/test.yml'
               - 'AGENTS.md'
               - 'tests/misc/**'
 
@@ -292,7 +294,6 @@ jobs:
           if [ "$all_skipped" = "true" ]; then
             echo "All test jobs were skipped; reporting success."
           fi
-          exit 0
 
   post-coverage:
     needs:

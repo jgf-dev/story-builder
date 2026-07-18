@@ -57,6 +57,7 @@ build-backend = "uv_build"
 
 [tool.pyrefly]
 project-includes = ["**/*.py*", "**/*.ipynb"]
+search-path = [".", "src", "scripts"]
 project-excludes = [
     "**/.venv/**",
     "**/.env/**",

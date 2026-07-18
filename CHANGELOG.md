@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [PR-000](https://github.com/jgf2/story-builder/pull/000) - 2026-07-18
+
+### Summary
+Fixed Pyrefly check static type checker diagnostics and unresolved imports in the downloader, analysis, and test suites.
+
+### Added
+- Added `search-path` configuration to `pyproject.toml` under `[tool.pyrefly]` to resolve dynamic/relative script and test helper imports.
+
+### Fixed
+- Fixed type annotations for `all_story_targets` in `src/storybuilder/downloader/cli.py` to use `dict[tuple[str | None, str], dict]`.
+- Resolved type diagnostics in `tests/downloader/test_cli.py` relating to index keys, `NoneType` checks, and `date` type narrowing.
+- Resolved `None` subscriptable type issues in `tests/downloader/test_database.py` by adding type assertions.
+- Fixed constant boolean value check in `tests/downloader/test_downloader.py` and updated test assertions.
+- Fixed mock calls type checking in `tests/agents/test_subagent.py` and `tests/misc/test_keys.py` by casting mock client calls to `Any`.
+- Fixed unused variable warning in `src/storybuilder/analysis/generate_embeddings.py`.
+
 ## [PR-1392](https://github.com/jgf-dev/story-builder/pull/1392) - 2026-07-16
 
 ### Summary

@@ -1024,6 +1024,8 @@ class TestDBContentOperations(unittest.TestCase):
 
         result = db.get_story("/tmp/fields_test.txt")
 
+        self.assertIsNotNone(result)
+        assert result is not None
         self.assertEqual(result["title"], "Test Title")
         self.assertIn("Test Author", result["author"])
         self.assertEqual(result["url"], "http://ex/test")

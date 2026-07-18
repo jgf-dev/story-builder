@@ -134,7 +134,7 @@ class TestCLICacheIntegration(unittest.TestCase):
         mock_get_subs.return_value = [{"name": "s", "url": "u"}]
         mock_scrape.return_value = {}
 
-        # More direct: patch the functions that are called in the try/finally
+        # 1. Test when db is empty string (should default to stories/db)
         with patch("storybuilder.downloader.cli._parse_args") as pa:
             pa.return_value = argparse.Namespace(
                 category="gay", start_date="2024-01-01", end_date=None,
@@ -147,8 +147,48 @@ class TestCLICacheIntegration(unittest.TestCase):
                     with patch("storybuilder.downloader.cli._print_config"):
                         main()
 
-        mock_load.assert_called_once_with("out")
-        mock_save.assert_called_once_with("out")
+        mock_load.assert_any_call("stories/db")
+        mock_save.assert_any_call("stories/db")
+
+        # Reset mocks
+        mock_load.reset_mock()
+        mock_save.reset_mock()
+
+        # 2. Test when db is set to a specific directory
+        with patch("storybuilder.downloader.cli._parse_args") as pa:
+            pa.return_value = argparse.Namespace(
+                category="gay", start_date="2024-01-01", end_date=None,
+                output_dir="out", delay=0, force=False, socks5_proxy=None,
+                rotate_on_refusal=False, max_workers=1, max_scraping=1,
+                db="custom_db_dir", gcs_bucket="", gcs_prefix="", s3_bucket="", s3_prefix=""
+            )
+            with patch("storybuilder.downloader.cli._setup_network", return_value=True):
+                with patch("storybuilder.downloader.cli._parse_dates", return_value=(__import__("datetime").date(2024,1,1), __import__("datetime").date(2024,12,31))):
+                    with patch("storybuilder.downloader.cli._print_config"):
+                        main()
+
+        mock_load.assert_any_call("custom_db_dir")
+        mock_save.assert_any_call("custom_db_dir")
+
+        # Reset mocks
+        mock_load.reset_mock()
+        mock_save.reset_mock()
+
+        # 3. Test when db is set to a database file path
+        with patch("storybuilder.downloader.cli._parse_args") as pa:
+            pa.return_value = argparse.Namespace(
+                category="gay", start_date="2024-01-01", end_date=None,
+                output_dir="out", delay=0, force=False, socks5_proxy=None,
+                rotate_on_refusal=False, max_workers=1, max_scraping=1,
+                db="custom_db_dir/stories.db", gcs_bucket="", gcs_prefix="", s3_bucket="", s3_prefix=""
+            )
+            with patch("storybuilder.downloader.cli._setup_network", return_value=True):
+                with patch("storybuilder.downloader.cli._parse_dates", return_value=(__import__("datetime").date(2024,1,1), __import__("datetime").date(2024,12,31))):
+                    with patch("storybuilder.downloader.cli._print_config"):
+                        main()
+
+        mock_load.assert_any_call("custom_db_dir")
+        mock_save.assert_any_call("custom_db_dir")
 
 
 class TestCLIEarlyReturns(unittest.TestCase):

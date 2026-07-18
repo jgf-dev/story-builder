@@ -1,16 +1,18 @@
-import unittest
-import unittest.mock
 import datetime
 import os
 import tempfile
-from unittest.mock import patch, MagicMock
+import unittest
+import unittest.mock
 from pathlib import Path
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
+from storybuilder.downloader import cache
+from storybuilder.downloader import storage as dl_storage
 
 # Import modular components
 from storybuilder.downloader.date_parser import parse_nifty_date
 from storybuilder.downloader.scraper import parse_listing_rows
-from storybuilder.downloader import cache
-from storybuilder.downloader import storage as dl_storage
 
 
 class TestDateParser(unittest.TestCase):
@@ -88,6 +90,7 @@ class TestScraperHelpers(unittest.TestCase):
 
     def test_extract_subcategories_list_group(self) -> None:
         from bs4 import BeautifulSoup
+
         from storybuilder.downloader.scraper import _extract_subcategories_from_html
         html = """
         <ul>
@@ -102,6 +105,7 @@ class TestScraperHelpers(unittest.TestCase):
 
     def test_extract_subcategories_fallback(self) -> None:
         from bs4 import BeautifulSoup
+
         from storybuilder.downloader.scraper import _extract_subcategories_from_html
         html = '<a href="camping/">Camping</a><a href="college/">College</a>'
         soup = BeautifulSoup(html, "html.parser")
@@ -120,8 +124,9 @@ class TestScraperHelpers(unittest.TestCase):
         self.assertEqual(filtered[0]["name"], "Adult Friends")
 
     def test_filter_stories_by_date(self) -> None:
-        from storybuilder.downloader.scraper import _filter_stories_by_date
         import datetime
+
+        from storybuilder.downloader.scraper import _filter_stories_by_date
         stories = [
             {"name": "old", "date": "2020-01-01", "is_dir": False, "url": "u1"},
             {"name": "dir", "date": "1999-01-01", "is_dir": True, "url": "u2"},
@@ -137,8 +142,8 @@ class TestScraperHelpers(unittest.TestCase):
 
     @patch("storybuilder.downloader.scraper.cache_lock")
     def test_merge_and_save_stories(self, mock_lock) -> None:
-        from storybuilder.downloader.scraper import _merge_and_save_stories
         import storybuilder.downloader.cache as cache_mod
+        from storybuilder.downloader.scraper import _merge_and_save_stories
         cache_mod.metadata_cache = {}
         scraped = [{"url": "new", "date": "2024-01-01", "name": "n"}]
         cached = [{"url": "old", "date": "2023-01-01", "name": "o"}]
@@ -158,9 +163,10 @@ class TestScraperCacheAndEarlyStop(unittest.TestCase):
 
     def test_scrape_subcategory_uses_cache_only_when_complete(self) -> None:
         """If cache not marked complete, do not early-stop even on hits."""
-        from unittest.mock import patch
-        from storybuilder.downloader.scraper import scrape_subcategory
         import datetime
+        from unittest.mock import patch
+
+        from storybuilder.downloader.scraper import scrape_subcategory
 
         cached = [{"url": "http://ex/s1", "date": "2024-06-01", "name": "s1"}]
         # Simulate incomplete cache
@@ -182,9 +188,10 @@ class TestScraperCacheAndEarlyStop(unittest.TestCase):
 
     def test_cache_hit_stops_pagination_when_complete(self) -> None:
         """When complete cache, a matching cached story should cause stop."""
-        from unittest.mock import patch
-        from storybuilder.downloader.scraper import scrape_subcategory
         import datetime
+        from unittest.mock import patch
+
+        from storybuilder.downloader.scraper import scrape_subcategory
 
         cached = [{"url": "http://ex/old", "date": "2024-05-01", "name": "old"}]
         with patch("storybuilder.downloader.scraper._get_cached_subcategory", return_value=(cached, True)):
@@ -202,9 +209,10 @@ class TestScraperCacheAndEarlyStop(unittest.TestCase):
                     self.assertEqual(len(result), 1)
 
     def test_force_scan_bypasses_cache(self) -> None:
-        from unittest.mock import patch
-        from storybuilder.downloader.scraper import scrape_subcategory
         import datetime
+        from unittest.mock import patch
+
+        from storybuilder.downloader.scraper import scrape_subcategory
 
         with patch("storybuilder.downloader.scraper._get_cached_subcategory", return_value=([], True)):
             with patch("storybuilder.downloader.scraper._scrape_subcategory_pages") as mock_pages:
@@ -218,8 +226,9 @@ class TestScraperCacheAndEarlyStop(unittest.TestCase):
 
     def test_filter_stories_by_date_keeps_dirs_and_in_range(self) -> None:
         # Already have basic, but verify the returned shape from scrape path
-        from storybuilder.downloader.scraper import _filter_stories_by_date
         import datetime
+
+        from storybuilder.downloader.scraper import _filter_stories_by_date
         merged = [
             {"name": "old", "date": "2020-01-01", "is_dir": False, "url": "u1"},
             {"name": "dir1", "date": "1990-01-01", "is_dir": True, "url": "d1"},
@@ -235,10 +244,11 @@ class TestScraperCacheAndEarlyStop(unittest.TestCase):
     @patch("storybuilder.downloader.scraper.cache_lock")
     def test_multi_chapter_folder_cache_decision(self, mock_lock) -> None:
         """Cached folder: if has any in range return all chapters (to avoid partial download)."""
-        from unittest.mock import patch
-        from storybuilder.downloader.scraper import scrape_multi_chapter_folder
         import datetime
+        from unittest.mock import patch
+
         import storybuilder.downloader.cache as cache_mod
+        from storybuilder.downloader.scraper import scrape_multi_chapter_folder
 
         cached_entry = {
             "folder_date": "2024-06-01",
@@ -263,10 +273,12 @@ class TestScraperCacheAndEarlyStop(unittest.TestCase):
 
     def test_process_subcategory_dedups_folders(self) -> None:
         """seen_folders prevents duplicate processing of same Dir across calls."""
-        from unittest.mock import patch
-        from storybuilder.downloader.scraper import process_subcategory, seen_folders
-        import datetime
         import argparse
+        import datetime
+        from unittest.mock import patch
+
+        from storybuilder.downloader.scraper import process_subcategory
+        from storybuilder.downloader.scraper import seen_folders
 
         seen_folders.clear()
 
@@ -289,9 +301,10 @@ class TestScraperCacheAndEarlyStop(unittest.TestCase):
 
     def test_scrape_subcategory_end_to_end_no_miss_no_dupe(self) -> None:
         """Simulates a realistic scrape + cache scenario and asserts the final filtered list has correct stories, no dups."""
-        from unittest.mock import patch
-        from storybuilder.downloader.scraper import scrape_subcategory
         import datetime
+        from unittest.mock import patch
+
+        from storybuilder.downloader.scraper import scrape_subcategory
 
         start = datetime.date(2024, 5, 1)
         end = datetime.date(2024, 7, 1)
@@ -327,9 +340,11 @@ class TestScraperCacheAndEarlyStop(unittest.TestCase):
         """Uses patched fetch_page returning successive pages to exercise _scrape_subcategory_pages logic
         and ensure early stop on old non-dir + correct collection (no miss of in-range, no dups).
         """
-        from unittest.mock import patch, MagicMock
-        from storybuilder.downloader.scraper import scrape_subcategory
         import datetime
+        from unittest.mock import MagicMock
+        from unittest.mock import patch
+
+        from storybuilder.downloader.scraper import scrape_subcategory
 
         start = datetime.date(2024, 1, 1)
         end = datetime.date(2024, 12, 31)
@@ -360,9 +375,11 @@ class TestScraperCacheAndEarlyStop(unittest.TestCase):
         """Directly exercises _scrape_subcategory_pages to hit more internal branches:
         cache lookup inside loop, early stop on old date, pagination termination, reached_end.
         """
-        from unittest.mock import patch, MagicMock
-        from storybuilder.downloader.scraper import _scrape_subcategory_pages
         import datetime
+        from unittest.mock import MagicMock
+        from unittest.mock import patch
+
+        from storybuilder.downloader.scraper import _scrape_subcategory_pages
 
         start = datetime.date(2024, 1, 1)
         # Cache key must match resolved URL: sub_url + href
@@ -393,9 +410,10 @@ class TestScraperCacheAndEarlyStop(unittest.TestCase):
         cache complete/force + resulting use_cache and collected stories.
         Ensures no dups and correct filtering.
         """
-        from unittest.mock import patch
-        from storybuilder.downloader.scraper import scrape_subcategory
         import datetime
+        from unittest.mock import patch
+
+        from storybuilder.downloader.scraper import scrape_subcategory
 
         cases = [
             # (force, complete, expected_use_cache, expected_names) - expectations after final date filter
@@ -429,10 +447,11 @@ class TestScraperCacheAndEarlyStop(unittest.TestCase):
         """Mocked integration for process_subcategory producing mixed story + dir targets.
         Asserts correct output paths, no duplicate keys, and that dirs go through multi-chapter path.
         """
-        from unittest.mock import patch
-        from storybuilder.downloader.scraper import process_subcategory
-        import datetime
         import argparse
+        import datetime
+        from unittest.mock import patch
+
+        from storybuilder.downloader.scraper import process_subcategory
 
         sub = {"name": "Sub", "url": "http://ex/gay/sub/"}
         args = argparse.Namespace(
@@ -470,8 +489,8 @@ class TestCache(unittest.TestCase):
         cache.metadata_cache = {}
 
     def test_cache_loading_and_saving(self) -> None:
-        import tempfile
         import shutil
+        import tempfile
 
         temp_dir = tempfile.mkdtemp()
         try:
@@ -503,11 +522,13 @@ class TestWriterCacheInteraction(unittest.TestCase):
         """Writer's download_single_target may see same story from multiple subcats.
         Cache ensures we don't re-download.
         """
-        from storybuilder.downloader import cache
-        import tempfile
-        import shutil
         import os
-        from unittest.mock import patch, MagicMock
+        import shutil
+        import tempfile
+        from unittest.mock import MagicMock
+        from unittest.mock import patch
+
+        from storybuilder.downloader import cache
 
         temp_dir = tempfile.mkdtemp()
         try:
@@ -534,10 +555,11 @@ class TestWriterCacheInteraction(unittest.TestCase):
 
     def test_writer_uses_cache_for_dedupe(self) -> None:
         """Writer's download_single_target checks _is_already_downloaded which uses cache."""
-        from storybuilder.downloader import cache
-        import tempfile
-        import shutil
         import os
+        import shutil
+        import tempfile
+
+        from storybuilder.downloader import cache
 
         temp_dir = tempfile.mkdtemp()
         try:
@@ -556,9 +578,10 @@ class TestWriterCacheInteraction(unittest.TestCase):
 
     def test_writer_file_exists_check(self) -> None:
         """Writer checks if file already exists on disk."""
-        from storybuilder.downloader.writer import _is_already_downloaded
-        import tempfile
         import shutil
+        import tempfile
+
+        from storybuilder.downloader.writer import _is_already_downloaded
 
         temp_dir = tempfile.mkdtemp()
         try:
@@ -579,9 +602,10 @@ class TestWriterCacheInteraction(unittest.TestCase):
 
     def test_replicate_story_handles_duplicates(self) -> None:
         """Writer's _replicate_story copies primary to output_paths."""
-        from storybuilder.downloader.writer import _replicate_story
-        import tempfile
         import shutil
+        import tempfile
+
+        from storybuilder.downloader.writer import _replicate_story
 
         temp_dir = tempfile.mkdtemp()
         try:
@@ -603,9 +627,10 @@ class TestWriterCacheInteraction(unittest.TestCase):
 
     def test_download_single_target_with_existing_file(self) -> None:
         """download_single_target skips if file already exists."""
-        from storybuilder.downloader.writer import download_single_target
-        import tempfile
         import shutil
+        import tempfile
+
+        from storybuilder.downloader.writer import download_single_target
 
         temp_dir = tempfile.mkdtemp()
         try:
@@ -744,9 +769,10 @@ class TestScraperMultiChapter(unittest.TestCase):
     @patch("storybuilder.downloader.scraper.fetch_page")
     def test_scrape_multi_chapter_folder_uses_cache(self, mock_fetch) -> None:
         """Test scrape_multi_chapter_folder uses cache when valid."""
-        from storybuilder.downloader.scraper import scrape_multi_chapter_folder
         import datetime
+
         from storybuilder.downloader import cache
+        from storybuilder.downloader.scraper import scrape_multi_chapter_folder
 
         cache.metadata_cache = {
             "http://ex/folder/": {
@@ -790,13 +816,12 @@ class TestScraperMultiChapter(unittest.TestCase):
         mock_fetch.assert_called_once()
 
     def test_process_directory_story(self) -> None:
-        import storybuilder.downloader.scraper
-        storybuilder.downloader.scraper.seen_folders.clear()
         """Test _process_directory_story generates chapter targets."""
         import storybuilder.downloader.scraper
         storybuilder.downloader.scraper.seen_folders.clear()
-        from storybuilder.downloader.scraper import _process_directory_story
         import argparse
+
+        from storybuilder.downloader.scraper import _process_directory_story
 
         story = {
             "name": "Series",
@@ -821,8 +846,9 @@ class TestScraperMultiChapter(unittest.TestCase):
 
     def test_process_single_story(self) -> None:
         """Test _process_single_story generates a single target."""
-        from storybuilder.downloader.scraper import _process_single_story
         import argparse
+
+        from storybuilder.downloader.scraper import _process_single_story
 
         story = {
             "name": "Single Story",

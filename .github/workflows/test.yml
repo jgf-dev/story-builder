@@ -38,6 +38,7 @@ jobs:
               - 'src/storybuilder/downloader/__init__.py'
               - 'scripts/dashboard.py'
               - 'tests/dashboard/**'
+              - 'tests/dashboard/**'
             genai:
               - 'src/storybuilder/genai/**'
               - 'src/storybuilder/agents/cartesia_tts_prompt_crafter/**'

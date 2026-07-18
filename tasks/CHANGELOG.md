@@ -3,6 +3,7 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
+
 ## [PR-1382](https://github.com/jgf2/story-builder/pull/1382) - 2026-07-16
 
 ### Summary
@@ -11,6 +12,7 @@ Fixed CI path-filter regressions in `.github/workflows/test.yml` flagged in revi
 ### Fixed
 - Restored `tests/downloader/**` to the `downloader` path-filter so edits to downloader tests trigger the `test-downloader` job.
 - Removed the duplicated `tests/dashboard/**` entry from the `dashboard` path-filter.
+
 
 ## [PR-1383](https://github.com/jgf-dev/story-builder/pull/1383) - 2026-07-16
 

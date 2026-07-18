@@ -1,8 +1,16 @@
 queue_rules:
-  - name: checks-pass
+  - name: main-queue
     merge_conditions:
-      - "#check-failure = 0"
       - check-success ~= ^run_tests / test-results$
+      - "#check-pending = 0"
+      - "#check-failure = 0"
+      - "#check-timed-out = 0"
+      - "#deployment-failure = 0"
+      - "#review-threads-unresolved = 0"
+      - -conflict
+    branch_protection_injection_mode: merge
+    queue_conditions:
+      - base = main
 merge_queue:
   status_comments: all
   queue_controls_comment: true
@@ -22,15 +30,35 @@ scopes:
         include:
           - scripts/**/*
 merge_protections_settings:
-  auto_merge_conditions:
-    - check-success ~= ^run_tests / test-results$
+  auto_merge_conditions: true
 pull_request_rules:
   - name: Auto-merge approved PRs
     conditions:
       - base = main
-      - "#approved-reviews-by >= 1"
+      - "#review-threads-unresolved = 0"
       - "#changes-requested-reviews-by = 0"
+      - "#check-failure = 0"
+      - "#check-pending = 0"
+      - "#deployment-failure = 0"
       - check-success ~= ^run_tests / test-results$
     actions:
       merge:
         method: squash
+  - name: Fix conflicts
+    conditions:
+      - -draft
+      - conflict
+      - base = main
+    actions:
+      label:
+        add:
+          - "@jules"
+          - "@devin"
+      comment:
+        message: "@jules @devin can you fix the merge conflicts?"
+  - name: Keep PRs up to date
+    conditions:
+      - -draft
+      - "#commits-behind >= 1"
+    actions:
+      update: null

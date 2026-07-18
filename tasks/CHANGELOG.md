@@ -3,6 +3,36 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
+## [PR-1363](https://github.com/jgf-dev/story-builder/pull/1363) - 2026-07-15
+
+### Summary
+Fixed CI path filter so changes to `src/storybuilder/dashboard/**` trigger the downloader test job. Also adjusted Markdown export formatting in `read_story.py` to separate the metadata header from the story body with a blank line.
+
+### Fixed
+- Added `src/storybuilder/dashboard/**` to the `downloader` paths-filter in `.github/workflows/test.yml` so that dashboard page changes (e.g. `read_story.py`) now trigger `test-downloader` and execute the existing dashboard Streamlit tests.
+- Ensured exported Markdown includes a blank line between the metadata header and story content in `src/storybuilder/dashboard/pages/read_story.py`.
+## [PR-1375](https://github.com/jgf-dev/story-builder/pull/1375) - 2026-07-16
+
+### Summary
+Repaired the invalid Mergify configuration while preserving safe CI, review, conflict, and branch-update automation.
+
+### Fixed
+- Restored the aggregate `run_tests / test-results` check gate and required human review conditions.
+- Combined merge-protection conditions into one valid YAML mapping and removed malformed nested rules.
+- Kept conflict notification and stale-branch update rules as valid `pull_request_rules`.
+
+## [PR-1372](https://github.com/jgf-dev/story-builder/pull/1372) - 2026-07-15
+
+### Summary
+Improved the dashboard's semantic structure while preserving its existing layout.
+
+### Fixed
+- Replaced generic note containers with native `<ul>` and `<li>` elements and reset their default visual styling.
+- Scoped the page-header layout styles so semantic card headers retain their original spacing.
+- Updated the accessibility guidance to prefer native list elements over generic ARIA grouping.
+- Fixed Quick Stats parsing so checklist items are counted within the correct task section.
+- Added arrow-key, Home, and End navigation with a single tab stop for the editor toolbar.
+
 ## [PR-1369](https://github.com/jgf-dev/story-builder/pull/1369) - 2026-07-15
 
 ### Summary

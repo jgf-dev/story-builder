@@ -114,6 +114,8 @@ Typical observed order for analysis work:
 
 For every change you make to the project, append a summary in ./**/CHANGELOG.md
 
+> **Note:** A missing changelog entry should **not** be reported or flagged during CI or code review. It is a best-effort convention, not an enforced requirement.
+
 <changes>
 <one-of>
 ## [PR-XXX](https://github.com/jgf2/story-builder/pull/XXX) - YYYY-MM-DD

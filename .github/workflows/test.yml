@@ -48,7 +48,8 @@ jobs:
             common:
               - 'pyproject.toml'
               - 'uv.lock'
-              - '.github/workflows/test.yml'
+              - '.github/workflows/**'
+              - 'AGENTS.md'
               - 'tests/misc/**'
 
   test-downloader:
@@ -239,12 +240,20 @@ jobs:
       - name: Verify test jobs succeeded
         run: |
           results="${{ join(needs.*.result, ' ') }}"
+          all_skipped=true
           for r in $results; do
+            if [ "$r" != "skipped" ]; then
+              all_skipped=false
+            fi
             if [ "$r" != "success" ] && [ "$r" != "skipped" ]; then
               echo "A required test job did not succeed: $r"
               exit 1
             fi
           done
+          if [ "$all_skipped" = "true" ]; then
+            echo "All test jobs were skipped; reporting success."
+          fi
+          exit 0
 
   post-coverage:
     needs:

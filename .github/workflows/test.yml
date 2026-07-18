@@ -30,6 +30,7 @@ jobs:
           filters: |
             downloader:
               - 'src/storybuilder/downloader/**'
+              - 'src/storybuilder/dashboard/**'
               - 'scripts/import_to_sqlite.py'
               - 'scripts/story_db.py'
               - 'tests/downloader/**'

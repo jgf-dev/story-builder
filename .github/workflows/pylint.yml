@@ -33,6 +33,6 @@ jobs:
         run: uv run ruff check --output-format=github
         
       - name: Check code formatting with Ruff
-        run: ruff format --diff
+        run: uv run ruff format --diff
         continue-on-error: true
 

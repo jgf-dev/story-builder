@@ -3,6 +3,23 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
+## [PR-1388](https://github.com/jgf-dev/story-builder/pull/1388) - 2026-07-18
+
+### Summary
+Encapsulated API key rotation in an `ApiKeyRotator` class, corrected the TTS session-continuity policy, and improved dashboard accessibility.
+
+### Added
+- `ApiKeyRotator` class in `src/storybuilder/genai/client.py` to manage API key state and rotation.
+- `aria-labelledby`/`aria-describedby` attributes and a `role="group"` on the dashboard editor and Quick Stats sections in `dashboard.html`.
+- Unit tests for `ApiKeyRotator` and the quota/invalid-key/404 paths of `_handle_exception` in `tests/genai/test_genai.py`.
+
+### Changed
+- Quota (429) errors now back off with exponential delay on the current key instead of rotating, since interaction sessions are scoped to a single key and rotating would discard conversational context.
+- Invalid-key rotation now requires interactive user approval (a `[y/N]` prompt) before switching keys, and discards the `previous_interaction_id` because it cannot be reused under a new key. Non-interactive contexts (piped stdin/CI) treat the prompt as a decline.
+
+### Fixed
+- Corrected the session policy so `previous_interaction_id` is no longer retained across a key change, which previously guaranteed a wasted 404 round-trip on every rotation.
+
 ## [PR-1375](https://github.com/jgf-dev/story-builder/pull/1375) - 2026-07-16
 
 ### Summary

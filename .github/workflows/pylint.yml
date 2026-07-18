@@ -30,10 +30,8 @@ jobs:
         run: uv run pylint --errors-only src/
 
       - name: Lint code with Ruff
-        run: uv run ruff check --output-format=github
-        continue-on-error: true
-        
+        run: uv run ruff check --output-format=github src scripts main.py evals
+
       - name: Check code formatting with Ruff
-        run: uv run ruff format --diff
-        continue-on-error: true
+        run: uv run ruff format --check --diff src scripts main.py evals
 

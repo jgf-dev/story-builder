@@ -16,6 +16,7 @@ jobs:
       pull-requests: read
     outputs:
       downloader: ${{ steps.filter.outputs.downloader }}
+      dashboard: ${{ steps.filter.outputs.dashboard }}
       genai: ${{ steps.filter.outputs.genai }}
       analysis: ${{ steps.filter.outputs.analysis }}
       agents: ${{ steps.filter.outputs.agents }}
@@ -28,11 +29,15 @@ jobs:
           filters: |
             downloader:
               - 'src/storybuilder/downloader/**'
-              - 'src/storybuilder/dashboard/**'
               - 'scripts/import_to_sqlite.py'
               - 'scripts/story_db.py'
-              - 'scripts/dashboard.py'
               - 'tests/downloader/**'
+            dashboard:
+              - 'src/storybuilder/dashboard/**'
+              - 'src/storybuilder/downloader/db.py'
+              - 'src/storybuilder/downloader/__init__.py'
+              - 'scripts/dashboard.py'
+              - 'tests/dashboard/**'
             genai:
               - 'src/storybuilder/genai/**'
               - 'src/storybuilder/agents/cartesia_tts_prompt_crafter/**'
@@ -48,7 +53,7 @@ jobs:
             common:
               - 'pyproject.toml'
               - 'uv.lock'
-              - '.github/workflows/**'
+              - '.github/workflows/test.yml'
               - 'AGENTS.md'
               - 'tests/misc/**'
 
@@ -265,6 +270,7 @@ jobs:
   test-results:
     needs:
       - test-downloader
+      - test-dashboard
       - test-genai
       - test-analysis
       - test-agents
@@ -288,11 +294,11 @@ jobs:
           if [ "$all_skipped" = "true" ]; then
             echo "All test jobs were skipped; reporting success."
           fi
-          exit 0
 
   post-coverage:
     needs:
       - test-downloader
+      - test-dashboard
       - test-genai
       - test-analysis
       - test-agents

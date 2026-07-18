@@ -379,8 +379,7 @@ def execute_query(sql: str, params: tuple = ()) -> list[dict]:
     formatted_sql = sql.format(table="stories")
     with Session(engine) as session:
         try:
-            conn = session.connection()
-            result = conn.exec_driver_sql(formatted_sql, params)
+            result = session.connection().exec_driver_sql(formatted_sql, params)
             if result.returns_rows:
                 return [dict(r) for r in result.mappings()]
             return []

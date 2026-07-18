@@ -240,7 +240,7 @@ def process_file(md_file: str, wav_file: str, previous_id: str | None, rotator: 
             raise
         else:
             _save_audio_from_interaction(interaction, wav_file, md_file)
-            previous_id = interaction.id  # TODO: check if key rotation breaks
+            previous_id = getattr(interaction, "id", None)  # TODO: check if key rotation breaks
             break
     else:
         print(

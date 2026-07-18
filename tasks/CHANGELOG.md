@@ -3,6 +3,17 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
+## [PR-1383](https://github.com/jgf-dev/story-builder/pull/1383) - 2026-07-16
+
+### Summary
+Removed the duplicate dashboard test file and redundant downloader conftest that were left behind when dashboard tests were decoupled into `tests/dashboard/`.
+
+### Removed
+- Deleted `tests/downloader/test_dashboard_pages.py`, a near-identical copy of `tests/dashboard/test_dashboard_pages.py`. The duplicate basename caused a pytest `import file mismatch` collection error when the full suite ran, and having both copies double-ran the dashboard tests (once under `test-downloader`, once under `test-dashboard`).
+- Deleted `tests/downloader/conftest.py`; its global-state reset (`db.close_db()` + `scraper.seen_folders.clear()`) is already provided repo-wide by the autouse `clean_globals` fixture in `tests/conftest.py`.
+
+### Fixed
+- Fixed the SonarCloud Quality Gate failure (40% duplication and B security rating on new code) caused by the newly-added `test-dashboard` job and `opencode.yml` workflow. Added `.github/**` to `sonar.exclusions` in `sonar-project.properties` so SonarCloud Automatic Analysis scopes to application source only, consistent with the existing `sonar.sources=./src/` intent and the already-excluded `tests/`, `scripts/`, and `doc/` paths.
 ## [PR-1363](https://github.com/jgf-dev/story-builder/pull/1363) - 2026-07-15
 
 ### Summary
@@ -88,6 +99,38 @@ Added dashboard page test coverage and an authorized, dependency-pinned OpenCode
 - Corrected SonarCloud exclusion property names and recursive glob patterns.
 - Triggered dashboard tests when dashboard source files change.
 - Standardized selected-story year state and dashboard tests on integer values.
+
+## [PR-1363](https://github.com/jgf-dev/story-builder/pull/1363) - 2026-07-15
+
+### Summary
+Fixed CI path filter so changes to `src/storybuilder/dashboard/**` trigger the downloader test job.
+
+### Fixed
+- Added `src/storybuilder/dashboard/**` to the `downloader` paths-filter in `.github/workflows/test.yml` so that dashboard page changes (e.g. `read_story.py`) now trigger `test-downloader` and execute the existing dashboard Streamlit tests.
+
+## [6b00bc3e](https://github.com/jgf2/story-builder/commit/6b00bc3e7a996a1b0beb0805609ee0b593288596) - 2026-07-15
+
+### Summary
+Decoupled the Streamlit dashboard tests from the downloader tests by moving the files and establishing a dedicated CI job.
+
+### Added
+- Added a new `test-dashboard` CI job in `.github/workflows/test.yml` that runs pytest on `tests/dashboard`.
+- Added a `dashboard` filter to the `changes` path-filter job to detect changes to `src/storybuilder/dashboard/**`, `scripts/dashboard.py`, and `tests/dashboard/**`.
+
+### Removed
+- Removed dashboard code and script paths from the `downloader` path-filter in `.github/workflows/test.yml`.
+
+### Changed
+- Moved dashboard unit and integration test files from `tests/downloader/` to `tests/dashboard/`.
+- Updated dependencies for `test-results` and `post-coverage` jobs to include `test-dashboard`.
+
+## [PR-1363](https://github.com/jgf-dev/story-builder/pull/1363) - 2026-07-15
+
+### Summary
+Fixed CI path filter so changes to `src/storybuilder/dashboard/**` trigger the downloader test job.
+
+### Fixed
+- Added `src/storybuilder/dashboard/**` to the `downloader` paths-filter in `.github/workflows/test.yml` so that dashboard page changes (e.g. `read_story.py`) now trigger `test-downloader` and execute the existing dashboard Streamlit tests.
 
 ## [af1d7aed](https://github.com/jgf2/story-builder/commit/af1d7aed) - 2026-07-15
 

@@ -207,7 +207,7 @@ class TestDashboardPages(unittest.TestCase):
         render_favorites_tags()
         
         self.assertEqual(mock_st.session_state.selected_story_path, "path1.txt")
-        self.assertEqual(mock_st.session_state.selected_story_year, "2025")
+        self.assertEqual(mock_st.session_state.selected_story_year, 2025)
         mock_st.rerun.assert_called_once()
 
     @patch("storybuilder.dashboard.pages.favorites_tags.get_favorites_publication_years")
@@ -256,7 +256,7 @@ class TestDashboardPages(unittest.TestCase):
     def test_render_read_story_load_error(self, mock_st, mock_get_story) -> None:
         from storybuilder.dashboard.pages.read_story import render_read_story
         
-        mock_st.session_state = MockSessionState(selected_story_path="path.txt", selected_story_year="2025")
+        mock_st.session_state = MockSessionState(selected_story_path="path.txt", selected_story_year=2025)
         mock_get_story.return_value = None
         
         render_read_story()
@@ -270,7 +270,7 @@ class TestDashboardPages(unittest.TestCase):
     def test_render_read_story_is_favorite_update_and_remove(self, mock_st, mock_get_story, mock_get_favorites, mock_add_favorite, mock_remove_favorite) -> None:
         from storybuilder.dashboard.pages.read_story import render_read_story
         
-        mock_st.session_state = MockSessionState(selected_story_path="path1.txt", selected_story_year="2025")
+        mock_st.session_state = MockSessionState(selected_story_path="path1.txt", selected_story_year=2025)
         story = {
             "path": "path1.txt", "title": "Story Title", "author_name": "Author A",
             "category": "college", "publication_date": "2025-01-01", "url": "http://url",
@@ -312,7 +312,7 @@ class TestDashboardPages(unittest.TestCase):
     def test_render_read_story_not_favorite_add(self, mock_st, mock_get_story, mock_get_favorites, mock_add_favorite) -> None:
         from storybuilder.dashboard.pages.read_story import render_read_story
         
-        mock_st.session_state = MockSessionState(selected_story_path="path1.txt", selected_story_year="2025")
+        mock_st.session_state = MockSessionState(selected_story_path="path1.txt", selected_story_year=2025)
         story = {
             "path": "path1.txt", "title": "Story Title", "author_name": "Author A",
             "category": "college", "publication_date": "2025-01-01", "url": "http://url",
@@ -362,7 +362,7 @@ class TestDashboardPages(unittest.TestCase):
         
         results = [
             {
-                "path": "path1.txt", "db_year": "2025", "title": "Title 1", "author_name": "Author 1",
+                "path": "path1.txt", "db_year": 2025, "title": "Title 1", "author_name": "Author 1",
                 "category": "college", "publication_date": "2025-01-01", "word_count": 1000,
                 "snippet": "___HIGHLIGHT_START___match___HIGHLIGHT_END___ in text"
             }
@@ -382,7 +382,7 @@ class TestDashboardPages(unittest.TestCase):
         render_search_explorer(filters)
         
         self.assertEqual(mock_st.session_state.selected_story_path, "path1.txt")
-        self.assertEqual(mock_st.session_state.selected_story_year, "2025")
+        self.assertEqual(mock_st.session_state.selected_story_year, 2025)
         self.assertEqual(mock_st.session_state["nav_page"], "📖 Read Story")
         mock_st.rerun.assert_called_once()
 

@@ -66,7 +66,7 @@ def mock_gemini_tts_process_file(monkeypatch, fake_tts_process_file):
     return fake_tts_process_file
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def clean_globals():
     """Autouse fixture to reset global states (database connections, scraping caches) before and after each test."""
     # Reset seen_folders

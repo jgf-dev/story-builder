@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [PR-XXX](https://github.com/jgf2/story-builder/pull/XXX) - 2026-07-16
+## [PR-1392](https://github.com/jgf-dev/story-builder/pull/1392) - 2026-07-16
 
 ### Summary
 Moved the `metadata_cache.json` cache file to the database folder (`stories/db/metadata_cache.json`) instead of keeping it in the downloaded stories directory (`stories/text/metadata_cache.json` or `nifty_stories/metadata_cache.json`).

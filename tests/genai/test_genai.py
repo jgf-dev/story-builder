@@ -207,6 +207,68 @@ class TestGenAIClient(unittest.TestCase):
             self.assertEqual(len(keys), 3)
             self.assertEqual(keys[1], ("GEMINI_API_KEY_1", "key1"))
 
+    def test_apikey_rotator(self) -> None:
+        from storybuilder.genai.client import ApiKeyRotator
+        keys = [("KEY1", "val1"), ("KEY2", "val2")]
+
+        with patch("google.genai.Client") as mock_client:
+            rotator = ApiKeyRotator(keys)
+            self.assertEqual(rotator.current_key_name, "KEY1")
+            self.assertEqual(rotator.total_keys, 2)
+
+            rotator.rotate()
+            self.assertEqual(rotator.current_key_name, "KEY2")
+            mock_client.assert_called_with(api_key="val2")
+
+            rotator.rotate()
+            self.assertEqual(rotator.current_key_name, "KEY1")
+            mock_client.assert_called_with(api_key="val1")
+
+    def test_handle_exception_404(self) -> None:
+        from storybuilder.genai.client import _handle_exception, ApiKeyRotator
+        keys = [("KEY1", "val1")]
+
+        with patch("google.genai.Client"):
+            rotator = ApiKeyRotator(keys)
+
+            # 404 should drop the previous_id
+            class MockException(Exception):
+                pass
+
+            e = MockException("404 Session not found")
+            prev_id, keys_tried, attempt, should_continue = _handle_exception(
+                e, rotator, "old_session_id", 0, 0, "test.md"
+            )
+
+            self.assertIsNone(prev_id)
+            self.assertTrue(should_continue)
+
+    @patch("time.sleep")
+    def test_handle_exception_quota_rotation(self, mock_sleep) -> None:
+        from storybuilder.genai.client import _handle_exception, ApiKeyRotator
+        keys = [("KEY1", "val1"), ("KEY2", "val2")]
+
+        with patch("google.genai.Client"):
+            rotator = ApiKeyRotator(keys)
+            self.assertEqual(rotator.current_key_name, "KEY1")
+
+            class MockException(Exception):
+                pass
+
+            e = MockException("429 Too Many Requests")
+            prev_id, keys_tried, attempt, should_continue = _handle_exception(
+                e, rotator, "active_session", 0, 0, "test.md"
+            )
+
+            # With the new backoff behavior, the key should NOT rotate on 429
+            # Instead, it waits and retries on the same key with attempt + 1
+            self.assertEqual(prev_id, "active_session")
+            self.assertEqual(keys_tried, 0)
+            self.assertEqual(attempt, 1)
+            self.assertTrue(should_continue)
+            self.assertEqual(rotator.current_key_name, "KEY1")
+            mock_sleep.assert_called_with(15)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -2,7 +2,7 @@ name: "Run TODO to Issue"
 on: [ "push" ]
 jobs:
   build:
-    runs-on: [ubuntu-latest, alirun]
+    runs-on: ubuntu-latest
     permissions:
       contents: write
       issues: write

@@ -1,7 +1,7 @@
 queue_rules:
   - name: main-queue
     merge_conditions:
-      - check-success ~= .*test-results$
+      - check-success ~= .*test-results
       - "#check-pending = 0"
       - "#check-failure = 0"
       - "#check-timed-out = 0"

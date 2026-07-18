@@ -23,7 +23,6 @@ import os
 import sys
 from pathlib import Path
 
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
@@ -162,7 +161,7 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
             "error": str(e),
         }
     except Exception as e:
-        logger.error("Error running eval set '%s': %s", eval_name, e)
+        logger.exception("Error running eval set '%s'", eval_name)
         return {"status": "error", "eval_set": eval_name, "error": str(e)}
 
 
@@ -293,8 +292,8 @@ def main() -> None:
     for eval_path in all_eval_sets:
         try:
             run_eval_via_adk(eval_path, verbose=args.verbose)
-        except Exception as e:
-            logger.error("Failed to run %s: %s", eval_path.name, e)
+        except Exception:
+            logger.exception("Failed to run %s", eval_path.name)
 
 
 if __name__ == "__main__":

@@ -39,7 +39,7 @@ def rotate_windscribe_ip() -> bool:
             return True
         safe_print(f"Failed to rotate IP: {result.stdout.strip() or result.stderr.strip()}")
         return False
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-except
         safe_print(f"Error running windscribe-cli ip rotate: {e}")
         return False
 
@@ -62,7 +62,7 @@ def fetch_page(url: str, delay: float, headers: dict | None = None, max_retries:
             if response.status_code == 404:
                 safe_print(f"Error 404: Not Found - {url}")
                 return None
-            if response.status_code in (403, 429, 503):
+            if response.status_code in {403, 429, 503}:
                 safe_print(
                     f"Warning: Fetching {url} returned status code {response.status_code} (Attempt {attempt + 1}/{max_retries})",
                 )

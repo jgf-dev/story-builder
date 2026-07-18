@@ -17,6 +17,7 @@ jobs:
     outputs:
       downloader: ${{ steps.filter.outputs.downloader }}
       dashboard: ${{ steps.filter.outputs.dashboard }}
+      dashboard: ${{ steps.filter.outputs.dashboard }}
       genai: ${{ steps.filter.outputs.genai }}
       analysis: ${{ steps.filter.outputs.analysis }}
       agents: ${{ steps.filter.outputs.agents }}

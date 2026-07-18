@@ -9,12 +9,10 @@ from __future__ import annotations
 
 import pytest
 
-from tests.helpers_external_fakes import (
-    fake_process_file_factory,
-    live_api_enabled,
-    make_fake_genai_client,
-    make_generate_content_response,
-)
+from tests.helpers_external_fakes import fake_process_file_factory
+from tests.helpers_external_fakes import live_api_enabled
+from tests.helpers_external_fakes import make_fake_genai_client
+from tests.helpers_external_fakes import make_generate_content_response
 
 
 @pytest.fixture
@@ -101,4 +99,3 @@ def clean_globals():
         close_db = None
     if close_db is not None:
         close_db()
-

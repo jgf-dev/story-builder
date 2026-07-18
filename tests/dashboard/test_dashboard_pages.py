@@ -3,9 +3,11 @@ import os
 import sys
 import unittest
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
 import pandas as pd
+
 
 # Ensure src layout package is importable
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
@@ -29,7 +31,9 @@ class TestDashboardPages(unittest.TestCase):
 
     @patch("storybuilder.dashboard.config.os.environ", {})
     def test_config_paths_default(self) -> None:
-        from storybuilder.dashboard.config import get_db_dir, get_nlp_db_path, get_meta_db_path
+        from storybuilder.dashboard.config import get_db_dir
+        from storybuilder.dashboard.config import get_meta_db_path
+        from storybuilder.dashboard.config import get_nlp_db_path
         self.assertEqual(get_db_dir(), "stories/db")
         self.assertEqual(get_nlp_db_path(), "stories/db/nlp_analysis.db")
         self.assertEqual(get_meta_db_path(), "stories/db/dashboard_metadata.db")
@@ -40,14 +44,18 @@ class TestDashboardPages(unittest.TestCase):
         "STORYBUILDER_META_DB_PATH": "/env/meta.db"
     })
     def test_config_paths_env(self) -> None:
-        from storybuilder.dashboard.config import get_db_dir, get_nlp_db_path, get_meta_db_path
+        from storybuilder.dashboard.config import get_db_dir
+        from storybuilder.dashboard.config import get_meta_db_path
+        from storybuilder.dashboard.config import get_nlp_db_path
         self.assertEqual(get_db_dir(), "/env/db")
         self.assertEqual(get_nlp_db_path(), "/env/nlp.db")
         self.assertEqual(get_meta_db_path(), "/env/meta.db")
 
     @patch("storybuilder.dashboard.config.st")
     def test_setup_page_and_css(self, mock_st) -> None:
-        from storybuilder.dashboard.config import setup_page, inject_custom_css, init_session_state
+        from storybuilder.dashboard.config import init_session_state
+        from storybuilder.dashboard.config import inject_custom_css
+        from storybuilder.dashboard.config import setup_page
 
         setup_page()
         mock_st.set_page_config.assert_called_once()

@@ -53,8 +53,9 @@ pull_request_rules:
       label:
         add:
           - "@jules"
+          - "@devin"
       comment:
-        message: "@jules can you fix the merge conflicts?"
+        message: "@jules @devin can you fix the merge conflicts?"
   - name: Keep PRs up to date
     conditions:
       - -draft

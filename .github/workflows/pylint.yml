@@ -6,7 +6,7 @@ on:
     branches: [main]
 jobs:
   build:
-    runs-on: alirun
+    runs-on: [ubuntu-latest, alirun]
     permissions:
       contents: read
     steps:

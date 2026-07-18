@@ -30,6 +30,7 @@ def rotate_windscribe_ip() -> bool:
             capture_output=True,
             text=True,
             timeout=30,
+            check=False,
         )
         if result.returncode == 0:
             safe_print(
@@ -78,7 +79,7 @@ def fetch_page(url: str, delay: float, headers: dict | None = None, max_retries:
             )
             if ENABLE_ROTATION:
                 rotate_windscribe_ip()
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             safe_print(
                 f"Warning: Unexpected error on attempt {attempt + 1}/{max_retries} for {url}: {e}",
             )

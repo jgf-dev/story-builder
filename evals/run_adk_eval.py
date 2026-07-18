@@ -292,7 +292,7 @@ def main() -> None:
     for eval_path in all_eval_sets:
         try:
             run_eval_via_adk(eval_path, verbose=args.verbose)
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             logger.exception("Failed to run %s", eval_path.name)
 
 

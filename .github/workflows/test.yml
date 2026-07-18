@@ -10,7 +10,7 @@ on:
 
 jobs:
   changes:
-    runs-on: [ubuntu-latest, alirun]
+    runs-on: ubuntu-latest, alirun
     permissions:
       contents: read
       pull-requests: read

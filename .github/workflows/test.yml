@@ -34,7 +34,8 @@ jobs:
               - 'tests/downloader/**'
             dashboard:
               - 'src/storybuilder/dashboard/**'
-              - 'src/storybuilder/downloader/**'
+              - 'src/storybuilder/downloader/db.py'
+              - 'src/storybuilder/downloader/__init__.py'
               - 'scripts/dashboard.py'
               - 'tests/dashboard/**'
             genai:

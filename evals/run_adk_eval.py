@@ -23,7 +23,6 @@ import os
 import sys
 from pathlib import Path
 
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
@@ -46,7 +45,7 @@ def discover_eval_sets(agent_dir: Path) -> list[Path]:
 
 def load_eval_set(eval_set_path: Path) -> dict:
     """Load an ADK eval set JSON file."""
-    with Path(eval_set_path).open() as f:
+    with Path(eval_set_path).open(encoding="utf-8") as f:
 
         return json.load(f)
 
@@ -100,7 +99,7 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
         from google.adk.evaluation.eval_set import EvalSet
         from google.adk.evaluation.local_eval_sets_manager import load_eval_set_from_file
 
-        original_cwd = os.getcwd()
+        original_cwd = _Path.cwd()
         os.chdir(str(agent_dir))
 
         try:
@@ -134,7 +133,12 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
                         metric_name = getattr(metric, "metric_name", "?")
                         score = getattr(metric, "score", None)
                         status = getattr(metric, "eval_status", None)
-                        status_label = {1: "PASS", 2: "FAIL", 3: "SKIP", 4: "ERROR"}.get(status, str(status or "?"))
+                        status_label = "?"
+                        if status is not None:
+                            try:
+                                status_label = {1: "PASS", 2: "FAIL", 3: "SKIP", 4: "ERROR"}[int(status)]
+                            except (KeyError, ValueError):
+                                status_label = str(status)
 
                         if score is not None:
                             print(f"    {metric_name}: {score:.4f} [{status_label}]")
@@ -156,8 +160,8 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
             "issues": issues,
             "error": str(e),
         }
-    except Exception as e:
-        logger.error("Error running eval set '%s': %s", eval_name, e)
+    except Exception as e:  # pylint: disable=broad-except
+        logger.exception("Error running eval set '%s'", eval_name)
         return {"status": "error", "eval_set": eval_name, "error": str(e)}
 
 
@@ -235,9 +239,9 @@ def main() -> None:
 
     # Discover eval sets
     agent_dirs = []
-    if args.agent in ("tts_prompt_crafter", "all"):
+    if args.agent in {"tts_prompt_crafter", "all"}:
         agent_dirs.append(TTS_AGENT_DIR)
-    if args.agent in ("cartesia_tts_prompt_crafter", "all"):
+    if args.agent in {"cartesia_tts_prompt_crafter", "all"}:
         agent_dirs.append(CARTESIA_AGENT_DIR)
 
     all_eval_sets = []
@@ -288,8 +292,8 @@ def main() -> None:
     for eval_path in all_eval_sets:
         try:
             run_eval_via_adk(eval_path, verbose=args.verbose)
-        except Exception as e:
-            logger.error("Failed to run %s: %s", eval_path.name, e)
+        except Exception:  # pylint: disable=broad-except
+            logger.exception("Failed to run %s", eval_path.name)
 
 
 if __name__ == "__main__":

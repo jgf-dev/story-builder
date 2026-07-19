@@ -129,17 +129,14 @@ class TestTTSPipeline(unittest.TestCase):
                 shutil.rmtree(tmp_dir, ignore_errors=True)
 
     def _live_sequential_tts(self) -> None:
-        from google import genai
-
         from storybuilder.genai.client import get_gemini_api_keys
         from storybuilder.genai.client import process_file
+        from storybuilder.genai.client import ApiKeyRotator
 
         api_keys = get_gemini_api_keys()
         self.assertGreater(len(api_keys), 0, "No GEMINI_API_KEY found in environment")
 
-        current_key_idx = 0
-        _, api_key = api_keys[current_key_idx]
-        client = genai.Client(api_key=api_key)
+        rotator = ApiKeyRotator(api_keys)
 
         tmp_dir = tempfile.mkdtemp(prefix="tts_test_")
         try:
@@ -153,19 +150,12 @@ class TestTTSPipeline(unittest.TestCase):
                 base_name = os.path.basename(temp_md_file).replace(".md", "")
                 wav_file = os.path.join(tmp_dir, f"{base_name}.wav")
                 try:
-                    api_state = {
-                        "client": client,
-                        "api_keys": api_keys,
-                        "current_key_idx": current_key_idx,
-                    }
                     previous_id = process_file(
                         temp_md_file,
                         wav_file,
                         previous_id,
-                        api_state,
+                        rotator,
                     )
-                    client = api_state["client"]
-                    current_key_idx = api_state["current_key_idx"]
                 except Exception as e:
                     err = str(e).lower()
                     if any(

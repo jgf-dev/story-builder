@@ -189,7 +189,7 @@ def _merge_targets(all_story_targets: dict[str, dict], sub_targets: list[dict]) 
 
 
 def _scrape_subcategories(
-    subcategories: list[str],
+    subcategories: list[dict[str, str]],
     start_date: datetime.date,
     end_date: datetime.date,
     args: argparse.Namespace,

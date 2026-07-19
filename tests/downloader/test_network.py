@@ -20,7 +20,7 @@ class TestRotateWindscribeIp(unittest.TestCase):
             ["windscribe-cli", "ip", "rotate"],
             capture_output=True,
             text=True,
-            timeout=30,
+            timeout=30, check=False,
         )
         mock_sleep.assert_called_once_with(10)
 

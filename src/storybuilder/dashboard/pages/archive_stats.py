@@ -16,7 +16,7 @@ def render_archive_stats() -> None:
     st.markdown("---")
 
     # Guard against empty database
-    if df_years.empty or "Stories Count" not in df_years.columns:
+    if df_years.empty or "Stories Count" not in df_years.columns or "Total Words" not in df_years.columns:
         st.info("No archive data available yet.")
         return
 

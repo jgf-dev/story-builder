@@ -510,8 +510,8 @@ class TestScraperCacheAndEarlyStop(unittest.TestCase):
 				paths = [t["output_path"] for t in targets]
 				# Debug: show what we got
 				print(f"DEBUG paths: {paths}")
-				self.assertTrue(any("series" in p.lower() for p in paths), f"No series in {paths}")
-				self.assertTrue(any("single" in p.lower() for p in paths), f"No single in {paths}")
+				self.assertTrue(any("series" in str(p).lower() for p in paths), f"No series in {paths}")
+				self.assertTrue(any("single" in str(p).lower() for p in paths), f"No single in {paths}")
 
 
 class TestCache(unittest.TestCase):
@@ -748,6 +748,7 @@ class TestScraperMultiChapter(unittest.TestCase):
 
 		chapters, has_matching = _get_cached_chapters(folder_url, folder_date, start, end)
 
+		self.assertIsNotNone(chapters)
 		self.assertEqual(len(chapters), 1)
 		self.assertFalse(has_matching)
 

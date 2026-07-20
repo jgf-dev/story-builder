@@ -625,7 +625,7 @@ class TestDashboardDataFunctions(unittest.TestCase):
                 output_path="stories/gay/college/story2/part-1.txt",
                 title="Story with no year",
                 author="Author Two",
-                story_date=None,  # pyrefly: ignore [bad-argument-type]
+                story_date="",
                 url="http://test2",
                 content="Content 2",
             )

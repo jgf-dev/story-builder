@@ -71,7 +71,7 @@ class TestSubagent(unittest.TestCase):
                 ),
             )
             self.assertTrue(response.candidates)
-            self.assertGreater(len(response.text or ""), 0)
+            self.assertTrue(response.text)
             from typing import Any
             generate_content_mock: Any = client.models.generate_content
             generate_content_mock.assert_called_once()
@@ -94,7 +94,7 @@ class TestSubagent(unittest.TestCase):
                 ),
             )
             self.assertTrue(response.candidates)
-            self.assertGreater(len(response.text or ""), 0)
+            self.assertTrue(response.text)
         except Exception as e:
             if (
                 "quota" in str(e).lower()

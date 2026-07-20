@@ -272,7 +272,15 @@ def main() -> None:
 
     # Build FTS index (should already be built via triggers, but optimize)
     print("\n  Optimizing FTS index...")
-    optimize_fts()
+    try:
+        from storybuilder.downloader.db import _is_partitioned
+    except ImportError:
+        _is_partitioned = False
+    if not _is_partitioned:
+        conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
+        conn.commit()
+    else:
+        optimize_fts()
 
     # Print stats
     row = conn.execute(

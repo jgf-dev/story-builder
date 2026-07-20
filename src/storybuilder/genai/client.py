@@ -1,6 +1,7 @@
 import argparse
 import base64
 import glob
+import logging
 import os
 import pathlib
 import re
@@ -12,6 +13,8 @@ from google.genai.client import Client
 
 from storybuilder.utils.env import load_env
 
+
+logger = logging.getLogger(__name__)
 
 load_env()
 
@@ -242,6 +245,11 @@ def process_file(md_file: str, wav_file: str, previous_id: str | None, rotator: 
         else:
             _save_audio_from_interaction(interaction, wav_file, md_file)
             previous_id = getattr(interaction, "id", None)
+            if previous_id is None:
+                logger.warning(
+                    "Interaction response for %s is missing 'id'; speech continuity will reset.",
+                    pathlib.Path(md_file).name,
+                )
             break
     else:
         print(

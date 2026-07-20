@@ -156,7 +156,6 @@ def import_files(
                 parsed["author_email"],
                 parsed["publication_date"],
                 parsed["url"],
-                parsed["email_date"],
                 char_count,
                 word_count,
                 content,
@@ -189,9 +188,9 @@ def _flush_batch(conn: sqlite3.Connection, batch: list, force: bool) -> int:
         INSERT OR REPLACE INTO stories
             (path, orientation, category, story_slug, chapter_num,
              title, author_name, author_email,
-             publication_date, url, email_date,
+             publication_date, url,
              char_count, word_count, content)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
     try:
         conn.executemany(sql, batch)

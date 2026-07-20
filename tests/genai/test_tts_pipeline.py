@@ -184,5 +184,34 @@ class TestTTSPipeline(unittest.TestCase):
             shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
+class TestProcessFileIdWarning(unittest.TestCase):
+    """Test warning logging when interaction response has no id attribute."""
+
+    def test_missing_interaction_id_logs_warning(self) -> None:
+        from unittest.mock import MagicMock
+        from storybuilder.genai.client import process_file
+
+        tmp_dir = tempfile.mkdtemp(prefix="process_file_test_")
+        try:
+            md_file = os.path.join(tmp_dir, "01-part.md")
+            wav_file = os.path.join(tmp_dir, "01-part.wav")
+            Path(md_file).write_text("#### TRANSCRIPT\nNarrator: Test line.\n", encoding="utf-8")
+
+            # Mock interaction object without 'id' attribute (or with spec excluding 'id')
+            mock_interaction = MagicMock(spec=["output_audio"])
+            mock_interaction.output_audio = b"fake pcm data"
+
+            mock_rotator = MagicMock()
+            mock_rotator.client.interactions.create.return_value = mock_interaction
+
+            with self.assertLogs("storybuilder.genai.client", level="WARNING") as cm:
+                res_id = process_file(md_file, wav_file, previous_id=None, rotator=mock_rotator)
+
+            self.assertIsNone(res_id)
+            self.assertTrue(any("missing 'id'" in msg for msg in cm.output))
+        finally:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -138,7 +138,7 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
                         if status is not None:
                             try:
                                 status_label = {1: "PASS", 2: "FAIL", 3: "SKIP", 4: "ERROR"}[int(status)]
-                            except (KeyError, ValueError):
+                            except (KeyError, ValueError, TypeError):
                                 status_label = str(status)
 
                         if score is not None:

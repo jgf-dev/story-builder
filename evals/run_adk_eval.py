@@ -134,7 +134,12 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
                         metric_name = getattr(metric, "metric_name", "?")
                         score = getattr(metric, "score", None)
                         status = getattr(metric, "eval_status", None)
-                        status_label = {1: "PASS", 2: "FAIL", 3: "SKIP", 4: "ERROR"}.get(status, str(status or "?"))
+                        status_label = "?"
+                        if status is not None:
+                            try:
+                                status_label = {1: "PASS", 2: "FAIL", 3: "SKIP", 4: "ERROR"}[int(status)]
+                            except (KeyError, ValueError, TypeError):
+                                status_label = str(status)
 
                         if score is not None:
                             print(f"    {metric_name}: {score:.4f} [{status_label}]")

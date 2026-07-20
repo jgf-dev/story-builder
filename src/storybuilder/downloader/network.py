@@ -1,6 +1,4 @@
-from requests.models import Response
 import time
-
 import requests
 
 
@@ -8,7 +6,7 @@ import requests
 BASE_URL = "https://nifty.org/nifty/"
 
 # Global proxy and rotation settings
-PROXIES = None
+PROXIES: dict[str, str] | None = None
 ENABLE_ROTATION: bool = False
 
 
@@ -46,7 +44,7 @@ def rotate_windscribe_ip() -> bool:
         return False
 
 
-def fetch_page(url, delay, headers=None, max_retries: int=3) -> Response | None:
+def fetch_page(url, delay, headers=None, max_retries: int=3) -> requests.Response | None:
     """
     Fetches a URL with retries and custom headers.
     Optionally routes through global proxies and triggers Windscribe IP rotation on refusal.

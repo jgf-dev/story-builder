@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [PR-001](https://github.com/jgf2/story-builder/pull/001) - 2026-07-20
+
+### Summary
+Fixed SQLite import schema column mismatch in `scripts/import_to_sqlite.py` and applied hardening improvements to eval status parsing and GenAI client continuity warning logging.
+
+### Added
+- Added unit test in `tests/downloader/test_database.py` verifying `import_to_sqlite` batch execution against `db.init_db()` schema.
+- Added unit test in `tests/genai/test_tts_pipeline.py` verifying warning logged when GenAI interaction response is missing `id` attribute.
+
+### Fixed
+- Fixed column mismatch in `scripts/import_to_sqlite.py` by removing obsolete `email_date` from SQL `INSERT OR REPLACE` query and batch tuple parameters.
+- Hardened status conversion in `evals/run_adk_eval.py` by catching `TypeError` alongside `KeyError` and `ValueError`.
+- Added explicit warning log in `src/storybuilder/genai/client.py` when `getattr(interaction, "id", None)` returns `None` to make session continuity loss observable.
+
 ## [PR-000](https://github.com/jgf2/story-builder/pull/000) - 2026-07-18
 
 ### Summary

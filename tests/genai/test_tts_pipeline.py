@@ -197,9 +197,14 @@ class TestProcessFileIdWarning(unittest.TestCase):
             wav_file = os.path.join(tmp_dir, "01-part.wav")
             Path(md_file).write_text("#### TRANSCRIPT\nNarrator: Test line.\n", encoding="utf-8")
 
-            # Mock interaction object without 'id' attribute (or with spec excluding 'id')
+            import base64
+
+            mock_audio = MagicMock()
+            mock_audio.data = base64.b64encode(b"fake pcm data").decode("utf-8")
+            mock_audio.mime_type = "audio/pcm; rate=24000"
+
             mock_interaction = MagicMock(spec=["output_audio"])
-            mock_interaction.output_audio = b"fake pcm data"
+            mock_interaction.output_audio = mock_audio
 
             mock_rotator = MagicMock()
             mock_rotator.client.interactions.create.return_value = mock_interaction

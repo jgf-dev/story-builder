@@ -1,16 +1,21 @@
-from google.genai.client import Client
 import argparse
 import base64
 import glob
+import logging
 import os
 import pathlib
 import re
 import time
 import wave
 
-from storybuilder.utils.env import load_env
 from google import genai
+from google.genai.client import Client
 
+
+from storybuilder.utils.env import load_env
+
+
+logger = logging.getLogger(__name__)
 
 load_env()
 
@@ -224,7 +229,7 @@ def process_file(md_file: str, wav_file: str, previous_id: str | None, rotator: 
                 input=content,
                 response_modalities=["audio"],
                 generation_config={"speech_config": speech_config},
-                previous_interaction_id=previous_id,  # TODO: Check if the interaction API supports previous_interaction_id
+                previous_interaction_id=previous_id,
             )
         except Exception as e:
             previous_id, keys_tried, attempt, should_continue = _handle_exception(
@@ -240,7 +245,12 @@ def process_file(md_file: str, wav_file: str, previous_id: str | None, rotator: 
             raise
         else:
             _save_audio_from_interaction(interaction, wav_file, md_file)
-            previous_id = interaction.id  # TODO: check if key rotation breaks
+            previous_id = getattr(interaction, "id", None)
+            if previous_id is None:
+                logger.warning(
+                    "Interaction response for %s is missing 'id'; speech continuity will reset.",
+                    pathlib.Path(md_file).name,
+                )
             break
     else:
         print(

@@ -44,7 +44,12 @@ def rotate_windscribe_ip() -> bool:
         return False
 
 
-def fetch_page(url: str, delay: float, headers: dict | None = None, max_retries: int = 3) -> requests.Response | None:
+def fetch_page(
+    url: str,
+    delay: float,
+    headers: dict | None = None,
+    max_retries: int = 3,
+) -> requests.Response | None:
     """
     Fetches a URL with retries and custom headers.
     Optionally routes through global proxies and triggers Windscribe IP rotation on refusal.

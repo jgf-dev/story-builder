@@ -176,10 +176,15 @@ def main() -> None:
     processed_count = 0
     pbar = tqdm(total=min(len(all_files), args.limit), desc="Processing files")
 
+    processed_filepaths = set()
+    if not args.force:
+        cursor.execute("SELECT filepath FROM stories")
+        processed_filepaths = {row[0] for row in cursor.fetchall()}
+
     for filepath in all_files:
         filepath_str = str(filepath)
 
-        if not args.force and is_processed(cursor, filepath_str):
+        if not args.force and filepath_str in processed_filepaths:
             continue
 
         try:

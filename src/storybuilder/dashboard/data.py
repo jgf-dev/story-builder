@@ -29,13 +29,11 @@ def get_db_files() -> list[Path]:
     return sorted(Path(db_dir).glob("[0-9][0-9][0-9][0-9].db"))
 
 
-_INITIALIZED_META_DB_PATHS: set[str] = set()
-
-
-def _init_meta_db(conn: sqlite3.Connection, db_path: str) -> None:
-    """Initialize the metadata database schema."""
-    if db_path in _INITIALIZED_META_DB_PATHS:
-        return
+def get_meta_conn() -> sqlite3.Connection:
+    """Establish connection to local dashboard metadata (favorites & tags)."""
+    meta_db_path = get_meta_db_path()
+    Path(Path(meta_db_path).parent or ".").mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(meta_db_path, check_same_thread=False)
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS favorites (
@@ -50,15 +48,6 @@ def _init_meta_db(conn: sqlite3.Connection, db_path: str) -> None:
         """,
     )
     conn.commit()
-    _INITIALIZED_META_DB_PATHS.add(db_path)
-
-
-def get_meta_conn() -> sqlite3.Connection:
-    """Establish connection to local dashboard metadata (favorites & tags)."""
-    meta_db_path = get_meta_db_path()
-    Path(Path(meta_db_path).parent or ".").mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(meta_db_path, check_same_thread=False)
-    _init_meta_db(conn, meta_db_path)
     return conn
 
 

@@ -62,6 +62,12 @@ def is_processed(cursor: Cursor, filepath: str):
     return cursor.fetchone() is not None
 
 
+def get_all_processed_filepaths(cursor: Cursor) -> set[str]:
+    """Fetch all processed filepaths into a set for O(1) lookups."""
+    cursor.execute("SELECT filepath FROM stories")
+    return {row[0] for row in cursor.fetchall()}
+
+
 def parse_args() -> Namespace:
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
@@ -176,10 +182,14 @@ def main() -> None:
     processed_count = 0
     pbar = tqdm(total=min(len(all_files), args.limit), desc="Processing files")
 
+    processed_filepaths = set()
+    if not args.force:
+        processed_filepaths = get_all_processed_filepaths(cursor)
+
     for filepath in all_files:
         filepath_str = str(filepath)
 
-        if not args.force and is_processed(cursor, filepath_str):
+        if not args.force and filepath_str in processed_filepaths:
             continue
 
         try:

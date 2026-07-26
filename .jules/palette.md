@@ -1,3 +1,3 @@
-## 2024-03-04 - Prefer native list elements
-**Learning:** Native `<ul>` and `<li>` elements provide list semantics without redundant ARIA roles, and their default bullets, margin, and padding can be reset with CSS when the visual design requires it.
-**Action:** Use native list elements for lists and adjust their presentation with CSS instead of applying list or group roles to generic containers.
+## 2024-05-24 - Section Landmark Accessibility
+**Learning:** HTML5 `<section>` elements do not act as semantic `region` landmarks for screen reader navigation by default, even when they have headings. They only become accessible landmarks if they are given an accessible name using `aria-labelledby` or `aria-label`. In this dashboard, `<section class="card">` elements contained well-structured headings and descriptions, but lacked the ARIA attributes to connect them structurally for assistive technologies.
+**Action:** When working with semantic container tags like `<section>` or complex structural regions like stats groups, always check if they need to be exposed as landmarks. Upgrade them by using `aria-labelledby` and `aria-describedby` to structurally link them to their existing visible `<header>` tags (e.g., `<h2>` and `<p>`), providing richer semantic context than a standalone `aria-label`.

@@ -29,25 +29,32 @@ def get_db_files() -> list[Path]:
     return sorted(Path(db_dir).glob("[0-9][0-9][0-9][0-9].db"))
 
 
+_initialized_meta_dbs: set[str] = set()
+
+
 def get_meta_conn() -> sqlite3.Connection:
     """Establish connection to local dashboard metadata (favorites & tags)."""
     meta_db_path = get_meta_db_path()
     Path(Path(meta_db_path).parent or ".").mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(meta_db_path, check_same_thread=False)
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS favorites (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            story_path TEXT UNIQUE,
-            title TEXT,
-            author TEXT,
-            tags TEXT,
-            notes TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+    if meta_db_path not in _initialized_meta_dbs:
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS favorites (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                story_path TEXT UNIQUE,
+                title TEXT,
+                author TEXT,
+                tags TEXT,
+                notes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """,
         )
-        """,
-    )
-    conn.commit()
+        conn.commit()
+        _initialized_meta_dbs.add(meta_db_path)
+
     return conn
 
 

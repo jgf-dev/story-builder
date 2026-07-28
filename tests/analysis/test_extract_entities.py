@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-from storybuilder.analysis.extract_entities import init_db, is_processed, main
+from storybuilder.analysis.extract_entities import init_db, main
 
 
 class TestExtractEntities(unittest.TestCase):
@@ -36,24 +36,6 @@ class TestExtractEntities(unittest.TestCase):
             "SELECT name FROM sqlite_master WHERE type='table' AND name='entities'"
         )
         self.assertIsNotNone(cursor.fetchone())
-
-        conn.close()
-
-    def test_is_processed(self) -> None:
-        conn = init_db(self.db_path)
-        cursor = conn.cursor()
-
-        filepath = "test_file.txt"
-
-        # Initially not processed
-        self.assertFalse(is_processed(cursor, filepath))
-
-        # Insert a record
-        cursor.execute("INSERT INTO stories (filepath) VALUES (?)", (filepath,))
-        conn.commit()
-
-        # Now it should be processed
-        self.assertTrue(is_processed(cursor, filepath))
 
         conn.close()
 

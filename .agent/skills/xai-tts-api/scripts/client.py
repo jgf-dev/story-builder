@@ -1,11 +1,11 @@
 import os
 
-from dotenv import load_dotenv
+from storybuilder.utils.env import load_env
 from xai_sdk import Client
 from xai_sdk.sync.chat import Chat
 
 
-load_dotenv()
+load_env()
 
 client: Client = Client(
     api_key=os.getenv("XAI_API_KEY"),

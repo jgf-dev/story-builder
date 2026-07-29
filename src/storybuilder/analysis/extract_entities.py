@@ -56,10 +56,6 @@ def init_db(db_path) -> Connection:
     return conn
 
 
-def is_processed(cursor: Cursor, filepath: str):
-    """Check if a file has already been processed."""
-    cursor.execute("SELECT id FROM stories WHERE filepath = ?", (filepath,))
-    return cursor.fetchone() is not None
 
 
 def parse_args() -> Namespace:
@@ -176,10 +172,15 @@ def main() -> None:
     processed_count = 0
     pbar = tqdm(total=min(len(all_files), args.limit), desc="Processing files")
 
+    processed_files = set()
+    if not args.force:
+        cursor.execute("SELECT filepath FROM stories")
+        processed_files = {row[0] for row in cursor.fetchall()}
+
     for filepath in all_files:
         filepath_str = str(filepath)
 
-        if not args.force and is_processed(cursor, filepath_str):
+        if not args.force and filepath_str in processed_files:
             continue
 
         try:

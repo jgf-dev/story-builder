@@ -26,7 +26,7 @@ ALLOWED_LABELS = {
 }
 
 
-def init_db(db_path) -> Connection:
+def init_db(db_path: str) -> Connection:
     """Initialize the SQLite database."""
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
@@ -56,10 +56,10 @@ def init_db(db_path) -> Connection:
     return conn
 
 
-def is_processed(cursor: Cursor, filepath: str):
-    """Check if a file has already been processed."""
-    cursor.execute("SELECT id FROM stories WHERE filepath = ?", (filepath,))
-    return cursor.fetchone() is not None
+def get_processed_files(cursor: Cursor) -> set[str]:
+    """Get a set of all processed filepaths."""
+    cursor.execute("SELECT filepath FROM stories")
+    return {row[0] for row in cursor.fetchall()}
 
 
 def parse_args() -> Namespace:
@@ -105,7 +105,7 @@ def parse_args() -> Namespace:
     return parser.parse_args()
 
 
-def load_spacy_model(model_name, use_gpu) -> Language | None:
+def load_spacy_model(model_name: str, use_gpu: bool) -> Language | None:
     """Load the spaCy model with optional GPU support."""
     try:
         if use_gpu:
@@ -176,10 +176,14 @@ def main() -> None:
     processed_count = 0
     pbar = tqdm(total=min(len(all_files), args.limit), desc="Processing files")
 
+    processed_files = set()
+    if not args.force:
+        processed_files = get_processed_files(cursor)
+
     for filepath in all_files:
         filepath_str = str(filepath)
 
-        if not args.force and is_processed(cursor, filepath_str):
+        if not args.force and filepath_str in processed_files:
             continue
 
         try:

@@ -56,7 +56,16 @@ def init_db(db_path) -> Connection:
     return conn
 
 
-def is_processed(cursor: Cursor, filepath: str):
+def get_processed_files(cursor: Cursor) -> set[str]:
+    """Get a set of all processed filepaths."""
+    try:
+        cursor.execute("SELECT filepath FROM stories")
+        return {row[0] for row in cursor.fetchall()}
+    except sqlite3.OperationalError:
+        return set()
+
+
+def is_processed(cursor: Cursor, filepath: str) -> bool:
     """Check if a file has already been processed."""
     cursor.execute("SELECT id FROM stories WHERE filepath = ?", (filepath,))
     return cursor.fetchone() is not None
@@ -173,13 +182,15 @@ def main() -> None:
     all_files = list(Path(args.stories_dir).rglob("*.txt"))
     print(f"Found {len(all_files)} total text files.")
 
+    processed_files = set() if args.force else get_processed_files(cursor)
+
     processed_count = 0
     pbar = tqdm(total=min(len(all_files), args.limit), desc="Processing files")
 
     for filepath in all_files:
         filepath_str = str(filepath)
 
-        if not args.force and is_processed(cursor, filepath_str):
+        if filepath_str in processed_files:
             continue
 
         try:

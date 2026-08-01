@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [c650177](https://github.com/jgf2/story-builder/commit/c650177) - 2026-08-01
+
+### Summary
+Resolved merge conflicts across `.jules/palette.md`, `evals/run_adk_eval.py`, `scripts/import_to_sqlite.py`, `src/storybuilder/downloader/network.py`, and `src/storybuilder/genai/client.py`.
+
+### Fixed
+- Restored `.jules/palette.md` accessibility learning notes.
+- Resolved error handling exception type parameters in `evals/run_adk_eval.py`.
+- Preserved default `force=False` in `scripts/import_to_sqlite.py` `_flush_batch`.
+- Added complete type annotations for `fetch_page` in `src/storybuilder/downloader/network.py`.
+- Preserved interaction ID continuity warning log in `src/storybuilder/genai/client.py`.
+
 ## [e805363](https://github.com/jgf2/story-builder/commit/e8053631ac47d693b5838a1e510a1dd4991abca5) - 2026-08-01
 
 ### Summary

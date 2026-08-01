@@ -3,6 +3,17 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
+## [e805363](https://github.com/jgf2/story-builder/commit/e8053631ac47d693b5838a1e510a1dd4991abca5) - 2026-08-01
+
+### Summary
+Resolved merge conflict in `src/storybuilder/analysis/extract_entities.py` by reinstating `get_processed_files` with type annotations and O(1) set lookups, removing duplicate processed files checks, and formatting code with ruff.
+
+### Fixed
+- Resolved git merge conflict in `src/storybuilder/analysis/extract_entities.py`.
+- Reinstated `get_processed_files(cursor: Cursor) -> set[str]` required by unit tests.
+- Added type annotations to `init_db` and `load_spacy_model`.
+- Fixed duplicate `processed_files` evaluation and O(N) DB query performance bottleneck.
+
 ## [PR-1382](https://github.com/jgf2/story-builder/pull/1382) - 2026-07-16
 
 ### Summary

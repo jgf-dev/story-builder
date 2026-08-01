@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-from storybuilder.analysis.extract_entities import init_db, is_processed, main
+from storybuilder.analysis.extract_entities import init_db, get_processed_files, main
 
 
 class TestExtractEntities(unittest.TestCase):
@@ -39,21 +39,21 @@ class TestExtractEntities(unittest.TestCase):
 
         conn.close()
 
-    def test_is_processed(self) -> None:
+    def test_get_processed_files(self) -> None:
         conn = init_db(self.db_path)
         cursor = conn.cursor()
 
         filepath = "test_file.txt"
 
         # Initially not processed
-        self.assertFalse(is_processed(cursor, filepath))
+        self.assertNotIn(filepath, get_processed_files(cursor))
 
         # Insert a record
         cursor.execute("INSERT INTO stories (filepath) VALUES (?)", (filepath,))
         conn.commit()
 
         # Now it should be processed
-        self.assertTrue(is_processed(cursor, filepath))
+        self.assertIn(filepath, get_processed_files(cursor))
 
         conn.close()
 

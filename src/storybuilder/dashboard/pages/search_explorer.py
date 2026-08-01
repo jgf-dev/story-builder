@@ -17,7 +17,6 @@ def render_search_explorer(filters: dict) -> None:
     fts_input = st.text_input(
         "Full-Text Search (FTS5 syntax, e.g. vampire OR werewolf)",
         "",
-
     )
 
     st.markdown("---")
@@ -77,7 +76,5 @@ def render_search_explorer(filters: dict) -> None:
                 st.session_state.selected_story_year = res["db_year"]
                 # Programmatically update radio key by modifying query params and session state navigation
                 st.session_state["nav_page"] = "📖 Read Story"
-
-                st.query_params["nav_page"] = "📖 Read Story"
                 st.rerun()
         st.write("")

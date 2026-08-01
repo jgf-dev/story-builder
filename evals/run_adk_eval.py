@@ -23,7 +23,6 @@ import os
 import sys
 from pathlib import Path
 
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
@@ -95,7 +94,7 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
         from google.adk.evaluation import AgentEvaluator
         from google.adk.evaluation.local_eval_sets_manager import load_eval_set_from_file
 
-        original_cwd = os.getcwd()
+        original_cwd = _Path.cwd()
         os.chdir(str(agent_dir))
 
         try:
@@ -156,8 +155,8 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
             "issues": issues,
             "error": str(e),
         }
-    except Exception as e:
-        logger.error("Error running eval set '%s': %s", eval_name, e)
+    except Exception as e:  # pylint: disable=broad-except
+        logger.exception("Error running eval set '%s'", eval_name)
         return {"status": "error", "eval_set": eval_name, "error": str(e)}
 
 

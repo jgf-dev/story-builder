@@ -6,82 +6,82 @@ from storybuilder.dashboard.data import add_favorite, get_favorites, get_story_b
 
 
 def render_read_story() -> None:
-	"""Render the Read Story page."""
-	st.title("📖 Story Reader")
+    """Render the Read Story page."""
+    st.title("📖 Story Reader")
 
-	if not st.session_state.selected_story_path:
-		st.warning(
-			"No story selected. Please go to 'Search & Explorer' first to pick a story.",
-		)
-		return
+    if not st.session_state.selected_story_path:
+        st.warning(
+            "No story selected. Please go to 'Search & Explorer' first to pick a story.",
+        )
+        return
 
-	story = get_story_by_path(
-		st.session_state.selected_story_path,
-		st.session_state.selected_story_year,
-	)
-	if not story:
-		st.error("Error loading story contents.")
-		return
+    story = get_story_by_path(
+        st.session_state.selected_story_path,
+        st.session_state.selected_story_year,
+    )
+    if not story:
+        st.error("Error loading story contents.")
+        return
 
-	# Grid for title and actions
-	col_title, col_actions = st.columns([3, 1])
-	with col_title:
-		st.header(story["title"])
-		st.subheader(f"By {story['author_name'] or 'Unknown'}")
+    # Grid for title and actions
+    col_title, col_actions = st.columns([3, 1])
+    with col_title:
+        st.header(story["title"])
+        st.subheader(f"By {story['author_name'] or 'Unknown'}")
 
-	with col_actions:
-		# Check if already favorited
-		favorites = get_favorites()
-		is_fav = any(f["story_path"] == story["path"] for f in favorites)
+    with col_actions:
+        # Check if already favorited
+        favorites = get_favorites()
+        is_fav = any(f["story_path"] == story["path"] for f in favorites)
 
-		# Setup tag editor inside expanding drawer/expander
-		with st.expander("⭐ Favorites & Notes", expanded=is_fav):
-			fav_tags = st.text_input(
-				"Tags (comma separated)",
-				"favorite"
-				if not is_fav
-				else next(
-					(f["tags"] for f in favorites if f["story_path"] == story["path"]),
-					"",
-				),
-			)
-			fav_notes = st.text_area(
-				"Notes",
-				""
-				if not is_fav
-				else next(
-					(f["notes"] or "" for f in favorites if f["story_path"] == story["path"]),
-					"",
-				),
-			)
+        # Setup tag editor inside expanding drawer/expander
+        with st.expander("⭐ Favorites & Notes", expanded=is_fav):
+            fav_tags = st.text_input(
+                "Tags (comma separated)",
+                "favorite"
+                if not is_fav
+                else next(
+                    (f["tags"] for f in favorites if f["story_path"] == story["path"]),
+                    "",
+                ),
+            )
+            fav_notes = st.text_area(
+                "Notes",
+                ""
+                if not is_fav
+                else next(
+                    (f["notes"] or "" for f in favorites if f["story_path"] == story["path"]),
+                    "",
+                ),
+            )
 
-			if is_fav:
-				if st.button("Update Info"):
-					add_favorite(
-						story["path"],
-						story["title"],
-						story["author_name"],
-						fav_tags,
-						fav_notes,
-					)
-					st.success("Updated!")
-				if st.button("Remove from Favorites"):
-					remove_favorite(story["path"])
-					st.success("Removed!")
-					st.rerun()
-			elif st.button("Add to Favorites"):
-				add_favorite(
-					story["path"],
-					story["title"],
-					story["author_name"],
-					fav_tags,
-					fav_notes,
-				)
-				st.success("Added!")
-				st.rerun()
+            if is_fav:
+                if st.button("Update Info"):
+                    add_favorite(
+                        story["path"],
+                        story["title"],
+                        story["author_name"],
+                        fav_tags,
+                        fav_notes,
+                    )
+                    st.success("Updated!")
+                if st.button("Remove from Favorites"):
+                    remove_favorite(story["path"])
+                    st.success("Removed!")
+                    st.rerun()
+            elif st.button("Add to Favorites"):
+                add_favorite(
+                    story["path"],
+                    story["title"],
+                    story["author_name"],
+                    fav_tags,
+                    fav_notes,
+                )
+                st.success("Added!")
+                st.rerun()
 
-		# Export to Markdown Button
-		header = textwrap.dedent(f"""
+        # Export to Markdown Button
+        header = textwrap.dedent(f"""
             # {story["title"]}
             **Author:** {story["author_name"] or "Unknown"}
             **Category:** {story["category"]}
@@ -91,21 +91,20 @@ def render_read_story() -> None:
             ---
         """).lstrip()
 
-		md_content = f"{header}\n{story['content']}"
-		st.download_button(
-			label="📥 Export Markdown",
-			data=md_content,
-			file_name=f"{story['story_slug'] or 'story'}.md",
-			mime="text/markdown",
-		)
+        md_content = f"{header}\n{story['content']}"
+        st.download_button(
+            label="📥 Export Markdown",
+            data=md_content,
+            file_name=f"{story['story_slug'] or 'story'}.md",
+            mime="text/markdown",
+        )
 
-	word_count = (dict(story).get("word_count") or 0) if story else 0
-	st.write(
-		f"**Category:** `{story['category']}` | "
-		f"**Published:** `{story['publication_date'] or 'Unknown'}` | "
-		f"**Words:** `{word_count:,}`",
-	)
-	st.markdown("---")
+    st.write(
+        f"**Category:** `{story['category']}` | "
+        f"**Published:** `{story['publication_date'] or 'Unknown'}` | "
+        f"**Words:** `{(dict(story).get('word_count') or 0):,}`",
+    )
+    st.markdown("---")
 
-	# Story Content Display
-	st.markdown(story["content"])
+    # Story Content Display
+    st.markdown(story["content"])

@@ -176,7 +176,7 @@ def _print_config(
         print("Chronological early-stop optimization is DISABLED.")
 
 
-def _merge_targets(all_story_targets: dict[str, dict], sub_targets: list[dict]) -> None:
+def _merge_targets(all_story_targets: dict[tuple[str | None, str], dict], sub_targets: list[dict]) -> None:
     for target in sub_targets:
         key = target["key"]
         if key not in all_story_targets:
@@ -189,12 +189,12 @@ def _merge_targets(all_story_targets: dict[str, dict], sub_targets: list[dict]) 
 
 
 def _scrape_subcategories(
-    subcategories: list[str],
+    subcategories: list[dict[str, str]],
     start_date: datetime.date,
     end_date: datetime.date,
     args: argparse.Namespace,
-) -> dict[str, dict]:
-    all_story_targets: dict[str, dict] = {}
+) -> dict[tuple[str | None, str], dict]:
+    all_story_targets: dict[tuple[str | None, str], dict] = {}
     if args.max_scraping > 1:
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=args.max_scraping,
@@ -213,7 +213,7 @@ def _scrape_subcategories(
 
 
 def _download_stories_parallel(
-    all_story_targets: dict[str, dict],
+    all_story_targets: dict[tuple[str | None, str], dict],
     max_workers: int,
     delay: float,
     force: bool,
@@ -245,7 +245,7 @@ def _download_stories_parallel(
 
 
 def _download_stories_sequential(
-    all_story_targets: dict[str, dict],
+    all_story_targets: dict[tuple[str | None, str], dict],
     delay: float,
     force: bool,
 ) -> int:
@@ -268,7 +268,7 @@ def _download_stories_sequential(
 
 
 def _download_stories(
-    all_story_targets: dict[str, dict],
+    all_story_targets: dict[tuple[str | None, str], dict],
     args: argparse.Namespace,
 ) -> int:
     total_downloads = len(all_story_targets)

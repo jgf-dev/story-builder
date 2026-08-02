@@ -57,7 +57,7 @@ def init_db(db_path: str) -> Connection:
 
 
 def get_processed_files(cursor: Cursor) -> set[str]:
-    """Get a set of all processed filepaths."""
+    """Get all processed filepaths."""
     cursor.execute("SELECT filepath FROM stories")
     return {row[0] for row in cursor.fetchall()}
 
@@ -176,9 +176,7 @@ def main() -> None:
     processed_count = 0
     pbar = tqdm(total=min(len(all_files), args.limit), desc="Processing files")
 
-    processed_files = set()
-    if not args.force:
-        processed_files = get_processed_files(cursor)
+    processed_files = set() if args.force else get_processed_files(cursor)
 
     for filepath in all_files:
         filepath_str = str(filepath)

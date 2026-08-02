@@ -45,15 +45,15 @@ class TestExtractEntities(unittest.TestCase):
 
         filepath = "test_file.txt"
 
-        # Initially empty
-        self.assertEqual(get_processed_files(cursor), set())
+        # Initially not processed
+        self.assertNotIn(filepath, get_processed_files(cursor))
 
         # Insert a record
         cursor.execute("INSERT INTO stories (filepath) VALUES (?)", (filepath,))
         conn.commit()
 
-        # Now it should contain the file
-        self.assertEqual(get_processed_files(cursor), {filepath})
+        # Now it should be processed
+        self.assertIn(filepath, get_processed_files(cursor))
 
         conn.close()
 

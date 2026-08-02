@@ -14,7 +14,11 @@ jobs:
           command: uv sync --all-extras --dev
       - run:
           name: Install CircleCI CLI
-          command: curl -fLSs https://raw.githubusercontent.com/CircleCI-Public/circleci-cli/main/install.sh | sudo bash
+          command: |
+            export DEBIAN_FRONTEND=noninteractive
+            curl -1sLf 'https://packages.circleci.com/public/setup.deb.sh' | sudo -E bash
+            sudo apt-get install -y circleci
+            circleci extension install testsuite
       - run:
           name: Run tests
           command: circleci testsuite run "ci tests"

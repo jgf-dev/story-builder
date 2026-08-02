@@ -105,12 +105,20 @@ def parse_args() -> Namespace:
 		default="en_core_web_lg",
 		help="spaCy model to use.",
 	)
-	parser.add_argument(
+	gpu_group = parser.add_mutually_exclusive_group()
+	gpu_group.add_argument(
 		"--gpu",
+		dest="gpu",
 		action="store_true",
-		default=True,
 		help="Use GPU for spaCy model.",
 	)
+	gpu_group.add_argument(
+		"--no-gpu",
+		dest="gpu",
+		action="store_false",
+		help="Disable GPU for spaCy model.",
+	)
+	parser.set_defaults(gpu=True)
 	return parser.parse_args()
 
 

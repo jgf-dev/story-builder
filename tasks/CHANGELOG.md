@@ -3,6 +3,18 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
+## 2026-08-02
+
+### Summary
+Resolved git merge conflicts across accessibility PRs and performance branches (`dashboard.html`, `.jules/palette.md`, `extract_entities.py`, `pyproject.toml`, `network.py`).
+
+### Fixed
+- Resolved `dashboard.html` accessibility markup, removing duplicate `<section>` tags and restoring `how-to-use-heading` / `how-to-use-desc` landmark bindings.
+- Consolidated accessibility learning notes in `.jules/palette.md`.
+- Consolidated `processed_filepaths` DB query logic in `src/storybuilder/analysis/extract_entities.py`.
+- Fixed `subprocess.run` test assertion in `src/storybuilder/downloader/network.py` by explicitly passing `check=False`.
+- Verified 322/322 unit tests pass across the codebase.
+
 ## [PR-1382](https://github.com/jgf2/story-builder/pull/1382) - 2026-07-16
 
 ### Summary

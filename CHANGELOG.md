@@ -9,7 +9,7 @@ Resolved merge conflicts across dashboard layout, ADK eval runner, accessibility
 
 ### Fixed
 - Resolved merge conflicts in `dashboard.html` by standardizing on `how-to-use-heading` and `how-to-use-desc` accessibility IDs.
-- Resolved merge conflicts in `evals/run_adk_eval.py` by restoring `Path.cwd()` and tab formatting.
+- Resolved merge conflicts in `evals/run_adk_eval.py` by restoring `Path.cwd()`.
 - Resolved merge conflicts in `.jules/palette.md` by retaining all updated accessibility guidelines.
 - Preserved CircleCI test suite configuration and downloader storage `STORIES_DB` fail-fast validation.
 
@@ -41,7 +41,6 @@ Configured CircleCI Smarter Testing with `test-suites.yml` and updated `config.y
 
 ### Changed
 - Replaced `uv run pytest` with `circleci testsuite run "ci tests"` in the CI test step.
-
 ## [c650177](https://github.com/jgf2/story-builder/commit/c650177) - 2026-08-01
 
 ### Summary

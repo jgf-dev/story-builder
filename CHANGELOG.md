@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [PR-1619](https://github.com/jgf-dev/story-builder/pull/1619) - 2026-08-02
+
+### Summary
+Fail fast in the downloader storage script when `STORIES_DB` is unset.
+
+### Fixed
+- Raised a `ValueError` in `src/storybuilder/downloader/storage.py` instead of resolving an empty `STORIES_DB` value to the current working directory.
+
 ## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-02
 
 ### Summary

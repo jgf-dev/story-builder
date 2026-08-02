@@ -16,7 +16,7 @@ from enum import Enum, StrEnum
 from functools import cached_property
 
 from storybuilder.utils.env import load_env
-from google.adk.agents import LlmAgent
+from google.adk.agents import Agent
 from google.adk.artifacts.in_memory_artifact_service import InMemoryArtifactService
 from google.adk.memory.vertex_ai_memory_bank_service import VertexAiMemoryBankService
 from google.adk.models import Gemini
@@ -281,7 +281,7 @@ class StoryAnalysisSchema(BaseModel):
     scene_analysis: SceneAnalysisSchema = Field(description="The scene analysis.")
 
 
-story_analyzer = LlmAgent(
+story_analyzer = Agent(
     name="story_analyzer",
     model=GlobalGemini(model="gemini-3.5-flash"),
     description=(
@@ -329,7 +329,7 @@ class PromptFilesOutputSchema(BaseModel):
 # ---------------------------------------------------------------------------
 # Sub-Agent 2: Scene Prompt Writer
 # ---------------------------------------------------------------------------
-scene_writer = LlmAgent(
+scene_writer = Agent(
     name="scene_writer",
     model=GlobalGemini(model="gemini-3.5-flash"),
     description=(
@@ -353,7 +353,7 @@ scene_writer = LlmAgent(
 # ---------------------------------------------------------------------------
 # Root Orchestrator Agent
 # ---------------------------------------------------------------------------
-root_agent = LlmAgent(
+root_agent = Agent(
     name="tts_prompt_crafter",
     model=GlobalGemini(model="gemini-3.5-flash"),
     description="Root orchestrator for the TTS prompt crafter pipeline.",
@@ -392,7 +392,7 @@ runner = Runner(
     artifact_service=artifact_service,
 )
 
-logging.getLogger(__name__).info(f"Runner created for agent '{runner.agent.name}'.")
+logging.getLogger(__name__).info(f"Runner created for agent '{root_agent.name}'.")
 logging.getLogger(__name__).info(
     f"  Sub-agents: {story_analyzer.name}, {scene_writer.name}",
 )

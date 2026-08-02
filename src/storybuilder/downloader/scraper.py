@@ -29,7 +29,7 @@ def _extract_subcategories_from_html(soup: BeautifulSoup, url: str):
     for item in items:
         a_tag = item.find("a")
         if a_tag and "href" in a_tag.attrs:
-            href = a_tag["href"]
+            href = str(a_tag["href"])
             sub_url = urllib.parse.urljoin(url, href)
             sub_name = a_tag.get_text(strip=True)
             subcategories.append({"name": sub_name, "url": sub_url})
@@ -38,7 +38,7 @@ def _extract_subcategories_from_html(soup: BeautifulSoup, url: str):
     if not subcategories:
         safe_print("No list-group-item elements found. Searching all links...")
         for a_tag in soup.find_all("a"):
-            href = a_tag.get("href", "")
+            href = str(a_tag.get("href") or "")
             if href and not href.startswith("http") and not href.startswith("/") and href.endswith("/"):
                 sub_url = urllib.parse.urljoin(url, href)
                 sub_name = a_tag.get_text(strip=True) or href.rstrip("/")
@@ -106,7 +106,7 @@ def parse_listing_rows(soup: BeautifulSoup):
             date_str = cols[1].get_text(strip=True)
             a_tag = cols[2].find("a")
             if a_tag and "href" in a_tag.attrs:
-                href = a_tag["href"]
+                href = str(a_tag["href"])
                 name = a_tag.get_text(strip=True)
                 rows.append({"size": size, "date_str": date_str, "name": name, "href": href})
 
@@ -121,7 +121,7 @@ def parse_listing_rows(soup: BeautifulSoup):
             date_str = cols[1].get_text(strip=True)
             a_tag = cols[2].find("a")
             if a_tag and "href" in a_tag.attrs:
-                href = a_tag["href"]
+                href = str(a_tag["href"])
                 name = a_tag.get_text(strip=True)
                 rows.append({"size": size, "date_str": date_str, "name": name, "href": href})
 

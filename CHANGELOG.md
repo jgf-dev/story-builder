@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [PR-XXX](https://github.com/jgf2/story-builder/pull/XXX) - 2026-08-02
+
+### Summary
+Configured CircleCI Smarter Testing with `test-suites.yml` and updated `config.yml` to use `circleci testsuite run`.
+
+### Added
+- `.circleci/test-suites.yml` with `discover` (finds all `test_*.py` files), `run` (pytest with JUnit XML via `<< outputs.junit >>`), and `outputs.junit: test-reports`.
+- CircleCI CLI install step in `config.yml`.
+- `store_test_results` step in `config.yml` pointing to `test-reports`.
+
+### Changed
+- Replaced `uv run pytest` with `circleci testsuite run "ci tests"` in the CI test step.
+
 ## [c650177](https://github.com/jgf2/story-builder/commit/c650177) - 2026-08-01
 
 ### Summary

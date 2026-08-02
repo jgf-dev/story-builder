@@ -14,8 +14,13 @@ jobs:
           name: Install dependencies
           command: uv sync --all-extras --dev
       - run:
+          name: Install CircleCI CLI
+          command: curl -fLSs https://raw.githubusercontent.com/CircleCI-Public/circleci-cli/main/install.sh | sudo bash
+      - run:
           name: Run tests
-          command: uv run pytest
+          command: circleci testsuite run "ci tests"
+      - store_test_results:
+          path: test-reports
       - persist_to_workspace:
           root: ~/project
           paths:

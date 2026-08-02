@@ -89,7 +89,7 @@ def fix_prompts(directory: str) -> None:
                     ],
                 ),
             )
-            fixed_content = extract_markdown_block(response.text or "")
+            fixed_content = extract_markdown_block(response.text)
 
             path.write_text(fixed_content, encoding="utf-8")
 

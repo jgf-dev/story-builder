@@ -10,7 +10,6 @@ Fixtures:
 """
 
 from google.adk.agents.llm_agent import LlmAgent
-from google.adk.runners import Runner
 import json
 from pathlib import Path
 
@@ -82,6 +81,7 @@ def tts_runner(tts_agent) -> Runner:
     """
     try:
         from google.adk.artifacts import InMemoryArtifactService
+        from google.adk.runners import Runner
         from google.adk.sessions import InMemorySessionService
 
         session_service = InMemorySessionService()

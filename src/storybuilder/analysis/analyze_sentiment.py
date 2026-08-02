@@ -248,7 +248,11 @@ def process_chapter(filepath, chapter_idx: int, story_id, cursor, nlp, sentiment
         )
 
 
-def process_story(story_dir: str, filepaths, cursor: Cursor, conn: Connection, nlp: Language, sentiment_pipe) -> None:
+def process_story(story_dir: str, filepaths, cursor: Cursor, conn: Connection, nlp: Language, sentiment_pipe) -> bool:
+    cursor.execute("SELECT id FROM stories WHERE story_dir = ?", (story_dir,))
+    if cursor.fetchone():
+        print(f"Skipping already processed story: {story_dir}")
+        return False
     print(f"\nProcessing Story: {story_dir} ({len(filepaths)} chapters)")
     filepaths.sort(key=lambda x: extract_chapter_number(x.name))
 
@@ -271,6 +275,8 @@ def process_story(story_dir: str, filepaths, cursor: Cursor, conn: Connection, n
         process_chapter(filepath, chapter_idx, story_id, cursor, nlp, sentiment_pipe)
         conn.commit()
 
+    return True
+
 
 def main() -> None:
     args = parse_args()
@@ -288,21 +294,15 @@ def main() -> None:
 
     processed_stories = 0
 
-    cursor.execute("SELECT story_dir FROM stories")
-    processed_dirs = {row[0] for row in cursor.fetchall()}
-
     for story_dir, filepaths in multi_stories.items():
         if args.limit_stories and processed_stories >= args.limit_stories:
             break
 
-        if story_dir in processed_dirs:
-            print(f"Skipping already processed story: {story_dir}")
-            continue
-
-        process_story(
+        was_processed = process_story(
             story_dir, filepaths, cursor, conn, nlp, sentiment_pipe,
         )
-        processed_stories += 1
+        if was_processed:
+            processed_stories += 1
     conn.close()
 
 

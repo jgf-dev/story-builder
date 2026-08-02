@@ -42,19 +42,16 @@ def main() -> None:
 
     print(f"Finding top {args.n_results} stories similar to: {args.target_story}\n")
 
-    query_results = collection_averages.query(query_embeddings=[target_embedding], n_results=args.n_results + 1)  # pyrefly: ignore [bad-argument-type]
+    query_results = collection_averages.query(query_embeddings=[target_embedding], n_results=args.n_results + 1)
 
-    ids = query_results.get("ids")
-    distances = query_results.get("distances")
-    if ids and distances:
-        for idx, (filepath, distance) in enumerate(
-            zip(ids[0], distances[0]),
-        ):
-            if filepath == args.target_story:
-                continue
+    for idx, (filepath, distance) in enumerate(
+        zip(query_results["ids"][0], query_results["distances"][0]),
+    ):
+        if filepath == args.target_story:
+            continue
 
-            print(f"{idx}. {filepath}")
-            print(f"   Distance (lower is closer): {distance:.4f}\n")
+        print(f"{idx}. {filepath}")
+        print(f"   Distance (lower is closer): {distance:.4f}\n")
 
 
 if __name__ == "__main__":

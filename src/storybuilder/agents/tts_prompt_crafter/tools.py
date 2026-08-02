@@ -179,8 +179,8 @@ def write_scene_file(story_path: str, filename: str, content: str) -> str:
         A confirmation message with the path of the written file.
     """
     output_dir, error = _get_validated_output_dir(story_path)
-    if error or output_dir is None:
-        return error or "Error: Output directory resolution failed."
+    if error:
+        return error
 
     pathlib.Path(output_dir).mkdir(exist_ok=True, parents=True)
 
@@ -208,8 +208,8 @@ def split_scene_files(story_path: str) -> str:
         A status message listing the resulting part files.
     """
     output_dir, error = _get_validated_output_dir(story_path)
-    if error or output_dir is None:
-        return error or "Error: Output directory resolution failed."
+    if error:
+        return error
 
     if not pathlib.Path(output_dir).is_dir():
         return f"Error: Output directory not found at {output_dir}"
@@ -219,7 +219,7 @@ def split_scene_files(story_path: str) -> str:
         return f"Error: No *-scene*.md files found in {output_dir}"
 
     try:
-        from split_prompts import process_files  # pyrefly: ignore [missing-import]  # pylint: disable=import-error
+        from split_prompts import process_files  # pylint: disable=import-error
 
         process_files(output_dir)
     except Exception as e:

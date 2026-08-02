@@ -149,6 +149,9 @@ testpaths  = ["tests"]
 pythonpath = ["."]
 filterwarnings = [
     "ignore::DeprecationWarning",
+    "ignore:.*BaseAgentConfig is deprecated.*:DeprecationWarning",
+    "ignore:.*You should use `Logger` instead.*:DeprecationWarning",
+    "ignore:.*The default date adapter is deprecated.*:DeprecationWarning",
 ]
 
 # Temporary disable test in agent
@@ -159,9 +162,4 @@ markers = [
     "adk_eval: marks tests that run ADK evaluation engine",
     "agentic: marks tests using agentic evaluation patterns (reflection, rubric)",
     "integration: live external services (Gemini/Vertex/TTS); unit suite uses fakes by default — enable live path with STORYBUILDER_LIVE_API=1",
-]
-filterwarnings = [
-    "ignore:.*BaseAgentConfig is deprecated.*:DeprecationWarning",
-    "ignore:.*You should use `Logger` instead.*:DeprecationWarning",
-    "ignore:.*The default date adapter is deprecated.*:DeprecationWarning",
 ]

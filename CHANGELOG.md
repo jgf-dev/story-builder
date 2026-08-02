@@ -5,10 +5,10 @@ All notable changes to this project will be documented in this file.
 ## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-02
 
 ### Summary
-Hardened CircleCI CLI installation to avoid piping an unpinned remote script into `sudo bash`.
+Configured CircleCI Smarter Testing with `test-suites.yml` and updated `config.yml` to use `circleci testsuite run`.
 
 ### Fixed
-- Replaced the CircleCI CLI install script pipe with a pinned release tarball download plus SHA256 verification in `.circleci/config.yml`.
+- Installed the CircleCI CLI in `.circleci/config.yml` (currently via the upstream install script).
 
 ## [PR-XXX](https://github.com/jgf2/story-builder/pull/XXX) - 2026-08-02
 

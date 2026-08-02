@@ -23,12 +23,14 @@ import os
 import sys
 from pathlib import Path
 
+from storybuilder.utils.logging_config import configure_logging, get_logger
 
-logging.basicConfig(
+
+configure_logging(
     level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
+    format_string="%(asctime)s - %(levelname)s - %(message)s",
 )
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Ensure the project root is on sys.path
 PROJECT_ROOT = Path(__file__).parent.parent

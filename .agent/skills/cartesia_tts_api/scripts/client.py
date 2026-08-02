@@ -3,10 +3,10 @@ import os
 from cartesia import Cartesia
 from cartesia.types import VoiceSpecifierParam
 from cartesia.types import WAVOutputFormatParam
-from dotenv import load_dotenv
+from storybuilder.utils.env import load_env
 
 
-load_dotenv()
+load_env()
 
 client: Cartesia = Cartesia(api_key=os.getenv("CARTESIA_API_KEY"))
 

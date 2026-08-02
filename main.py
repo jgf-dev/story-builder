@@ -6,12 +6,12 @@ import braintrust
 
 braintrust.auto_instrument()
 
-from dotenv import load_dotenv
+from storybuilder.utils.env import load_env
 
 from storybuilder.genai import client
 
 
-load_dotenv()
+load_env()
 
 
 if __name__ == "__main__":

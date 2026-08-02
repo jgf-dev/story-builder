@@ -205,9 +205,8 @@ def process_file_cartesia(md_file: str, wav_file: str, api_key: str, rate=24000)
     success = True
 
     for idx, (voice_id, text) in enumerate(segments):
-        voice_id_str = voice_id or ""
         print(
-            f"  Synthesizing segment {idx + 1}/{len(segments)} (Voice ID: {voice_id_str[:8]}...): {text[:40]}...",
+            f"  Synthesizing segment {idx + 1}/{len(segments)} (Voice ID: {voice_id[:8]}...): {text[:40]}...",
         )
         try:
             segment_pcm = generate_segment_audio(api_key, text, voice_id, rate=rate)

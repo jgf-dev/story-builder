@@ -14,31 +14,25 @@ Schema:
 """
 
 import argparse
-import logging
 import os
 import sqlite3
 import sys
 import time
 from pathlib import Path
 
+
 # Use shared db module
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
+# ——— Schema ——————————————————————————————————————————————————————————————————
+
 # Import shared database functions
-from storybuilder.downloader.db import (
-    _parse_author,  # pyrefly: ignore [private-import]
-    _parse_output_path,  # pyrefly: ignore [private-import]
-    optimize_fts,
-)
+from storybuilder.downloader.db import _parse_author
+from storybuilder.downloader.db import _parse_output_path
 from storybuilder.downloader.db import init_db as _db_init_db
-
-try:
-    from storybuilder.downloader.db import _is_partitioned as IS_PARTITIONED  # pyrefly: ignore [private-import]
-except ImportError:
-    IS_PARTITIONED = False
+from storybuilder.downloader.db import optimize_fts
 
 
-logger = logging.getLogger(__name__)
 BATCH_SIZE = 1000
 
 
@@ -59,13 +53,11 @@ def parse_header(filepath: str) -> "dict | None":
     """
     try:
         text = Path(filepath).read_text(encoding="utf-8")
-    except OSError as e:
-        logger.debug("Failed to read story header from %s: %s", filepath, e)
+    except Exception:
         return None
 
     lines = text.split("\n")
-    MIN_HEADER_LINES = 5
-    if len(lines) < MIN_HEADER_LINES:
+    if len(lines) < 5:
         return None
 
     # Check for ===== header markers
@@ -82,13 +74,13 @@ def parse_header(filepath: str) -> "dict | None":
     content_start = 0
     found_second_marker = False
 
-    for idx, line in enumerate(lines):
-        if idx == 0:
+    for i, line in enumerate(lines):
+        if i == 0:
             continue  # Skip first marker
         if in_header and line.startswith("===="):
             found_second_marker = True
             in_header = False
-            content_start = idx + 1
+            content_start = i + 1
             continue
         if in_header:
             if line.startswith("Title:"):
@@ -126,7 +118,6 @@ def import_files(
     conn: sqlite3.Connection,
     files: list[str],
     force: bool = False,
-    start_time: float | None = None,
 ) -> tuple[int, int]:
     """Import a list of file paths into the database.
 
@@ -135,9 +126,8 @@ def import_files(
     imported = 0
     skipped = 0
     batch = []
-    t_start = start_time if start_time is not None else time.time()
 
-    for filepath in files:
+    for i, filepath in enumerate(files):
         if not Path(filepath).is_file():
             skipped += 1
             continue
@@ -166,6 +156,7 @@ def import_files(
                 parsed["author_email"],
                 parsed["publication_date"],
                 parsed["url"],
+                parsed["email_date"],
                 char_count,
                 word_count,
                 content,
@@ -173,9 +164,9 @@ def import_files(
         )
 
         if len(batch) >= BATCH_SIZE:
-            imported += _flush_batch(conn, batch, force=force)
+            imported += _flush_batch(conn, batch, force)
             batch = []
-            elapsed = time.time() - t_start
+            elapsed = time.time() - _start_time
             rate = imported / elapsed if elapsed > 0 else 0
             print(
                 f"\r  Imported {imported:,}/{len(files)} files ({rate:.0f}/s) — skipped {skipped}",
@@ -184,20 +175,68 @@ def import_files(
             )
 
     if batch:
-        imported += _flush_batch(conn, batch, force=force)
+        imported += _flush_batch(conn, batch, force)
 
     return imported, skipped
 
 
-def _flush_batch(conn: sqlite3.Connection, batch: list, force: bool = False) -> int:
+_start_time = 0.0
+
+
+def _flush_batch(conn: sqlite3.Connection, batch: list, force: bool) -> int:
+    try:
+        from storybuilder.downloader.db import _is_partitioned
+    except ImportError:
+        _is_partitioned = False
+
+    if _is_partitioned:
+        from storybuilder.downloader.db import _get_write_conn
+
+        conns = {}
+        for row in batch:
+            story_date = row[8]
+            c = _get_write_conn(story_date)
+            if c not in conns:
+                conns[c] = []
+            conns[c].append(row)
+        imported = 0
+        for c, rows in conns.items():
+            sql = """
+                INSERT OR REPLACE INTO stories
+                    (path, orientation, category, story_slug, chapter_num,
+                     title, author_name, author_email,
+                     publication_date, url, email_date,
+                     char_count, word_count, content)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """
+            try:
+                c.executemany(sql, rows)
+                c.commit()
+                imported += len(rows)
+            except sqlite3.IntegrityError:
+                c.rollback()
+                if force:
+                    count = 0
+                    for r in rows:
+                        try:
+                            c.execute(sql, r)
+                            c.commit()
+                            count += 1
+                        except Exception as e:
+                            print(
+                                f"[WARN] Skipping row during forced import (path={r[0]!r}): {e}",
+                                file=sys.stderr,
+                            )
+                    imported += count
+        return imported
 
     sql = """
         INSERT OR REPLACE INTO stories
             (path, orientation, category, story_slug, chapter_num,
              title, author_name, author_email,
-             publication_date, url,
+             publication_date, url, email_date,
              char_count, word_count, content)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
     try:
         conn.executemany(sql, batch)
@@ -213,8 +252,8 @@ def _flush_batch(conn: sqlite3.Connection, batch: list, force: bool = False) -> 
                     conn.execute(sql, row)
                     conn.commit()
                     count += 1
-                except sqlite3.Error as e:
-                    logger.debug("Skipped row during forced batch flush: %s", e)
+                except Exception:
+                    pass
             return count
         return 0
 
@@ -223,6 +262,8 @@ def _flush_batch(conn: sqlite3.Connection, batch: list, force: bool = False) -> 
 
 
 def main() -> None:
+    global _start_time
+
     parser = argparse.ArgumentParser(
         description="Import Nifty story .txt files into SQLite + FTS5",
     )
@@ -268,16 +309,20 @@ def main() -> None:
     conn = init_db(args.db)
 
     print(f"Importing into {args.db}...")
-    start_time = time.time()
+    _start_time = time.time()
 
-    imported, skipped = import_files(conn, all_files, force=args.force, start_time=start_time)
+    imported, skipped = import_files(conn, all_files, force=args.force)
 
-    elapsed = time.time() - start_time
+    elapsed = time.time() - _start_time
     rate = imported / elapsed if elapsed > 0 else 0
 
     # Build FTS index (should already be built via triggers, but optimize)
     print("\n  Optimizing FTS index...")
-    if not IS_PARTITIONED:
+    try:
+        from storybuilder.downloader.db import _is_partitioned
+    except ImportError:
+        _is_partitioned = False
+    if not _is_partitioned:
         conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
         conn.commit()
     else:

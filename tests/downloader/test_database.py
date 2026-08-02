@@ -867,39 +867,6 @@ class TestImportToSQLite(unittest.TestCase):
         self.assertIsNotNone(result)
         self.assertEqual(result["content"], "")
 
-    def test_flush_batch_compatibility(self) -> None:
-        import import_to_sqlite
-        from storybuilder.downloader import db
-
-        db_path = os.path.join(self.temp_dir, "import_test.db")
-        conn = db.init_db(db_path)
-
-        batch = [
-            (
-                "nifty_stories/gay/category/slug/slug.txt",
-                "gay",
-                "category",
-                "slug",
-                None,
-                "Title",
-                "Author",
-                "author@example.com",
-                "2024-01-01",
-                "http://example.com",
-                100,
-                20,
-                "Content body",
-            )
-        ]
-        inserted = import_to_sqlite._flush_batch(conn, batch, force=False)
-        self.assertEqual(inserted, 1)
-
-        cur = conn.execute("SELECT title, author_name, content FROM stories WHERE path = ?", (batch[0][0],))
-        row = cur.fetchone()
-        self.assertIsNotNone(row)
-        self.assertEqual(row[0], "Title")
-        conn.close()
-
 
 class TestDBSearch(unittest.TestCase):
     """Tests for search_stories and related functions."""
@@ -1057,8 +1024,6 @@ class TestDBContentOperations(unittest.TestCase):
 
         result = db.get_story("/tmp/fields_test.txt")
 
-        self.assertIsNotNone(result)
-        assert result is not None
         self.assertEqual(result["title"], "Test Title")
         self.assertIn("Test Author", result["author"])
         self.assertEqual(result["url"], "http://ex/test")

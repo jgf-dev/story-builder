@@ -4,8 +4,6 @@ import re
 import sqlite3
 import threading
 from pathlib import Path
-from typing import ClassVar
-from sqlalchemy.engine import Engine
 
 from sqlalchemy import func
 from sqlalchemy import literal_column
@@ -23,7 +21,7 @@ logging = std_logging.getLogger(__name__)
 
 
 class Story(SQLModel, table=True):
-    __tablename__: ClassVar[str] = "stories"  # pyrefly: ignore [bad-override]
+    __tablename__ = "stories"
 
     id: int | None = Field(default=None, primary_key=True)
     path: str = Field(unique=True, index=True)
@@ -134,12 +132,11 @@ CREATE INDEX IF NOT EXISTS idx_stories_char_count      ON stories(char_count);
 # -- Globals ------------------------------------------------------------
 
 _conn: "sqlite3.Connection | None" = None
-_engine: "Engine | None" = None
+_engine: "create_engine | None" = None
 _connections: dict[str, sqlite3.Connection] = {}
 _is_partitioned = False
 _db_dir: "str | None" = None
 _monolithic_db_path: "str | None" = None
-_db_path_global: "str | None" = None
 _lock = threading.Lock()
 
 # -- Regex patterns -----------------------------------------------------
@@ -337,37 +334,34 @@ def init_db(db_path: str) -> "sqlite3.Connection":
     SQLModel.metadata.create_all(_engine)
 
     # Retrieve raw DBAPI connection for FTS and trigger execution
-    conn = _engine.raw_connection().driver_connection
-    if conn is None:
-        raise RuntimeError("Failed to retrieve driver connection from engine")
-    _conn = conn
+    _conn = _engine.raw_connection().driver_connection
     # Configure SQLite pragmas. WAL may not be supported on every filesystem
     # (e.g., some network filesystems). Try WAL first and fall back to DELETE
     # if it fails to avoid a hard crash during test runs.
     try:
-        conn.execute("PRAGMA journal_mode=WAL")
+        _conn.execute("PRAGMA journal_mode=WAL")
     except sqlite3.OperationalError:
         logging.warning("WAL journal mode not available, falling back to DELETE", exc_info=True)
         try:
-            conn.execute("PRAGMA journal_mode=DELETE")
+            _conn.execute("PRAGMA journal_mode=DELETE")
         except Exception:
             # best-effort; continue and let later operations surface errors
             logging.debug("Failed to set journal_mode=DELETE", exc_info=True)
 
-    conn.execute("PRAGMA synchronous=NORMAL")
-    conn.execute("PRAGMA cache_size=-64000")
+    _conn.execute("PRAGMA synchronous=NORMAL")
+    _conn.execute("PRAGMA cache_size=-64000")
 
     # SQLite DDL commands for FTS virtual table & triggers
     try:
-        conn.executescript(SCHEMA)
-        conn.executescript(INDEXES)
+        _conn.executescript(SCHEMA)
+        _conn.executescript(INDEXES)
     except sqlite3.OperationalError as e:
         # Log enough context to diagnose disk I/O issues during schema setup
         logging.exception("Failed to execute DB schema script on %s", resolved_path, exc_info=e)
         raise
 
-    _migrate_schema(conn)
-    return conn
+    _migrate_schema(_conn)
+    return _conn
 
 
 def get_conn() -> "sqlite3.Connection | None":
@@ -436,7 +430,7 @@ def search_stories(
                     else literal_column("NULL").label("snippet")
                 )
 
-                query_stmt = select(  # pyrefly: ignore [no-matching-overload]
+                query_stmt = select(
                     Story.id,
                     Story.path,
                     Story.category,
@@ -454,13 +448,13 @@ def search_stories(
                 if author and author != "All":
                     query_stmt = query_stmt.where(Story.author_name == author)
                 if date_from:
-                    query_stmt = query_stmt.where(Story.publication_date >= date_from)  # pyrefly: ignore [unsupported-operation]
+                    query_stmt = query_stmt.where(Story.publication_date >= date_from)
                 if date_to:
-                    query_stmt = query_stmt.where(Story.publication_date <= date_to)  # pyrefly: ignore [unsupported-operation]
+                    query_stmt = query_stmt.where(Story.publication_date <= date_to)
                 if entity_suffixes:
                     from sqlalchemy import or_
 
-                    or_clauses = [Story.path.like(f"%{suffix}") for suffix in entity_suffixes]  # pyrefly: ignore [missing-attribute]  # pylint: disable=no-member
+                    or_clauses = [Story.path.like(f"%{suffix}") for suffix in entity_suffixes]  # pylint: disable=no-member
                     query_stmt = query_stmt.where(or_(*or_clauses))
 
                 query_stmt = query_stmt.join(fts_table, Story.id == fts_table.c.rowid)
@@ -492,16 +486,16 @@ def search_stories(
             if author and author != "All":
                 stmt = stmt.where(Story.author_name == author)
             if date_from:
-                stmt = stmt.where(Story.publication_date >= date_from)  # pyrefly: ignore [unsupported-operation]
+                stmt = stmt.where(Story.publication_date >= date_from)
             if date_to:
-                stmt = stmt.where(Story.publication_date <= date_to)  # pyrefly: ignore [unsupported-operation]
+                stmt = stmt.where(Story.publication_date <= date_to)
             if entity_suffixes:
                 from sqlalchemy import or_
 
-                or_clauses = [Story.path.like(f"%{suffix}") for suffix in entity_suffixes]  # pyrefly: ignore [missing-attribute]  # pylint: disable=no-member
+                or_clauses = [Story.path.like(f"%{suffix}") for suffix in entity_suffixes]  # pylint: disable=no-member
                 stmt = stmt.where(or_(*or_clauses))
 
-            stmt = stmt.order_by(Story.publication_date.desc())  # pyrefly: ignore [missing-attribute]  # pylint: disable=no-member
+            stmt = stmt.order_by(Story.publication_date.desc())  # pylint: disable=no-member
             stmt = stmt.limit(limit)
             stories = session.exec(stmt).all()
             output = []
@@ -629,7 +623,7 @@ def optimize_fts() -> None:
         return
     with Session(engine) as session:
         try:
-            session.execute(text("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')"))
+            session.exec(text("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')"))
             session.commit()
         except Exception as e:
             std_logging.exception("FTS optimize skipped", exc_info=e)

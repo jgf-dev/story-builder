@@ -71,10 +71,8 @@ class TestSubagent(unittest.TestCase):
                 ),
             )
             self.assertTrue(response.candidates)
-            self.assertGreater(len(response.text or ""), 0)
-            from typing import Any
-            generate_content_mock: Any = client.models.generate_content
-            generate_content_mock.assert_called_once()
+            self.assertGreater(len(response.text), 0)
+            client.models.generate_content.assert_called_once()
 
     def _live_analyzer(self, cleaned_content: str, analyzer_prompt: str, safety_settings: list[SafetySetting]) -> None:
         """Opt-in real Vertex generate_content (STORYBUILDER_LIVE_API=1)."""
@@ -94,7 +92,7 @@ class TestSubagent(unittest.TestCase):
                 ),
             )
             self.assertTrue(response.candidates)
-            self.assertGreater(len(response.text or ""), 0)
+            self.assertGreater(len(response.text), 0)
         except Exception as e:
             if (
                 "quota" in str(e).lower()

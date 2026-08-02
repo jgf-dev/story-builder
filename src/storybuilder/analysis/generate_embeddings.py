@@ -84,7 +84,7 @@ def process_story(filepath_str: str, collection_chunks: Collection, collection_a
             ids=chunk_ids,
             embeddings=chunk_embeddings.tolist(),
             documents=chunks,
-            metadatas=chunk_metadatas,  # pyrefly: ignore [bad-argument-type]
+            metadatas=chunk_metadatas,
         )
 
         avg_embedding = np.mean(chunk_embeddings, axis=0)
@@ -105,7 +105,7 @@ def process_story(filepath_str: str, collection_chunks: Collection, collection_a
 
 def main() -> None:
     args = parse_args()
-    _, collection_chunks, collection_averages = setup_collections(
+    chroma_client, collection_chunks, collection_averages = setup_collections(
         args.db_path,
     )
 

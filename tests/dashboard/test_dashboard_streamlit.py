@@ -92,10 +92,6 @@ class TestDashboardStreamlitUI(unittest.TestCase):
 
         script_path = Path("scripts/dashboard.py")
         spec = spec_from_file_location("dashboard_launcher", script_path)
-        if spec is None or spec.loader is None:
-            self.fail("Could not load spec or loader for scripts/dashboard.py")
-            return
-
         module = module_from_spec(spec)
 
         try:

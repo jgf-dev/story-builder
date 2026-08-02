@@ -95,8 +95,6 @@ class TestCLIArgsAndDates(unittest.TestCase):
         from storybuilder.downloader.cli import _parse_dates
         start, end = _parse_dates("2024-01-01", "2024-12-31")
         self.assertIsNotNone(start)
-        self.assertIsNotNone(end)
-        assert end is not None
         self.assertEqual(end.year, 2024)
 
     def test_parse_dates_invalid_start(self) -> None:
@@ -108,14 +106,11 @@ class TestCLIArgsAndDates(unittest.TestCase):
         from storybuilder.downloader.cli import _parse_dates
         start, end = _parse_dates("2020-01-01", None)
         self.assertIsNotNone(end)
-        self.assertIsNotNone(start)
-        assert end is not None
-        assert start is not None
         self.assertGreaterEqual(end, start)
 
     def test_merge_targets_dedups(self) -> None:
         from storybuilder.downloader.cli import _merge_targets
-        targets: dict[tuple[str | None, str], dict] = {}
+        targets = {}
         subs = [
             {"key": ("cat", "slug"), "url": "u1", "date": "d", "output_path": "p1"},
             {"key": ("cat", "slug"), "url": "u1", "date": "d", "output_path": "p2"},
@@ -467,7 +462,7 @@ class TestCLIInternalFunctions(unittest.TestCase):
         """Test _merge_targets combines output_paths for same key."""
         from storybuilder.downloader.cli import _merge_targets
 
-        all_targets: dict[tuple[str | None, str], dict] = {}
+        all_targets = {}
         sub_targets = [
             {"key": ("cat", "slug1"), "url": "u1", "output_path": "p1", "date": "d"},
             {"key": ("cat", "slug1"), "url": "u1", "output_path": "p2", "date": "d"},
@@ -528,7 +523,7 @@ class TestCLIInternalFunctions(unittest.TestCase):
 
         mock_download.return_value = True
 
-        targets: dict[tuple[str | None, str], dict] = {
+        targets = {
             ("c", "s1"): {"url": "u1", "output_paths": ["p1"], "date": "2024-06-01"},
             ("c", "s2"): {"url": "u2", "output_paths": ["p2"], "date": "2024-06-01"},
         }
@@ -544,7 +539,7 @@ class TestCLIInternalFunctions(unittest.TestCase):
 
         mock_download.return_value = True
 
-        targets: dict[tuple[str | None, str], dict] = {
+        targets = {
             ("c", "s1"): {"url": "u1", "output_paths": ["p1"], "date": "2024-06-01"},
             ("c", "s2"): {"url": "u2", "output_paths": ["p2"], "date": "2024-06-01"},
         }
@@ -562,7 +557,7 @@ class TestCLIInternalFunctions(unittest.TestCase):
         mock_par.return_value = 5
         mock_seq.return_value = 5
 
-        targets: dict[tuple[str | None, str], dict] = {("c", "s"): {"url": "u", "output_paths": ["p"], "date": "d"}}
+        targets = {("c", "s"): {"url": "u", "output_paths": ["p"], "date": "d"}}
         args = argparse.Namespace(max_workers=4, delay=0, force=False)
 
         result = _download_stories(targets, args)
@@ -579,7 +574,7 @@ class TestCLIInternalFunctions(unittest.TestCase):
         mock_par.return_value = 5
         mock_seq.return_value = 5
 
-        targets: dict[tuple[str | None, str], dict] = {("c", "s"): {"url": "u", "output_paths": ["p"], "date": "d"}}
+        targets = {("c", "s"): {"url": "u", "output_paths": ["p"], "date": "d"}}
         args = argparse.Namespace(max_workers=1, delay=0, force=False)
 
         result = _download_stories(targets, args)

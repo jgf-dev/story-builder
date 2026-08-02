@@ -42,7 +42,12 @@ def get_meta_conn() -> sqlite3.Connection:
 		conn.execute(
 			"""
             CREATE TABLE IF NOT EXISTS favorites (
-                story_path TEXT PRIMARY KEY,
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                story_path TEXT UNIQUE,
+                title TEXT,
+                author TEXT,
+                tags TEXT,
+                notes TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
             """,

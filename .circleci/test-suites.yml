@@ -3,4 +3,4 @@ name: ci tests
 discover: find tests/ -name "test_*.py" | sort
 run: uv run pytest << test.atoms >> --junit-xml=<< outputs.junit >>
 outputs:
-  junit: test-reports
+  junit: test-reports/results.xml

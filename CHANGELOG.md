@@ -27,6 +27,7 @@ Hardened CircleCI CLI installation to avoid piping an unpinned remote script int
 
 ### Fixed
 - Replaced the CircleCI CLI install script pipe with a pinned release tarball download plus SHA256 verification in `.circleci/config.yml`.
+
 ## [PR-XXX](https://github.com/jgf2/story-builder/pull/XXX) - 2026-08-02
 
 ### Summary

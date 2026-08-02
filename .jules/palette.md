@@ -5,3 +5,10 @@
 ## 2024-07-28 - HTML5 Section Landmarks
 **Learning:** HTML5 `<section>` elements do not act as semantic `region` landmarks for screen reader navigation by default.
 **Action:** Upgrade `<section>` elements by using `aria-labelledby` and `aria-describedby` to structurally link them to their existing visible `<header>` tags (e.g., `<h2>` and `<p>`), providing richer semantic context.
+## 2024-03-12 - Structurally link lists to visible headers
+**Learning:** Structurally linking components like lists to their existing visible `<header>` tags (e.g., `<h2>` and `<p>`) using `aria-labelledby` and `aria-describedby` provides richer semantic context for screen reader users than a standalone `aria-label`.
+**Action:** When enhancing accessibility for lists or structural regions, use `aria-labelledby` and `aria-describedby` to reference existing headers and description elements.
+
+## 2024-05-18 - Card Component Region Landmarks
+**Learning:** In this application's design system, `<section class="card">` elements lack implicit ARIA region landmark roles for screen readers.
+**Action:** Always upgrade `.card` sections by binding them to their internal `<header class="hd">` elements using `aria-labelledby` (pointing to the `<h2>`) and `aria-describedby` (pointing to the `<p class="sub">`) to provide rich, structural semantic context.

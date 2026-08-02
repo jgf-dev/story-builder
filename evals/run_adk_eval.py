@@ -23,7 +23,6 @@ import os
 import sys
 from pathlib import Path
 
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
@@ -35,8 +34,8 @@ PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 # Agent paths
-TTS_AGENT_DIR = PROJECT_ROOT / "src" / "storybuilder" / "agents" / "tts_prompt_crafter"
-CARTESIA_AGENT_DIR = PROJECT_ROOT / "src" / "storybuilder" / "agents" / "cartesia_tts_prompt_crafter"
+TTS_AGENT_DIR = PROJECT_ROOT / ".agent" / "skills" / "tts-prompt-crafter"
+CARTESIA_AGENT_DIR = PROJECT_ROOT / "src" / "storybuilder" / "cartesia"
 
 
 def discover_eval_sets(agent_dir: Path) -> list[Path]:
@@ -46,8 +45,7 @@ def discover_eval_sets(agent_dir: Path) -> list[Path]:
 
 def load_eval_set(eval_set_path: Path) -> dict:
     """Load an ADK eval set JSON file."""
-    with Path(eval_set_path).open() as f:
-
+    with Path(eval_set_path).open(encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -81,10 +79,7 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
 
     Results are automatically saved to .adk/eval_history/ by the ADK.
     """
-    import asyncio
-    from pathlib import Path as _Path
-
-    eval_path = _Path(eval_set_path)
+    eval_path = Path(eval_set_path)
     agent_dir = eval_path.parent
 
     eval_data = load_eval_set(eval_set_path)
@@ -97,10 +92,9 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
     # Try loading the eval set via ADK's built-in file loader
     try:
         from google.adk.evaluation import AgentEvaluator
-        from google.adk.evaluation.eval_set import EvalSet
         from google.adk.evaluation.local_eval_sets_manager import load_eval_set_from_file
 
-        original_cwd = os.getcwd()
+        original_cwd = _Path.cwd()
         os.chdir(str(agent_dir))
 
         try:
@@ -134,7 +128,12 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
                         metric_name = getattr(metric, "metric_name", "?")
                         score = getattr(metric, "score", None)
                         status = getattr(metric, "eval_status", None)
-                        status_label = {1: "PASS", 2: "FAIL", 3: "SKIP", 4: "ERROR"}.get(status, str(status or "?"))
+                        status_label = "?"
+                        if status is not None:
+                            try:
+                                status_label = {1: "PASS", 2: "FAIL", 3: "SKIP", 4: "ERROR"}[int(status)]
+                            except (KeyError, ValueError, TypeError):
+                                status_label = str(status)
 
                         if score is not None:
                             print(f"    {metric_name}: {score:.4f} [{status_label}]")
@@ -156,8 +155,8 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
             "issues": issues,
             "error": str(e),
         }
-    except Exception as e:
-        logger.error("Error running eval set '%s': %s", eval_name, e)
+    except Exception as e:  # pylint: disable=broad-except
+        logger.exception("Error running eval set '%s'", eval_name)
         return {"status": "error", "eval_set": eval_name, "error": str(e)}
 
 
@@ -177,26 +176,27 @@ def _resolve_agent_module(agent_dir: Path) -> str:
     return f"{module}.agent"
 
 
-def validate_eval_set_structure(eval_set: dict, file_path: str) -> list[str]:
+def validate_eval_set_structure(eval_set: dict, file_path: str | None = None) -> list[str]:
     """Validate the structure of an ADK eval set without running it."""
     issues = []
     eval_id = eval_set.get("eval_set_id") or eval_set.get("name", "unknown")
+    location = f" ({file_path})" if file_path else ""
 
     if not eval_set.get("eval_cases"):
-        issues.append(f"[{eval_id}] No eval_cases found")
+        issues.append(f"[{eval_id}]{location} No eval_cases found")
 
     for i, case in enumerate(eval_set.get("eval_cases", [])):
         case_id = case.get("eval_id", f"case_{i}")
         conv = case.get("conversation", [])
         if not conv:
-            issues.append(f"[{case_id}] Empty conversation")
+            issues.append(f"[{case_id}]{location} Empty conversation")
         for j, turn in enumerate(conv):
             uc = turn.get("user_content", {})
             if not uc.get("parts"):
-                issues.append(f"[{case_id}] turn[{j}] missing user_content parts")
+                issues.append(f"[{case_id}]{location} turn[{j}] missing user_content parts")
             fr = turn.get("final_response", {})
             if not fr.get("parts"):
-                issues.append(f"[{case_id}] turn[{j}] missing final_response parts")
+                issues.append(f"[{case_id}]{location} turn[{j}] missing final_response parts")
 
     return issues
 
@@ -235,9 +235,9 @@ def main() -> None:
 
     # Discover eval sets
     agent_dirs = []
-    if args.agent in ("tts_prompt_crafter", "all"):
+    if args.agent in {"tts_prompt_crafter", "all"}:
         agent_dirs.append(TTS_AGENT_DIR)
-    if args.agent in ("cartesia_tts_prompt_crafter", "all"):
+    if args.agent in {"cartesia_tts_prompt_crafter", "all"}:
         agent_dirs.append(CARTESIA_AGENT_DIR)
 
     all_eval_sets = []
@@ -289,7 +289,7 @@ def main() -> None:
         try:
             run_eval_via_adk(eval_path, verbose=args.verbose)
         except Exception as e:
-            logger.error("Failed to run %s: %s", eval_path.name, e)
+            logger.exception("Failed to run %s: %s", eval_path.name, e)
 
 
 if __name__ == "__main__":

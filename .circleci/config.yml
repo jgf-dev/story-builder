@@ -17,11 +17,7 @@ jobs:
           command: uv sync --all-extras --dev
       - run:
           name: Install CircleCI CLI
-          command: |
-            CIRCLECI_CLI_VERSION=1.0.46087-pre
-            curl -fLSs -o /tmp/circleci-cli.tar.gz "https://github.com/CircleCI-Public/circleci-cli/releases/download/v${CIRCLECI_CLI_VERSION}/circleci-cli_${CIRCLECI_CLI_VERSION}_linux_amd64.tar.gz"
-            echo "80d5fc15ddcf8cb3af966c1f3ef6808e4a26392904ad40d5a70eb37c9c085e94  /tmp/circleci-cli.tar.gz" | sha256sum -c -
-            sudo tar -xzf /tmp/circleci-cli.tar.gz -C /usr/local/bin circleci
+          command: curl -fLSs https://raw.githubusercontent.com/CircleCI-Public/circleci-cli/main/install.sh | sudo bash
       - run:
           name: Run tests
           command: circleci testsuite run "ci tests"

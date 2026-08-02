@@ -1,39 +1,23 @@
-# Use the latest 2.1 version of CircleCI pipeline process engine.
-# See: https://circleci.com/docs/reference/configuration-reference/
 version: 2.1
+orbs:
+  python: circleci/python@2.0.3
 
-# Define a job to be invoked later in a workflow.
-# See: https://circleci.com/docs/guides/orchestrate/jobs-steps/#jobs-overview & https://circleci.com/docs/reference/configuration-reference/#jobs
 jobs:
   build_and_test: # this can be any name you choose
-    executor:
-      name: python/default
-      tag: "3.12"
+    executor: python/default
     steps:
-      # Checkout the code as the first step.
       - checkout
       - python/install-packages:
           pkg-manager: uv
       - run:
-          name: Install CircleCI CLI
-          command: |
-            CIRCLECI_CLI_VERSION=1.0.46087-pre
-            curl -fLSs -o /tmp/circleci-cli.tar.gz "https://github.com/CircleCI-Public/circleci-cli/releases/download/v${CIRCLECI_CLI_VERSION}/circleci-cli_${CIRCLECI_CLI_VERSION}_linux_amd64.tar.gz"
-            echo "80d5fc15ddcf8cb3af966c1f3ef6808e4a26392904ad40d5a70eb37c9c085e94  /tmp/circleci-cli.tar.gz" | sha256sum -c -
-            sudo tar -xzf /tmp/circleci-cli.tar.gz -C /usr/local/bin circleci
-            circleci extension install testsuite
-      - run:
           name: Run tests
-          command: circleci testsuite run "ci tests"
-      - store_test_results:
-          path: test-reports
+          command: python -m pytest
       - persist_to_workspace:
           root: ~/project
           paths:
             - .
 
 workflows:
-  say-hello-workflow: # This is the name of the workflow, feel free to change it to better match your workflow.
-    # Inside the workflow, you define the jobs you want to run.
+  test_my_app:
     jobs:
-      - say-hello
+      - build_and_test

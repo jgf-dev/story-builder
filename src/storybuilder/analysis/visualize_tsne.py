@@ -51,7 +51,7 @@ def fetch_embeddings(db_path: str) -> tuple[list[str], np.ndarray, list[dict]]:
     embeddings = np.array(data["embeddings"])
     metadatas = data["metadatas"]
 
-    return ids, embeddings, metadatas
+    return ids, embeddings, metadatas  # pyrefly: ignore [bad-return]
 
 
 def run_tsne(embeddings: np.ndarray, perplexity_arg: float) -> np.ndarray:
@@ -64,8 +64,8 @@ def run_tsne(embeddings: np.ndarray, perplexity_arg: float) -> np.ndarray:
         init="pca",
         learning_rate="auto",
     )
-    embeddings_2d = tsne.fit_transform(embeddings)
-    return embeddings_2d
+    embeddings_2d = tsne.fit_transform(embeddings)  # pyrefly: ignore [bad-argument-type]
+    return embeddings_2d  # pyrefly: ignore [bad-return]
 
 
 def extract_labels(ids: list[str]) -> tuple[list[str], list[str]]:

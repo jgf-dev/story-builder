@@ -155,7 +155,7 @@ def upload_many_s3(
         return
 
     try:
-        import boto3
+        import boto3  # pyrefly: ignore [missing-import]
     except ImportError as exc:
         msg = "S3 uploads require the 'boto3' package. Install it with `pip install boto3`."
         raise ImportError(
@@ -188,7 +188,7 @@ def upload_many_s3(
 
 
 if __name__ == "__main__":
-    directory = Path(os.getenv("STORIES_DB")).resolve()
+    directory = Path(os.getenv("STORIES_DB") or "").resolve()
     print(directory)
 
     files_to_upload = glob.glob(str(directory / "*.db"))

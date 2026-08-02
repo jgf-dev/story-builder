@@ -58,7 +58,7 @@ def fix_prompts(directory) -> None:
                 model="gemini-3.5-flash",
                 input=f"{PROMPT_INSTRUCTION}\n\nHere is the prompt file content:\n\n{content}",
             )
-            fixed_content = extract_markdown_block(interaction.output_text)
+            fixed_content = extract_markdown_block(interaction.output_text or "")
 
             pathlib.Path(md_file).write_text(fixed_content)
 

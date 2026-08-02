@@ -318,8 +318,8 @@ class TestScraperCacheAndEarlyStop(unittest.TestCase):
 			with patch("storybuilder.downloader.scraper.scrape_multi_chapter_folder", return_value=[]):
 				t1 = process_subcategory(sub, start, end, args)
 				t2 = process_subcategory(sub, start, end, args)  # second call should skip via seen
-				# We mainly ensure no crash and logic exercised
-				self.assertTrue(True)
+				self.assertEqual(len(t1), 0)
+				self.assertEqual(len(t2), 0)
 
 	def test_scrape_subcategory_end_to_end_no_miss_no_dupe(self) -> None:
 		"""Simulates a realistic scrape + cache scenario and asserts the final filtered list has correct stories, no dups."""

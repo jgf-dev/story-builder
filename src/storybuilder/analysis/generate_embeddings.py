@@ -105,7 +105,7 @@ def process_story(filepath_str: str, collection_chunks: Collection, collection_a
 
 def main() -> None:
     args = parse_args()
-    chroma_client, collection_chunks, collection_averages = setup_collections(
+    _, collection_chunks, collection_averages = setup_collections(
         args.db_path,
     )
 

@@ -65,6 +65,12 @@ def get_processed_files(cursor: Cursor) -> set[str]:
 		return set()
 
 
+def is_processed(cursor: Cursor, filepath: str) -> bool:
+	"""Check if a file has already been processed."""
+	cursor.execute("SELECT id FROM stories WHERE filepath = ?", (filepath,))
+	return cursor.fetchone() is not None
+
+
 def parse_args() -> Namespace:
 	"""Parse command line arguments."""
 	parser = argparse.ArgumentParser(

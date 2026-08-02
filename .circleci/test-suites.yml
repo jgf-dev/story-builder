@@ -1,6 +1,0 @@
----
-name: ci tests
-discover: find tests/ -name "test_*.py" | sort
-run: mkdir -p << outputs.junit >> && uv run pytest << test.atoms >> --junit-xml=<< outputs.junit >>/junit.xml
-outputs:
-  junit: test-reports

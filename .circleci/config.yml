@@ -4,14 +4,30 @@ orbs:
 
 jobs:
   build_and_test: # this can be any name you choose
-    executor: python/default
+    executor:
+      name: python/default
+      tag: "3.12"
     steps:
       - checkout
-      - python/install-packages:
-          pkg-manager: uv
+      - run:
+          name: Install uv
+          command: pip install uv
+      - run:
+          name: Install dependencies
+          command: uv sync --all-extras --dev
+      - run:
+          name: Install CircleCI CLI
+          command: |
+            CIRCLECI_CLI_VERSION=1.0.46087-pre
+            curl -fLSs -o /tmp/circleci-cli.tar.gz "https://github.com/CircleCI-Public/circleci-cli/releases/download/v${CIRCLECI_CLI_VERSION}/circleci-cli_${CIRCLECI_CLI_VERSION}_linux_amd64.tar.gz"
+            echo "80d5fc15ddcf8cb3af966c1f3ef6808e4a26392904ad40d5a70eb37c9c085e94  /tmp/circleci-cli.tar.gz" | sha256sum -c -
+            sudo tar -xzf /tmp/circleci-cli.tar.gz -C /usr/local/bin circleci
+            circleci extension install testsuite
       - run:
           name: Run tests
-          command: python -m pytest
+          command: circleci testsuite run "ci tests"
+      - store_test_results:
+          path: test-reports
       - persist_to_workspace:
           root: ~/project
           paths:

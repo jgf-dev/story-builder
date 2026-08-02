@@ -188,7 +188,12 @@ def upload_many_s3(
 
 
 if __name__ == "__main__":
-    directory = Path(os.getenv("STORIES_DB") or "").resolve()
+    stories_db_dir = os.getenv("STORIES_DB")
+    if not stories_db_dir:
+        msg = "STORIES_DB environment variable must be set."
+        raise ValueError(msg)
+
+    directory = Path(stories_db_dir).resolve()
     print(directory)
 
     files_to_upload = glob.glob(str(directory / "*.db"))

@@ -2,6 +2,46 @@
 
 All notable changes to this project will be documented in this file.
 
+## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-02
+
+### Summary
+Resolved merge conflicts across dashboard layout, ADK eval runner, accessibility palette, and CI configuration.
+
+### Fixed
+- Resolved merge conflicts in `dashboard.html` by standardizing on `how-to-use-heading` and `how-to-use-desc` accessibility IDs.
+- Resolved merge conflicts in `evals/run_adk_eval.py` by restoring `Path.cwd()` and tab formatting.
+- Resolved merge conflicts in `.jules/palette.md` by retaining updated accessibility guidelines.
+- Preserved CircleCI test suite configuration and downloader storage validation.
+
+## [PR-1619](https://github.com/jgf-dev/story-builder/pull/1619) - 2026-08-02
+
+### Summary
+Fail fast in the downloader storage script when `STORIES_DB` is unset.
+
+### Fixed
+- Raised a `ValueError` in `src/storybuilder/downloader/storage.py` instead of resolving an empty `STORIES_DB` value to the current working directory.
+
+## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-02
+
+### Summary
+Hardened CircleCI CLI installation to avoid piping an unpinned remote script into `sudo bash`.
+
+### Fixed
+- Replaced the CircleCI CLI install script pipe with a pinned release tarball download plus SHA256 verification in `.circleci/config.yml`.
+
+## [PR-XXX](https://github.com/jgf2/story-builder/pull/XXX) - 2026-08-02
+
+### Summary
+Configured CircleCI Smarter Testing with `test-suites.yml` and updated `config.yml` to use `circleci testsuite run`.
+
+### Added
+- `.circleci/test-suites.yml` with `discover` (finds all `test_*.py` files), `run` (pytest with JUnit XML via `<< outputs.junit >>`), and `outputs.junit: test-reports`.
+- CircleCI CLI install step in `config.yml`.
+- `store_test_results` step in `config.yml` pointing to `test-reports`.
+
+### Changed
+- Replaced `uv run pytest` with `circleci testsuite run "ci tests"` in the CI test step.
+
 ## [c650177](https://github.com/jgf2/story-builder/commit/c650177) - 2026-08-01
 
 ### Summary

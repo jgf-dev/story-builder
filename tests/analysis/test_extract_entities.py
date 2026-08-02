@@ -4,7 +4,8 @@ import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-from storybuilder.analysis.extract_entities import init_db, is_processed, main
+
+from storybuilder.analysis.extract_entities import get_processed_files, init_db, main
 
 
 class TestExtractEntities(unittest.TestCase):
@@ -19,7 +20,7 @@ class TestExtractEntities(unittest.TestCase):
     def tearDown(self) -> None:
         self.conn.close()
         os.close(self.db_fd)
-        os.unlink(self.db_path)
+        Path(self.db_path).unlink()
         self.stories_dir.cleanup()
 
     def test_init_db(self) -> None:
@@ -28,32 +29,32 @@ class TestExtractEntities(unittest.TestCase):
 
         # Check if tables were created
         cursor.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='stories'"
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='stories'",
         )
         self.assertIsNotNone(cursor.fetchone())
 
         cursor.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='entities'"
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='entities'",
         )
         self.assertIsNotNone(cursor.fetchone())
 
         conn.close()
 
-    def test_is_processed(self) -> None:
+    def test_get_processed_files(self) -> None:
         conn = init_db(self.db_path)
         cursor = conn.cursor()
 
         filepath = "test_file.txt"
 
         # Initially not processed
-        self.assertFalse(is_processed(cursor, filepath))
+        self.assertNotIn(filepath, get_processed_files(cursor))
 
         # Insert a record
         cursor.execute("INSERT INTO stories (filepath) VALUES (?)", (filepath,))
         conn.commit()
 
         # Now it should be processed
-        self.assertTrue(is_processed(cursor, filepath))
+        self.assertIn(filepath, get_processed_files(cursor))
 
         conn.close()
 
@@ -62,7 +63,7 @@ class TestExtractEntities(unittest.TestCase):
     @patch("storybuilder.analysis.extract_entities.require_gpu")
     @patch("storybuilder.analysis.extract_entities.set_gpu_allocator")
     def test_main_happy_path(
-        self, mock_set_gpu, mock_require_gpu, mock_spacy_load, mock_parse_args
+        self, mock_set_gpu, mock_require_gpu, mock_spacy_load, mock_parse_args,
     ) -> None:
         # Setup mocks
         mock_args = MagicMock()
@@ -90,8 +91,7 @@ class TestExtractEntities(unittest.TestCase):
 
         # Create a dummy text file
         test_file = Path(self.stories_dir.name) / "test1.txt"
-        with open(test_file, "w") as f:
-            f.write("Alice went to Wonderland.")
+        Path(test_file).write_text("Alice went to Wonderland.")
 
         # Run main
         main()
@@ -136,8 +136,7 @@ class TestExtractEntities(unittest.TestCase):
         mock_spacy_load.return_value = mock_nlp
 
         # Create a dummy text file
-        with open(test_file_path, "w") as f:
-            f.write("Alice went to Wonderland.")
+        Path(test_file_path).write_text("Alice went to Wonderland.")
 
         # Run main
         main()
@@ -153,10 +152,10 @@ class TestExtractEntities(unittest.TestCase):
         conn = init_db(self.db_path)
         cursor = conn.cursor()
         cursor.execute(
-            "INSERT INTO stories (id, filepath) VALUES (1, ?)", (test_file_path,)
+            "INSERT INTO stories (id, filepath) VALUES (1, ?)", (test_file_path,),
         )
         cursor.execute(
-            "INSERT INTO entities (story_id, text, label, frequency) VALUES (1, 'OldEntity', 'PERSON', 5)"
+            "INSERT INTO entities (story_id, text, label, frequency) VALUES (1, 'OldEntity', 'PERSON', 5)",
         )
         conn.commit()
         conn.close()
@@ -182,8 +181,7 @@ class TestExtractEntities(unittest.TestCase):
         mock_nlp.return_value = mock_doc
 
         # Create a dummy text file
-        with open(test_file_path, "w") as f:
-            f.write("NewEntity is here.")
+        Path(test_file_path).write_text("NewEntity is here.")
 
         # Run main
         main()
@@ -224,7 +222,7 @@ class TestExtractEntities(unittest.TestCase):
 
         mock_print.assert_any_call("Model 'en_core_web_sm' not found.")
         mock_print.assert_any_call(
-            "Please run: python -m spacy download en_core_web_sm"
+            "Please run: python -m spacy download en_core_web_sm",
         )
 
     @patch("argparse.ArgumentParser.parse_args")
@@ -263,8 +261,7 @@ class TestExtractEntities(unittest.TestCase):
 
         # Create a dummy text file
         test_file = Path(self.stories_dir.name) / "test1.txt"
-        with open(test_file, "w") as f:
-            f.write("Alice went to Wonderland.")
+        Path(test_file).write_text("Alice went to Wonderland.")
 
         # Run main
         main()
@@ -294,8 +291,7 @@ class TestExtractEntities(unittest.TestCase):
 
         # Create a dummy text file
         test_file = Path(self.stories_dir.name) / "test_error.txt"
-        with open(test_file, "w") as f:
-            f.write("Text that causes an error.")
+        Path(test_file).write_text("Text that causes an error.")
 
         # Capture print output
         with patch("builtins.print") as mock_print:
@@ -346,7 +342,7 @@ class TestExtractEntities(unittest.TestCase):
         mock_spacy_load.assert_called_once_with("en_core_web_lg")
 
         mock_nlp.select_pipes.assert_called_once_with(
-            enable=["tagger", "parser", "ner"]
+            enable=["tagger", "parser", "ner"],
         )
         mock_nlp.add_pipe.assert_any_call("merge_noun_chunks")
         mock_nlp.add_pipe.assert_any_call("merge_entities")
@@ -381,7 +377,7 @@ class TestExtractEntities(unittest.TestCase):
         mock_spacy_load.assert_called_once_with("en_core_web_lg")
 
         mock_nlp.select_pipes.assert_called_once_with(
-            enable=["tagger", "parser", "ner"]
+            enable=["tagger", "parser", "ner"],
         )
         mock_nlp.add_pipe.assert_any_call("merge_noun_chunks")
         mock_nlp.add_pipe.assert_any_call("merge_entities")
@@ -404,7 +400,7 @@ class TestExtractEntities(unittest.TestCase):
         mock_spacy_load.assert_called_once_with("en_core_web_lg")
         mock_print.assert_any_call("Model 'en_core_web_lg' not found.")
         mock_print.assert_any_call(
-            "Please run: python -m spacy download en_core_web_lg"
+            "Please run: python -m spacy download en_core_web_lg",
         )
         self.assertIsNone(result)
 

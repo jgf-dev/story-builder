@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 ## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-02
 
 ### Summary
+Configured CircleCI Smarter Testing with `test-suites.yml` and updated `config.yml` to use `circleci testsuite run`.
+
+### Fixed
+- Installed the CircleCI CLI in `.circleci/config.yml` (currently via the upstream install script).
 Resolved merge conflicts with `main` while preserving the PR's CI hardening and downloader storage guard.
 
 ### Fixed

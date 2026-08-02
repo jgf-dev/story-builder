@@ -7,11 +7,15 @@ jobs:
     executor: python/default
     steps:
       - checkout
-      - python/install-packages:
-          pkg-manager: auto
+      - run:
+          name: Install uv
+          command: pip install uv
+      - run:
+          name: Install dependencies
+          command: uv sync --all-extras --dev
       - run:
           name: Run tests
-          command: python -m pytest
+          command: uv run pytest
       - persist_to_workspace:
           root: ~/project
           paths:

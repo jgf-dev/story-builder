@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# pyrefly: ignore [missing-import]
 """Tests for the Streamlit dashboard queries and metadata utilities."""
 
 import os
@@ -16,6 +17,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 _scripts_dir = str(Path(__file__).resolve().parents[2] / "scripts")
 if _scripts_dir not in sys.path:
     sys.path.insert(0, _scripts_dir)
+
+import dashboard  # pyrefly: ignore [missing-import]
 
 
 class TestDashboard(unittest.TestCase):
@@ -125,7 +128,7 @@ class TestDashboard(unittest.TestCase):
         conn.close()
 
     def test_get_db_files(self) -> None:
-        from dashboard import get_db_files
+        from dashboard import get_db_files  # pyrefly: ignore [missing-import]
 
         self.assertEqual(get_db_files(), [])
 
@@ -137,9 +140,9 @@ class TestDashboard(unittest.TestCase):
         self.assertEqual(files, ["2025.db", "2026.db"])
 
     def test_favorites_crud(self) -> None:
-        from dashboard import add_favorite
-        from dashboard import get_favorites
-        from dashboard import remove_favorite
+        from dashboard import add_favorite  # pyrefly: ignore [missing-import]
+        from dashboard import get_favorites  # pyrefly: ignore [missing-import]
+        from dashboard import remove_favorite  # pyrefly: ignore [missing-import]
 
         # Initial empty
         self.assertEqual(get_favorites(), [])
@@ -180,7 +183,7 @@ class TestDashboard(unittest.TestCase):
         self.assertEqual(get_favorites(), [])
 
     def test_query_stories_metadata(self) -> None:
-        from dashboard import query_stories
+        from dashboard import query_stories  # pyrefly: ignore [missing-import]
 
         # Create stories in different partitions
         self._create_mock_partition(
@@ -228,7 +231,7 @@ class TestDashboard(unittest.TestCase):
         self.assertEqual(res_year[0]["title"], "2025 Story Title")
 
     def test_query_stories_fts(self) -> None:
-        from dashboard import query_stories
+        from dashboard import query_stories  # pyrefly: ignore [missing-import]
 
         self._create_mock_partition(
             year=2026,
@@ -251,7 +254,7 @@ class TestDashboard(unittest.TestCase):
         self.assertEqual(len(res_no_match), 0)
 
     def test_query_stories_with_entities(self) -> None:
-        from dashboard import query_stories
+        from dashboard import query_stories  # pyrefly: ignore [missing-import]
 
         story_path = "nifty_stories/gay/college/story1.txt"
         self._create_mock_partition(
@@ -622,7 +625,7 @@ class TestDashboardDataFunctions(unittest.TestCase):
                 output_path="stories/gay/college/story2/part-1.txt",
                 title="Story with no year",
                 author="Author Two",
-                story_date=None,
+                story_date=None,  # pyrefly: ignore [bad-argument-type]
                 url="http://test2",
                 content="Content 2",
             )

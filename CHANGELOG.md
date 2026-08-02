@@ -1,7 +1,6 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
-
 ## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-02
 
 ### Summary

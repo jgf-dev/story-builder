@@ -129,14 +129,17 @@ class TestTTSPipeline(unittest.TestCase):
                 shutil.rmtree(tmp_dir, ignore_errors=True)
 
     def _live_sequential_tts(self) -> None:
+        from google import genai
+
         from storybuilder.genai.client import get_gemini_api_keys
         from storybuilder.genai.client import process_file
-        from storybuilder.genai.client import ApiKeyRotator
 
         api_keys = get_gemini_api_keys()
         self.assertGreater(len(api_keys), 0, "No GEMINI_API_KEY found in environment")
 
-        rotator = ApiKeyRotator(api_keys)
+        current_key_idx = 0
+        _, api_key = api_keys[current_key_idx]
+        client = genai.Client(api_key=api_key)
 
         tmp_dir = tempfile.mkdtemp(prefix="tts_test_")
         try:
@@ -150,12 +153,19 @@ class TestTTSPipeline(unittest.TestCase):
                 base_name = os.path.basename(temp_md_file).replace(".md", "")
                 wav_file = os.path.join(tmp_dir, f"{base_name}.wav")
                 try:
+                    api_state = {
+                        "client": client,
+                        "api_keys": api_keys,
+                        "current_key_idx": current_key_idx,
+                    }
                     previous_id = process_file(
                         temp_md_file,
                         wav_file,
                         previous_id,
-                        rotator,
+                        api_state,
                     )
+                    client = api_state["client"]
+                    current_key_idx = api_state["current_key_idx"]
                 except Exception as e:
                     err = str(e).lower()
                     if any(
@@ -180,40 +190,6 @@ class TestTTSPipeline(unittest.TestCase):
                         f"WAV file for {os.path.basename(temp_md_file)} is empty",
                     )
                     generated.append(wav_file)
-        finally:
-            shutil.rmtree(tmp_dir, ignore_errors=True)
-
-
-class TestProcessFileIdWarning(unittest.TestCase):
-    """Test warning logging when interaction response has no id attribute."""
-
-    def test_missing_interaction_id_logs_warning(self) -> None:
-        from unittest.mock import MagicMock
-        from storybuilder.genai.client import process_file
-
-        tmp_dir = tempfile.mkdtemp(prefix="process_file_test_")
-        try:
-            md_file = os.path.join(tmp_dir, "01-part.md")
-            wav_file = os.path.join(tmp_dir, "01-part.wav")
-            Path(md_file).write_text("#### TRANSCRIPT\nNarrator: Test line.\n", encoding="utf-8")
-
-            import base64
-
-            mock_audio = MagicMock()
-            mock_audio.data = base64.b64encode(b"fake pcm data").decode("utf-8")
-            mock_audio.mime_type = "audio/pcm; rate=24000"
-
-            mock_interaction = MagicMock(spec=["output_audio"])
-            mock_interaction.output_audio = mock_audio
-
-            mock_rotator = MagicMock()
-            mock_rotator.client.interactions.create.return_value = mock_interaction
-
-            with self.assertLogs("storybuilder.genai.client", level="WARNING") as cm:
-                res_id = process_file(md_file, wav_file, previous_id=None, rotator=mock_rotator)
-
-            self.assertIsNone(res_id)
-            self.assertTrue(any("missing 'id'" in msg for msg in cm.output))
         finally:
             shutil.rmtree(tmp_dir, ignore_errors=True)
 

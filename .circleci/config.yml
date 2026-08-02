@@ -12,12 +12,8 @@ jobs:
     steps:
       # Checkout the code as the first step.
       - checkout
-      - run:
-          name: Install uv
-          command: pip install uv
-      - run:
-          name: Install dependencies
-          command: uv sync --all-extras --dev
+      - python/install-packages:
+          pkg-manager: uv
       - run:
           name: Install CircleCI CLI
           command: |

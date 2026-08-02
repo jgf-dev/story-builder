@@ -14,24 +14,24 @@ from tqdm import tqdm
 
 DB_PATH = "stories/db/nlp_analysis.db"
 ALLOWED_LABELS = {
-	"PERSON",
-	"NORP",
-	"GPE",
-	"LOC",
-	"ORG",
-	"FAC",
-	"EVENT",
-	"PRODUCT",
-	"WORK_OF_ART",
+    "PERSON",
+    "NORP",
+    "GPE",
+    "LOC",
+    "ORG",
+    "FAC",
+    "EVENT",
+    "PRODUCT",
+    "WORK_OF_ART",
 }
 
 
 def init_db(db_path: str) -> Connection:
-	"""Initialize the SQLite database."""
-	conn = sqlite3.connect(db_path)
-	cursor = conn.cursor()
+    """Initialize the SQLite database."""
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
 
-	cursor.execute("""
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS stories (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             filepath TEXT UNIQUE,
@@ -39,7 +39,7 @@ def init_db(db_path: str) -> Connection:
         )
     """)
 
-	cursor.execute("""
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS entities (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             story_id INTEGER,
@@ -50,166 +50,160 @@ def init_db(db_path: str) -> Connection:
         )
     """)
 
-	cursor.execute("CREATE INDEX IF NOT EXISTS idx_entities_label ON entities(label)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_entities_label ON entities(label)")
 
-	conn.commit()
-	return conn
+    conn.commit()
+    return conn
 
 
 def get_processed_files(cursor: Cursor) -> set[str]:
-	"""Get a set of all processed filepaths."""
-	cursor.execute("SELECT filepath FROM stories")
-	return {row[0] for row in cursor.fetchall()}
+    """Get a set of all processed filepaths."""
+    cursor.execute("SELECT filepath FROM stories")
+    return {row[0] for row in cursor.fetchall()}
 
 
 def parse_args() -> Namespace:
-	"""Parse command line arguments."""
-	parser = argparse.ArgumentParser(
-		description="Extract Named Entities from stories using spaCy.",
-	)
-	parser.add_argument(
-		"--limit",
-		type=int,
-		default=float("inf"),
-		help="Maximum number of new files to process.",
-	)
-	parser.add_argument(
-		"--stories-dir",
-		type=str,
-		default="nifty_stories",
-		help="Directory containing the text files.",
-	)
-	parser.add_argument(
-		"--db-path",
-		type=str,
-		default=DB_PATH,
-		help="Path to the SQLite database.",
-	)
-	parser.add_argument(
-		"--force",
-		action="store_true",
-		help="Force reprocessing of all files.",
-	)
-	parser.add_argument(
-		"--model",
-		type=str,
-		default="en_core_web_lg",
-		help="spaCy model to use.",
-	)
-	parser.add_argument(
-		"--gpu",
-		action="store_true",
-		default=True,
-		help="Use GPU for spaCy model.",
-	)
-	return parser.parse_args()
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(
+        description="Extract Named Entities from stories using spaCy.",
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=float("inf"),
+        help="Maximum number of new files to process.",
+    )
+    parser.add_argument(
+        "--stories-dir",
+        type=str,
+        default="nifty_stories",
+        help="Directory containing the text files.",
+    )
+    parser.add_argument(
+        "--db-path",
+        type=str,
+        default=DB_PATH,
+        help="Path to the SQLite database.",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Force reprocessing of all files.",
+    )
+    parser.add_argument(
+        "--model",
+        type=str,
+        default="en_core_web_lg",
+        help="spaCy model to use.",
+    )
+    parser.add_argument(
+        "--gpu",
+        action="store_true",
+        default=True,
+        help="Use GPU for spaCy model.",
+    )
+    return parser.parse_args()
 
 
 def load_spacy_model(model_name: str, use_gpu: bool) -> Language | None:
-	"""Load the spaCy model with optional GPU support."""
-	try:
-		if use_gpu:
-			set_gpu_allocator("pytorch")
-			require_gpu(0)
-			spacy.require_gpu()
-			nlp = spacy.load(model_name)
-		else:
-			nlp = spacy.load(model_name)
+    """Load the spaCy model with optional GPU support."""
+    try:
+        if use_gpu:
+            set_gpu_allocator("pytorch")
+            require_gpu(0)
+            spacy.require_gpu()
+            nlp = spacy.load(model_name)
+        else:
+            nlp = spacy.load(model_name)
 
-		nlp.select_pipes(enable=["tagger", "parser", "ner"])
-		nlp.add_pipe("merge_noun_chunks")
-		nlp.add_pipe("merge_entities")
-		nlp.max_length = 5000000
-		return nlp
-	except OSError:
-		print(f"Model '{model_name}' not found.")
-		print(f"Please run: python -m spacy download {model_name}")
-		return None
+        nlp.select_pipes(enable=["tagger", "parser", "ner"])
+        nlp.add_pipe("merge_noun_chunks")
+        nlp.add_pipe("merge_entities")
+        nlp.max_length = 5000000
+        return nlp
+    except OSError:
+        print(f"Model '{model_name}' not found.")
+        print(f"Please run: python -m spacy download {model_name}")
+        return None
 
 
 def process_file(filepath_str: str, nlp: Language, cursor: Cursor) -> None:
-	"""Extract entities from a text file and save them to the database."""
-	text = Path(filepath_str).read_text(encoding="utf-8")
+    """Extract entities from a text file and save them to the database."""
+    text = Path(filepath_str).read_text(encoding="utf-8")
 
-	doc = nlp(text)
-	entities = Counter(
-		(ent.text.strip(), ent.label_) for ent in doc.ents if ent.label_ in ALLOWED_LABELS and ent.text.strip()
-	)
+    doc = nlp(text)
+    entities = Counter(
+        (ent.text.strip(), ent.label_) for ent in doc.ents if ent.label_ in ALLOWED_LABELS and ent.text.strip()
+    )
 
-	query = "INSERT INTO stories (filepath) VALUES (?)"
-	cursor.execute(query, (filepath_str,))
-	story_id = cursor.lastrowid
+    query = "INSERT INTO stories (filepath) VALUES (?)"
+    cursor.execute(query, (filepath_str,))
+    story_id = cursor.lastrowid
 
-	entity_records = [(story_id, ent_text, label, count) for (ent_text, label), count in entities.items()]
+    entity_records = [(story_id, ent_text, label, count) for (ent_text, label), count in entities.items()]
 
-	cursor.executemany(
-		"""
+    cursor.executemany(
+        """
         INSERT INTO entities (story_id, text, label, frequency)
         VALUES (?, ?, ?, ?)
     """,
-		entity_records,
-	)
+        entity_records,
+    )
 
 
 def main() -> None:
-	"""Main execution block."""
-	args = parse_args()
+    """Main execution block."""
+    args = parse_args()
 
-	print("Initializing database...")
-	conn = init_db(args.db_path)
-	cursor = conn.cursor()
-	if args.force:
-		cursor.execute("DELETE FROM stories")
-		cursor.execute("DELETE FROM entities")
-		conn.commit()
+    print("Initializing database...")
+    conn = init_db(args.db_path)
+    cursor = conn.cursor()
+    if args.force:
+        cursor.execute("DELETE FROM stories")
+        cursor.execute("DELETE FROM entities")
+        conn.commit()
 
-	print(f"Loading spaCy model ({args.model})...")
-	nlp = load_spacy_model(args.model, args.gpu)
-	if nlp is None:
-		# Signal failure so CI pipelines and scripts that check the exit code
-		# treat a missing/unloadable model as an error rather than success.
-		raise SystemExit(1)
+    print(f"Loading spaCy model ({args.model})...")
+    nlp = load_spacy_model(args.model, args.gpu)
+    if nlp is None:
+        # Signal failure so CI pipelines and scripts that check the exit code
+        # treat a missing/unloadable model as an error rather than success.
+        raise SystemExit(1)
 
-	all_files = list(Path(args.stories_dir).rglob("*.txt"))
-	print(f"Found {len(all_files)} total text files.")
+    all_files = list(Path(args.stories_dir).rglob("*.txt"))
+    print(f"Found {len(all_files)} total text files.")
 
-	if not args.force:
-		cursor.execute("SELECT filepath FROM stories")
-		processed_files = {row[0] for row in cursor.fetchall()}
-	else:
-		processed_files = set()
+    processed_count = 0
+    pbar = tqdm(total=min(len(all_files), args.limit), desc="Processing files")
 
-	processed_count = 0
-	pbar = tqdm(total=min(len(all_files), args.limit), desc="Processing files")
+    processed_files = set()
+    if not args.force:
+        processed_files = get_processed_files(cursor)
 
-	processed_files = set()
-	if not args.force:
-		processed_files = get_processed_files(cursor)
+    for filepath in all_files:
+        filepath_str = str(filepath)
 
-	for filepath in all_files:
-		filepath_str = str(filepath)
+        if not args.force and filepath_str in processed_files:
+            continue
 
-		if not args.force and filepath_str in processed_files:
-			continue
+        try:
+            process_file(filepath_str, nlp, cursor)
+            conn.commit()
 
-		try:
-			process_file(filepath_str, nlp, cursor)
-			conn.commit()
+            processed_count += 1
+            pbar.update(1)
 
-			processed_count += 1
-			pbar.update(1)
+            if processed_count >= args.limit:
+                break
 
-			if processed_count >= args.limit:
-				break
+        except Exception as e:  # pylint: disable=broad-except
+            print(f"\nError processing {filepath_str}: {e}")
+            conn.rollback()
 
-		except Exception as e:  # pylint: disable=broad-except
-			print(f"\nError processing {filepath_str}: {e}")
-			conn.rollback()
-
-	pbar.close()
-	conn.close()
-	print(f"\nFinished! Processed {processed_count} new files.")
+    pbar.close()
+    conn.close()
+    print(f"\nFinished! Processed {processed_count} new files.")
 
 
 if __name__ == "__main__":
-	main()
+    main()

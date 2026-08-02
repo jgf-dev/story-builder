@@ -157,4 +157,7 @@ markers = [
 ]
 filterwarnings = [
     "ignore::DeprecationWarning",
+    "ignore:.*BaseAgentConfig is deprecated.*:DeprecationWarning",
+    "ignore:.*You should use `Logger` instead.*:DeprecationWarning",
+    "ignore:.*The default date adapter is deprecated.*:DeprecationWarning",
 ]

@@ -1,10 +1,9 @@
 from datetime import datetime
 from datetime import date
-import datetime
 import re
 
 
-def _adjust_year(dt: datetime, reference_date):
+def _adjust_year(dt: datetime, reference_date: datetime) -> datetime:
     year = reference_date.year
     dt = dt.replace(year=year)
     if dt > reference_date:
@@ -15,36 +14,36 @@ def _adjust_year(dt: datetime, reference_date):
 def _parse_with_year(date_str: str) -> date | None:
     for fmt in ("%b %d %Y", "%B %d %Y"):
         try:
-            dt = datetime.datetime.strptime(date_str, fmt)
+            dt = datetime.strptime(date_str, fmt)
             return dt.date()
         except ValueError:
             continue
     return None
 
 
-def _parse_with_time(date_str: str, reference_date):
+def _parse_with_time(date_str: str, reference_date: datetime) -> date | None:
     for fmt in ("%b %d %H:%M", "%B %d %H:%M"):
         try:
-            dt = datetime.datetime.strptime(date_str, fmt)
+            dt = datetime.strptime(date_str, fmt)
             return _adjust_year(dt, reference_date).date()
         except ValueError:
             continue
     return None
 
 
-def _parse_fallback(date_str: str, reference_date):
+def _parse_fallback(date_str: str, reference_date: datetime) -> date | None:
     try:
         match = re.match(r"^([a-zA-Z]+)\s+(\d+)$", date_str)
         if match:
             mon, day = match.groups()
-            dt = datetime.datetime.strptime(f"{mon} {day}", "%b %d")
+            dt = datetime.strptime(f"{mon} {day}", "%b %d")
             return _adjust_year(dt, reference_date).date()
     except ValueError:
         pass
     return None
 
 
-def parse_nifty_date(date_str, reference_date=None):
+def parse_nifty_date(date_str: str, reference_date: datetime | None = None) -> date | None:
     """
     Parses Nifty date strings which can be in two formats:
     - Standard Unix ls older file format: 'Dec  4  2025' -> MMM DD YYYY
@@ -58,7 +57,7 @@ def parse_nifty_date(date_str, reference_date=None):
         return None
 
     if not reference_date:
-        reference_date = datetime.datetime.now()
+        reference_date = datetime.now()
 
     date_str = " ".join(date_str.strip().split())  # Normalize whitespace
 

@@ -30,6 +30,7 @@ def rotate_windscribe_ip() -> bool:
             capture_output=True,
             text=True,
             timeout=30,
+            check=False,
         )
         if result.returncode == 0:
             safe_print(

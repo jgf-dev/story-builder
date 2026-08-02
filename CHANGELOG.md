@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-02
+
+### Summary
+Resolved merge conflicts with `main` while preserving the PR's CI hardening and downloader storage guard.
+
+### Fixed
+- Resolved merge conflicts in `.circleci/config.yml`, `.circleci/test-suites.yml`, `.jules/palette.md`, `CHANGELOG.md`, and `src/storybuilder/downloader/storage.py`.
+- Preserved the pinned CircleCI CLI install plus testsuite extension setup in `.circleci/config.yml`.
+- Preserved the `STORIES_DB` fail-fast validation in `src/storybuilder/downloader/storage.py`.
+
 ## [PR-1619](https://github.com/jgf-dev/story-builder/pull/1619) - 2026-08-02
 
 ### Summary
@@ -17,7 +27,6 @@ Hardened CircleCI CLI installation to avoid piping an unpinned remote script int
 
 ### Fixed
 - Replaced the CircleCI CLI install script pipe with a pinned release tarball download plus SHA256 verification in `.circleci/config.yml`.
-
 ## [PR-XXX](https://github.com/jgf2/story-builder/pull/XXX) - 2026-08-02
 
 ### Summary

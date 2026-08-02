@@ -8,7 +8,7 @@ jobs:
     steps:
       - checkout
       - python/install-packages:
-          pkg-manager: uv
+          pkg-manager: auto
       - run:
           name: Run tests
           command: python -m pytest

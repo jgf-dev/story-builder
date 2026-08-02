@@ -65,7 +65,5 @@ def render_favorites_tags() -> None:
                     st.session_state.selected_story_path = f["story_path"]
                     st.session_state.selected_story_year = db_year
                     st.session_state["nav_page"] = "📖 Read Story"
-
-                    st.query_params["nav_page"] = "📖 Read Story"
                     st.rerun()
             st.write("")

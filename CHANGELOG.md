@@ -5,13 +5,13 @@ All notable changes to this project will be documented in this file.
 ## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-02
 
 ### Summary
-Resolved merge conflicts across dashboard layout, ADK eval runner, accessibility palette, and CI configuration.
+Resolved merge conflicts across dashboard layout, ADK eval runner, accessibility palette, storage guard, and CI configuration.
 
 ### Fixed
 - Resolved merge conflicts in `dashboard.html` by standardizing on `how-to-use-heading` and `how-to-use-desc` accessibility IDs.
 - Resolved merge conflicts in `evals/run_adk_eval.py` by restoring `Path.cwd()` and tab formatting.
-- Resolved merge conflicts in `.jules/palette.md` by retaining updated accessibility guidelines.
-- Preserved CircleCI test suite configuration and downloader storage validation.
+- Resolved merge conflicts in `.jules/palette.md` by retaining all updated accessibility guidelines.
+- Preserved CircleCI test suite configuration and downloader storage `STORIES_DB` fail-fast validation.
 
 ## [PR-1619](https://github.com/jgf-dev/story-builder/pull/1619) - 2026-08-02
 

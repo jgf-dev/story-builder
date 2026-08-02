@@ -5,16 +5,13 @@ All notable changes to this project will be documented in this file.
 ## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-02
 
 ### Summary
-Configured CircleCI Smarter Testing with `test-suites.yml` and updated `config.yml` to use `circleci testsuite run`.
+Resolved merge conflicts across dashboard layout, ADK eval runner, accessibility palette, and CI configuration.
 
 ### Fixed
-- Installed the CircleCI CLI in `.circleci/config.yml` (currently via the upstream install script).
-Resolved merge conflicts with `main` while preserving the PR's CI hardening and downloader storage guard.
-
-### Fixed
-- Resolved merge conflicts in `.circleci/config.yml`, `.circleci/test-suites.yml`, `.jules/palette.md`, `CHANGELOG.md`, and `src/storybuilder/downloader/storage.py`.
-- Preserved the pinned CircleCI CLI install plus testsuite extension setup in `.circleci/config.yml`.
-- Preserved the `STORIES_DB` fail-fast validation in `src/storybuilder/downloader/storage.py`.
+- Resolved merge conflicts in `dashboard.html` by standardizing on `how-to-use-heading` and `how-to-use-desc` accessibility IDs.
+- Resolved merge conflicts in `evals/run_adk_eval.py` by restoring `Path.cwd()` and tab formatting.
+- Resolved merge conflicts in `.jules/palette.md` by retaining updated accessibility guidelines.
+- Preserved CircleCI test suite configuration and downloader storage validation.
 
 ## [PR-1619](https://github.com/jgf-dev/story-builder/pull/1619) - 2026-08-02
 

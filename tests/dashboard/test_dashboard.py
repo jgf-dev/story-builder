@@ -34,9 +34,9 @@ class TestDashboard(unittest.TestCase):
         st.cache_data.clear()
 
         # Patch paths inside dashboard
-        self.patch_dir = patch("dashboard.DB_DIR", self.db_dir)
-        self.patch_nlp = patch("dashboard.NLP_DB_PATH", self.nlp_db_path)
-        self.patch_meta = patch("dashboard.META_DB_PATH", self.meta_db_path)
+        self.patch_dir = patch.dict("os.environ", {"STORYBUILDER_DB_DIR": self.db_dir})
+        self.patch_nlp = patch.dict("os.environ", {"STORYBUILDER_NLP_DB_PATH": self.nlp_db_path})
+        self.patch_meta = patch.dict("os.environ", {"STORYBUILDER_META_DB_PATH": self.meta_db_path})
 
         # Patch db.py globals used by dashboard's new refactored code
         import storybuilder.downloader.db as sb_db
@@ -288,60 +288,45 @@ class TestDashboardConfig(unittest.TestCase):
 
     def test_get_db_dir_default(self) -> None:
         from storybuilder.dashboard.config import get_db_dir
-        result = get_db_dir()
-        self.assertEqual(result, "stories/db")
+        with patch.dict(os.environ, {}, clear=True):
+            result = get_db_dir()
+            self.assertEqual(result, "stories/db")
 
     def test_get_nlp_db_path_default(self) -> None:
         from storybuilder.dashboard.config import get_nlp_db_path
-        result = get_nlp_db_path()
-        self.assertEqual(result, "stories/db/nlp_analysis.db")
+        with patch.dict(os.environ, {}, clear=True):
+            result = get_nlp_db_path()
+            self.assertEqual(result, "stories/db/nlp_analysis.db")
 
     def test_get_meta_db_path_default(self) -> None:
         from storybuilder.dashboard.config import get_meta_db_path
-        result = get_meta_db_path()
-        self.assertEqual(result, "stories/db/dashboard_metadata.db")
+        with patch.dict(os.environ, {}, clear=True):
+            result = get_meta_db_path()
+            self.assertEqual(result, "stories/db/dashboard_metadata.db")
 
     def test_get_db_dir_with_mock(self) -> None:
         import sys
         from storybuilder.dashboard.config import get_db_dir
 
-        mock_module = type(sys)("dashboard")
-        mock_module.DB_DIR = "custom/db/path"
-        sys.modules["dashboard"] = mock_module
-
-        try:
+        with patch.dict(os.environ, {"STORYBUILDER_DB_DIR": "custom/db/path"}):
             result = get_db_dir()
             self.assertEqual(result, "custom/db/path")
-        finally:
-            del sys.modules["dashboard"]
 
     def test_get_nlp_db_path_with_mock(self) -> None:
         import sys
         from storybuilder.dashboard.config import get_nlp_db_path
 
-        mock_module = type(sys)("dashboard")
-        mock_module.NLP_DB_PATH = "custom/nlp.db"
-        sys.modules["dashboard"] = mock_module
-
-        try:
+        with patch.dict(os.environ, {"STORYBUILDER_NLP_DB_PATH": "custom/nlp.db"}):
             result = get_nlp_db_path()
             self.assertEqual(result, "custom/nlp.db")
-        finally:
-            del sys.modules["dashboard"]
 
     def test_get_meta_db_path_with_mock(self) -> None:
         import sys
         from storybuilder.dashboard.config import get_meta_db_path
 
-        mock_module = type(sys)("dashboard")
-        mock_module.META_DB_PATH = "custom/meta.db"
-        sys.modules["dashboard"] = mock_module
-
-        try:
+        with patch.dict(os.environ, {"STORYBUILDER_META_DB_PATH": "custom/meta.db"}):
             result = get_meta_db_path()
             self.assertEqual(result, "custom/meta.db")
-        finally:
-            del sys.modules["dashboard"]
 
     def test_bracket_labels_constant(self) -> None:
         from storybuilder.dashboard.config import BRACKET_LABELS
@@ -385,30 +370,17 @@ class TestDashboardDataFunctions(unittest.TestCase):
         import sys
         from unittest.mock import patch
 
-        mock_module = type(sys)("dashboard")
-        mock_module.DB_DIR = self.db_dir
-        mock_module.NLP_DB_PATH = self.nlp_db_path
-        mock_module.META_DB_PATH = self.meta_db_path
-        sys.modules["dashboard"] = mock_module
-
-        try:
+        with patch.dict(os.environ, {"STORYBUILDER_DB_DIR": self.db_dir, "STORYBUILDER_NLP_DB_PATH": self.nlp_db_path, "STORYBUILDER_META_DB_PATH": self.meta_db_path}):
             from storybuilder.dashboard.data import get_db_files
             result = get_db_files()
             self.assertEqual(result, [])
-        finally:
-            del sys.modules["dashboard"]
+
 
     def test_get_db_files_with_year_dbs(self) -> None:
         import sys
         from unittest.mock import patch
 
-        mock_module = type(sys)("dashboard")
-        mock_module.DB_DIR = self.db_dir
-        mock_module.NLP_DB_PATH = self.nlp_db_path
-        mock_module.META_DB_PATH = self.meta_db_path
-        sys.modules["dashboard"] = mock_module
-
-        try:
+        with patch.dict(os.environ, {"STORYBUILDER_DB_DIR": self.db_dir, "STORYBUILDER_NLP_DB_PATH": self.nlp_db_path, "STORYBUILDER_META_DB_PATH": self.meta_db_path}):
             Path(os.path.join(self.db_dir, "2025.db")).touch()
             Path(os.path.join(self.db_dir, "2024.db")).touch()
             Path(os.path.join(self.db_dir, "not_a_db.txt")).touch()
@@ -417,20 +389,13 @@ class TestDashboardDataFunctions(unittest.TestCase):
             result = get_db_files()
             result_names = [f.name for f in result]
             self.assertEqual(result_names, ["2024.db", "2025.db"])
-        finally:
-            del sys.modules["dashboard"]
+
 
     def test_get_filter_options_with_data(self) -> None:
         import sys
         from unittest.mock import patch
 
-        mock_module = type(sys)("dashboard")
-        mock_module.DB_DIR = self.db_dir
-        mock_module.NLP_DB_PATH = self.nlp_db_path
-        mock_module.META_DB_PATH = self.meta_db_path
-        sys.modules["dashboard"] = mock_module
-
-        try:
+        with patch.dict(os.environ, {"STORYBUILDER_DB_DIR": self.db_dir, "STORYBUILDER_NLP_DB_PATH": self.nlp_db_path, "STORYBUILDER_META_DB_PATH": self.meta_db_path}):
             from storybuilder.dashboard.data import get_filter_options
             from storybuilder.downloader.db import insert_story
 
@@ -456,20 +421,13 @@ class TestDashboardDataFunctions(unittest.TestCase):
             self.assertIn("athletics", categories)
             self.assertIn("Author A", authors)
             self.assertIn("Author B", authors)
-        finally:
-            del sys.modules["dashboard"]
+
 
     def test_load_archive_stats(self) -> None:
         import sys
         from unittest.mock import patch
 
-        mock_module = type(sys)("dashboard")
-        mock_module.DB_DIR = self.db_dir
-        mock_module.NLP_DB_PATH = self.nlp_db_path
-        mock_module.META_DB_PATH = self.meta_db_path
-        sys.modules["dashboard"] = mock_module
-
-        try:
+        with patch.dict(os.environ, {"STORYBUILDER_DB_DIR": self.db_dir, "STORYBUILDER_NLP_DB_PATH": self.nlp_db_path, "STORYBUILDER_META_DB_PATH": self.meta_db_path}):
             from storybuilder.dashboard.data import load_archive_stats
             from storybuilder.downloader.db import insert_story
 
@@ -487,19 +445,12 @@ class TestDashboardDataFunctions(unittest.TestCase):
             self.assertFalse(df_years.empty)
             self.assertFalse(df_cats.empty)
             self.assertFalse(df_auths.empty)
-        finally:
-            del sys.modules["dashboard"]
+
 
     def test_get_story_by_path_exists(self) -> None:
         import sys
 
-        mock_module = type(sys)("dashboard")
-        mock_module.DB_DIR = self.db_dir
-        mock_module.NLP_DB_PATH = self.nlp_db_path
-        mock_module.META_DB_PATH = self.meta_db_path
-        sys.modules["dashboard"] = mock_module
-
-        try:
+        with patch.dict(os.environ, {"STORYBUILDER_DB_DIR": self.db_dir, "STORYBUILDER_NLP_DB_PATH": self.nlp_db_path, "STORYBUILDER_META_DB_PATH": self.meta_db_path}):
             from storybuilder.dashboard.data import get_story_by_path
             from storybuilder.downloader.db import insert_story
 
@@ -516,36 +467,22 @@ class TestDashboardDataFunctions(unittest.TestCase):
             self.assertIsNotNone(result)
             self.assertEqual(result["title"], "Existing Story")
             self.assertEqual(result["author_name"], "Test Author")
-        finally:
-            del sys.modules["dashboard"]
+
 
     def test_get_story_by_path_not_found(self) -> None:
         import sys
 
-        mock_module = type(sys)("dashboard")
-        mock_module.DB_DIR = self.db_dir
-        mock_module.NLP_DB_PATH = self.nlp_db_path
-        mock_module.META_DB_PATH = self.meta_db_path
-        sys.modules["dashboard"] = mock_module
-
-        try:
+        with patch.dict(os.environ, {"STORYBUILDER_DB_DIR": self.db_dir, "STORYBUILDER_NLP_DB_PATH": self.nlp_db_path, "STORYBUILDER_META_DB_PATH": self.meta_db_path}):
             from storybuilder.dashboard.data import get_story_by_path
 
             result = get_story_by_path("nonexistent/story.txt")
             self.assertIsNone(result)
-        finally:
-            del sys.modules["dashboard"]
+
 
     def test_add_favorite_function(self) -> None:
         import sys
 
-        mock_module = type(sys)("dashboard")
-        mock_module.DB_DIR = self.db_dir
-        mock_module.NLP_DB_PATH = self.nlp_db_path
-        mock_module.META_DB_PATH = self.meta_db_path
-        sys.modules["dashboard"] = mock_module
-
-        try:
+        with patch.dict(os.environ, {"STORYBUILDER_DB_DIR": self.db_dir, "STORYBUILDER_NLP_DB_PATH": self.nlp_db_path, "STORYBUILDER_META_DB_PATH": self.meta_db_path}):
             from storybuilder.dashboard.data import add_favorite
             from storybuilder.dashboard.data import get_favorites
             from storybuilder.dashboard.data import remove_favorite
@@ -567,20 +504,13 @@ class TestDashboardDataFunctions(unittest.TestCase):
             removed = remove_favorite("test/path.txt")
             self.assertTrue(removed)
             self.assertEqual(get_favorites(), [])
-        finally:
-            del sys.modules["dashboard"]
+
 
     def test_archive_stats_empty_db(self) -> None:
         """Regression test for Fix #1: empty-DB stats guard should not crash."""
         import sys
 
-        mock_module = type(sys)("dashboard")
-        mock_module.DB_DIR = self.db_dir
-        mock_module.NLP_DB_PATH = self.nlp_db_path
-        mock_module.META_DB_PATH = self.meta_db_path
-        sys.modules["dashboard"] = mock_module
-
-        try:
+        with patch.dict(os.environ, {"STORYBUILDER_DB_DIR": self.db_dir, "STORYBUILDER_NLP_DB_PATH": self.nlp_db_path, "STORYBUILDER_META_DB_PATH": self.meta_db_path}):
             from storybuilder.dashboard.data import load_archive_stats
 
             # Call with no stories inserted → should return empty DataFrames
@@ -591,20 +521,13 @@ class TestDashboardDataFunctions(unittest.TestCase):
             self.assertTrue(df_cats.empty, "df_cats should be empty when no data is present")
             self.assertTrue(df_auths.empty, "df_auths should be empty when no data is present")
             self.assertTrue(df_words.empty, "df_words should be empty when no data is present")
-        finally:
-            del sys.modules["dashboard"]
+
 
     def test_favorites_year_resolution_with_null_publication_date(self) -> None:
         """Regression test for Fix #2: favorites year query via get_conn cursor."""
         import sys
 
-        mock_module = type(sys)("dashboard")
-        mock_module.DB_DIR = self.db_dir
-        mock_module.NLP_DB_PATH = self.nlp_db_path
-        mock_module.META_DB_PATH = self.meta_db_path
-        sys.modules["dashboard"] = mock_module
-
-        try:
+        with patch.dict(os.environ, {"STORYBUILDER_DB_DIR": self.db_dir, "STORYBUILDER_NLP_DB_PATH": self.nlp_db_path, "STORYBUILDER_META_DB_PATH": self.meta_db_path}):
             from storybuilder.downloader.db import get_conn
             from storybuilder.downloader.db import insert_story
 
@@ -658,8 +581,7 @@ class TestDashboardDataFunctions(unittest.TestCase):
 
             self.assertEqual(path_to_year["stories/gay/college/story1/part-1.txt"], 2020, "Should extract year 2020")
             self.assertEqual(path_to_year["stories/gay/college/story2/part-1.txt"], current_year, f"Should default to {current_year} for None")
-        finally:
-            del sys.modules["dashboard"]
+
 
 if __name__ == "__main__":
     unittest.main()

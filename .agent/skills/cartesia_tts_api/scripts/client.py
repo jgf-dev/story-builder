@@ -1,10 +1,8 @@
 import os
 
 from cartesia import Cartesia
-from cartesia.types import VoiceSpecifierParam
-from cartesia.types import WAVOutputFormatParam
+from cartesia.types import VoiceSpecifierParam, WAVOutputFormatParam
 from dotenv import load_dotenv
-
 
 load_dotenv()
 

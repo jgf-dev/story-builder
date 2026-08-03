@@ -42,6 +42,7 @@ def render_search_explorer(filters: dict) -> None:
         safe_author = html.escape(res["author_name"] or "Unknown")
         safe_category = html.escape(res["category"] or "")
         safe_pub_date = html.escape(str(res["publication_date"] or "Unknown"))
+        word_count = dict(res).get("word_count") or 0
         card_html = f"""
         <div class="story-card">
             <h4>{safe_title}</h4>
@@ -49,7 +50,7 @@ def render_search_explorer(filters: dict) -> None:
                 <b>Author:</b> {safe_author} |
                 <b>Category:</b> {safe_category} |
                 <b>Published:</b> {safe_pub_date} |
-                <b>Words:</b> {(dict(res).get("word_count") or 0):,}
+                <b>Words:</b> {word_count:,}
 
             </p>
         """

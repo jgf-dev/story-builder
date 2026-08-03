@@ -1,11 +1,7 @@
-from types import ModuleType
 import importlib
+from types import ModuleType
 
-from . import agents
-from . import analysis
-from . import downloader
-from . import genai
-
+from . import agents, analysis, downloader, genai
 
 __all__ = ["agents", "analysis", "downloader", "genai"]
 

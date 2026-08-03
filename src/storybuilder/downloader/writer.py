@@ -178,7 +178,7 @@ def _replicate_story(primary_path, output_paths, story_date) -> None:
                 )
 
 
-def download_single_target(idx_str, url, output_paths, story_date, delay, force: bool=False) -> bool:
+def download_single_target(idx_str, url, output_paths, story_date, delay, force: bool = False) -> bool:
     """
     Downloads a single target story and handles duplicate copy replication.
     Returns True if successful, False otherwise.

@@ -85,11 +85,25 @@ pull_request_rules:
         add:
           - "@jules"
           - "@devin"
+          - invalid
       comment:
-        message: "@jules @devin can you fix the merge conflicts?"
+        message: "@jules @devin @copilot @opencode can you fix the merge conflicts?"
   - name: Keep PRs up to date
     conditions:
       - -draft
       - "#commits-behind >= 1"
     actions:
       update: null
+  - name: New rule
+    conditions:
+      - base = main
+      - -conflict
+      - label ~= invalid
+    actions:
+      label:
+        add: []
+        remove:
+          - invalid
+        toggle: []
+      queue:
+        name: main-queue

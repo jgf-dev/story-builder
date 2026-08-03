@@ -17,24 +17,18 @@ BRACKET_LABELS = [
 
 
 def get_db_dir() -> str:
-    """Retrieve the DB directory path, dynamically checking for environment variables or active testing mocks."""
-    if "STORYBUILDER_DB_DIR" in os.environ:
-        return os.environ["STORYBUILDER_DB_DIR"]
-    return "stories/db"
+    """Retrieve the DB directory path from environment variables with a default fallback."""
+    return os.environ.get("STORYBUILDER_DB_DIR", "stories/db")
 
 
 def get_nlp_db_path() -> str:
-    """Retrieve the NLP DB path, dynamically checking for environment variables or active testing mocks."""
-    if "STORYBUILDER_NLP_DB_PATH" in os.environ:
-        return os.environ["STORYBUILDER_NLP_DB_PATH"]
-    return str(Path(get_db_dir()) / "nlp_analysis.db")
+    """Retrieve the NLP DB path from environment variables with a default fallback."""
+    return os.environ.get("STORYBUILDER_NLP_DB_PATH", str(Path(get_db_dir()) / "nlp_analysis.db"))
 
 
 def get_meta_db_path() -> str:
-    """Retrieve the metadata DB path, dynamically checking for environment variables or active testing mocks."""
-    if "STORYBUILDER_META_DB_PATH" in os.environ:
-        return os.environ["STORYBUILDER_META_DB_PATH"]
-    return str(Path(get_db_dir()) / "dashboard_metadata.db")
+    """Retrieve the metadata DB path from environment variables with a default fallback."""
+    return os.environ.get("STORYBUILDER_META_DB_PATH", str(Path(get_db_dir()) / "dashboard_metadata.db"))
 
 
 def setup_page() -> None:

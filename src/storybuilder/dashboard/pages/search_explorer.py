@@ -49,7 +49,7 @@ def render_search_explorer(filters: dict) -> None:
                 <b>Author:</b> {safe_author} |
                 <b>Category:</b> {safe_category} |
                 <b>Published:</b> {safe_pub_date} |
-                <b>Words:</b> {word_count:,}
+                <b>Words:</b> {(dict(res).get("word_count") or 0):,}
 
             </p>
         """

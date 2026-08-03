@@ -46,10 +46,8 @@ dependencies = [
 ]
 
 [project.scripts]
-downloader     = "storybuilder.downloader.cli:main"
-genai-tts      = "storybuilder.genai.tts:main"
-storybuilder-bq = "storybuilder.downloader.bq_upload:main"
-
+downloader = "storybuilder.downloader.cli:main"
+genai-tts  = "storybuilder.genai.tts:main"
 
 [build-system]
 requires      = ["uv_build>=0.11.15,<0.12.0"]

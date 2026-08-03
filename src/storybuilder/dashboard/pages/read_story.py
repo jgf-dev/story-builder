@@ -99,10 +99,11 @@ def render_read_story() -> None:
             mime="text/markdown",
         )
 
+    word_count = dict(story).get("word_count") or 0
     st.write(
         f"**Category:** `{story['category']}` | "
         f"**Published:** `{story['publication_date'] or 'Unknown'}` | "
-        f"**Words:** `{(story.get('word_count') or 0):,}`",
+        f"**Words:** `{word_count:,}`",
     )
     st.markdown("---")
 

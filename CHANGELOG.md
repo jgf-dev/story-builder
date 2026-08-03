@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 ## [PR-XXX](https://github.com/jgf-dev/story-builder/pull/XXX) - 2026-08-03
 
 ### Summary
+Hardened the downloader SQLite import script and added a regression test to catch syntax breakage before the downloader test job runs.
+
+### Fixed
+- Cleaned up `scripts/import_to_sqlite.py` batch flush typing/formatting to keep the module syntactically stable.
+- Added a downloader regression test that byte-compiles `scripts/import_to_sqlite.py` so unresolved merge markers or syntax errors fail fast in CI.
+
+## [PR-XXX](https://github.com/jgf-dev/story-builder/pull/XXX) - 2026-08-03
+
+### Summary
 Standardized GitHub Actions workflows to use GitHub-hosted runner labels.
 
 ### Fixed

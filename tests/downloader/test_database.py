@@ -2,6 +2,7 @@
 """Tests for the database layer: db.py, import_to_sqlite.py, story_db.py."""
 
 import os
+import py_compile
 import shutil
 import sqlite3
 import sys
@@ -677,6 +678,10 @@ class TestParseHeader(unittest.TestCase):
         # Actually, empty content + title = not None since we check "not content and not title"
         self.assertIsNotNone(result)
         self.assertEqual(result["content"], "")
+
+    def test_import_to_sqlite_script_compiles(self) -> None:
+        script_path = os.path.join(REPO_ROOT, "scripts", "import_to_sqlite.py")
+        py_compile.compile(script_path, doraise=True)
 class TestMonolithicDatabase(unittest.TestCase):
     """Tests for monolithic SQLModel-based database in db.py."""
 

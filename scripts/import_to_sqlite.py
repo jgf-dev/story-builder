@@ -189,16 +189,19 @@ def import_files(
 	return imported, skipped
 
 
-def _flush_batch(conn: sqlite3.Connection, batch: list, force: bool = False) -> int:
-
+def _flush_batch(
+	conn: sqlite3.Connection,
+	batch: list[tuple[object, ...]],
+	force: bool = False,
+) -> int:
 	sql = """
-        INSERT OR REPLACE INTO stories
-            (path, orientation, category, story_slug, chapter_num,
-             title, author_name, author_email,
-             publication_date, url,
-             char_count, word_count, content)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """
+		INSERT OR REPLACE INTO stories
+			(path, orientation, category, story_slug, chapter_num,
+			 title, author_name, author_email,
+			 publication_date, url,
+			 char_count, word_count, content)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	"""
 	try:
 		conn.executemany(sql, batch)
 		conn.commit()

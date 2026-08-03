@@ -680,8 +680,13 @@ class TestParseHeader(unittest.TestCase):
         self.assertEqual(result["content"], "")
 
     def test_import_to_sqlite_script_compiles(self) -> None:
-        script_path = os.path.join(REPO_ROOT, "scripts", "import_to_sqlite.py")
-        py_compile.compile(script_path, doraise=True)
+        script_path = Path(__file__).resolve().parents[2] / "scripts" / "import_to_sqlite.py"
+        with tempfile.TemporaryDirectory() as tmp:
+            py_compile.compile(
+                str(script_path),
+                cfile=os.path.join(tmp, "import_to_sqlite.pyc"),
+                doraise=True,
+            )
 class TestMonolithicDatabase(unittest.TestCase):
     """Tests for monolithic SQLModel-based database in db.py."""
 

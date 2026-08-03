@@ -297,8 +297,15 @@ class TestDashboardConfig(unittest.TestCase):
 	def test_get_nlp_db_path_default(self) -> None:
 		from storybuilder.dashboard.config import get_nlp_db_path
 
+<<<<<<< HEAD
+    def test_get_db_dir_with_mock(self) -> None:
+        import sys
+
+        from storybuilder.dashboard.config import get_db_dir
+=======
 		result = get_nlp_db_path()
 		self.assertEqual(result, "stories/db/nlp_analysis.db")
+>>>>>>> origin/main
 
 	def test_get_meta_db_path_default(self) -> None:
 		from storybuilder.dashboard.config import get_meta_db_path
@@ -306,8 +313,15 @@ class TestDashboardConfig(unittest.TestCase):
 		result = get_meta_db_path()
 		self.assertEqual(result, "stories/db/dashboard_metadata.db")
 
+<<<<<<< HEAD
+    def test_get_nlp_db_path_with_mock(self) -> None:
+        import sys
+
+        from storybuilder.dashboard.config import get_nlp_db_path
+=======
 	def test_get_db_dir_with_mock(self) -> None:
 		import sys
+>>>>>>> origin/main
 
 		from storybuilder.dashboard.config import get_db_dir
 
@@ -315,11 +329,18 @@ class TestDashboardConfig(unittest.TestCase):
 		mock_module.DB_DIR = "custom/db/path"
 		sys.modules["dashboard"] = mock_module
 
+<<<<<<< HEAD
+    def test_get_meta_db_path_with_mock(self) -> None:
+        import sys
+
+        from storybuilder.dashboard.config import get_meta_db_path
+=======
 		try:
 			result = get_db_dir()
 			self.assertEqual(result, "custom/db/path")
 		finally:
 			del sys.modules["dashboard"]
+>>>>>>> origin/main
 
 	def test_get_nlp_db_path_with_mock(self) -> None:
 		import sys

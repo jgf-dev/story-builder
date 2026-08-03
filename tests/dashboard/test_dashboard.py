@@ -306,6 +306,7 @@ class TestDashboardConfig(unittest.TestCase):
 
     def test_get_db_dir_with_mock(self) -> None:
         import sys
+
         from storybuilder.dashboard.config import get_db_dir
 
         mock_module = type(sys)("dashboard")
@@ -320,6 +321,7 @@ class TestDashboardConfig(unittest.TestCase):
 
     def test_get_nlp_db_path_with_mock(self) -> None:
         import sys
+
         from storybuilder.dashboard.config import get_nlp_db_path
 
         mock_module = type(sys)("dashboard")
@@ -334,6 +336,7 @@ class TestDashboardConfig(unittest.TestCase):
 
     def test_get_meta_db_path_with_mock(self) -> None:
         import sys
+
         from storybuilder.dashboard.config import get_meta_db_path
 
         mock_module = type(sys)("dashboard")

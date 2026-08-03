@@ -1,15 +1,14 @@
-import unittest
-import tempfile
 import os
 import sqlite3
-from unittest.mock import patch, MagicMock
+import tempfile
+import unittest
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
-from storybuilder.analysis.analyze_sentiment import (
-    extract_chapter_number,
-    get_sentiment_value,
-    init_db,
-    main,
-)
+from storybuilder.analysis.analyze_sentiment import extract_chapter_number
+from storybuilder.analysis.analyze_sentiment import get_sentiment_value
+from storybuilder.analysis.analyze_sentiment import init_db
+from storybuilder.analysis.analyze_sentiment import main
 
 
 class TestAnalyzeSentiment(unittest.TestCase):

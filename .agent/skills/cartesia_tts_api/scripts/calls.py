@@ -12,7 +12,6 @@ from typing import TYPE_CHECKING
 
 from cartesia import Cartesia
 
-if TYPE_CHECKING:
 	from cartesia.types import Voice, VoiceMetadata
 
 # =============================================================================
@@ -723,7 +722,11 @@ def stt_auto_finalize_websocket(client: Cartesia, *args: str) -> None:
 	import time
 	import wave
 
+<<<<<<< HEAD
 	from cartesia.types import RawOutputFormatParam, STTEncoding
+=======
+    from cartesia.types import RawOutputFormatParam, STTEncoding
+>>>>>>> origin/tests/get-logger-8784844133665420913
 
 	encoding: STTEncoding
 	chunks: list[bytes]
@@ -903,8 +906,13 @@ def stt_manual_finalize_websocket(client: Cartesia, *args: str) -> None:
 
 
 def error_handling_example(client: Cartesia) -> None:
+<<<<<<< HEAD
 	"""Example of error handling with SDK exceptions."""
 	from cartesia import APIError, AuthenticationError, BadRequestError, NotFoundError, RateLimitError
+=======
+    """Example of error handling with SDK exceptions."""
+    from cartesia import APIError, AuthenticationError, BadRequestError, NotFoundError, RateLimitError
+>>>>>>> origin/tests/get-logger-8784844133665420913
 
 	try:
 		client.tts.generate(

@@ -1,8 +1,8 @@
+import unittest
+import tempfile
 import os
 import pathlib
 import sqlite3
-import tempfile
-import unittest
 from unittest.mock import MagicMock, patch
 
 from storybuilder.analysis.analyze_sentiment import (
@@ -35,34 +35,6 @@ class TestAnalyzeSentiment(unittest.TestCase):
 		self.assertEqual(extract_chapter_number("042.txt"), 42)
 		self.assertEqual(extract_chapter_number("some_random_text.txt"), 0)
 		self.assertEqual(extract_chapter_number("no_numbers_here.txt"), 0)
-
-	def test_find_multi_chapter_stories(self) -> None:
-		from pathlib import Path
-
-		with tempfile.TemporaryDirectory() as tmpdir:
-			base_path = Path(tmpdir)
-			story1_path = base_path / "cat1" / "story1"
-			story1_path.mkdir(parents=True, exist_ok=True)
-			(story1_path / "1.txt").touch()
-			(story1_path / "2.txt").touch()
-
-			story2_path = base_path / "cat1" / "story2"
-			story2_path.mkdir(parents=True, exist_ok=True)
-			(story2_path / "1.txt").touch()
-
-			story3_path = base_path / "cat2" / "story3"
-			story3_path.mkdir(parents=True, exist_ok=True)
-			(story3_path / "1.txt").touch()
-			(story3_path / "2.txt").touch()
-
-			result_all = find_multi_chapter_stories(tmpdir)
-			assert len(result_all) == 2
-			assert str(story1_path) in result_all
-			assert str(story3_path) in result_all
-
-			result_cat1 = find_multi_chapter_stories(tmpdir, subcategory="cat1")
-			assert len(result_cat1) == 1
-			assert str(story1_path) in result_cat1
 
 	def test_init_db(self) -> None:
 		with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp:

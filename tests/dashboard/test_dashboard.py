@@ -11,6 +11,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+
 # Ensure src and scripts are importable
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 _scripts_dir = str(Path(__file__).resolve().parents[2] / "scripts")

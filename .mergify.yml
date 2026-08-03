@@ -7,8 +7,7 @@ queue_rules:
       - "#deployment-failure = 0"
       - "#review-threads-unresolved = 0"
       - -conflict
-      - "#check-stale = 0"
-    branch_protection_injection_mode: none
+    branch_protection_injection_mode: merge
     queue_conditions:
       - base = main
 merge_queue:
@@ -40,7 +39,8 @@ pull_request_rules:
       - "#check-failure = 0"
       - "#check-pending = 0"
       - "#deployment-failure = 0"
-      - check-success ~= ^run_tests / test-results$
+      - "#check-timed-out = 0"
+      - -conflict
     actions:
       merge:
         method: squash

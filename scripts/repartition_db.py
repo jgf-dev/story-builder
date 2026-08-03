@@ -10,11 +10,9 @@ import sqlite3
 import sys
 from pathlib import Path
 
-
 # Add project root to sys.path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from storybuilder.downloader.db import INDEXES
-from storybuilder.downloader.db import SCHEMA
+from storybuilder.downloader.db import INDEXES, SCHEMA
 
 
 def get_db_filename_from_date(story_date) -> str:

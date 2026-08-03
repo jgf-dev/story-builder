@@ -14,10 +14,18 @@ def render_search_explorer(filters: dict) -> None:
 	st.title("🔍 Story Archive Explorer")
 	st.write("Browse, search and filter the narrative archives.")
 
+<<<<<<< HEAD
 	fts_input = st.text_input(
 		"Full-Text Search (FTS5 syntax, e.g. vampire OR werewolf)",
 		"",
 	)
+=======
+    fts_input = st.text_input(
+        "Full-Text Search (FTS5 syntax, e.g. vampire OR werewolf)",
+        "",
+
+    )
+>>>>>>> origin/main
 
 	st.markdown("---")
 
@@ -68,6 +76,7 @@ def render_search_explorer(filters: dict) -> None:
 		card_html += "</div>"
 		st.markdown(card_html, unsafe_allow_html=True)
 
+<<<<<<< HEAD
 		# Action buttons on the card
 		col1, _col2 = st.columns([1, 8])
 		with col1:
@@ -78,3 +87,15 @@ def render_search_explorer(filters: dict) -> None:
 				st.session_state["nav_page"] = "📖 Read Story"
 				st.rerun()
 		st.write("")
+=======
+        # Action buttons on the card
+        col1, _col2 = st.columns([1, 8])
+        with col1:
+            if st.button("Read", key=f"read_{res['path']}_{res['db_year']}"):
+                st.session_state.selected_story_path = res["path"]
+                st.session_state.selected_story_year = res["db_year"]
+                # Programmatically update radio key by modifying session state navigation
+                st.session_state["nav_page"] = "📖 Read Story"
+                st.rerun()
+        st.write("")
+>>>>>>> origin/main

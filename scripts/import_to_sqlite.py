@@ -190,6 +190,10 @@ def import_files(
 
 
 def _flush_batch(conn: sqlite3.Connection, batch: list, force: bool = False) -> int:
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/main
 	sql = """
         INSERT OR REPLACE INTO stories
             (path, orientation, category, story_slug, chapter_num,

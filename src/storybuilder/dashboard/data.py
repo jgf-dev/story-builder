@@ -29,7 +29,7 @@ def get_db_files() -> list[Path]:
 	return sorted(Path(db_dir).glob("[0-9][0-9][0-9][0-9].db"))
 
 
-_initialized_paths: set[str] = set()
+_meta_db_initialized_paths: set[str] = set()
 
 
 def get_meta_conn() -> sqlite3.Connection:
@@ -38,9 +38,15 @@ def get_meta_conn() -> sqlite3.Connection:
 	Path(Path(meta_db_path).parent or ".").mkdir(parents=True, exist_ok=True)
 	conn = sqlite3.connect(meta_db_path, check_same_thread=False)
 
+<<<<<<< HEAD
 	if meta_db_path not in _initialized_paths:
 		conn.execute(
 			"""
+=======
+    if meta_db_path not in _meta_db_initialized_paths:
+        conn.execute(
+            """
+>>>>>>> origin/main
             CREATE TABLE IF NOT EXISTS favorites (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 story_path TEXT UNIQUE,
@@ -51,10 +57,18 @@ def get_meta_conn() -> sqlite3.Connection:
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
             """,
+<<<<<<< HEAD
 		)
 		conn.commit()
 		_initialized_paths.add(meta_db_path)
 	return conn
+=======
+        )
+        conn.commit()
+        _meta_db_initialized_paths.add(meta_db_path)
+
+    return conn
+>>>>>>> origin/main
 
 
 @st.cache_resource

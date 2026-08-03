@@ -29,7 +29,7 @@ def get_db_files() -> list[Path]:
 	return sorted(Path(db_dir).glob("[0-9][0-9][0-9][0-9].db"))
 
 
-_initialized_paths: set[str] = set()
+_meta_db_initialized_paths: set[str] = set()
 
 
 def get_meta_conn() -> sqlite3.Connection:

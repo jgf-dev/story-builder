@@ -295,7 +295,7 @@ def _enrich_with_db_year(results: list[dict]) -> list[dict]:
     return enriched
 
 
-def query_stories(  # noqa: PLR0913
+def query_stories(  # ruff: ignore[too-many-arguments]
     params: StorySearchQuery | None = None,
     *,
     fts_query: str = "",
@@ -422,7 +422,7 @@ def get_favorites_publication_years(fav_paths: list[str]) -> dict[str, int]:
         cursor = conn.cursor()
         placeholders = ",".join("?" for _ in fav_paths)
         # S608 is dynamic SQL composition for placeholders. It's safe since placeholders contains only '?'.
-        query = f"SELECT path, publication_date FROM stories WHERE path IN ({placeholders})"  # noqa: S608
+        query = f"SELECT path, publication_date FROM stories WHERE path IN ({placeholders})"  # ruff: ignore[hardcoded-sql-expression]
         cursor.execute(query, fav_paths)
         rows = cursor.fetchall()
     except Exception:

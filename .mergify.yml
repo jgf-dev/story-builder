@@ -11,23 +11,56 @@ queue_rules:
     queue_conditions:
       - base = main
 merge_queue:
-  status_comments: all
+  status_comments: outcomes
   queue_controls_comment: true
-  skip_intermediate_results: false
-  reset_on_external_merge: always
-  max_parallel_checks: 3
+  skip_intermediate_results: true
+  reset_on_external_merge: never
+  max_parallel_checks: 5
+  mode: parallel
 scopes:
   source:
     files:
       tests:
         include:
           - tests/**/*
-      source:
-        include:
-          - src/**/*
       scripts:
         include:
           - scripts/**/*
+      downloader:
+        include:
+          - "**/downloader/**"
+      analysis:
+        include:
+          - "**/analysis/**"
+      dashboard:
+        include:
+          - "**/dashboard/**"
+          - "**/*.html"
+      utils:
+        include:
+          - "**/utils/**"
+      genai:
+        include:
+          - "**/genai/**"
+      agents:
+        include:
+          - "**/agents/**"
+          - .agents/**
+      evals:
+        include:
+          - "**/evals/**"
+      tasks:
+        include:
+          - tasks/**
+      types:
+        include:
+          - typings/**
+      ci:
+        include:
+          - .github/**
+          - .circleci/**
+          - "*.yaml"
+          - "*.yml"
 merge_protections_settings:
   auto_merge_conditions: true
 pull_request_rules:
@@ -39,8 +72,7 @@ pull_request_rules:
       - "#check-failure = 0"
       - "#check-pending = 0"
       - "#deployment-failure = 0"
-      - "#check-timed-out = 0"
-      - -conflict
+      - check-success ~= ^run_tests / test-results$
     actions:
       merge:
         method: squash

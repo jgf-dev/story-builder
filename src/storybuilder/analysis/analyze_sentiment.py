@@ -1,19 +1,16 @@
-from sqlite3 import Cursor
-from sqlite3 import Connection
-from spacy.language import Language
-from argparse import Namespace
 import argparse
 import re
 import sqlite3
+from argparse import Namespace
 from collections import defaultdict
 from pathlib import Path
+from sqlite3 import Connection, Cursor
 
 import spacy
-from thinc.api import require_gpu
-from thinc.api import set_gpu_allocator
+from spacy.language import Language
+from thinc.api import require_gpu, set_gpu_allocator
 from tqdm import tqdm
 from transformers import pipeline
-
 
 DB_PATH = "sentiment_analysis.db"
 ALLOWED_LABELS = {
@@ -207,17 +204,13 @@ def process_chapter(filepath, chapter_idx: int, story_id, cursor, nlp, sentiment
         sentiments = sentiment_pipe(sentence_texts, batch_size=32)
     except Exception as e:
         print(f"Sentiment pipeline error on {filepath}: {e}")
-        try:
-            truncated_texts = [text[:512] for text in sentence_texts]
-            sentiments = sentiment_pipe(truncated_texts, batch_size=32)
-        except Exception:
-            sentiments = []
-            for sentence_text in sentence_texts:
-                try:
-                    res = sentiment_pipe(sentence_text[:512])[0]
-                    sentiments.append(res)
-                except Exception:
-                    sentiments.append({"label": "neutral", "score": 0.0})
+        sentiments = []
+        for sentence_text in sentence_texts:
+            try:
+                res = sentiment_pipe(sentence_text[:512])[0]
+                sentiments.append(res)
+            except Exception:
+                sentiments.append({"label": "neutral", "score": 0.0})
     cursor.execute("SELECT MAX(id) FROM sentences")
     row = cursor.fetchone() or (None,)
     last_id_before = row[0] if row[0] is not None else 0

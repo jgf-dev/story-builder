@@ -8,18 +8,13 @@ from pathlib import Path
 from storybuilder.downloader.storage import upload_many as upload_many_gcs
 from storybuilder.downloader.storage import upload_many_s3
 
-
 # Add project root to sys.path to enable absolute imports when run directly as a script
 if __name__ == "__main__" and __package__ is None:
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from storybuilder.downloader import db
-from storybuilder.downloader import network
-from storybuilder.downloader.cache import load_cache
-from storybuilder.downloader.cache import safe_print
-from storybuilder.downloader.cache import save_cache
-from storybuilder.downloader.scraper import get_subcategories
-from storybuilder.downloader.scraper import process_subcategory
+from storybuilder.downloader import db, network
+from storybuilder.downloader.cache import load_cache, safe_print, save_cache
+from storybuilder.downloader.scraper import get_subcategories, process_subcategory
 from storybuilder.downloader.writer import download_single_target
 
 
@@ -113,7 +108,7 @@ def _parse_args() -> argparse.Namespace:
 def _setup_network(args: argparse.Namespace) -> bool:
     if args.socks5_proxy:
         try:
-            import socks  # noqa: F401  # ruff:ignore[import-outside-top-level]
+            import socks  # ruff: ignore[unused-import]  # ruff:ignore[import-outside-top-level]
         except ImportError:
             print("Error: SOCKS proxy support requires the 'pysocks' package.")
             print("Please install it in your environment using:")

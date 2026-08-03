@@ -5,17 +5,10 @@ import sqlite3
 import threading
 from pathlib import Path
 from typing import ClassVar
+
+from sqlalchemy import func, literal_column
 from sqlalchemy.engine import Engine
-
-from sqlalchemy import func
-from sqlalchemy import literal_column
-from sqlmodel import Field
-from sqlmodel import Session
-from sqlmodel import SQLModel
-from sqlmodel import create_engine
-from sqlmodel import select
-from sqlmodel import text
-
+from sqlmodel import Field, Session, SQLModel, create_engine, select, text
 
 logging = std_logging.getLogger(__name__)
 
@@ -42,12 +35,7 @@ class Story(SQLModel, table=True):
     created_at: str | None = Field(default=None, sa_column_kwargs={"server_default": text("CURRENT_TIMESTAMP")})
 
 
-from sqlalchemy import Column
-from sqlalchemy import Integer
-from sqlalchemy import MetaData
-from sqlalchemy import Table
-from sqlalchemy import Text
-
+from sqlalchemy import Column, Integer, MetaData, Table, Text
 
 metadata_fts = MetaData()
 stories_fts = Table(
@@ -406,8 +394,8 @@ def search_stories(
     """Search the monolithic database using SQLModel and SQLAlchemy expressions."""
     limit: int = kwargs.get("limit", 100)
     snippets: bool = kwargs.get("snippets", True)
-    query: "str | None" = kwargs.get("query", None)
-    entity_suffixes: "list[str] | None" = kwargs.get("entity_suffixes", None)
+    query: str | None = kwargs.get("query")
+    entity_suffixes: list[str] | None = kwargs.get("entity_suffixes")
     if entity_suffixes == []:
         return []
 

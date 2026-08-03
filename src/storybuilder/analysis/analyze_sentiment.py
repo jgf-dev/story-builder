@@ -1,19 +1,16 @@
-from sqlite3 import Cursor
-from sqlite3 import Connection
-from spacy.language import Language
-from argparse import Namespace
 import argparse
 import re
 import sqlite3
+from argparse import Namespace
 from collections import defaultdict
 from pathlib import Path
+from sqlite3 import Connection, Cursor
 
 import spacy
-from thinc.api import require_gpu
-from thinc.api import set_gpu_allocator
+from spacy.language import Language
+from thinc.api import require_gpu, set_gpu_allocator
 from tqdm import tqdm
 from transformers import pipeline
-
 
 DB_PATH = "sentiment_analysis.db"
 ALLOWED_LABELS = {

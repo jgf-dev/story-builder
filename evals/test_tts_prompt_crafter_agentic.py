@@ -21,9 +21,7 @@ Run with:
 import pytest
 
 from evals.agentic.reflection_evaluator import ReflectionEvaluator
-from evals.agentic.rubric_evaluator import RubricDimension
-from evals.agentic.rubric_evaluator import RubricEvaluator
-
+from evals.agentic.rubric_evaluator import RubricDimension, RubricEvaluator
 
 # ── Scorers ────────────────────────────────────────────────────────────
 

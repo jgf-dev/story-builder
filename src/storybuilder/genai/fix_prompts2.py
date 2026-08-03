@@ -3,10 +3,10 @@ import pathlib
 import re
 import sys
 
-from storybuilder.utils.env import load_env
 from google import genai
 from google.genai import types
 
+from storybuilder.utils.env import load_env
 
 load_env()
 api_key = os.getenv("GEMINI_API_KEY")
@@ -94,7 +94,7 @@ def fix_prompts(directory: str) -> None:
             path.write_text(fixed_content, encoding="utf-8")
 
             print("  Fixed and saved.")
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:  # ruff: ignore[blind-except]
             print(f"  Error processing {path.name}: {e}")
 
 

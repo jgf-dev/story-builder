@@ -36,3 +36,4 @@ coverage_html/
 tasks/lint.ruff
 .idea/
 tasks/flags/
+.jules/

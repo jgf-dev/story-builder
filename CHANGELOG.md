@@ -1,6 +1,16 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-03
+
+### Summary
+Resolved merge conflicts across dashboard reader/explorer pages, downloader package exports, and sentiment analysis test suite.
+
+### Fixed
+- Resolved merge conflicts in `src/storybuilder/dashboard/pages/read_story.py` and `search_explorer.py` by preserving `word_count` rendering.
+- Retained `upload_sqlite_to_bigquery` export in `src/storybuilder/downloader/__init__.py`.
+- Restored `find_multi_chapter_stories` test import in `tests/analysis/test_analyze_sentiment.py`.
+
 ## [PR-XXX](https://github.com/jgf-dev/story-builder/pull/XXX) - 2026-08-03
 
 ### Summary

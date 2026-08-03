@@ -1,6 +1,15 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [34ad68f](https://github.com/jgf2/story-builder/commit/34ad68fef72a5043f0d324571df13c002df2662e) - 2026-08-04
+
+### Summary
+Resolved merge conflicts across database import scripts, analysis routines, dashboard data structures, downloader modules, and test suites. Standardized tab indentation and verified test suite (86 passed).
+
+### Fixed
+- Fixed nested merge conflicts in `.agent/skills/cartesia_tts_api/scripts/calls.py` and `.agent/resolve_conflicts.py`.
+- Preserved `_meta_db_initialized_paths` state in `src/storybuilder/dashboard/data.py`.
+- Fixed tab vs space indentation in `tests/analysis/test_analyze_sentiment.py` and `tests/dashboard/test_dashboard.py`.
 ## [93391a5](https://github.com/jgf2/story-builder/commit/93391a56a5624dcad98656cd2033d526eb2bf77b) - 2026-08-04
 
 ### Summary
@@ -73,6 +82,15 @@ Resolved merge conflicts across dashboard reader/explorer pages, downloader pack
 - Resolved merge conflicts in `src/storybuilder/dashboard/pages/read_story.py` and `search_explorer.py` by preserving `word_count` rendering.
 - Retained `upload_sqlite_to_bigquery` export in `src/storybuilder/downloader/__init__.py`.
 - Restored `find_multi_chapter_stories` test import in `tests/analysis/test_analyze_sentiment.py`.
+## [PR-XXX](https://github.com/jgf-dev/story-builder/pull/XXX) - 2026-08-03
+
+### Summary
+Hardened the downloader SQLite import script and added a regression test to catch syntax breakage before the downloader test job runs.
+
+### Fixed
+- Cleaned up `scripts/import_to_sqlite.py` batch flush typing/formatting to keep the module syntactically stable.
+- Added a downloader regression test that byte-compiles `scripts/import_to_sqlite.py` so unresolved merge markers or syntax errors fail fast in CI.
+
 ## [PR-XXX](https://github.com/jgf-dev/story-builder/pull/XXX) - 2026-08-03
 
 ### Summary

@@ -1,6 +1,17 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+
+## [0b8a04c](https://github.com/jgf2/story-builder/commit/0b8a04c0c25bb8f5a8b088ea54ed8764f5f4c2b2) - 2026-08-03
+
+### Summary
+Completed merge of `origin/tests/get-logger-8784844133665420913` into `tests/play-audio-1319523169601476082`. Resolved all remaining conflict markers across utilities, downloader, analysis, dashboard, and test suites, verified test suite (77 passed), and formatted code with ruff.
+
+### Fixed
+- Resolved merge conflicts in `src/storybuilder/utils/env.py`, `src/storybuilder/utils/logging_config.py`, `src/storybuilder/utils/storage.py`, and `tests/utils/test_logging_config.py`.
+- Corrected variable reference `_meta_db_initialized_paths` in `src/storybuilder/dashboard/data.py`.
+- Formatted all resolved Python files with `ruff`.
+
 ## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-03
 
 ### Summary

@@ -67,7 +67,8 @@ def resolve_file(filepath):
 				if "streamlit" in line or "tqdm" in line:
 					lines.append(line.strip())
 			lines = [l for l in lines if l]
-			formatted_lines = [f'    "{l.strip(' ",')}",' for l in lines]
+			strip_chars = ' ",'
+			formatted_lines = [f'    "{l.strip(strip_chars)}",' for l in lines]
 			return "\n".join(formatted_lines) + "\n"
 
 		# Rule 6: Database/Scraper related files

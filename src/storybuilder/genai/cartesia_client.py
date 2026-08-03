@@ -7,8 +7,8 @@ import time
 import wave
 
 import requests
-from storybuilder.utils.env import load_env
 
+from storybuilder.utils.env import load_env
 
 load_env()
 

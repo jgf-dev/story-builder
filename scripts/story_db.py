@@ -22,11 +22,11 @@ Usage:
     python scripts/story_db.py stats --category college
 """
 
-from argparse import Namespace
 import argparse
 import os
 import sqlite3
 import sys
+from argparse import Namespace
 from pathlib import Path
 
 

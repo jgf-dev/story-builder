@@ -3,9 +3,9 @@ import os
 import pathlib
 import re
 
-from storybuilder.utils.env import load_env
 from google import genai
 
+from storybuilder.utils.env import load_env
 
 load_env()
 api_key = os.getenv("GEMINI_API_KEY")

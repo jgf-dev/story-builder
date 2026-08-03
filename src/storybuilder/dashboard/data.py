@@ -29,7 +29,7 @@ def get_db_files() -> list[Path]:
     return sorted(Path(db_dir).glob("[0-9][0-9][0-9][0-9].db"))
 
 
-_meta_db_initialized_paths: set[str] = set()
+_initialized_paths: set[str] = set()
 
 
 def get_meta_conn() -> sqlite3.Connection:
@@ -38,7 +38,7 @@ def get_meta_conn() -> sqlite3.Connection:
     Path(Path(meta_db_path).parent or ".").mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(meta_db_path, check_same_thread=False)
 
-    if meta_db_path not in _meta_db_initialized_paths:
+    if meta_db_path not in _initialized_paths:
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS favorites (
@@ -53,8 +53,7 @@ def get_meta_conn() -> sqlite3.Connection:
             """,
         )
         conn.commit()
-        _meta_db_initialized_paths.add(meta_db_path)
-
+        _initialized_paths.add(meta_db_path)
     return conn
 
 
@@ -296,7 +295,7 @@ def _enrich_with_db_year(results: list[dict]) -> list[dict]:
     return enriched
 
 
-def query_stories(  # noqa: PLR0913
+def query_stories(  # ruff: ignore[too-many-arguments]
     params: StorySearchQuery | None = None,
     *,
     fts_query: str = "",
@@ -423,7 +422,7 @@ def get_favorites_publication_years(fav_paths: list[str]) -> dict[str, int]:
         cursor = conn.cursor()
         placeholders = ",".join("?" for _ in fav_paths)
         # S608 is dynamic SQL composition for placeholders. It's safe since placeholders contains only '?'.
-        query = f"SELECT path, publication_date FROM stories WHERE path IN ({placeholders})"  # noqa: S608
+        query = f"SELECT path, publication_date FROM stories WHERE path IN ({placeholders})"  # ruff: ignore[hardcoded-sql-expression]
         cursor.execute(query, fav_paths)
         rows = cursor.fetchall()
     except Exception:

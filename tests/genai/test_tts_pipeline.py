@@ -129,9 +129,9 @@ class TestTTSPipeline(unittest.TestCase):
                 shutil.rmtree(tmp_dir, ignore_errors=True)
 
     def _live_sequential_tts(self) -> None:
+        from storybuilder.genai.client import ApiKeyRotator
         from storybuilder.genai.client import get_gemini_api_keys
         from storybuilder.genai.client import process_file
-        from storybuilder.genai.client import ApiKeyRotator
 
         api_keys = get_gemini_api_keys()
         self.assertGreater(len(api_keys), 0, "No GEMINI_API_KEY found in environment")
@@ -189,6 +189,7 @@ class TestProcessFileIdWarning(unittest.TestCase):
 
     def test_missing_interaction_id_logs_warning(self) -> None:
         from unittest.mock import MagicMock
+
         from storybuilder.genai.client import process_file
 
         tmp_dir = tempfile.mkdtemp(prefix="process_file_test_")

@@ -1,9 +1,10 @@
-import unittest
-import tempfile
-import shutil
 import os
+import shutil
 import sqlite3
-from unittest.mock import patch, MagicMock
+import tempfile
+import unittest
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
 
 class TestDBInit(unittest.TestCase):
@@ -11,8 +12,9 @@ class TestDBInit(unittest.TestCase):
 
     def test_init_db_creates_tables(self) -> None:
         """init_db creates the stories and fts tables."""
-        from storybuilder.downloader import db
         import tempfile
+
+        from storybuilder.downloader import db
 
         temp_dir = tempfile.mkdtemp()
         try:
@@ -33,8 +35,9 @@ class TestDBInit(unittest.TestCase):
 
     def test_story_insert_and_search(self) -> None:
         """Basic insert and FTS search roundtrip."""
-        from storybuilder.downloader import db
         import tempfile
+
+        from storybuilder.downloader import db
 
         temp_dir = tempfile.mkdtemp()
         try:
@@ -67,8 +70,9 @@ class TestDBExport(unittest.TestCase):
 
     def test_get_story_by_path(self) -> None:
         """get_story returns story by path."""
-        from storybuilder.downloader import db
         import tempfile
+
+        from storybuilder.downloader import db
 
         temp_dir = tempfile.mkdtemp()
         try:
@@ -94,8 +98,9 @@ class TestDBExport(unittest.TestCase):
 
     def test_story_exists(self) -> None:
         """story_exists checks for path."""
-        from storybuilder.downloader import db
         import tempfile
+
+        from storybuilder.downloader import db
 
         temp_dir = tempfile.mkdtemp()
         try:

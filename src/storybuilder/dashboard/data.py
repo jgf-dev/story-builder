@@ -29,7 +29,7 @@ def get_db_files() -> list[Path]:
 	return sorted(Path(db_dir).glob("[0-9][0-9][0-9][0-9].db"))
 
 
-_initialized_paths: set[str] = set()
+_meta_db_initialized_paths: set[str] = set()
 
 
 def get_meta_conn() -> sqlite3.Connection:
@@ -38,7 +38,7 @@ def get_meta_conn() -> sqlite3.Connection:
 	Path(Path(meta_db_path).parent or ".").mkdir(parents=True, exist_ok=True)
 	conn = sqlite3.connect(meta_db_path, check_same_thread=False)
 
-	if meta_db_path not in _initialized_paths:
+	if meta_db_path not in _meta_db_initialized_paths:
 		conn.execute(
 			"""
             CREATE TABLE IF NOT EXISTS favorites (
@@ -53,7 +53,8 @@ def get_meta_conn() -> sqlite3.Connection:
             """,
 		)
 		conn.commit()
-		_initialized_paths.add(meta_db_path)
+		_meta_db_initialized_paths.add(meta_db_path)
+
 	return conn
 
 

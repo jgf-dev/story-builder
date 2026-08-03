@@ -138,6 +138,76 @@ def _get_cached_subcategory(sub_url):
 	return cached_stories, is_complete
 
 
+def _process_subcategory_page(current_url, page_num, delay, force_scan, use_cache, cached_lookup, start_date):
+	scraped_stories = []
+	safe_print(f"Scanning subcategory page {page_num}: {current_url}")
+	response = fetch_page(current_url, delay=delay)
+	if not response:
+		return scraped_stories, True, None
+
+	soup = BeautifulSoup(response.text, "html.parser")
+	rows = parse_listing_rows(soup)
+
+	if not rows:
+		safe_print(f"No story listings found on page {page_num}")
+		return scraped_stories, True, None
+
+	stop_pagination = False
+
+	for row in rows:
+		size = row["size"]
+		date_str = row["date_str"]
+		name = row["name"]
+		href = row["href"]
+
+		# Skip parent directory link
+		if name == "Parent Directory" or href == "../":
+			continue
+
+		story_date = parse_nifty_date(date_str)
+		if not story_date:
+			continue
+
+		story_url = urllib.parse.urljoin(current_url, href)
+		is_directory = size == "Dir" or href.endswith("/")
+
+		# Check if this story is already in our cache (with the same URL and date)
+		if use_cache and story_url in cached_lookup:
+			cached_s = cached_lookup[story_url]
+			if cached_s.get("date") == story_date.isoformat():
+				safe_print(f"Cache hit at story: {name} ({story_url}). Stopping scraper traversal.")
+				stop_pagination = True
+				break
+
+		scraped_stories.append(
+			{
+				"name": name,
+				"url": story_url,
+				"date": story_date.isoformat(),
+				"is_dir": is_directory,
+				"size": size,
+			},
+		)
+
+		# Early-stop optimization: if the story date is older than start_date,
+		# and it is NOT a directory (as directories can have stale index dates),
+		# and we are NOT in force_scan, we can stop traversing pages.
+		if not force_scan and not is_directory and story_date < start_date:
+			safe_print(
+				f"Reached story with date {story_date} which is older than start_date {start_date}. Stopping traversal.",
+			)
+			stop_pagination = True
+			break
+
+	next_url = None
+	if not stop_pagination:
+		next_tag = soup.find("a", class_="jscroll-next")
+		if next_tag and "href" in next_tag.attrs:
+			next_url = urllib.parse.urljoin(current_url, next_tag["href"])
+
+	return scraped_stories, stop_pagination, next_url
+
+
 def _scrape_subcategory_pages(sub_url, start_date, delay, force_scan, use_cache, cached_lookup):
 	scraped_stories = []
 	current_url = sub_url
@@ -145,77 +215,19 @@ def _scrape_subcategory_pages(sub_url, start_date, delay, force_scan, use_cache,
 	reached_end = False
 
 	while current_url:
-		safe_print(f"Scanning subcategory page {page_num}: {current_url}")
-		response = fetch_page(current_url, delay=delay)
-		if not response:
-			break
-
-		soup = BeautifulSoup(response.text, "html.parser")
-		rows = parse_listing_rows(soup)
-
-		if not rows:
-			safe_print(f"No story listings found on page {page_num}")
-			break
-
-		stop_pagination = False
-
-		for row in rows:
-			size = row["size"]
-			date_str = row["date_str"]
-			name = row["name"]
-			href = row["href"]
-
-			# Skip parent directory link
-			if name == "Parent Directory" or href == "../":
-				continue
-
-			story_date = parse_nifty_date(date_str)
-			if not story_date:
-				continue
-
-			story_url = urllib.parse.urljoin(current_url, href)
-			is_directory = size == "Dir" or href.endswith("/")
-
-			# Check if this story is already in our cache (with the same URL and date)
-			if use_cache and story_url in cached_lookup:
-				cached_s = cached_lookup[story_url]
-				if cached_s.get("date") == story_date.isoformat():
-					safe_print(f"Cache hit at story: {name} ({story_url}). Stopping scraper traversal.")
-					stop_pagination = True
-					break
-
-			scraped_stories.append(
-				{
-					"name": name,
-					"url": story_url,
-					"date": story_date.isoformat(),
-					"is_dir": is_directory,
-					"size": size,
-				},
-			)
-
-			# Early-stop optimization: if the story date is older than start_date,
-			# and it is NOT a directory (as directories can have stale index dates),
-			# and we are NOT in force_scan, we can stop traversing pages.
-			if not force_scan and not is_directory and story_date < start_date:
-				safe_print(
-					f"Reached story with date {story_date} which is older than start_date {start_date}. Stopping traversal.",
-				)
-				stop_pagination = True
-				break
-
+		page_stories, stop_pagination, next_url = _process_subcategory_page(
+			current_url, page_num, delay, force_scan, use_cache, cached_lookup, start_date
+		)
+		scraped_stories.extend(page_stories)
 		if stop_pagination:
 			break
 
-		# Find next page link (jscroll pagination link)
-		next_tag = soup.find("a", class_="jscroll-next")
-		if next_tag and "href" in next_tag.attrs:
-			next_href = next_tag["href"]
-			current_url = urllib.parse.urljoin(current_url, next_href)
+		if next_url:
+			current_url = next_url
 			page_num += 1
 			time.sleep(delay)
 		else:
-			current_url = None  # No more pages
+			current_url = None
 			reached_end = True
 
 	return scraped_stories, reached_end

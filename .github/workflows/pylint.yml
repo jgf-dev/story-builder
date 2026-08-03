@@ -6,7 +6,7 @@ on:
     branches: [main]
 jobs:
   build:
-    runs-on: Linux
+    runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:

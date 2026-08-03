@@ -1,7 +1,7 @@
 import argparse
 import pathlib
 import re
-import subprocess  # noqa: S404
+import subprocess  # ruff: ignore[suspicious-subprocess-import]
 import sys
 
 
@@ -43,6 +43,7 @@ def play_sequence(directory: str) -> None:
 		else:
 			cmd = [*player_cmd, wav_file]
 
+<<<<<<< HEAD
 		try:
 			subprocess.run(cmd, check=True)  # noqa: S603
 		except subprocess.CalledProcessError as e:
@@ -50,6 +51,15 @@ def play_sequence(directory: str) -> None:
 		except KeyboardInterrupt:
 			print("\nPlayback stopped by user.")
 			break
+=======
+        try:
+            subprocess.run(cmd, check=True)  # ruff: ignore[subprocess-without-shell-equals-true]
+        except subprocess.CalledProcessError as e:
+            print(f"Error playing {wav_path.name}: {e}")
+        except KeyboardInterrupt:
+            print("\nPlayback stopped by user.")
+            break
+>>>>>>> origin/main
 
 
 if __name__ == "__main__":

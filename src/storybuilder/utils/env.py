@@ -7,9 +7,15 @@ _env_loaded = False
 
 
 def load_env(dotenv_path: Path | None = None) -> None:
+<<<<<<< HEAD
 	"""
 	Load environment variables from .env file.
 	Called once at startup; subsequent calls are no-ops.
+=======
+    """
+    Load environment variables from .env file.
+    Called once at startup; subsequent calls are no-ops.
+>>>>>>> origin/main
 
 	Args:
 	    dotenv_path: Optional path to .env file. Defaults to project root.
@@ -26,8 +32,13 @@ def load_env(dotenv_path: Path | None = None) -> None:
 
 
 def get_api_key(name: str, required: bool = True) -> str | None:
+<<<<<<< HEAD
 	"""
 	Get an API key from environment variables.
+=======
+    """
+    Get an API key from environment variables.
+>>>>>>> origin/main
 
 	Args:
 	    name: Environment variable name (e.g., "GEMINI_API_KEY", "CARTESIA_API_KEY")
@@ -47,6 +58,7 @@ def get_api_key(name: str, required: bool = True) -> str | None:
 
 
 def get_optional_api_key(name: str) -> str | None:
+<<<<<<< HEAD
 	"""Get an optional API key that may be missing."""
 	return get_api_key(name, required=False)
 
@@ -54,6 +66,15 @@ def get_optional_api_key(name: str) -> str | None:
 def get_stable_api_key(base_name: str) -> str | None:
 	"""
 	Get a single API key WITHOUT rotation (for TTS use cases).
+=======
+    """Get an optional API key that may be missing."""
+    return get_api_key(name, required=False)
+
+
+def get_stable_api_key(base_name: str) -> str | None:
+    """
+    Get a single API key WITHOUT rotation (for TTS use cases).
+>>>>>>> origin/main
 
 	TTS requires consistent voice across multiple API calls within a story.
 	Using rotation breaks the chain and causes voice mismatch.

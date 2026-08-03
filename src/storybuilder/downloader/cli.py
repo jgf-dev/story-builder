@@ -106,6 +106,7 @@ def _parse_args() -> argparse.Namespace:
 
 
 def _setup_network(args: argparse.Namespace) -> bool:
+<<<<<<< HEAD
 	if args.socks5_proxy:
 		try:
 			import socks  # noqa: F401  # ruff:ignore[import-outside-top-level]
@@ -116,6 +117,18 @@ def _setup_network(args: argparse.Namespace) -> bool:
 			print("Or run this script using the project virtual environment:")
 			print("  .venv/bin/python download_nifty_stories.py ...")
 			return False
+=======
+    if args.socks5_proxy:
+        try:
+            import socks  # ruff: ignore[unused-import]  # ruff:ignore[import-outside-top-level]
+        except ImportError:
+            print("Error: SOCKS proxy support requires the 'pysocks' package.")
+            print("Please install it in your environment using:")
+            print("  pip install pysocks")
+            print("Or run this script using the project virtual environment:")
+            print("  .venv/bin/python download_nifty_stories.py ...")
+            return False
+>>>>>>> origin/main
 
 		proxy_url = args.socks5_proxy
 		if not proxy_url.startswith("socks5"):

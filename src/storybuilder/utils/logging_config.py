@@ -9,10 +9,17 @@ _configured = False
 
 
 def configure_logging(
+<<<<<<< HEAD
 	level: int = logging.INFO,
 	log_file: Path | None = None,
 	format_string: str = DEFAULT_FORMAT,
 	force: bool = False,
+=======
+    level: int = logging.INFO,
+    log_file: Path | None = None,
+    format_string: str = DEFAULT_FORMAT,
+    force: bool = False,
+>>>>>>> origin/main
 ) -> None:
 	"""
 	Configure logging for the application.
@@ -51,8 +58,13 @@ def configure_logging(
 
 
 def get_logger(name: str, level: int | None = None) -> logging.Logger:
+<<<<<<< HEAD
 	"""
 	Get a logger with the given name.
+=======
+    """
+    Get a logger with the given name.
+>>>>>>> origin/main
 
 	Args:
 	    name: Logger name (typically __name__)
@@ -68,8 +80,13 @@ def get_logger(name: str, level: int | None = None) -> logging.Logger:
 
 
 def set_library_log_levels(levels: dict[str, int] | None = None) -> None:
+<<<<<<< HEAD
 	"""
 	Set log levels for noisy third-party libraries.
+=======
+    """
+    Set log levels for noisy third-party libraries.
+>>>>>>> origin/main
 
 	Args:
 	    levels: Dict of logger name -> level. Defaults to common noisy libraries.

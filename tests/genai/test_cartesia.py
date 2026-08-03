@@ -25,7 +25,7 @@ class TestCartesiaClient(unittest.TestCase):
         markdown_content = """# AUDIO PROFILE
         ### DIRECTOR'S NOTES
         - Jace (Voice: Algenib)
-        
+
         #### TRANSCRIPT
         Jace: Hello, my name is Jace.
         Jace: And this is my second line.

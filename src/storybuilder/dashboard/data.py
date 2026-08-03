@@ -295,6 +295,7 @@ def _enrich_with_db_year(results: list[dict]) -> list[dict]:
 	return enriched
 
 
+<<<<<<< HEAD
 def query_stories(  # noqa: PLR0913
 	params: StorySearchQuery | None = None,
 	*,
@@ -305,6 +306,18 @@ def query_stories(  # noqa: PLR0913
 	entity_text: str = "",
 	entity_label: str = "PERSON",
 	limit: int = 100,
+=======
+def query_stories(  # ruff: ignore[too-many-arguments]
+    params: StorySearchQuery | None = None,
+    *,
+    fts_query: str = "",
+    category: str = "All",
+    author: str = "All",
+    year_range: tuple[int, int] | None = None,
+    entity_text: str = "",
+    entity_label: str = "PERSON",
+    limit: int = 100,
+>>>>>>> origin/main
 ) -> list[dict]:
 	"""Search the archive with FTS, filters, and entity-based narrowing."""
 	_ensure_db()
@@ -416,6 +429,7 @@ def get_favorites_publication_years(fav_paths: list[str]) -> dict[str, int]:
 	if not conn or not fav_paths:
 		return {}
 
+<<<<<<< HEAD
 	current_year = datetime.datetime.now(datetime.UTC).year
 	path_to_year = {}
 	try:
@@ -428,6 +442,20 @@ def get_favorites_publication_years(fav_paths: list[str]) -> dict[str, int]:
 	except Exception:
 		logger.exception("Could not resolve story paths from database")
 		rows = []
+=======
+    current_year = datetime.datetime.now(datetime.UTC).year
+    path_to_year = {}
+    try:
+        cursor = conn.cursor()
+        placeholders = ",".join("?" for _ in fav_paths)
+        # S608 is dynamic SQL composition for placeholders. It's safe since placeholders contains only '?'.
+        query = f"SELECT path, publication_date FROM stories WHERE path IN ({placeholders})"  # ruff: ignore[hardcoded-sql-expression]
+        cursor.execute(query, fav_paths)
+        rows = cursor.fetchall()
+    except Exception:
+        logger.exception("Could not resolve story paths from database")
+        rows = []
+>>>>>>> origin/main
 
 	for row in rows:
 		pub_date = row[1] if len(row) > 1 else None

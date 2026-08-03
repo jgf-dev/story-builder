@@ -179,12 +179,21 @@ def _replicate_story(primary_path, output_paths, story_date) -> None:
 
 
 def download_single_target(idx_str, url, output_paths, story_date, delay, force: bool = False) -> bool:
+<<<<<<< HEAD
 	"""
 	Downloads a single target story and handles duplicate copy replication.
 	Returns True if successful, False otherwise.
 	"""
 	if not force and _is_already_downloaded(idx_str, url, output_paths, story_date):
 		return True
+=======
+    """
+    Downloads a single target story and handles duplicate copy replication.
+    Returns True if successful, False otherwise.
+    """
+    if not force and _is_already_downloaded(idx_str, url, output_paths, story_date):
+        return True
+>>>>>>> origin/main
 
 	safe_print(f"\n[{idx_str}] Downloading target...")
 	primary_path = output_paths[0]

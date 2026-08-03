@@ -1,15 +1,16 @@
-import os
+import pathlib
 import sqlite3
 import tempfile
 import unittest
-from unittest.mock import MagicMock
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
-from storybuilder.analysis.analyze_sentiment import extract_chapter_number
-from storybuilder.analysis.analyze_sentiment import find_multi_chapter_stories
-from storybuilder.analysis.analyze_sentiment import get_sentiment_value
-from storybuilder.analysis.analyze_sentiment import init_db
-from storybuilder.analysis.analyze_sentiment import main
+from storybuilder.analysis.analyze_sentiment import (
+	extract_chapter_number,
+	find_multi_chapter_stories,
+	get_sentiment_value,
+	init_db,
+	main,
+)
 
 
 class TestAnalyzeSentiment(unittest.TestCase):
@@ -88,8 +89,8 @@ class TestAnalyzeSentiment(unittest.TestCase):
 
 			conn.close()
 		finally:
-			if os.path.exists(db_path):
-				os.remove(db_path)
+			if pathlib.Path(db_path).exists():
+				pathlib.Path(db_path).unlink()
 
 	@patch("storybuilder.analysis.analyze_sentiment.spacy.load")
 	@patch("storybuilder.analysis.analyze_sentiment.pipeline")

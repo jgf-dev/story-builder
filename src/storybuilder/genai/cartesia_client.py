@@ -104,9 +104,7 @@ def _resolve_voice_id(speaker: str, speaker_to_voice_id: dict, default_voice_id:
 
 
 def parse_transcript_segments(
-	markdown_content: str,
-	speaker_to_voice_id,
-	default_voice_id,
+	markdown_content: str, speaker_to_voice_id, default_voice_id,
 ) -> list[tuple[str | None, str]]:
 	"""
 	Parses the transcript section into contiguous segments spoken by the same voice ID.

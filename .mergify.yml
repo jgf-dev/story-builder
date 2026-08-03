@@ -7,7 +7,8 @@ queue_rules:
       - "#deployment-failure = 0"
       - "#review-threads-unresolved = 0"
       - -conflict
-    branch_protection_injection_mode: merge
+      - "#check-stale = 0"
+    branch_protection_injection_mode: none
     queue_conditions:
       - base = main
 merge_queue:

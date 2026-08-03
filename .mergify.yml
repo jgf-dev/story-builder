@@ -39,8 +39,7 @@ pull_request_rules:
       - "#check-failure = 0"
       - "#check-pending = 0"
       - "#deployment-failure = 0"
-      - "#check-timed-out = 0"
-      - -conflict
+      - check-success ~= ^run_tests / test-results$
     actions:
       merge:
         method: squash

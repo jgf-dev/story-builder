@@ -1,7 +1,7 @@
 import argparse
 import pathlib
 import re
-import subprocess  # noqa: S404
+import subprocess  # ruff: ignore[suspicious-subprocess-import]
 import sys
 
 

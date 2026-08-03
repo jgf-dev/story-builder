@@ -5,6 +5,7 @@ from xai_sdk.chat import system, user
 from storybuilder.utils import get_prompt, get_story
 from storybuilder.xaiapi.client import create_chat_session
 
+
 annotate_prompt = get_prompt("annotate")
 
 

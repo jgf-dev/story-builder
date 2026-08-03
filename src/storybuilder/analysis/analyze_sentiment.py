@@ -204,17 +204,13 @@ def process_chapter(filepath, chapter_idx: int, story_id, cursor, nlp, sentiment
         sentiments = sentiment_pipe(sentence_texts, batch_size=32)
     except Exception as e:
         print(f"Sentiment pipeline error on {filepath}: {e}")
-        try:
-            truncated_texts = [text[:512] for text in sentence_texts]
-            sentiments = sentiment_pipe(truncated_texts, batch_size=32)
-        except Exception:
-            sentiments = []
-            for sentence_text in sentence_texts:
-                try:
-                    res = sentiment_pipe(sentence_text[:512])[0]
-                    sentiments.append(res)
-                except Exception:
-                    sentiments.append({"label": "neutral", "score": 0.0})
+        sentiments = []
+        for sentence_text in sentence_texts:
+            try:
+                res = sentiment_pipe(sentence_text[:512])[0]
+                sentiments.append(res)
+            except Exception:
+                sentiments.append({"label": "neutral", "score": 0.0})
     cursor.execute("SELECT MAX(id) FROM sentences")
     row = cursor.fetchone() or (None,)
     last_id_before = row[0] if row[0] is not None else 0

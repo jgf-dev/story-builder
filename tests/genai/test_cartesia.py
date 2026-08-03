@@ -1,10 +1,9 @@
 import unittest
-from storybuilder.genai.cartesia_client import (
-    parse_speech_config_cartesia,
-    parse_transcript_segments,
-    VOICE_MAP,
-    NAME_FALLBACK_MAP,
-)
+
+from storybuilder.genai.cartesia_client import NAME_FALLBACK_MAP
+from storybuilder.genai.cartesia_client import VOICE_MAP
+from storybuilder.genai.cartesia_client import parse_speech_config_cartesia
+from storybuilder.genai.cartesia_client import parse_transcript_segments
 
 
 class TestCartesiaClient(unittest.TestCase):

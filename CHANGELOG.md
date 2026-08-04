@@ -1,6 +1,17 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+
+## [8d5c3f6](https://github.com/jgf2/story-builder/commit/8d5c3f68a51c87de4167a2c7ab50d1ef0cf76211) - 2026-08-04
+
+### Summary
+Resolved merge conflicts in `scripts/import_to_sqlite.py`, `src/storybuilder/dashboard/data.py`, `src/storybuilder/dashboard/pages/search_explorer.py`, and `tests/dashboard/test_dashboard.py`. Standardized tab indentation and verified test suite (76 passed).
+
+### Fixed
+- Preserved type annotations for `_flush_batch` in `scripts/import_to_sqlite.py`.
+- Resolved tab vs space indentation in `src/storybuilder/dashboard/data.py`, `search_explorer.py`, and `tests/dashboard/test_dashboard.py`.
+- Fixed top-level class definition for `TestDashboardConfig` in `tests/dashboard/test_dashboard.py`.
+
 ## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-03
 
 ### Summary

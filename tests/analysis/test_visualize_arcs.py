@@ -1,9 +1,10 @@
-import unittest
+import os
 import sqlite3
 import tempfile
-import os
+import unittest
 from unittest.mock import patch
 
+from storybuilder.analysis.visualize_arcs import get_top_characters
 from storybuilder.analysis.visualize_arcs import main
 
 
@@ -78,6 +79,19 @@ class TestVisualizeArcs(unittest.TestCase):
             main()
 
         mock_write_html.assert_called_once_with("arc_mock_story_dir.html")
+
+
+    def test_get_top_characters(self) -> None:
+        top_chars = get_top_characters(self.conn, 1)
+        assert top_chars == ["Alice", "Bob"]
+
+        top_chars_limited = get_top_characters(self.conn, 1, limit=1)
+        assert top_chars_limited == ["Alice"]
+
+
+    def test_get_top_characters_limit(self) -> None:
+        top_chars_limited = get_top_characters(self.conn, 1, limit=1)
+        assert top_chars_limited == ["Alice"]
 
     @patch("plotly.graph_objects.Figure.write_html")
     def test_visualize_arcs_no_story(self, mock_write_html) -> None:

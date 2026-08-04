@@ -676,5 +676,56 @@ class TestDashboardDataFunctions(unittest.TestCase):
             self.assertEqual(path_to_year["stories/gay/college/story1/part-1.txt"], 2020, "Should extract year 2020")
             self.assertEqual(path_to_year["stories/gay/college/story2/part-1.txt"], current_year, f"Should default to {current_year} for None")
 
+    def test_get_nlp_conn_not_exists(self) -> None:
+        import streamlit as st
+        from unittest.mock import patch
+
+        st.cache_resource.clear()
+
+        if Path(self.nlp_db_path).exists():
+            Path(self.nlp_db_path).unlink()
+
+        with patch.dict(
+            "os.environ",
+            {
+                "STORYBUILDER_DB_DIR": self.db_dir,
+                "STORYBUILDER_NLP_DB_PATH": self.nlp_db_path,
+                "STORYBUILDER_META_DB_PATH": self.meta_db_path,
+            },
+        ):
+            from storybuilder.dashboard.data import get_nlp_conn
+
+            st.cache_resource.clear()
+            result = get_nlp_conn()
+            self.assertIsNone(result)
+
+    def test_get_nlp_conn_exists(self) -> None:
+        import sqlite3
+        import streamlit as st
+        from unittest.mock import patch
+
+        st.cache_resource.clear()
+
+        conn = sqlite3.connect(self.nlp_db_path)
+        conn.close()
+
+        with patch.dict(
+            "os.environ",
+            {
+                "STORYBUILDER_DB_DIR": self.db_dir,
+                "STORYBUILDER_NLP_DB_PATH": self.nlp_db_path,
+                "STORYBUILDER_META_DB_PATH": self.meta_db_path,
+            },
+        ):
+            from storybuilder.dashboard.data import get_nlp_conn
+
+            st.cache_resource.clear()
+            conn_result = get_nlp_conn()
+            self.assertIsNotNone(conn_result)
+            self.assertIsInstance(conn_result, sqlite3.Connection)
+            if conn_result:
+                conn_result.close()
+
+
 if __name__ == "__main__":
     unittest.main()

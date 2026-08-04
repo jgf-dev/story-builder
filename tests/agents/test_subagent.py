@@ -5,6 +5,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from google.genai import types
+from google.genai.types import SafetySetting
 
 from storybuilder.utils.env import load_env
 from tests.helpers_external_fakes import live_api_enabled

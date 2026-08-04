@@ -189,41 +189,11 @@ def import_files(
     return imported, skipped
 
 
-<<<<<<< HEAD
 def _flush_batch(
-	conn: sqlite3.Connection,
-	batch: list[tuple[object, ...]],
-	force: bool = False,
+    conn: sqlite3.Connection,
+    batch: list[tuple[object, ...]],
+    force: bool = False,
 ) -> int:
-	sql = """
-		INSERT OR REPLACE INTO stories
-			(path, orientation, category, story_slug, chapter_num,
-			 title, author_name, author_email,
-			 publication_date, url,
-			 char_count, word_count, content)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-	"""
-	try:
-		conn.executemany(sql, batch)
-		conn.commit()
-		return len(batch)
-	except sqlite3.IntegrityError:
-		conn.rollback()
-		# If force, try one-by-one; otherwise skip whole batch
-		if force:
-			count = 0
-			for row in batch:
-				try:
-					conn.execute(sql, row)
-					conn.commit()
-					count += 1
-				except sqlite3.Error as e:
-					logger.debug("Skipped row during forced batch flush: %s", e)
-			return count
-		return 0
-=======
-def _flush_batch(conn: sqlite3.Connection, batch: list, force: bool = False) -> int:
-
     sql = """
         INSERT OR REPLACE INTO stories
             (path, orientation, category, story_slug, chapter_num,
@@ -250,7 +220,6 @@ def _flush_batch(conn: sqlite3.Connection, batch: list, force: bool = False) -> 
                     logger.debug("Skipped row during forced batch flush: %s", e)
             return count
         return 0
->>>>>>> origin/main
 
 
 # ——— Main ——————————————————————————————————————————————————————————————————————

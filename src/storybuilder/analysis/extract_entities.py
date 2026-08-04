@@ -26,7 +26,7 @@ ALLOWED_LABELS = {
 }
 
 
-def init_db(db_path) -> Connection:
+def init_db(db_path: str | Path) -> Connection:
 	"""Initialize the SQLite database."""
 	conn = sqlite3.connect(db_path)
 	cursor = conn.cursor()

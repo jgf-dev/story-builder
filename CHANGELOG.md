@@ -1,6 +1,13 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [PR-1689](https://github.com/jgf-dev/story-builder/pull/1689) - 2026-08-04
+
+### Summary
+Added unit tests for the `StorySearchQuery` dataclass in `storybuilder.dashboard.data`.
+
+### Added
+- `tests/dashboard/test_story_search_query.py` with tests for default and custom initialization of `StorySearchQuery`.
 ## [PR-XXX](https://github.com/jgf-dev/story-builder/pull/XXX) - 2026-08-03
 
 ### Summary

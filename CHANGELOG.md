@@ -1,6 +1,15 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [PR-XXX](https://github.com/jgf-dev/story-builder/pull/XXX) - 2026-08-04
+
+### Summary
+Enhanced stats semantic list structure in dashboard.html for better accessibility.
+
+### Fixed
+- Added `.notes` utility class to `<ul class="stats">` in `dashboard.html` to share list-reset styles.
+- Removed duplicate `margin`, `list-style`, `display: grid`, `gap`, and `padding` declarations from `.stats` CSS rule since they are now inherited from `.notes`.
+
 ## [PR-XXX](https://github.com/jgf-dev/story-builder/pull/XXX) - 2026-08-03
 
 ### Summary

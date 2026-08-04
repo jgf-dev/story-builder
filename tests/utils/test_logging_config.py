@@ -1,6 +1,6 @@
 import logging
 
-from storybuilder.utils.logging_config import set_library_log_levels
+from storybuilder.utils.logging_config import get_logger, set_library_log_levels
 
 
 def test_set_library_log_levels_default() -> None:
@@ -29,3 +29,16 @@ def test_set_library_log_levels_custom() -> None:
     # Assert
     assert logging.getLogger("custom.lib.1").level == logging.ERROR  # ruff: ignore[assert]
     assert logging.getLogger("custom.lib.2").level == logging.DEBUG  # ruff: ignore[assert]
+
+
+def test_get_logger_basic():
+    logger = get_logger("test_logger")
+    assert isinstance(logger, logging.Logger)
+    assert logger.name == "test_logger"
+
+
+def test_get_logger_with_level():
+    logger = get_logger("test_logger_level", level=logging.DEBUG)
+    assert isinstance(logger, logging.Logger)
+    assert logger.name == "test_logger_level"
+    assert logger.level == logging.DEBUG

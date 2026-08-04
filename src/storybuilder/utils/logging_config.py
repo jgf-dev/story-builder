@@ -1,8 +1,6 @@
 import logging
 import sys
 from pathlib import Path
-from typing import Optional
-
 
 DEFAULT_FORMAT = "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
 SIMPLE_FORMAT = "%(message)s"
@@ -12,7 +10,7 @@ _configured = False
 
 def configure_logging(
     level: int = logging.INFO,
-    log_file: Optional[Path] = None,
+    log_file: Path | None = None,
     format_string: str = DEFAULT_FORMAT,
     force: bool = False,
 ) -> None:
@@ -52,7 +50,7 @@ def configure_logging(
     _configured = True
 
 
-def get_logger(name: str, level: Optional[int] = None) -> logging.Logger:
+def get_logger(name: str, level: int | None = None) -> logging.Logger:
     """
     Get a logger with the given name.
 
@@ -69,7 +67,7 @@ def get_logger(name: str, level: Optional[int] = None) -> logging.Logger:
     return logger
 
 
-def set_library_log_levels(levels: Optional[dict[str, int]] = None) -> None:
+def set_library_log_levels(levels: dict[str, int] | None = None) -> None:
     """
     Set log levels for noisy third-party libraries.
 

@@ -1,6 +1,26 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+
+## [a9efce2](https://github.com/jgf2/story-builder/commit/a9efce27f95eab61423434314a58c9c787097218) - 2026-08-04
+
+### Summary
+Merged `origin/main` into `tests/play-audio-1319523169601476082`. Resolved merge conflicts in `.mergify.yml`, `CHANGELOG.md`, `scripts/import_to_sqlite.py`, and `src/storybuilder/dashboard/config.py`. Fixed test class structure in `tests/dashboard/test_dashboard.py` and verified test suite (90 passed).
+
+### Fixed
+- Resolved merge conflict in `.mergify.yml` by keeping `jules` and `failures` label actions.
+- Preserved dynamic `sys.modules` fallback in `src/storybuilder/dashboard/config.py`.
+- Formatted `_flush_batch` type hints in `scripts/import_to_sqlite.py`.
+- Fixed `TestDashboardConfig` class indentation in `tests/dashboard/test_dashboard.py`.
+
+## [0b68f42](https://github.com/jgf2/story-builder/commit/0b68f42b6bde9a6b15161a5ee1c65efebd320875) - 2026-08-04
+
+### Summary
+Resolved final git merge conflict in `tests/utils/test_logging_config.py`, verified test suite, formatted code with ruff, and completed merge onto `tests/play-audio-1319523169601476082`.
+
+### Fixed
+- Resolved tab vs space indentation conflict in `tests/utils/test_logging_config.py` and added explicit return type annotations.
+
 ## [PR-1689](https://github.com/jgf-dev/story-builder/pull/1689) - 2026-08-04
 
 ### Summary
@@ -8,6 +28,40 @@ Added unit tests for the `StorySearchQuery` dataclass in `storybuilder.dashboard
 
 ### Added
 - `tests/dashboard/test_story_search_query.py` with tests for default and custom initialization of `StorySearchQuery`.
+
+## [0b8a04c](https://github.com/jgf2/story-builder/commit/0b8a04c0c25bb8f5a8b088ea54ed8764f5f4c2b2) - 2026-08-03
+
+### Summary
+Completed merge of `origin/tests/get-logger-8784844133665420913` into `tests/play-audio-1319523169601476082`. Resolved all remaining conflict markers across utilities, downloader, analysis, dashboard, and test suites, verified test suite (77 passed), and formatted code with ruff.
+
+### Fixed
+- Resolved merge conflicts in `src/storybuilder/utils/env.py`, `src/storybuilder/utils/logging_config.py`, `src/storybuilder/utils/storage.py`, and `tests/utils/test_logging_config.py`.
+- Corrected variable reference `_meta_db_initialized_paths` in `src/storybuilder/dashboard/data.py`.
+- Formatted all resolved Python files with `ruff`.
+
+## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-03
+
+### Summary
+Resolved merge conflicts across database import tools, sentiment analysis pipeline, dashboard data layer, downloader scraper, and unit test suites.
+
+### Fixed
+- Resolved merge conflict in `scripts/import_to_sqlite.py` by restoring `_flush_batch`.
+- Preserved fallback handling for long texts in `src/storybuilder/analysis/analyze_sentiment.py`.
+- Kept `_meta_db_initialized_paths` state tracking in `src/storybuilder/dashboard/data.py`.
+- Cleaned up tab indentation and navigation state updates in `src/storybuilder/dashboard/pages/search_explorer.py`.
+- Adopted refactored `_process_subcategory_page` loop in `src/storybuilder/downloader/scraper.py`.
+- Consolidated unit tests in `tests/analysis/test_analyze_sentiment.py`, `tests/dashboard/test_dashboard.py`, `tests/genai/test_cartesia.py`, and `tests/genai/test_play_audio.py`.
+
+## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-03
+
+### Summary
+Resolved merge conflicts across dashboard reader/explorer pages, downloader package exports, and sentiment analysis test suite.
+
+### Fixed
+- Resolved merge conflicts in `src/storybuilder/dashboard/pages/read_story.py` and `search_explorer.py` by preserving `word_count` rendering.
+- Retained `upload_sqlite_to_bigquery` export in `src/storybuilder/downloader/__init__.py`.
+- Restored `find_multi_chapter_stories` test import in `tests/analysis/test_analyze_sentiment.py`.
+
 ## [PR-XXX](https://github.com/jgf-dev/story-builder/pull/XXX) - 2026-08-03
 
 ### Summary

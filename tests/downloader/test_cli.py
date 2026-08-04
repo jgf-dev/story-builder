@@ -1,9 +1,10 @@
-import unittest
-from unittest.mock import patch, MagicMock
 import argparse
+import unittest
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
-from storybuilder.downloader.cli import _setup_network
 from storybuilder.downloader import network
+from storybuilder.downloader.cli import _setup_network
 
 
 class TestCLI(unittest.TestCase):
@@ -134,8 +135,9 @@ class TestCLICacheIntegration(unittest.TestCase):
     @patch("storybuilder.downloader.cli._upload_to_cloud")
     @patch("storybuilder.downloader.cli._download_stories")
     def test_main_loads_and_saves_cache(self, mock_download, mock_upload, mock_scrape, mock_get_subs, mock_save, mock_load) -> None:
-        from storybuilder.downloader.cli import main
         import argparse
+
+        from storybuilder.downloader.cli import main
 
         mock_get_subs.return_value = [{"name": "s", "url": "u"}]
         mock_scrape.return_value = {}
@@ -210,8 +212,9 @@ class TestCLIEarlyReturns(unittest.TestCase):
     @patch("storybuilder.downloader.cli._setup_network")
     def test_main_early_return_on_network_failure(self, mock_net, mock_dates, mock_print, mock_subs, mock_save, mock_load, mock_scrape, mock_dl) -> None:
         """main() returns early when _setup_network returns False."""
-        from storybuilder.downloader.cli import main
         import argparse
+
+        from storybuilder.downloader.cli import main
 
         mock_net.return_value = False  # Network setup fails
 
@@ -238,8 +241,9 @@ class TestCLIEarlyReturns(unittest.TestCase):
     @patch("storybuilder.downloader.cli._setup_network")
     def test_main_early_return_on_invalid_dates(self, mock_net, mock_dates, mock_print, mock_subs, mock_save, mock_load, mock_scrape, mock_dl) -> None:
         """main() returns early when _parse_dates returns None."""
-        from storybuilder.downloader.cli import main
         import argparse
+
+        from storybuilder.downloader.cli import main
 
         mock_dates.return_value = (None, None)  # Invalid dates
 
@@ -267,8 +271,9 @@ class TestCLIEarlyReturns(unittest.TestCase):
     @patch("storybuilder.downloader.cli._setup_network")
     def test_main_early_return_on_no_subcategories(self, mock_net, mock_dates, mock_print, mock_subs, mock_save, mock_load, mock_scrape, mock_dl) -> None:
         """main() returns early when get_subcategories returns empty."""
-        from storybuilder.downloader.cli import main
         import argparse
+
+        from storybuilder.downloader.cli import main
 
         mock_subs.return_value = []  # No subcategories
 
@@ -304,8 +309,9 @@ class TestCLICloudPaths(unittest.TestCase):
     @patch("storybuilder.downloader.cli._setup_network")
     def test_main_uploads_to_gcs_when_gcs_bucket_set(self, mock_net, mock_dates, mock_print, mock_subs, mock_save, mock_load, mock_scrape, mock_dl, mock_close, mock_opt, mock_upload) -> None:
         """main() calls _upload_to_cloud when db and gcs_bucket are provided."""
-        from storybuilder.downloader.cli import main
         import argparse
+
+        from storybuilder.downloader.cli import main
 
         mock_subs.return_value = [{"name": "s", "url": "u"}]
         mock_scrape.return_value = {}
@@ -339,8 +345,9 @@ class TestCLICloudPaths(unittest.TestCase):
     @patch("storybuilder.downloader.cli._setup_network")
     def test_main_uploads_to_s3_when_s3_bucket_set(self, mock_net, mock_dates, mock_print, mock_subs, mock_save, mock_load, mock_scrape, mock_dl, mock_close, mock_opt, mock_upload) -> None:
         """main() calls _upload_to_cloud when db and s3_bucket are provided."""
-        from storybuilder.downloader.cli import main
         import argparse
+
+        from storybuilder.downloader.cli import main
 
         mock_subs.return_value = [{"name": "s", "url": "u"}]
         mock_scrape.return_value = {}
@@ -372,6 +379,8 @@ class TestCLIInternalFunctions(unittest.TestCase):
         import sys
         from unittest.mock import patch
 
+        from storybuilder.downloader.cli import _print_config
+
         args = argparse.Namespace(
             category="gay",
             output_dir="/tmp/out",
@@ -401,9 +410,10 @@ class TestCLIInternalFunctions(unittest.TestCase):
 
     def test_print_config_with_db(self) -> None:
         """Test _print_config includes database when set."""
-        from storybuilder.downloader.cli import _print_config
         import io
         from unittest.mock import patch
+
+        from storybuilder.downloader.cli import _print_config
 
         args = argparse.Namespace(
             category="gay",
@@ -433,9 +443,10 @@ class TestCLIInternalFunctions(unittest.TestCase):
 
     def test_print_config_with_proxy_and_rotation(self) -> None:
         """Test _print_config shows proxy and rotation settings."""
-        from storybuilder.downloader.cli import _print_config
         import io
         from unittest.mock import patch
+
+        from storybuilder.downloader.cli import _print_config
 
         args = argparse.Namespace(
             category="gay",
@@ -595,9 +606,10 @@ class TestUploadToCloud(unittest.TestCase):
     @patch("storybuilder.downloader.cli.upload_many_gcs")
     def test_upload_to_cloud_s3_only(self, mock_gcs, mock_s3) -> None:
         """Test upload to S3 only when s3_bucket is set."""
-        from storybuilder.downloader.cli import _upload_to_cloud
-        import tempfile
         import os
+        import tempfile
+
+        from storybuilder.downloader.cli import _upload_to_cloud
 
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create output file
@@ -623,9 +635,10 @@ class TestUploadToCloud(unittest.TestCase):
     @patch("storybuilder.downloader.cli.upload_many_gcs")
     def test_upload_to_cloud_gcs_only(self, mock_gcs, mock_s3) -> None:
         """Test upload to GCS only when gcs_bucket is set."""
-        from storybuilder.downloader.cli import _upload_to_cloud
-        import tempfile
         import os
+        import tempfile
+
+        from storybuilder.downloader.cli import _upload_to_cloud
 
         with tempfile.TemporaryDirectory() as tmpdir:
             out_dir = os.path.join(tmpdir, "out")
@@ -650,9 +663,10 @@ class TestUploadToCloud(unittest.TestCase):
     @patch("storybuilder.downloader.cli.upload_many_gcs")
     def test_upload_to_cloud_fallback_to_nifty_index(self, mock_gcs, mock_s3) -> None:
         """Test fallback to nifty-index when no cloud buckets set but db exists."""
-        from storybuilder.downloader.cli import _upload_to_cloud
-        import tempfile
         import os
+        import tempfile
+
+        from storybuilder.downloader.cli import _upload_to_cloud
 
         with tempfile.TemporaryDirectory() as tmpdir:
             out_dir = os.path.join(tmpdir, "out")
@@ -678,9 +692,10 @@ class TestUploadToCloud(unittest.TestCase):
     @patch("storybuilder.downloader.cli.upload_many_gcs")
     def test_upload_to_cloud_handles_empty_output(self, mock_gcs, mock_s3) -> None:
         """Test upload handles non-existent output directory."""
-        from storybuilder.downloader.cli import _upload_to_cloud
-        import tempfile
         import os
+        import tempfile
+
+        from storybuilder.downloader.cli import _upload_to_cloud
 
         with tempfile.TemporaryDirectory() as tmpdir:
             out_dir = os.path.join(tmpdir, "nonexistent")
@@ -733,8 +748,9 @@ class TestStorageFunctions(unittest.TestCase):
 
     def test_upload_many_uses_gcs(self) -> None:
         """upload_many delegates to upload_many_gcs."""
-        from storybuilder.downloader.storage import upload_many
         from unittest.mock import patch
+
+        from storybuilder.downloader.storage import upload_many
 
         with patch("storybuilder.downloader.storage.upload_many_gcs") as mock_gcs:
             upload_many("bucket", ["file.txt"], source_directory="src")

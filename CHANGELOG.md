@@ -1,6 +1,18 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+
+## [a9efce2](https://github.com/jgf2/story-builder/commit/a9efce27f95eab61423434314a58c9c787097218) - 2026-08-04
+
+### Summary
+Merged `origin/main` into `tests/play-audio-1319523169601476082`. Resolved merge conflicts in `.mergify.yml`, `CHANGELOG.md`, `scripts/import_to_sqlite.py`, and `src/storybuilder/dashboard/config.py`. Fixed test class structure in `tests/dashboard/test_dashboard.py` and verified test suite (90 passed).
+
+### Fixed
+- Resolved merge conflict in `.mergify.yml` by keeping `jules` and `failures` label actions.
+- Preserved dynamic `sys.modules` fallback in `src/storybuilder/dashboard/config.py`.
+- Formatted `_flush_batch` type hints in `scripts/import_to_sqlite.py`.
+- Fixed `TestDashboardConfig` class indentation in `tests/dashboard/test_dashboard.py`.
+
 ## [0b68f42](https://github.com/jgf2/story-builder/commit/0b68f42b6bde9a6b15161a5ee1c65efebd320875) - 2026-08-04
 
 ### Summary

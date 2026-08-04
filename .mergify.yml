@@ -83,27 +83,48 @@ pull_request_rules:
     actions:
       label:
         add:
-          - "@jules"
-          - "@devin"
-          - invalid
+          - "jules"
+          - "failures"
       comment:
-        message: "@jules @devin @copilot @opencode can you fix the merge conflicts?"
+        message: "Can commits[*].commiter or commits[*].author fix the merge conflicts?"
+      review:
+        type: REQUEST_CHANGES
+        message: Can commits[*].commiter or commits[*].author fix the merge conflicts?
   - name: Keep PRs up to date
     conditions:
       - -draft
       - "#commits-behind >= 1"
     actions:
       update: null
-  - name: New rule
+  - name: No more failures
     conditions:
       - base = main
       - -conflict
-      - label ~= invalid
+      - label ~= failures
     actions:
       label:
         add: []
         remove:
-          - invalid
+          - failures
         toggle: []
       queue:
         name: main-queue
+      update: null
+      review: null
+  - name: Draft to open
+    conditions:
+      - draft
+      - head = main
+    actions:
+      edit:
+        draft: false
+  - name: Approve
+    conditions:
+      - base = main
+      - "#review-requested >= 1"
+      - "#check-failure = 0"
+      - -conflict
+      - "#deployment-failure = 0"
+      - "#check-pending = 0"
+    actions:
+      review: null

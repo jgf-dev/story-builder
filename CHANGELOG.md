@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0b68f42](https://github.com/jgf2/story-builder/commit/0b68f42b6bde9a6b15161a5ee1c65efebd320875) - 2026-08-04
+
+### Summary
+Resolved final git merge conflict in `tests/utils/test_logging_config.py`, verified test suite, formatted code with ruff, and completed merge onto `tests/play-audio-1319523169601476082`.
+
+### Fixed
+- Resolved tab vs space indentation conflict in `tests/utils/test_logging_config.py` and added explicit return type annotations.
+
 ## [0b8a04c](https://github.com/jgf2/story-builder/commit/0b8a04c0c25bb8f5a8b088ea54ed8764f5f4c2b2) - 2026-08-03
 
 ### Summary

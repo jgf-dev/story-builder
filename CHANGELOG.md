@@ -1,6 +1,13 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [7c4211b](https://github.com/jgf2/story-builder/commit/7c4211b4105f93589eab59706c7453d1989357b0) - 2026-08-04
+
+### Summary
+Resolved merge conflict in `src/storybuilder/analysis/analyze_sentiment.py`. Standardized tab indentation for `process_chapter` and verified test suite (`tests/analysis/test_analyze_sentiment.py`).
+
+### Fixed
+- Preserved tab indentation and fallback text truncation logic in `src/storybuilder/analysis/analyze_sentiment.py`.
 ## [a9efce2](https://github.com/jgf2/story-builder/commit/a9efce27f95eab61423434314a58c9c787097218) - 2026-08-04
 
 ### Summary

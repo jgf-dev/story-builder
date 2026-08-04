@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
 
@@ -37,8 +38,12 @@ class TestDashboardStreamlitUI(unittest.TestCase):
 
     def test_dashboard_module_imports(self) -> None:
         """Test that all dashboard modules can be imported."""
-        from storybuilder.dashboard import config, data
-        from storybuilder.dashboard.pages import archive_stats, favorites_tags, read_story, search_explorer
+        from storybuilder.dashboard import config
+        from storybuilder.dashboard import data
+        from storybuilder.dashboard.pages import archive_stats
+        from storybuilder.dashboard.pages import favorites_tags
+        from storybuilder.dashboard.pages import read_story
+        from storybuilder.dashboard.pages import search_explorer
         from storybuilder.dashboard.ui import sidebar
 
         self.assertTrue(hasattr(config, "get_db_dir"))
@@ -47,7 +52,10 @@ class TestDashboardStreamlitUI(unittest.TestCase):
 
     def test_dashboard_pages_have_render_functions(self) -> None:
         """Test that all dashboard pages have render functions."""
-        from storybuilder.dashboard.pages import archive_stats, favorites_tags, read_story, search_explorer
+        from storybuilder.dashboard.pages import archive_stats
+        from storybuilder.dashboard.pages import favorites_tags
+        from storybuilder.dashboard.pages import read_story
+        from storybuilder.dashboard.pages import search_explorer
 
         self.assertTrue(callable(archive_stats.render_archive_stats))
         self.assertTrue(callable(favorites_tags.render_favorites_tags))
@@ -56,7 +64,8 @@ class TestDashboardStreamlitUI(unittest.TestCase):
 
     def test_config_constants(self) -> None:
         """Test dashboard config constants."""
-        from storybuilder.dashboard.config import BRACKET_LABELS, LONG_YEAR
+        from storybuilder.dashboard.config import BRACKET_LABELS
+        from storybuilder.dashboard.config import LONG_YEAR
 
         self.assertEqual(LONG_YEAR, 4)
         self.assertEqual(len(BRACKET_LABELS), 6)
@@ -87,8 +96,9 @@ class TestDashboardStreamlitUI(unittest.TestCase):
     def test_launcher_script_imports_work(self) -> None:
         """Test that scripts/dashboard.py can import all needed modules."""
         import sys
+        from importlib.util import module_from_spec
+        from importlib.util import spec_from_file_location
         from pathlib import Path
-        from importlib.util import spec_from_file_location, module_from_spec
 
         script_path = Path("scripts/dashboard.py")
         spec = spec_from_file_location("dashboard_launcher", script_path)

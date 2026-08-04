@@ -869,6 +869,7 @@ class TestImportToSQLite(unittest.TestCase):
 
     def test_flush_batch_compatibility(self) -> None:
         import import_to_sqlite
+
         from storybuilder.downloader import db
 
         db_path = os.path.join(self.temp_dir, "import_test.db")
@@ -906,6 +907,7 @@ class TestDBSearch(unittest.TestCase):
 
     def setUp(self) -> None:
         import tempfile
+
         from storybuilder.downloader import db
 
         self.temp_dir = tempfile.mkdtemp()
@@ -1033,6 +1035,7 @@ class TestDBContentOperations(unittest.TestCase):
 
     def setUp(self) -> None:
         import tempfile
+
         from storybuilder.downloader import db
 
         self.temp_dir = tempfile.mkdtemp()

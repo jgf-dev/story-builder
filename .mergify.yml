@@ -62,3 +62,16 @@ pull_request_rules:
       - "#commits-behind >= 1"
     actions:
       update: null
+  - name: New rule
+    conditions:
+      - base = main
+      - -conflict
+      - label ~= invalid
+    actions:
+      label:
+        add: []
+        remove:
+          - invalid
+        toggle: []
+      queue:
+        name: main-queue

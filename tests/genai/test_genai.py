@@ -225,7 +225,8 @@ class TestGenAIClient(unittest.TestCase):
             mock_client.assert_called_with(api_key="val1")
 
     def test_handle_exception_404(self) -> None:
-        from storybuilder.genai.client import _handle_exception, ApiKeyRotator
+        from storybuilder.genai.client import ApiKeyRotator
+        from storybuilder.genai.client import _handle_exception
         keys = [("KEY1", "val1")]
 
         with patch("google.genai.Client"):
@@ -245,7 +246,8 @@ class TestGenAIClient(unittest.TestCase):
 
     @patch("time.sleep")
     def test_handle_exception_quota_rotation(self, mock_sleep) -> None:
-        from storybuilder.genai.client import _handle_exception, ApiKeyRotator
+        from storybuilder.genai.client import ApiKeyRotator
+        from storybuilder.genai.client import _handle_exception
         keys = [("KEY1", "val1"), ("KEY2", "val2")]
 
         with patch("google.genai.Client"):

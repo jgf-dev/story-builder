@@ -10,8 +10,8 @@ from storybuilder.utils.env import load_env
 load_env()
 api_key = os.getenv("GEMINI_API_KEY")
 if not api_key:
-    print("Error: GEMINI_API_KEY not found in environment.")
-    exit(1)
+	print("Error: GEMINI_API_KEY not found in environment.")
+	exit(1)
 
 client = genai.Client(api_key=api_key)
 
@@ -26,55 +26,55 @@ You are an expert audio director. Rewrite the provided TTS prompt text to fix th
 
 
 def extract_markdown_block(content: str) -> str:
-    content = content.strip()
-    if not content.startswith("```"):
-        return content
+	content = content.strip()
+	if not content.startswith("```"):
+		return content
 
-    lines = content.split("\n")
-    # Strict matching block check
-    if content.endswith("```") and lines[-1].strip() == "```" and re.match(r"^```[a-zA-Z0-9_-]*$", lines[0].strip()):
-        return "\n".join(lines[1:-1]).strip()
+	lines = content.split("\n")
+	# Strict matching block check
+	if content.endswith("```") and lines[-1].strip() == "```" and re.match(r"^```[a-zA-Z0-9_-]*$", lines[0].strip()):
+		return "\n".join(lines[1:-1]).strip()
 
-    # Fallback to older cleanup
-    cleaned_lines = lines[1:]
-    if cleaned_lines and cleaned_lines[-1].strip() == "```":
-        cleaned_lines = cleaned_lines[:-1]
-    return "\n".join(cleaned_lines).strip()
+	# Fallback to older cleanup
+	cleaned_lines = lines[1:]
+	if cleaned_lines and cleaned_lines[-1].strip() == "```":
+		cleaned_lines = cleaned_lines[:-1]
+	return "\n".join(cleaned_lines).strip()
 
 
 def fix_prompts(directory) -> None:
-    files = sorted(glob.glob(os.path.join(directory, "*-part.md")))
-    if not files:
-        print(f"No prompt files found in {directory}")
-        return
+	files = sorted(glob.glob(os.path.join(directory, "*-part.md")))
+	if not files:
+		print(f"No prompt files found in {directory}")
+		return
 
-    print(f"Found {len(files)} prompt files to process.")
-    for md_file in files:
-        print(f"Fixing {os.path.basename(md_file)}...")
-        content = pathlib.Path(md_file).read_text()
+	print(f"Found {len(files)} prompt files to process.")
+	for md_file in files:
+		print(f"Fixing {os.path.basename(md_file)}...")
+		content = pathlib.Path(md_file).read_text()
 
-        try:
-            interaction = client.interactions.create(
-                model="gemini-3.5-flash",
-                input=f"{PROMPT_INSTRUCTION}\n\nHere is the prompt file content:\n\n{content}",
-            )
-            fixed_content = extract_markdown_block(interaction.output_text or "")
+		try:
+			interaction = client.interactions.create(
+				model="gemini-3.5-flash",
+				input=f"{PROMPT_INSTRUCTION}\n\nHere is the prompt file content:\n\n{content}",
+			)
+			fixed_content = extract_markdown_block(interaction.output_text or "")
 
-            pathlib.Path(md_file).write_text(fixed_content)
+			pathlib.Path(md_file).write_text(fixed_content)
 
-            print("  Fixed and saved.")
-        except Exception as e:
-            print(f"  Error processing {os.path.basename(md_file)}: {e}")
+			print("  Fixed and saved.")
+		except Exception as e:
+			print(f"  Error processing {os.path.basename(md_file)}: {e}")
 
 
 if __name__ == "__main__":
-    import argparse
+	import argparse
 
-    parser = argparse.ArgumentParser(description="Fix TTS prompt files.")
-    parser.add_argument(
-        "--dir",
-        default="stories/the_secret_vacation_prompts",
-        help="Directory containing the *-part.md files",
-    )
-    args = parser.parse_args()
-    fix_prompts(args.dir)
+	parser = argparse.ArgumentParser(description="Fix TTS prompt files.")
+	parser.add_argument(
+		"--dir",
+		default="stories/the_secret_vacation_prompts",
+		help="Directory containing the *-part.md files",
+	)
+	args = parser.parse_args()
+	fix_prompts(args.dir)

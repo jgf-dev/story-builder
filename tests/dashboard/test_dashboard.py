@@ -362,6 +362,7 @@ class TestDashboardConfig(unittest.TestCase):
 	def test_get_db_dir_with_mock(self) -> None:
 		import os
 		from unittest.mock import patch
+
 		from storybuilder.dashboard.config import get_db_dir
 
 		with patch.dict(os.environ, {"STORYBUILDER_DB_DIR": "custom/db/path"}):
@@ -371,6 +372,7 @@ class TestDashboardConfig(unittest.TestCase):
 	def test_get_nlp_db_path_with_mock(self) -> None:
 		import os
 		from unittest.mock import patch
+
 		from storybuilder.dashboard.config import get_nlp_db_path
 
 		with patch.dict(os.environ, {"STORYBUILDER_NLP_DB_PATH": "custom/nlp.db"}):
@@ -380,6 +382,7 @@ class TestDashboardConfig(unittest.TestCase):
 	def test_get_meta_db_path_with_mock(self) -> None:
 		import os
 		from unittest.mock import patch
+
 		from storybuilder.dashboard.config import get_meta_db_path
 
 		with patch.dict(os.environ, {"STORYBUILDER_META_DB_PATH": "custom/meta.db"}):

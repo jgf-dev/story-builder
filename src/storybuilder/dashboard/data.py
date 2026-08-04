@@ -54,7 +54,6 @@ def get_meta_conn() -> sqlite3.Connection:
 		)
 		conn.commit()
 		_meta_db_initialized_paths.add(meta_db_path)
-
 	return conn
 
 

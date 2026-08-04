@@ -1,6 +1,13 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [93391a5](https://github.com/jgf2/story-builder/commit/93391a56a5624dcad98656cd2033d526eb2bf77b) - 2026-08-04
+
+### Summary
+Resolved merge conflict in `tests/genai/test_play_audio.py`. Retained both `get_audio_player` and `natural_sort_key` unit test suites with tab indentation, and verified tests (9 passed).
+
+### Fixed
+- Combined unit test suites for `get_audio_player` and `natural_sort_key` in `tests/genai/test_play_audio.py`.
 ## [7c4211b](https://github.com/jgf2/story-builder/commit/7c4211b4105f93589eab59706c7453d1989357b0) - 2026-08-04
 
 ### Summary

@@ -39,8 +39,7 @@ def main() -> None:
 	print(f"Finding top {args.n_results} stories similar to: {args.target_story}\n")
 
 	query_results = collection_averages.query(
-		query_embeddings=[target_embedding],
-		n_results=args.n_results + 1,
+		query_embeddings=[target_embedding], n_results=args.n_results + 1,
 	)  # pyrefly: ignore [bad-argument-type]
 
 	ids = query_results.get("ids")

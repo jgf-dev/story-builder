@@ -494,8 +494,8 @@ def search_stories(
 				stmt = stmt.where(or_(*or_clauses))
 
 			stmt = stmt.order_by(
-				Story.publication_date.desc(),
-			)  # pyrefly: ignore [missing-attribute]  # pylint: disable=no-member
+				Story.publication_date.desc(),  # pylint: disable=no-member
+			)  # pyrefly: ignore [missing-attribute]
 			stmt = stmt.limit(limit)
 			stories = session.exec(stmt).all()
 			output = []

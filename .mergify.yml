@@ -86,10 +86,10 @@ pull_request_rules:
           - "jules"
           - "failures"
       comment:
-        message: "Can commits[*].commiter or commits[*].author fix the merge conflicts?"
+        message: "Can copilot or jules fix the merge conflicts?"
       review:
         type: REQUEST_CHANGES
-        message: Can commits[*].commiter or commits[*].author fix the merge conflicts?
+        message: Can copilot or jules fix the merge conflicts?
   - name: Keep PRs up to date
     conditions:
       - -draft

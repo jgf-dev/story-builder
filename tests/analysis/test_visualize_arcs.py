@@ -89,10 +89,7 @@ class TestVisualizeArcs(unittest.TestCase):
         assert top_chars_limited == ["Alice"]
 
 
-    def test_get_top_characters(self) -> None:
-        top_chars = get_top_characters(self.conn, 1)
-        assert top_chars == ["Alice", "Bob"]
-
+    def test_get_top_characters_limit(self) -> None:
         top_chars_limited = get_top_characters(self.conn, 1, limit=1)
         assert top_chars_limited == ["Alice"]
 

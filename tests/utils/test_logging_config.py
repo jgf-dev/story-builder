@@ -12,8 +12,8 @@ def test_set_library_log_levels_default() -> None:
 	set_library_log_levels()
 
 	# Assert
-	assert logging.getLogger("urllib3").level == logging.WARNING
-	assert logging.getLogger("requests").level == logging.WARNING
+	assert logging.getLogger("urllib3").level == logging.WARNING  # ruff: ignore[assert]
+	assert logging.getLogger("requests").level == logging.WARNING  # ruff: ignore[assert]
 
 
 def test_set_library_log_levels_custom() -> None:
@@ -27,18 +27,18 @@ def test_set_library_log_levels_custom() -> None:
 	set_library_log_levels(test_levels)
 
 	# Assert
-	assert logging.getLogger("custom.lib.1").level == logging.ERROR
-	assert logging.getLogger("custom.lib.2").level == logging.DEBUG
+	assert logging.getLogger("custom.lib.1").level == logging.ERROR  # ruff: ignore[assert]
+	assert logging.getLogger("custom.lib.2").level == logging.DEBUG  # ruff: ignore[assert]
 
 
 def test_get_logger_basic() -> None:
 	logger = get_logger("test_logger")
-	assert isinstance(logger, logging.Logger)
-	assert logger.name == "test_logger"
+	assert isinstance(logger, logging.Logger)  # ruff: ignore[assert]
+	assert logger.name == "test_logger"  # ruff: ignore[assert]
 
 
 def test_get_logger_with_level() -> None:
 	logger = get_logger("test_logger_level", level=logging.DEBUG)
-	assert isinstance(logger, logging.Logger)
-	assert logger.name == "test_logger_level"
-	assert logger.level == logging.DEBUG
+	assert isinstance(logger, logging.Logger)  # ruff: ignore[assert]
+	assert logger.name == "test_logger_level"  # ruff: ignore[assert]
+	assert logger.level == logging.DEBUG  # ruff: ignore[assert]

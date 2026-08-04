@@ -1,6 +1,13 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [cc73bb8](https://github.com/jgf2/story-builder/commit/cc73bb8e54a3ea16685b49cb3f188378de2473ea) - 2026-08-04
+
+### Summary
+Resolved merge conflict in `scripts/import_to_sqlite.py`. Preserved typed `_flush_batch` signature with tab indentation and verified test suite (`tests/downloader/test_database.py`).
+
+### Fixed
+- Standardized tab indentation for `_flush_batch` in `scripts/import_to_sqlite.py`.
 ## [34ad68f](https://github.com/jgf2/story-builder/commit/34ad68fef72a5043f0d324571df13c002df2662e) - 2026-08-04
 
 ### Summary

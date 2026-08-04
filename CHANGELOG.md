@@ -1,6 +1,15 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [f2fbd13](https://github.com/jgf2/story-builder/commit/f2fbd132e346eef5e6bc840d8bb3cbb4065def0c) - 2026-08-04
+
+### Summary
+Resolved merge conflicts across 24 files including analysis scripts, downloader modules, utils, dashboard, and test suites. Preserved tab indentation and verified test suite (86 passed).
+
+### Fixed
+- Fixed nested merge conflict markers in `.agent/skills/cartesia_tts_api/scripts/calls.py`, `src/storybuilder/utils/env.py`, `src/storybuilder/utils/logging_config.py`, `src/storybuilder/utils/storage.py`, and `src/storybuilder/genai/fix_prompts2.py`.
+- Preserved `_process_subcategory_page` scraper helper in `src/storybuilder/downloader/scraper.py`.
+- Standardized tab indentation in `tests/dashboard/test_dashboard.py` and `tests/genai/test_cartesia.py`.
 ## [cc73bb8](https://github.com/jgf2/story-builder/commit/cc73bb8e54a3ea16685b49cb3f188378de2473ea) - 2026-08-04
 
 ### Summary

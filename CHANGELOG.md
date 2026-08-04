@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 ## [PR-XXX](https://github.com/jgf-dev/story-builder/pull/XXX) - 2026-08-04
 
 ### Summary
-Enhanced stats semantic list structure in dashboard.html for better accessibility.
+Deduplicated Quick Stats list styling in dashboard.html by reusing the `.notes` utility class and removing redundant `.stats` CSS.
 
 ### Fixed
 - Added `.notes` utility class to `<ul class="stats">` in `dashboard.html` to share list-reset styles.

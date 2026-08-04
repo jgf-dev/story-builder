@@ -9,7 +9,27 @@ Standardized GitHub Actions workflows to use GitHub-hosted runner labels.
 ### Fixed
 - Replaced all `runs-on: Linux` entries with `runs-on: ubuntu-latest` in `.github/workflows/pylint.yml`, `.github/workflows/opencode.yml`, `.github/workflows/summary.yml`, and `.github/workflows/test.yml` to prevent jobs from remaining queued without a matching runner.
 
+## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-03
+
+### Summary
+Compacted `AGENTS.md` by consolidating duplicate layout/structure listings and grouping repository rules and workflows strictly by technical domain.
+
+### Fixed
+- Reduced `AGENTS.md` verbosity and token count by >55% while preserving all CLI flags, gotchas, prompt schemas, and environment rules.
+
 ## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-02
+
+### Summary
+Added BigQuery upload script `bq_upload.py` (`storybuilder-bq`) in `src/storybuilder/downloader` to stream/stage SQLite tables (including `stories/db/stories.db`) into Google BigQuery datasets.
+
+### Added
+- `src/storybuilder/downloader/bq_upload.py`: Batch NDJSON loader and GCS staging client for uploading SQLite tables to BigQuery.
+- `storybuilder-bq` CLI entrypoint in `pyproject.toml`.
+- Unit test suite `tests/downloader/test_bq_upload.py` covering schema mapping, batch chunking, NDJSON serialization, GCS staging, dry-run, and BigQuery client execution.
+- Exported `upload_sqlite_to_bigquery` in `src/storybuilder/downloader/__init__.py`.
+
+## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-02
+
 
 ### Summary
 Resolved merge conflicts across dashboard layout, ADK eval runner, accessibility palette, storage guard, and CI configuration.

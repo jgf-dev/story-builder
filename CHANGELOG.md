@@ -1,6 +1,13 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+## [1d97f0d](https://github.com/jgf2/story-builder/commit/1d97f0d4785357792856a292e891fc8bf81f24dc) - 2026-08-05
+
+### Summary
+Resolved merge conflict in `dashboard.html`.
+
+### Fixed
+- Resolved merge conflict in `dashboard.html` by keeping `<ul class="stats"...>`.
+
 ## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-02
 
 ### Summary

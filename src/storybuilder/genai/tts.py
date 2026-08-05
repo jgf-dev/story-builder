@@ -9,4 +9,4 @@ __all__ = ["main", "process_directory"]
 
 
 if __name__ == "__main__":
-    main()
+	main()

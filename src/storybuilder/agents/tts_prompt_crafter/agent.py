@@ -44,8 +44,6 @@ from .tools import write_scene_file
 
 load_env()
 
-load_env()
-
 warnings.filterwarnings("ignore")
 configure_logging(level=logging.DEBUG)
 logger = get_logger(__name__)

@@ -3,6 +3,17 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
+## [72d34f0](https://github.com/jgf2/story-builder/commit/72d34f0) - 2026-08-05
+
+### Summary
+Resolved git merge conflicts across `.jules/palette.md`, `evals/run_adk_eval.py`, and `src/storybuilder/downloader/network.py`.
+
+### Fixed
+- Preserved `.jules/palette.md` accessibility learning notes and landmark documentation.
+- Retained path handling logic in `evals/run_adk_eval.py`.
+- Kept tab-formatted request rotation and retry implementations in `src/storybuilder/downloader/network.py`.
+- Verified test suite execution with `pytest tests/downloader/test_network.py`.
+
 ## [c650177](https://github.com/jgf2/story-builder/commit/c650177) - 2026-08-01
 
 ### Summary

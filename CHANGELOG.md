@@ -8,6 +8,15 @@ Added unit tests for the `StorySearchQuery` dataclass in `storybuilder.dashboard
 
 ### Added
 - `tests/dashboard/test_story_search_query.py` with tests for default and custom initialization of `StorySearchQuery`.
+## [PR-XXX](https://github.com/jgf-dev/story-builder/pull/XXX) - 2026-08-04
+
+### Summary
+Deduplicated Quick Stats list styling in dashboard.html by reusing the `.notes` utility class and removing redundant `.stats` CSS.
+
+### Fixed
+- Added `.notes` utility class to `<ul class="stats">` in `dashboard.html` to share list-reset styles.
+- Removed duplicate `margin`, `list-style`, `display: grid`, `gap`, and `padding` declarations from `.stats` CSS rule since they are now inherited from `.notes`.
+
 ## [PR-XXX](https://github.com/jgf-dev/story-builder/pull/XXX) - 2026-08-03
 
 ### Summary

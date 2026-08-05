@@ -6,7 +6,10 @@ from unittest.mock import MagicMock
 from unittest.mock import patch
 
 from storybuilder.analysis.analyze_sentiment import extract_chapter_number
+<<<<<<< HEAD
+=======
 from storybuilder.analysis.analyze_sentiment import find_multi_chapter_stories
+>>>>>>> origin/main
 from storybuilder.analysis.analyze_sentiment import get_sentiment_value
 from storybuilder.analysis.analyze_sentiment import init_db
 from storybuilder.analysis.analyze_sentiment import main

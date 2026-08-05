@@ -13,5 +13,5 @@ load_dotenv()
 
 
 if __name__ == "__main__":
-    braintrust.init_logger(project="storybuilder")
-    client.process_directory(os.getenv("STORIES_TEXT"))
+	braintrust.init_logger(project="storybuilder")
+	client.process_directory(os.getenv("STORIES_TEXT"))

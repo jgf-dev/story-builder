@@ -3,6 +3,29 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
+## [2eb81a8](https://github.com/jgf2/story-builder/commit/2eb81a8) - 2026-08-05
+
+### Summary
+Resolved git merge conflicts in `scripts/import_to_sqlite.py`.
+
+### Fixed
+- Preserved type annotations `batch: list[tuple[object, ...]]` in `_flush_batch` signature.
+- Formatted file using `ruff format`.
+- Verified test suite execution with `pytest tests/dashboard/test_dashboard.py`.
+
+## [730456f](https://github.com/jgf2/story-builder/commit/730456f) - 2026-08-02
+
+### Summary
+Resolved git merge conflicts across `pyproject.toml`, `dashboard.html`, `.jules/palette.md`, `src/storybuilder/analysis/extract_entities.py`, `src/storybuilder/dashboard/pages/read_story.py`, `src/storybuilder/dashboard/pages/search_explorer.py`, `evals/run_adk_eval.py`, `scripts/import_to_sqlite.py`, and `src/storybuilder/genai/client.py`.
+
+### Fixed
+- Combined `filterwarnings` in `pyproject.toml`.
+- Restored safe `dict(...).get("word_count")` access in dashboard pages (`read_story.py`, `search_explorer.py`).
+- Restored `get_processed_files` helper in `src/storybuilder/analysis/extract_entities.py`.
+- Preserved `configure_logging` and exception handling in `evals/run_adk_eval.py`.
+- Resolved batch flush parameter signatures in `scripts/import_to_sqlite.py`.
+- Cleaned up duplicate imports and missing ID warning log in `src/storybuilder/genai/client.py`.
+
 ## [c650177](https://github.com/jgf2/story-builder/commit/c650177) - 2026-08-01
 
 ### Summary

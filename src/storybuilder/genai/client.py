@@ -1,32 +1,21 @@
+from google.genai.client import Client
 import argparse
 import base64
 import glob
-import logging
 import os
 import pathlib
 import re
 import time
 import wave
-from os import PathLike
-from typing import Any
-
-from google import genai
-from google.genai.client import Client
 
 from storybuilder.utils.env import load_env
+from google import genai
 
-logger = logging.getLogger(__name__)
 
 load_env()
 
 
-def wave_file_writer(
-	filename: str | PathLike[Any],
-	pcm: bytes,
-	channels: int = 1,
-	rate: int = 24000,
-	sample_width: int = 2,
-) -> None:
+def wave_file_writer(filename, pcm: bytes, channels=1, rate=24000, sample_width=2) -> None:
 	with wave.open(filename, "wb") as wf:  # type: ignore[attr-defined]
 		wf.setnchannels(channels)  # pylint: disable=no-member
 		wf.setsampwidth(sample_width)  # pylint: disable=no-member
@@ -34,10 +23,10 @@ def wave_file_writer(
 		wf.writeframes(pcm)  # pylint: disable=no-member
 
 
-def _parse_voice_mappings(markdown_content: str) -> tuple[dict[str, str], list[str], str]:
+def _parse_voice_mappings(markdown_content):
 	"""Parses the markdown content to extract speaker to voice mappings and the transcript."""
-	speaker_to_voice: dict[str, str] = {}
-	speakers: list[str] = []
+	speaker_to_voice = {}
+	speakers = []
 
 	parts = markdown_content.split("#### TRANSCRIPT")
 	if len(parts) == 2:
@@ -45,8 +34,8 @@ def _parse_voice_mappings(markdown_content: str) -> tuple[dict[str, str], list[s
 	else:
 		preamble = markdown_content
 		transcript = ""
-	for raw_line in preamble.split("\n"):
-		line = raw_line.strip()
+	for line in preamble.split("\n"):
+		line = line.strip()
 		if line.startswith(("*", "-")):
 			match = re.search(r"[\*\-]\s*([A-Za-z0-9_-]+)\s*\(Voice:\s*([A-Za-z0-9_-]+)\)", line)
 			if match:
@@ -59,15 +48,15 @@ def _parse_voice_mappings(markdown_content: str) -> tuple[dict[str, str], list[s
 	return speaker_to_voice, speakers, transcript_text
 
 
-def _extract_active_speakers(transcript: str | None) -> list[str]:
+def _extract_active_speakers(transcript: str):
 	"""Extracts active speakers actually speaking in the transcript in order of appearance."""
-	active_speakers: list[str] = []
+	active_speakers = []
 	if transcript is None:
 		return active_speakers
 	if isinstance(transcript, list):
 		return transcript
-	for raw_line in transcript.split("\n"):
-		line = raw_line.strip()
+	for line in transcript.split("\n"):
+		line = line.strip()
 		match = re.match(r"^([A-Za-z0-9_-]+):", line)
 		if match:
 			sp = match.group(1)
@@ -76,12 +65,9 @@ def _extract_active_speakers(transcript: str | None) -> list[str]:
 	return active_speakers
 
 
-def _build_speech_config(
-	active_speakers: list[str],
-	speaker_to_voice: dict[str, str],
-) -> list[dict[str, str]]:
+def _build_speech_config(active_speakers, speaker_to_voice):
 	"""Builds the final speech config array with fallbacks and padding."""
-	speech_config: list[dict[str, str]] = []
+	speech_config = []
 
 	for sp in active_speakers:
 		if sp in speaker_to_voice:
@@ -103,7 +89,7 @@ def _build_speech_config(
 	return speech_config
 
 
-def parse_speech_config(markdown_content: str) -> list[dict[str, str]]:
+def parse_speech_config(markdown_content: str):
 	"""Parses the markdown content to extract speakers and voices, dynamically matching active speakers in the transcript."""
 	speaker_to_voice, _, transcript = _parse_voice_mappings(markdown_content)
 	active_speakers = _extract_active_speakers(transcript)
@@ -181,13 +167,8 @@ def _classify_error(error_msg: str) -> tuple[bool, bool, bool]:
 
 
 def _handle_exception(
-	e: Exception,
-	rotator: ApiKeyRotator,
-	previous_id: str | None,
-	keys_tried: int,
-	attempt: int,
-	md_file: str,
-) -> tuple[str | None, int, int, bool]:
+	e: Exception, rotator: ApiKeyRotator, previous_id: str | None, keys_tried: int, attempt: int, md_file: str
+):
 	is_invalid_key, is_quota, is_session_not_found = _classify_error(str(e))
 
 	if is_session_not_found and previous_id is not None:
@@ -209,7 +190,7 @@ def _handle_exception(
 	return previous_id, keys_tried, attempt, False
 
 
-def _save_audio_from_interaction(interaction: Any, wav_file: str, md_file: str) -> None:
+def _save_audio_from_interaction(interaction, wav_file, md_file) -> None:
 	if not (interaction.output_audio and interaction.output_audio.data):
 		print(f"  Warning: No audio output for {pathlib.Path(md_file).name}")
 		return
@@ -228,12 +209,7 @@ def _save_audio_from_interaction(interaction: Any, wav_file: str, md_file: str) 
 	print(f"  Saved audio to {pathlib.Path(wav_file).name}")
 
 
-def process_file(
-	md_file: str,
-	wav_file: str,
-	previous_id: str | None,
-	rotator: ApiKeyRotator,
-) -> str | None:
+def process_file(md_file: str, wav_file: str, previous_id: str | None, rotator: ApiKeyRotator):
 	print(f"Processing {pathlib.Path(md_file).name}...")
 	content = pathlib.Path(md_file).read_text(encoding="utf-8")
 
@@ -250,7 +226,7 @@ def process_file(
 				input=content,
 				response_modalities=["audio"],
 				generation_config={"speech_config": speech_config},
-				previous_interaction_id=previous_id,
+				previous_interaction_id=previous_id,  # TODO: Check if the interaction API supports previous_interaction_id
 			)
 		except Exception as e:
 			previous_id, keys_tried, attempt, should_continue = _handle_exception(
@@ -266,12 +242,7 @@ def process_file(
 			raise
 		else:
 			_save_audio_from_interaction(interaction, wav_file, md_file)
-			previous_id = getattr(interaction, "id", None)
-			if previous_id is None:
-				logger.warning(
-					"Interaction response for %s is missing 'id'; speech continuity will reset.",
-					pathlib.Path(md_file).name,
-				)
+			previous_id = interaction.id  # TODO: check if key rotation breaks
 			break
 	else:
 		print(
@@ -281,7 +252,7 @@ def process_file(
 	return previous_id
 
 
-def process_directory(directory: str | pathlib.Path) -> None:
+def process_directory(directory) -> None:
 	api_keys = get_gemini_api_keys()
 	if not api_keys:
 		print("Error: No GEMINI_API_KEY or GEMINI_API_KEY_X found in environment.")

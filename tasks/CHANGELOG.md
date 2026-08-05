@@ -3,6 +3,15 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
+## [6da5155](https://github.com/jgf2/story-builder/commit/6da5155) - 2026-08-05
+
+### Summary
+Resolved merge conflicts across `dashboard.html`, `evals/run_adk_eval.py`, `src/storybuilder/analysis/extract_entities.py`, `src/storybuilder/dashboard/data.py`, `src/storybuilder/downloader/network.py`, `src/storybuilder/downloader/storage.py`, `tasks/CHANGELOG.md`, `tests/agents/test_subagent.py`, and `tests/dashboard/test_dashboard.py`.
+
+### Fixed
+- Preserved existing type hints, helper functions, and assertion logic from HEAD.
+- Formatted Python source files using `ruff format` and verified test suite execution.
+
 ## [730456f](https://github.com/jgf2/story-builder/commit/730456f) - 2026-08-02
 
 ### Summary
@@ -400,7 +409,7 @@ Preventing any resource leaks in long-running processes like the Streamlit works
    import sys
 
    if "storybuilder.dashboard.data" in sys.modules:
-       importlib.reload(sys.modules["storybuilder.dashboard.data"])
+   	importlib.reload(sys.modules["storybuilder.dashboard.data"])
    # ... [reloads config, sidebar, and pages similarly]
    ```
 2. Removed all temporary debugging logging files.

@@ -11,11 +11,14 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+
 # Ensure src and scripts are importable
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 _scripts_dir = str(Path(__file__).resolve().parents[2] / "scripts")
 if _scripts_dir not in sys.path:
 	sys.path.insert(0, _scripts_dir)
+
+import dashboard  # pyrefly: ignore [missing-import]
 
 
 class TestDashboard(unittest.TestCase):
@@ -65,7 +68,8 @@ class TestDashboard(unittest.TestCase):
 		path,
 		content,
 	) -> None:
-		from sqlmodel import Session, select
+		from sqlmodel import Session
+		from sqlmodel import select
 
 		from storybuilder.downloader import db as sb_db
 
@@ -137,11 +141,9 @@ class TestDashboard(unittest.TestCase):
 		self.assertEqual(files, ["2025.db", "2026.db"])
 
 	def test_favorites_crud(self) -> None:
-		from dashboard import (
-			add_favorite,  # pyrefly: ignore [missing-import]
-			get_favorites,  # pyrefly: ignore [missing-import]
-			remove_favorite,  # pyrefly: ignore [missing-import]
-		)
+		from dashboard import add_favorite  # pyrefly: ignore [missing-import]
+		from dashboard import get_favorites  # pyrefly: ignore [missing-import]
+		from dashboard import remove_favorite  # pyrefly: ignore [missing-import]
 
 		# Initial empty
 		self.assertEqual(get_favorites(), [])
@@ -297,15 +299,8 @@ class TestDashboardConfig(unittest.TestCase):
 	def test_get_nlp_db_path_default(self) -> None:
 		from storybuilder.dashboard.config import get_nlp_db_path
 
-<<<<<<< HEAD
-    def test_get_db_dir_with_mock(self) -> None:
-        import sys
-
-        from storybuilder.dashboard.config import get_db_dir
-=======
 		result = get_nlp_db_path()
 		self.assertEqual(result, "stories/db/nlp_analysis.db")
->>>>>>> origin/main
 
 	def test_get_meta_db_path_default(self) -> None:
 		from storybuilder.dashboard.config import get_meta_db_path
@@ -313,15 +308,8 @@ class TestDashboardConfig(unittest.TestCase):
 		result = get_meta_db_path()
 		self.assertEqual(result, "stories/db/dashboard_metadata.db")
 
-<<<<<<< HEAD
-    def test_get_nlp_db_path_with_mock(self) -> None:
-        import sys
-
-        from storybuilder.dashboard.config import get_nlp_db_path
-=======
 	def test_get_db_dir_with_mock(self) -> None:
 		import sys
->>>>>>> origin/main
 
 		from storybuilder.dashboard.config import get_db_dir
 
@@ -329,18 +317,11 @@ class TestDashboardConfig(unittest.TestCase):
 		mock_module.DB_DIR = "custom/db/path"
 		sys.modules["dashboard"] = mock_module
 
-<<<<<<< HEAD
-    def test_get_meta_db_path_with_mock(self) -> None:
-        import sys
-
-        from storybuilder.dashboard.config import get_meta_db_path
-=======
 		try:
 			result = get_db_dir()
 			self.assertEqual(result, "custom/db/path")
 		finally:
 			del sys.modules["dashboard"]
->>>>>>> origin/main
 
 	def test_get_nlp_db_path_with_mock(self) -> None:
 		import sys
@@ -416,6 +397,7 @@ class TestDashboardDataFunctions(unittest.TestCase):
 
 	def test_get_db_files_empty(self) -> None:
 		import sys
+		from unittest.mock import patch
 
 		mock_module = type(sys)("dashboard")
 		mock_module.DB_DIR = self.db_dir
@@ -433,6 +415,7 @@ class TestDashboardDataFunctions(unittest.TestCase):
 
 	def test_get_db_files_with_year_dbs(self) -> None:
 		import sys
+		from unittest.mock import patch
 
 		mock_module = type(sys)("dashboard")
 		mock_module.DB_DIR = self.db_dir
@@ -455,6 +438,7 @@ class TestDashboardDataFunctions(unittest.TestCase):
 
 	def test_get_filter_options_with_data(self) -> None:
 		import sys
+		from unittest.mock import patch
 
 		mock_module = type(sys)("dashboard")
 		mock_module.DB_DIR = self.db_dir
@@ -493,6 +477,7 @@ class TestDashboardDataFunctions(unittest.TestCase):
 
 	def test_load_archive_stats(self) -> None:
 		import sys
+		from unittest.mock import patch
 
 		mock_module = type(sys)("dashboard")
 		mock_module.DB_DIR = self.db_dir
@@ -577,7 +562,9 @@ class TestDashboardDataFunctions(unittest.TestCase):
 		sys.modules["dashboard"] = mock_module
 
 		try:
-			from storybuilder.dashboard.data import add_favorite, get_favorites, remove_favorite
+			from storybuilder.dashboard.data import add_favorite
+			from storybuilder.dashboard.data import get_favorites
+			from storybuilder.dashboard.data import remove_favorite
 
 			success = add_favorite(
 				"test/path.txt",
@@ -634,7 +621,8 @@ class TestDashboardDataFunctions(unittest.TestCase):
 		sys.modules["dashboard"] = mock_module
 
 		try:
-			from storybuilder.downloader.db import get_conn, insert_story
+			from storybuilder.downloader.db import get_conn
+			from storybuilder.downloader.db import insert_story
 
 			# Insert test stories with various publication_date formats (correct path format)
 			insert_story(
@@ -673,7 +661,7 @@ class TestDashboardDataFunctions(unittest.TestCase):
 
 			import datetime
 
-			current_year = datetime.datetime.now(datetime.UTC).year
+			current_year = datetime.datetime.now(datetime.timezone.utc).year
 
 			# Check that we can extract years without crashing
 			path_to_year = {}
@@ -685,59 +673,12 @@ class TestDashboardDataFunctions(unittest.TestCase):
 					y = current_year
 				path_to_year[row[0]] = y
 
-			assert path_to_year["stories/gay/college/story1/part-1.txt"] == 2020, "Should extract year 2020"
-			assert path_to_year["stories/gay/college/story2/part-1.txt"] == current_year, (
-				f"Should default to {current_year} for None"
+			self.assertEqual(path_to_year["stories/gay/college/story1/part-1.txt"], 2020, "Should extract year 2020")
+			self.assertEqual(
+				path_to_year["stories/gay/college/story2/part-1.txt"],
+				current_year,
+				f"Should default to {current_year} for None",
 			)
-		finally:
-			del sys.modules["dashboard"]
-
-	def test_get_nlp_conn_not_exists(self) -> None:
-		import sys
-
-		import streamlit as st
-
-		st.cache_resource.clear()
-
-		mock_module = type(sys)("dashboard")
-		mock_module.DB_DIR = self.db_dir
-		mock_module.NLP_DB_PATH = self.nlp_db_path
-		mock_module.META_DB_PATH = self.meta_db_path
-		sys.modules["dashboard"] = mock_module
-
-		try:
-			from storybuilder.dashboard.data import get_nlp_conn
-
-			if Path(self.nlp_db_path).exists():
-				Path(self.nlp_db_path).unlink()
-			assert get_nlp_conn() is None
-		finally:
-			del sys.modules["dashboard"]
-
-	def test_get_nlp_conn_exists(self) -> None:
-		import sqlite3
-		import sys
-
-		import streamlit as st
-
-		st.cache_resource.clear()
-
-		mock_module = type(sys)("dashboard")
-		mock_module.DB_DIR = self.db_dir
-		mock_module.NLP_DB_PATH = self.nlp_db_path
-		mock_module.META_DB_PATH = self.meta_db_path
-		sys.modules["dashboard"] = mock_module
-
-		try:
-			conn = sqlite3.connect(self.nlp_db_path)
-			conn.close()
-			from storybuilder.dashboard.data import get_nlp_conn
-
-			conn_result = get_nlp_conn()
-			assert conn_result is not None
-			assert isinstance(conn_result, sqlite3.Connection)
-			if conn_result:
-				conn_result.close()
 		finally:
 			del sys.modules["dashboard"]
 

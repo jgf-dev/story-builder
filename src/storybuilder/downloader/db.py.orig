@@ -500,7 +500,7 @@ def search_stories(
                 stmt = stmt.where(or_(*or_clauses))
 
             stmt = stmt.order_by(
-                col(Story.publication_date).desc()  # pylint: disable=no-member
+                col(Story.publication_date).desc()
             )  # pyrefly: ignore [missing-attribute]  # pylint: disable=no-member
             stmt = stmt.limit(limit)
             stories = session.exec(stmt).all()

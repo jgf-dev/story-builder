@@ -3,8 +3,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-from google.cloud.storage import Client
-from google.cloud.storage import transfer_manager
+from google.cloud.storage import Client, transfer_manager
 
 
 def _normalize_filenames(filenames: list[str], source_directory: str) -> list[str]:
@@ -155,7 +154,8 @@ def upload_many_s3(
 		return
 
 	try:
-		import boto3
+		import boto3  # pyrefly: ignore [missing-import]
+
 	except ImportError as exc:
 		msg = "S3 uploads require the 'boto3' package. Install it with `pip install boto3`."
 		raise ImportError(

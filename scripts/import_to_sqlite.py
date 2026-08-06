@@ -20,18 +20,14 @@ import sys
 import time
 from pathlib import Path
 
-
 # Use shared db module
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 # ——— Schema ——————————————————————————————————————————————————————————————————
 
 # Import shared database functions
-from storybuilder.downloader.db import _parse_author
-from storybuilder.downloader.db import _parse_output_path
+from storybuilder.downloader.db import _parse_author, _parse_output_path, optimize_fts
 from storybuilder.downloader.db import init_db as _db_init_db
-from storybuilder.downloader.db import optimize_fts
-
 
 BATCH_SIZE = 1000
 
@@ -183,7 +179,11 @@ def import_files(
 _start_time = 0.0
 
 
-def _flush_batch(conn: sqlite3.Connection, batch: list, force: bool) -> int:
+def _flush_batch(
+	conn: sqlite3.Connection,
+	batch: list[tuple[object, ...]],
+	force: bool = False,
+) -> int:
 	try:
 		from storybuilder.downloader.db import _is_partitioned
 	except ImportError:

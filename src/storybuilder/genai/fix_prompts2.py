@@ -94,7 +94,7 @@ def fix_prompts(directory: str) -> None:
 			path.write_text(fixed_content, encoding="utf-8")
 
 			print("  Fixed and saved.")
-		except Exception as e:  # noqa: BLE001
+		except Exception as e:  # ruff: ignore[blind-except]
 			print(f"  Error processing {path.name}: {e}")
 
 

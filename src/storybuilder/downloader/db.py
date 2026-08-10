@@ -394,8 +394,8 @@ def search_stories(
 	"""Search the monolithic database using SQLModel and SQLAlchemy expressions."""
 	limit: int = kwargs.get("limit", 100)
 	snippets: bool = kwargs.get("snippets", True)
-	query: str | None = kwargs.get("query", None)
-	entity_suffixes: list[str] | None = kwargs.get("entity_suffixes", None)
+	query: str | None = kwargs.get("query")
+	entity_suffixes: list[str] | None = kwargs.get("entity_suffixes")
 	if entity_suffixes == []:
 		return []
 

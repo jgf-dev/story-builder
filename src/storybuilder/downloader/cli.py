@@ -108,7 +108,7 @@ def _parse_args() -> argparse.Namespace:
 def _setup_network(args: argparse.Namespace) -> bool:
 	if args.socks5_proxy:
 		try:
-			import socks  # noqa: F401  # ruff:ignore[import-outside-top-level]
+			import socks  # ruff: ignore[unused-import]  # ruff:ignore[import-outside-top-level]
 		except ImportError:
 			print("Error: SOCKS proxy support requires the 'pysocks' package.")
 			print("Please install it in your environment using:")

@@ -16,7 +16,7 @@ logger = get_logger(__name__)
 configure_logging()
 
 
-def get_hf_client(token: str = "HF_TOKEN") -> HfApi:  # noqa
+def get_hf_client(token: str = "HF_TOKEN") -> HfApi:  # ruff: ignore[hardcoded-password-default]
 	"""
 	Get a Hugging Face Hub client.
 

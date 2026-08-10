@@ -26,7 +26,7 @@ ALLOWED_LABELS = {
 }
 
 
-def init_db(db_path) -> Connection:
+def init_db(db_path: str | Path) -> Connection:
 	"""Initialize the SQLite database."""
 	conn = sqlite3.connect(db_path)
 	cursor = conn.cursor()
@@ -56,7 +56,7 @@ def init_db(db_path) -> Connection:
 	return conn
 
 
-def is_processed(cursor: Cursor, filepath: str):
+def is_processed(cursor: Cursor, filepath: str) -> bool:
 	"""Check if a file has already been processed."""
 	cursor.execute("SELECT id FROM stories WHERE filepath = ?", (filepath,))
 	return cursor.fetchone() is not None
@@ -114,7 +114,7 @@ def parse_args() -> Namespace:
 	return parser.parse_args()
 
 
-def load_spacy_model(model_name, use_gpu) -> Language | None:
+def load_spacy_model(model_name: str, use_gpu: bool) -> Language | None:
 	"""Load the spaCy model with optional GPU support."""
 	try:
 		if use_gpu:

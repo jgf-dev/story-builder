@@ -1,6 +1,5 @@
 import vertexai
 
-
 client = vertexai.Client(project="storage-499607", location="global")
 
 # If you don't have an Agent Engine instance already, create an instance.

@@ -6,12 +6,9 @@ import sqlite3
 import sys
 from pathlib import Path
 
-
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from storybuilder.downloader.db import INDEXES
-from storybuilder.downloader.db import SCHEMA
-from storybuilder.downloader.db import migrate_legacy_schema
+from storybuilder.downloader.db import INDEXES, SCHEMA, migrate_legacy_schema
 
 
 def _prepare_database_file(db_path: Path) -> bool:

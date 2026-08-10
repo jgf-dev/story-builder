@@ -2,7 +2,6 @@
 """Auto-resolve git merge conflict markers by keeping the HEAD side."""
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parent.parent
 
 SKIP_PARTS = {".git", "venv", ".venv", "__pycache__", ".ruff_cache", "stories"}

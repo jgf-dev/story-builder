@@ -13,7 +13,6 @@ from pathlib import Path
 
 import pytest
 
-
 PROJECT_ROOT = Path(__file__).parent.parent
 TTS_AGENT_DIR = PROJECT_ROOT / "src" / "storybuilder" / "agents" / "tts_prompt_crafter"
 CARTESIA_AGENT_DIR = PROJECT_ROOT / "src" / "storybuilder" / "agents" / "cartesia_tts_prompt_crafter"

@@ -1,6 +1,24 @@
 # Changelog
 
 ## [1d97f0d](https://github.com/jgf2/story-builder/commit/1d97f0d4785357792856a292e891fc8bf81f24dc) - 2026-08-05
+All notable changes to this project will be documented in this file.
+## [PR-1689](https://github.com/jgf-dev/story-builder/pull/1689) - 2026-08-04
+
+### Summary
+Added unit tests for the `StorySearchQuery` dataclass in `storybuilder.dashboard.data`.
+
+### Added
+- `tests/dashboard/test_story_search_query.py` with tests for default and custom initialization of `StorySearchQuery`.
+## [PR-XXX](https://github.com/jgf-dev/story-builder/pull/XXX) - 2026-08-03
+
+### Summary
+Hardened the downloader SQLite import script and added a regression test to catch syntax breakage before the downloader test job runs.
+
+### Fixed
+- Cleaned up `scripts/import_to_sqlite.py` batch flush typing/formatting to keep the module syntactically stable.
+- Added a downloader regression test that byte-compiles `scripts/import_to_sqlite.py` so unresolved merge markers or syntax errors fail fast in CI.
+
+## [PR-XXX](https://github.com/jgf-dev/story-builder/pull/XXX) - 2026-08-03
 
 ### Summary
 Resolved merge conflict in `dashboard.html`.

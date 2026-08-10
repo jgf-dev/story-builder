@@ -1,28 +1,7 @@
-# ruff: ignore[implicit-namespace-package]
-"""Tests for StorySearchQuery in storybuilder.dashboard.data."""
+"""Deprecated: StorySearchQuery tests live in test_story_search_query.py.
 
-from storybuilder.dashboard.data import StorySearchQuery
-
-
-def test_story_search_query_default() -> None:
-	"""Test default initialization of StorySearchQuery."""
-	query = StorySearchQuery()
-	# ruff: ignore[assert, compare-to-empty-string]
-	assert query.fts_query == ""
-	# ruff: ignore[assert]
-	assert query.category == "All"
-	# ruff: ignore[assert]
-	assert query.author == "All"
-	# ruff: ignore[assert]
-	assert query.year_range is None
-	# ruff: ignore[assert, compare-to-empty-string]
-	assert query.entity_text == ""
-	# ruff: ignore[assert]
-	assert query.entity_label == "PERSON"
-	# ruff: ignore[assert, magic-value-comparison]
-	assert query.limit == 100
-
-
+This file was introduced redundantly; keep tests in the unittest-based module.
+"""
 def test_story_search_query_custom() -> None:
 	"""Test custom initialization of StorySearchQuery."""
 	query = StorySearchQuery(

@@ -1,12 +1,13 @@
-import unittest
-import sqlite3
-import tempfile
-import shutil
-import sys
 import io
+import shutil
+import sqlite3
+import sys
+import tempfile
+import unittest
 import warnings
-from unittest.mock import patch
 from pathlib import Path
+from unittest.mock import patch
+
 
 # Add the src directory to the python path so we can import the script
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))

@@ -1,6 +1,15 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-10
+
+### Summary
+Resolved merge conflicts between this pull request branch and `origin/main` across dashboard, downloader, GenAI, and test files.
+
+### Fixed
+- Merged the latest `origin/main` changes into the branch and removed the remaining conflict markers from the affected source and test files.
+- Preserved the branch changelog history while restoring the newer `dashboard.html` changelog entry from `main`.
+
 ## [f2fbd13](https://github.com/jgf2/story-builder/commit/f2fbd132e346eef5e6bc840d8bb3cbb4065def0c) - 2026-08-04
 
 ### Summary
@@ -57,6 +66,15 @@ Added unit tests for the `StorySearchQuery` dataclass in `storybuilder.dashboard
 
 ### Added
 - `tests/dashboard/test_story_search_query.py` with tests for default and custom initialization of `StorySearchQuery`.
+
+## [PR-XXX](https://github.com/jgf-dev/story-builder/pull/XXX) - 2026-08-04
+
+### Summary
+Deduplicated Quick Stats list styling in dashboard.html by reusing the `.notes` utility class and removing redundant `.stats` CSS.
+
+### Fixed
+- Added `.notes` utility class to `<ul class="stats">` in `dashboard.html` to share list-reset styles.
+- Removed duplicate `margin`, `list-style`, `display: grid`, `gap`, and `padding` declarations from `.stats` CSS rule since they are now inherited from `.notes`.
 
 ## [0b68f42](https://github.com/jgf2/story-builder/commit/0b68f42b6bde9a6b15161a5ee1c65efebd320875) - 2026-08-04
 

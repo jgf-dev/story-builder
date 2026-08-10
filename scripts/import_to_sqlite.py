@@ -195,13 +195,13 @@ def _flush_batch(
 	force: bool = False,
 ) -> int:
 	sql = """
-		INSERT OR REPLACE INTO stories
-			(path, orientation, category, story_slug, chapter_num,
-			 title, author_name, author_email,
-			 publication_date, url,
-			 char_count, word_count, content)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-	"""
+        INSERT OR REPLACE INTO stories
+            (path, orientation, category, story_slug, chapter_num,
+             title, author_name, author_email,
+             publication_date, url,
+             char_count, word_count, content)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """
 	try:
 		conn.executemany(sql, batch)
 		conn.commit()

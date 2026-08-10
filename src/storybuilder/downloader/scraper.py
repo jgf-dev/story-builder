@@ -216,11 +216,12 @@ def _scrape_subcategory_pages(sub_url, start_date, delay, force_scan, use_cache,
 
 	while current_url:
 		page_stories, stop_pagination, next_url = _process_subcategory_page(
-			current_url, page_num, delay, force_scan, use_cache, cached_lookup, start_date,
+			current_url, page_num, delay, force_scan, use_cache, cached_lookup, start_date
 		)
 		scraped_stories.extend(page_stories)
 		if stop_pagination:
 			break
+
 		if next_url:
 			current_url = next_url
 			page_num += 1

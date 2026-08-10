@@ -163,3 +163,5 @@ markers = [
     "agentic: marks tests using agentic evaluation patterns (reflection, rubric)",
     "integration: live external services (Gemini/Vertex/TTS); unit suite uses fakes by default — enable live path with STORYBUILDER_LIVE_API=1",
 ]
+[tool.pylint.typecheck]
+ignored-classes = ["FieldInfo", "InstrumentedAttribute"]

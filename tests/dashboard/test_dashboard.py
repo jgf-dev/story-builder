@@ -37,16 +37,6 @@ class TestDashboard(unittest.TestCase):
 
 		st.cache_data.clear()
 
-		self.env_patcher = patch.dict(
-			"os.environ",
-			{
-				"STORYBUILDER_DB_DIR": self.db_dir,
-				"STORYBUILDER_NLP_DB_PATH": self.nlp_db_path,
-				"STORYBUILDER_META_DB_PATH": self.meta_db_path,
-			},
-		)
-		self.env_patcher.start()
-
 		# Patch paths inside dashboard
 		self.patch_dir = patch("dashboard.DB_DIR", self.db_dir)
 		self.patch_nlp = patch("dashboard.NLP_DB_PATH", self.nlp_db_path)
@@ -65,7 +55,6 @@ class TestDashboard(unittest.TestCase):
 		self.patch_dir.stop()
 		self.patch_nlp.stop()
 		self.patch_meta.stop()
-		self.env_patcher.stop()
 		shutil.rmtree(self.temp_dir, ignore_errors=True)
 
 	def _create_mock_partition(
@@ -104,24 +93,24 @@ class TestDashboard(unittest.TestCase):
 		conn = sqlite3.connect(self.nlp_db_path)
 		conn.execute(
 			"""
-            CREATE TABLE IF NOT EXISTS stories (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                filepath TEXT UNIQUE,
-                processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-            """,
+	        CREATE TABLE IF NOT EXISTS stories (
+	            id INTEGER PRIMARY KEY AUTOINCREMENT,
+	            filepath TEXT UNIQUE,
+	            processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	        )
+	        """,
 		)
 		conn.execute(
 			"""
-            CREATE TABLE IF NOT EXISTS entities (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                story_id INTEGER,
-                text TEXT,
-                label TEXT,
-                frequency INTEGER,
-                FOREIGN KEY(story_id) REFERENCES stories(id)
-            )
-            """,
+	        CREATE TABLE IF NOT EXISTS entities (
+	            id INTEGER PRIMARY KEY AUTOINCREMENT,
+	            story_id INTEGER,
+	            text TEXT,
+	            label TEXT,
+	            frequency INTEGER,
+	            FOREIGN KEY(story_id) REFERENCES stories(id)
+	        )
+	        """,
 		)
 		conn.execute(
 			"INSERT OR REPLACE INTO stories (filepath) VALUES (?)",
@@ -362,7 +351,6 @@ class TestDashboardConfig(unittest.TestCase):
 	def test_get_db_dir_with_mock(self) -> None:
 		import os
 		from unittest.mock import patch
-
 		from storybuilder.dashboard.config import get_db_dir
 
 		with patch.dict(os.environ, {"STORYBUILDER_DB_DIR": "custom/db/path"}):
@@ -372,7 +360,6 @@ class TestDashboardConfig(unittest.TestCase):
 	def test_get_nlp_db_path_with_mock(self) -> None:
 		import os
 		from unittest.mock import patch
-
 		from storybuilder.dashboard.config import get_nlp_db_path
 
 		with patch.dict(os.environ, {"STORYBUILDER_NLP_DB_PATH": "custom/nlp.db"}):
@@ -382,7 +369,6 @@ class TestDashboardConfig(unittest.TestCase):
 	def test_get_meta_db_path_with_mock(self) -> None:
 		import os
 		from unittest.mock import patch
-
 		from storybuilder.dashboard.config import get_meta_db_path
 
 		with patch.dict(os.environ, {"STORYBUILDER_META_DB_PATH": "custom/meta.db"}):

@@ -30,13 +30,15 @@ META_DB_PATH = "stories/db/dashboard_metadata.db"
 
 # Rerouting rendering to modular components
 from storybuilder.dashboard.config import init_session_state, inject_custom_css, setup_page
+
+# Expose key data operations at module level to satisfy test imports
 from storybuilder.dashboard.data import (
-	add_favorite,  # ruff: ignore[unused-import]
-	get_db_files,  # ruff: ignore[unused-import]
-	get_favorites,  # ruff: ignore[unused-import]
-	get_story_by_path,  # ruff: ignore[unused-import]
-	query_stories,  # ruff: ignore[unused-import]
-	remove_favorite,  # ruff: ignore[unused-import]
+	add_favorite,  # noqa: F401
+	get_db_files,  # noqa: F401
+	get_favorites,  # noqa: F401
+	get_story_by_path,  # noqa: F401
+	query_stories,  # noqa: F401
+	remove_favorite,  # noqa: F401
 )
 
 # Expose pages

@@ -31,10 +31,10 @@ def test_set_library_log_levels_custom() -> None:
     assert logging.getLogger("custom.lib.2").level == logging.DEBUG  # ruff: ignore[assert]
 
 
-def test_get_logger_basic():
+def test_get_logger_basic() -> None:
     logger = get_logger("test_logger")
-    assert isinstance(logger, logging.Logger)
-    assert logger.name == "test_logger"
+    assert isinstance(logger, logging.Logger)  # ruff: ignore[assert]
+    assert logger.name == "test_logger"  # ruff: ignore[assert]
 
 
 def test_get_logger_with_level():

@@ -17,7 +17,6 @@ Usage:
 """
 
 import argparse
-import asyncio
 import json
 import logging
 import os
@@ -95,7 +94,7 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
 		from google.adk.evaluation import AgentEvaluator
 		from google.adk.evaluation.local_eval_sets_manager import load_eval_set_from_file
 
-		original_cwd = Path.cwd()
+		original_cwd = _Path.cwd()
 		os.chdir(str(agent_dir))
 
 		try:

@@ -4,7 +4,8 @@ import tempfile
 import unittest
 import unittest.mock
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
 from storybuilder.downloader import cache
 from storybuilder.downloader import storage as dl_storage
@@ -296,7 +297,8 @@ class TestScraperCacheAndEarlyStop(unittest.TestCase):
 		import datetime
 		from unittest.mock import patch
 
-		from storybuilder.downloader.scraper import process_subcategory, seen_folders
+		from storybuilder.downloader.scraper import process_subcategory
+		from storybuilder.downloader.scraper import seen_folders
 
 		seen_folders.clear()
 
@@ -363,7 +365,8 @@ class TestScraperCacheAndEarlyStop(unittest.TestCase):
 		and ensure early stop on old non-dir + correct collection (no miss of in-range, no dups).
 		"""
 		import datetime
-		from unittest.mock import MagicMock, patch
+		from unittest.mock import MagicMock
+		from unittest.mock import patch
 
 		from storybuilder.downloader.scraper import scrape_subcategory
 
@@ -397,7 +400,8 @@ class TestScraperCacheAndEarlyStop(unittest.TestCase):
 		cache lookup inside loop, early stop on old date, pagination termination, reached_end.
 		"""
 		import datetime
-		from unittest.mock import MagicMock, patch
+		from unittest.mock import MagicMock
+		from unittest.mock import patch
 
 		from storybuilder.downloader.scraper import _scrape_subcategory_pages
 
@@ -544,11 +548,13 @@ class TestWriterCacheInteraction(unittest.TestCase):
 		"""Writer's download_single_target may see same story from multiple subcats.
 		Cache ensures we don't re-download.
 		"""
-		from storybuilder.downloader import cache
-		import tempfile
-		import shutil
 		import os
-		from unittest.mock import patch, MagicMock
+		import shutil
+		import tempfile
+		from unittest.mock import MagicMock
+		from unittest.mock import patch
+
+		from storybuilder.downloader import cache
 
 		temp_dir = tempfile.mkdtemp()
 		try:
@@ -843,8 +849,9 @@ class TestScraperMultiChapter(unittest.TestCase):
 
 	def test_process_directory_story(self) -> None:
 		"""Test _process_directory_story generates chapter targets."""
-		from storybuilder.downloader.scraper import _process_directory_story
 		import argparse
+
+		from storybuilder.downloader.scraper import _process_directory_story
 
 		story = {
 			"name": "Series",
@@ -1049,7 +1056,8 @@ class TestProcessSubcategory(unittest.TestCase):
     @unittest.mock.patch("storybuilder.downloader.scraper.scrape_subcategory")
     @unittest.mock.patch("storybuilder.downloader.scraper.scrape_multi_chapter_folder")
     def test_process_subcategory(self, mock_scrape_multi, mock_scrape_sub) -> None:
-        from storybuilder.downloader.scraper import process_subcategory, seen_folders
+        from storybuilder.downloader.scraper import process_subcategory
+        from storybuilder.downloader.scraper import seen_folders
 
         # Reset seen_folders for isolation
         seen_folders.clear()
@@ -1114,7 +1122,8 @@ class TestProcessSubcategory(unittest.TestCase):
     def test_process_subcategory_skip_seen_folders(
         self, mock_scrape_multi, mock_scrape_sub
     ) -> None:
-        from storybuilder.downloader.scraper import process_subcategory, seen_folders
+        from storybuilder.downloader.scraper import process_subcategory
+        from storybuilder.downloader.scraper import seen_folders
 
         # Reset and prime seen_folders
         seen_folders.clear()
@@ -1148,7 +1157,8 @@ class TestProcessSubcategory(unittest.TestCase):
 
     @unittest.mock.patch("storybuilder.downloader.scraper.scrape_subcategory")
     def test_process_subcategory_extension_handling(self, mock_scrape_sub) -> None:
-        from storybuilder.downloader.scraper import process_subcategory, seen_folders
+        from storybuilder.downloader.scraper import process_subcategory
+        from storybuilder.downloader.scraper import seen_folders
 
         seen_folders.clear()
 

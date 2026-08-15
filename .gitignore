@@ -28,7 +28,7 @@ coverage.xml
 test.db
 *.diff
 .ruff_cache
-.jules/
+.jules
 .cache
 .benchmarks
 coverage_html/

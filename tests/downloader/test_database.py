@@ -687,6 +687,8 @@ class TestParseHeader(unittest.TestCase):
                 cfile=os.path.join(tmp, "import_to_sqlite.pyc"),
                 doraise=True,
             )
+
+
 class TestMonolithicDatabase(unittest.TestCase):
     """Tests for monolithic SQLModel-based database in db.py."""
 

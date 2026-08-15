@@ -453,7 +453,7 @@ def search_stories(
                     from sqlalchemy import or_
 
                     or_clauses = [
-                        col(Story.path).contains(suffix)
+                        col(Story.path).endswith(suffix)
                         for suffix in entity_suffixes  # pylint: disable=no-member
                     ]  # pyrefly: ignore [missing-attribute]  # pylint: disable=no-member
                     query_stmt = query_stmt.where(or_(*or_clauses))
@@ -494,7 +494,7 @@ def search_stories(
                 from sqlalchemy import or_
 
                 or_clauses = [
-                    col(Story.path).contains(suffix)  # pylint: disable=no-member
+                    col(Story.path).endswith(suffix)  # pylint: disable=no-member
                     for suffix in entity_suffixes  # pylint: disable=no-member
                 ]  # pyrefly: ignore [missing-attribute]  # pylint: disable=no-member
                 stmt = stmt.where(or_(*or_clauses))

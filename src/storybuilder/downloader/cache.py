@@ -35,10 +35,7 @@ def load_cache(cache_dir="stories/db") -> None:
 			safe_print(f"Warning: Failed to load cache: {e}")
 	else:
 		safe_print(f"No cache found at {cache_path}")
-	for _ in range(10):
-		time.sleep(1)
-		print(".", end="", flush=True)
-	print()
+	# No fixed delay/spinner; cache loading is complete at this point.
 
 
 def save_cache(cache_dir="stories/db") -> None:

@@ -10,7 +10,7 @@ on:
 
 jobs:
   changes:
-    runs-on: Linux
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: read

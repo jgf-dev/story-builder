@@ -2,6 +2,7 @@
 """Tests for the database layer: db.py, import_to_sqlite.py, story_db.py."""
 
 import os
+import py_compile
 import shutil
 import sqlite3
 import sys

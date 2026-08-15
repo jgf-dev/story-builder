@@ -168,7 +168,6 @@ Fixed Pyrefly check static type checker diagnostics and unresolved imports in th
 - Fixed mock calls type checking in `tests/agents/test_subagent.py` and `tests/misc/test_keys.py` by casting mock client calls to `Any`.
 - Fixed unused variable warning in `src/storybuilder/analysis/generate_embeddings.py`.
 - Configured pytest in `pyproject.toml` to ignore third-party/system `DeprecationWarning`s to clean up test output.
->>>>>>> origin/known-quail-harlequin-831
 
 ## [c650177](https://github.com/jgf2/story-builder/commit/c650177) - 2026-08-01
 

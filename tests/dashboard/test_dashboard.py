@@ -15,11 +15,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 _scripts_dir = str(Path(__file__).resolve().parents[2] / "scripts")
 if _scripts_dir not in sys.path:
 	sys.path.insert(0, _scripts_dir)
-<<<<<<< HEAD
-=======
 
 import dashboard  # pyrefly: ignore [missing-import]
->>>>>>> origin/main
 
 
 class TestDashboard(unittest.TestCase):
@@ -38,268 +35,6 @@ class TestDashboard(unittest.TestCase):
 
 		st.cache_data.clear()
 
-<<<<<<< HEAD
-		# Patch environment variables for storybuilder.dashboard.data
-		self.patch_env = patch.dict(
-			"os.environ",
-			{
-				"STORYBUILDER_DB_DIR": self.db_dir,
-				"STORYBUILDER_NLP_DB_PATH": self.nlp_db_path,
-				"STORYBUILDER_META_DB_PATH": self.meta_db_path,
-			},
-		)
-		self.patch_env.start()
-
-		# Patch paths inside dashboard
-		self.patch_dir = patch("dashboard.DB_DIR", self.db_dir)
-		self.patch_nlp = patch("dashboard.NLP_DB_PATH", self.nlp_db_path)
-		self.patch_meta = patch("dashboard.META_DB_PATH", self.meta_db_path)
-
-		# Patch db.py globals used by dashboard's new refactored code
-		import storybuilder.downloader.db as sb_db
-
-		sb_db.init_db(self.db_dir)
-
-		self.patch_dir.start()
-		self.patch_nlp.start()
-		self.patch_meta.start()
-
-	def tearDown(self) -> None:
-		self.patch_dir.stop()
-		self.patch_nlp.stop()
-		self.patch_meta.stop()
-		self.patch_env.stop()
-		shutil.rmtree(self.temp_dir, ignore_errors=True)
-
-	def _create_mock_partition(
-		self,
-		year,
-		category,
-		title,
-		author,
-		date,
-		word_count,
-		path,
-		content,
-	) -> None:
-		from sqlmodel import Session, select
-
-		from storybuilder.downloader import db as sb_db
-
-		sb_db.insert_story(
-			output_path=path,
-			title=title,
-			author=author,
-			story_date=date,
-			url="http://test",
-			content=content,
-		)
-		if word_count is not None:
-			with Session(sb_db._engine) as session:
-				story = session.exec(select(sb_db.Story).where(sb_db.Story.path == path)).first()
-				if story:
-					story.word_count = word_count
-					session.add(story)
-					session.commit()
-
-	def _create_mock_nlp_db(self, filepath, text, label) -> None:
-		conn = sqlite3.connect(self.nlp_db_path)
-		conn.execute(
-			"""
-			CREATE TABLE IF NOT EXISTS stories (
-				id INTEGER PRIMARY KEY AUTOINCREMENT,
-				filepath TEXT UNIQUE,
-				processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-			)
-			""",
-		)
-		conn.execute(
-			"""
-			CREATE TABLE IF NOT EXISTS entities (
-				id INTEGER PRIMARY KEY AUTOINCREMENT,
-				story_id INTEGER,
-				text TEXT,
-				label TEXT,
-				frequency INTEGER,
-				FOREIGN KEY(story_id) REFERENCES stories(id)
-			)
-			""",
-		)
-		conn.execute(
-			"INSERT OR REPLACE INTO stories (filepath) VALUES (?)",
-			(filepath,),
-		)
-		story_id = conn.execute(
-			"SELECT id FROM stories WHERE filepath = ?",
-			(filepath,),
-		).fetchone()[0]
-		conn.execute(
-			"INSERT INTO entities (story_id, text, label, frequency) VALUES (?, ?, ?, 1)",
-			(story_id, text, label),
-		)
-
-		conn.commit()
-		conn.close()
-
-	def test_get_db_files(self) -> None:
-		from unittest.mock import patch
-
-		with patch.dict(
-			"os.environ",
-			{
-				"STORYBUILDER_DB_DIR": self.db_dir,
-				"STORYBUILDER_NLP_DB_PATH": self.nlp_db_path,
-				"STORYBUILDER_META_DB_PATH": self.meta_db_path,
-			},
-		):
-			from dashboard import get_db_files  # pyrefly: ignore [missing-import]
-
-			self.assertEqual(get_db_files(), [])
-
-			# Create mock db files
-			Path(os.path.join(self.db_dir, "2025.db")).open("w").close()
-			Path(os.path.join(self.db_dir, "2026.db")).open("w").close()
-
-			files = [os.path.basename(f) for f in get_db_files()]
-			self.assertEqual(files, ["2025.db", "2026.db"])
-
-	def test_favorites_crud(self) -> None:
-		from dashboard import (
-			add_favorite,  # pyrefly: ignore [missing-import]
-			get_favorites,  # pyrefly: ignore [missing-import]
-			remove_favorite,  # pyrefly: ignore [missing-import]
-		)
-
-		# Initial empty
-		self.assertEqual(get_favorites(), [])
-
-		# Add favorite
-		success = add_favorite(
-			"test_path.txt",
-			"Test Story",
-			"Test Author",
-			"tag1,tag2",
-			"Some notes",
-		)
-		self.assertTrue(success)
-
-		favs = get_favorites()
-		self.assertEqual(len(favs), 1)
-		self.assertEqual(favs[0]["story_path"], "test_path.txt")
-		self.assertEqual(favs[0]["title"], "Test Story")
-		self.assertEqual(favs[0]["tags"], "tag1,tag2")
-		self.assertEqual(favs[0]["notes"], "Some notes")
-
-		# Update favorite
-		success_update = add_favorite(
-			"test_path.txt",
-			"Test Story",
-			"Test Author",
-			"tag1,tag2,tag3",
-			"Updated notes",
-		)
-		self.assertTrue(success_update)
-		favs = get_favorites()
-		self.assertEqual(favs[0]["tags"], "tag1,tag2,tag3")
-		self.assertEqual(favs[0]["notes"], "Updated notes")
-
-		# Remove favorite
-		success_remove = remove_favorite("test_path.txt")
-		self.assertTrue(success_remove)
-		self.assertEqual(get_favorites(), [])
-
-	def test_query_stories_metadata(self) -> None:
-		from unittest.mock import patch
-
-		with patch.dict(
-			"os.environ",
-			{
-				"STORYBUILDER_DB_DIR": self.db_dir,
-				"STORYBUILDER_NLP_DB_PATH": self.nlp_db_path,
-				"STORYBUILDER_META_DB_PATH": self.meta_db_path,
-			},
-		):
-			from dashboard import query_stories  # pyrefly: ignore [missing-import]
-
-			# Create stories in different partitions
-			self._create_mock_partition(
-				year=2025,
-				category="college",
-				title="2025 Story Title",
-				author="Author Alpha",
-				date="2025-05-10",
-				word_count=500,
-				path="nifty_stories/gay/college/story1.txt",
-				content="This is the content of story one.",
-			)
-
-			self._create_mock_partition(
-				year=2026,
-				category="athletics",
-				title="2026 Story Title",
-				author="Author Beta",
-				date="2026-06-12",
-				word_count=1200,
-				path="nifty_stories/gay/athletics/story2.txt",
-				content="This is the content of story two containing werewolf words.",
-			)
-
-			# Browse all
-			results = query_stories()
-			self.assertEqual(len(results), 2)
-			# Results should be sorted by date desc
-			self.assertEqual(results[0]["title"], "2026 Story Title")
-			self.assertEqual(results[1]["title"], "2025 Story Title")
-
-			# Filter by category
-			res_cat = query_stories(category="college")
-			self.assertEqual(len(res_cat), 1)
-			self.assertEqual(res_cat[0]["title"], "2025 Story Title")
-
-			# Filter by author
-			res_auth = query_stories(author="Author Beta")
-			self.assertEqual(len(res_auth), 1)
-			self.assertEqual(res_auth[0]["title"], "2026 Story Title")
-
-			# Filter by year range
-			res_year = query_stories(year_range=(2025, 2025))
-			self.assertEqual(len(res_year), 1)
-			self.assertEqual(res_year[0]["title"], "2025 Story Title")
-
-	def test_query_stories_fts(self) -> None:
-		from unittest.mock import patch
-
-		with patch.dict(
-			"os.environ",
-			{
-				"STORYBUILDER_DB_DIR": self.db_dir,
-				"STORYBUILDER_NLP_DB_PATH": self.nlp_db_path,
-				"STORYBUILDER_META_DB_PATH": self.meta_db_path,
-			},
-		):
-			from dashboard import query_stories  # pyrefly: ignore [missing-import]
-
-			self._create_mock_partition(
-				year=2026,
-				category="athletics",
-				title="Wolverine vs Werewolf",
-				author="Author Beta",
-				date="2026-06-12",
-				word_count=1200,
-				path="nifty_stories/gay/athletics/story2.txt",
-				content="This is the content of story two containing werewolf words.",
-			)
-
-			# FTS query match
-			res_fts = query_stories(fts_query="werewolf")
-			self.assertEqual(len(res_fts), 1)
-			self.assertEqual(res_fts[0]["title"], "Wolverine vs Werewolf")
-
-			# FTS query no match
-			res_no_match = query_stories(fts_query="vampire")
-			self.assertEqual(len(res_no_match), 0)
-
-=======
 		# Patch paths inside dashboard
 		self.patch_dir = patch("dashboard.DB_DIR", self.db_dir)
 		self.patch_nlp = patch("dashboard.NLP_DB_PATH", self.nlp_db_path)
@@ -547,7 +282,6 @@ class TestDashboard(unittest.TestCase):
 			res_no_match = query_stories(fts_query="vampire")
 			self.assertEqual(len(res_no_match), 0)
 
->>>>>>> origin/main
 	def test_query_stories_with_entities(self) -> None:
 		from unittest.mock import patch
 
@@ -615,29 +349,6 @@ class TestDashboardConfig(unittest.TestCase):
 	def test_get_db_dir_with_mock(self) -> None:
 		import os
 		from unittest.mock import patch
-<<<<<<< HEAD
-
-		from storybuilder.dashboard.config import get_db_dir
-
-		with patch.dict(os.environ, {"STORYBUILDER_DB_DIR": "custom/db/path"}):
-			result = get_db_dir()
-			self.assertEqual(result, "custom/db/path")
-
-	def test_get_nlp_db_path_with_mock(self) -> None:
-		import os
-		from unittest.mock import patch
-
-		from storybuilder.dashboard.config import get_nlp_db_path
-
-		with patch.dict(os.environ, {"STORYBUILDER_NLP_DB_PATH": "custom/nlp.db"}):
-			result = get_nlp_db_path()
-			self.assertEqual(result, "custom/nlp.db")
-
-	def test_get_meta_db_path_with_mock(self) -> None:
-		import os
-		from unittest.mock import patch
-
-=======
 		from storybuilder.dashboard.config import get_db_dir
 
 		with patch.dict(os.environ, {"STORYBUILDER_DB_DIR": "custom/db/path"}):
@@ -656,7 +367,6 @@ class TestDashboardConfig(unittest.TestCase):
 	def test_get_meta_db_path_with_mock(self) -> None:
 		import os
 		from unittest.mock import patch
->>>>>>> origin/main
 		from storybuilder.dashboard.config import get_meta_db_path
 
 		with patch.dict(os.environ, {"STORYBUILDER_META_DB_PATH": "custom/meta.db"}):
@@ -706,10 +416,7 @@ class TestDashboardDataFunctions(unittest.TestCase):
 		shutil.rmtree(self.temp_dir, ignore_errors=True)
 
 	def test_get_db_files_empty(self) -> None:
-<<<<<<< HEAD
-=======
 		import sys
->>>>>>> origin/main
 		from unittest.mock import patch
 
 		with patch.dict(
@@ -726,10 +433,7 @@ class TestDashboardDataFunctions(unittest.TestCase):
 			self.assertEqual(result, [])
 
 	def test_get_db_files_with_year_dbs(self) -> None:
-<<<<<<< HEAD
-=======
 		import sys
->>>>>>> origin/main
 		from unittest.mock import patch
 
 		with patch.dict(
@@ -751,10 +455,7 @@ class TestDashboardDataFunctions(unittest.TestCase):
 			self.assertEqual(result_names, ["2024.db", "2025.db"])
 
 	def test_get_filter_options_with_data(self) -> None:
-<<<<<<< HEAD
-=======
 		import sys
->>>>>>> origin/main
 		from unittest.mock import patch
 
 		with patch.dict(
@@ -792,10 +493,7 @@ class TestDashboardDataFunctions(unittest.TestCase):
 			self.assertIn("Author B", authors)
 
 	def test_load_archive_stats(self) -> None:
-<<<<<<< HEAD
-=======
 		import sys
->>>>>>> origin/main
 		from unittest.mock import patch
 
 		with patch.dict(
@@ -825,11 +523,7 @@ class TestDashboardDataFunctions(unittest.TestCase):
 			self.assertFalse(df_auths.empty)
 
 	def test_get_story_by_path_exists(self) -> None:
-<<<<<<< HEAD
-		from unittest.mock import patch
-=======
 		import sys
->>>>>>> origin/main
 
 		with patch.dict(
 			"os.environ",
@@ -857,11 +551,7 @@ class TestDashboardDataFunctions(unittest.TestCase):
 			self.assertEqual(result["author_name"], "Test Author")
 
 	def test_get_story_by_path_not_found(self) -> None:
-<<<<<<< HEAD
-		from unittest.mock import patch
-=======
 		import sys
->>>>>>> origin/main
 
 		with patch.dict(
 			"os.environ",
@@ -877,11 +567,7 @@ class TestDashboardDataFunctions(unittest.TestCase):
 			self.assertIsNone(result)
 
 	def test_add_favorite_function(self) -> None:
-<<<<<<< HEAD
-		from unittest.mock import patch
-=======
 		import sys
->>>>>>> origin/main
 
 		with patch.dict(
 			"os.environ",
@@ -891,13 +577,9 @@ class TestDashboardDataFunctions(unittest.TestCase):
 				"STORYBUILDER_META_DB_PATH": self.meta_db_path,
 			},
 		):
-<<<<<<< HEAD
-			from storybuilder.dashboard.data import add_favorite, get_favorites, remove_favorite
-=======
 			from storybuilder.dashboard.data import add_favorite
 			from storybuilder.dashboard.data import get_favorites
 			from storybuilder.dashboard.data import remove_favorite
->>>>>>> origin/main
 
 			success = add_favorite(
 				"test/path.txt",
@@ -919,11 +601,7 @@ class TestDashboardDataFunctions(unittest.TestCase):
 
 	def test_archive_stats_empty_db(self) -> None:
 		"""Regression test for Fix #1: empty-DB stats guard should not crash."""
-<<<<<<< HEAD
-		from unittest.mock import patch
-=======
 		import sys
->>>>>>> origin/main
 
 		with patch.dict(
 			"os.environ",
@@ -946,11 +624,7 @@ class TestDashboardDataFunctions(unittest.TestCase):
 
 	def test_favorites_year_resolution_with_null_publication_date(self) -> None:
 		"""Regression test for Fix #2: favorites year query via get_conn cursor."""
-<<<<<<< HEAD
-		from unittest.mock import patch
-=======
 		import sys
->>>>>>> origin/main
 
 		with patch.dict(
 			"os.environ",
@@ -960,12 +634,8 @@ class TestDashboardDataFunctions(unittest.TestCase):
 				"STORYBUILDER_META_DB_PATH": self.meta_db_path,
 			},
 		):
-<<<<<<< HEAD
-			from storybuilder.downloader.db import get_conn, insert_story
-=======
 			from storybuilder.downloader.db import get_conn
 			from storybuilder.downloader.db import insert_story
->>>>>>> origin/main
 
 			# Insert test stories with various publication_date formats (correct path format)
 			insert_story(
@@ -1004,11 +674,7 @@ class TestDashboardDataFunctions(unittest.TestCase):
 
 			import datetime
 
-<<<<<<< HEAD
-			current_year = datetime.datetime.now(datetime.UTC).year
-=======
 			current_year = datetime.datetime.now(datetime.timezone.utc).year
->>>>>>> origin/main
 
 			# Check that we can extract years without crashing
 			path_to_year = {}
@@ -1026,61 +692,6 @@ class TestDashboardDataFunctions(unittest.TestCase):
 				current_year,
 				f"Should default to {current_year} for None",
 			)
-<<<<<<< HEAD
-
-	def test_get_nlp_conn_not_exists(self) -> None:
-		from unittest.mock import patch
-
-		import streamlit as st
-
-		st.cache_resource.clear()
-
-		if Path(self.nlp_db_path).exists():
-			Path(self.nlp_db_path).unlink()
-
-		with patch.dict(
-			"os.environ",
-			{
-				"STORYBUILDER_DB_DIR": self.db_dir,
-				"STORYBUILDER_NLP_DB_PATH": self.nlp_db_path,
-				"STORYBUILDER_META_DB_PATH": self.meta_db_path,
-			},
-		):
-			from storybuilder.dashboard.data import get_nlp_conn
-
-			st.cache_resource.clear()
-			result = get_nlp_conn()
-			self.assertIsNone(result)
-
-	def test_get_nlp_conn_exists(self) -> None:
-		import sqlite3
-		from unittest.mock import patch
-
-		import streamlit as st
-
-		st.cache_resource.clear()
-
-		conn = sqlite3.connect(self.nlp_db_path)
-		conn.close()
-
-		with patch.dict(
-			"os.environ",
-			{
-				"STORYBUILDER_DB_DIR": self.db_dir,
-				"STORYBUILDER_NLP_DB_PATH": self.nlp_db_path,
-				"STORYBUILDER_META_DB_PATH": self.meta_db_path,
-			},
-		):
-			from storybuilder.dashboard.data import get_nlp_conn
-
-			st.cache_resource.clear()
-			conn_result = get_nlp_conn()
-			self.assertIsNotNone(conn_result)
-			self.assertIsInstance(conn_result, sqlite3.Connection)
-			if conn_result:
-				conn_result.close()
-=======
->>>>>>> origin/main
 
 
 if __name__ == "__main__":

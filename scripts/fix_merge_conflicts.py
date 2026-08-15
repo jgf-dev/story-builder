@@ -13,10 +13,7 @@ def resolve_file(path: Path) -> bool:
 		text = path.read_text(encoding="utf-8")
 	except (UnicodeDecodeError, OSError):
 		return False
-<<<<<<< HEAD
-=======
 	if "<<<<<<<" not in text:
->>>>>>> origin/main
 		return False
 
 	out_lines: list[str] = []

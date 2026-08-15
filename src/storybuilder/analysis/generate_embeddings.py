@@ -23,11 +23,7 @@ def parse_args() -> Namespace:
 	parser.add_argument(
 		"--limit",
 		type=int,
-<<<<<<< HEAD
-		default=float("inf"),
-=======
 		default=10**9,
->>>>>>> origin/main
 		help="Maximum number of files to process.",
 	)
 	parser.add_argument(

@@ -45,16 +45,9 @@ def discover_eval_sets(agent_dir: Path) -> list[Path]:
 
 
 def load_eval_set(eval_set_path: Path) -> dict:
-<<<<<<< HEAD
-    """Load an ADK eval set JSON file."""
-    with Path(eval_set_path).open() as f:
-
-        return json.load(f)
-=======
 	"""Load an ADK eval set JSON file."""
 	with Path(eval_set_path).open(encoding="utf-8") as f:
 		return json.load(f)
->>>>>>> origin/main
 
 
 def print_eval_set_summary(eval_set: dict) -> None:
@@ -85,20 +78,10 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
 	`AgentEvaluator.evaluate_eval_set()` API. If the ADK evaluation module
 	is unavailable, it falls back to structural validation.
 
-<<<<<<< HEAD
-    Results are automatically saved to .adk/eval_history/ by the ADK.
-    """
-    import asyncio
-    from pathlib import Path as _Path
-
-    eval_path = _Path(eval_set_path)
-    agent_dir = eval_path.parent
-=======
 	Results are automatically saved to .adk/eval_history/ by the ADK.
 	"""
 	eval_path = Path(eval_set_path)
 	agent_dir = eval_path.parent
->>>>>>> origin/main
 
 	eval_data = load_eval_set(eval_set_path)
 	eval_name = eval_data.get("name", eval_data.get("eval_set_id", eval_path.stem))
@@ -107,13 +90,6 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
 		print(f"\nRunning eval set: {eval_name}")
 		print_eval_set_summary(eval_data)
 
-<<<<<<< HEAD
-		original_cwd = _Path.cwd()
-		os.chdir(str(agent_dir))
-
-        original_cwd = os.getcwd()
-        os.chdir(str(agent_dir))
-=======
 	# Try loading the eval set via ADK's built-in file loader
 	try:
 		from google.adk.evaluation import AgentEvaluator
@@ -121,7 +97,6 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
 
 		original_cwd = _Path.cwd()
 		os.chdir(str(agent_dir))
->>>>>>> origin/main
 
 		try:
 			# Load using ADK's file loader (handles both new and old formats)
@@ -160,49 +135,16 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
 							except (KeyError, ValueError, TypeError):
 								status_label = str(status)
 
-<<<<<<< HEAD
-            # Print results summary
-            print(f"\nResults for '{eval_name}':")
-            if hasattr(results, "eval_case_results"):
-                for case_result in results.eval_case_results:
-                    case_id = getattr(case_result, "eval_id", "?")
-                    metrics = getattr(case_result, "overall_eval_metric_results", [])
-                    print(f"  Case '{case_id}':")
-                    for metric in metrics:
-                        metric_name = getattr(metric, "metric_name", "?")
-                        score = getattr(metric, "score", None)
-                        status = getattr(metric, "eval_status", None)
-                        status_label = {1: "PASS", 2: "FAIL", 3: "SKIP", 4: "ERROR"}.get(status, str(status or "?"))
-=======
 						if score is not None:
 							print(f"    {metric_name}: {score:.4f} [{status_label}]")
 						else:
 							print(f"    {metric_name}: [{status_label}]")
->>>>>>> origin/main
 
 			return {"status": "completed", "eval_set": eval_name}
 
 		finally:
 			os.chdir(original_cwd)
 
-<<<<<<< HEAD
-        finally:
-            os.chdir(original_cwd)
-
-    except ImportError as e:
-        logger.warning("ADK evaluation module not available: %s", e)
-        logger.info("Falling back to structural validation.")
-        issues = validate_eval_set_structure(eval_data, str(eval_path))
-        return {
-            "status": "validated_only",
-            "eval_set": eval_name,
-            "issues": issues,
-            "error": str(e),
-        }
-    except Exception as e:
-        logger.error("Error running eval set '%s': %s", eval_name, e)
-        return {"status": "error", "eval_set": eval_name, "error": str(e)}
-=======
 	except ImportError as e:
 		logger.warning("ADK evaluation module not available: %s", e)
 		logger.info("Falling back to structural validation.")
@@ -216,7 +158,6 @@ def run_eval_via_adk(eval_set_path: Path, verbose: bool = False) -> dict:
 	except Exception as e:  # pylint: disable=broad-except
 		logger.exception("Error running eval set '%s'", eval_name)
 		return {"status": "error", "eval_set": eval_name, "error": str(e)}
->>>>>>> origin/main
 
 
 def _resolve_agent_module(agent_dir: Path) -> str:
@@ -235,28 +176,6 @@ def _resolve_agent_module(agent_dir: Path) -> str:
 	return f"{module}.agent"
 
 
-<<<<<<< HEAD
-def validate_eval_set_structure(eval_set: dict, file_path: str) -> list[str]:
-    """Validate the structure of an ADK eval set without running it."""
-    issues = []
-    eval_id = eval_set.get("eval_set_id") or eval_set.get("name", "unknown")
-
-    if not eval_set.get("eval_cases"):
-        issues.append(f"[{eval_id}] No eval_cases found")
-
-    for i, case in enumerate(eval_set.get("eval_cases", [])):
-        case_id = case.get("eval_id", f"case_{i}")
-        conv = case.get("conversation", [])
-        if not conv:
-            issues.append(f"[{case_id}] Empty conversation")
-        for j, turn in enumerate(conv):
-            uc = turn.get("user_content", {})
-            if not uc.get("parts"):
-                issues.append(f"[{case_id}] turn[{j}] missing user_content parts")
-            fr = turn.get("final_response", {})
-            if not fr.get("parts"):
-                issues.append(f"[{case_id}] turn[{j}] missing final_response parts")
-=======
 def validate_eval_set_structure(eval_set: dict, file_path: str | None = None) -> list[str]:
 	"""Validate the structure of an ADK eval set without running it."""
 	issues = []
@@ -278,7 +197,6 @@ def validate_eval_set_structure(eval_set: dict, file_path: str | None = None) ->
 			fr = turn.get("final_response", {})
 			if not fr.get("parts"):
 				issues.append(f"[{case_id}]{location} turn[{j}] missing final_response parts")
->>>>>>> origin/main
 
 	return issues
 
@@ -315,21 +233,12 @@ def main() -> None:
 	)
 	args = parser.parse_args()
 
-<<<<<<< HEAD
-    # Discover eval sets
-    agent_dirs = []
-    if args.agent in ("tts_prompt_crafter", "all"):
-        agent_dirs.append(TTS_AGENT_DIR)
-    if args.agent in ("cartesia_tts_prompt_crafter", "all"):
-        agent_dirs.append(CARTESIA_AGENT_DIR)
-=======
 	# Discover eval sets
 	agent_dirs = []
 	if args.agent in {"tts_prompt_crafter", "all"}:
 		agent_dirs.append(TTS_AGENT_DIR)
 	if args.agent in {"cartesia_tts_prompt_crafter", "all"}:
 		agent_dirs.append(CARTESIA_AGENT_DIR)
->>>>>>> origin/main
 
 	all_eval_sets = []
 	for agent_dir in agent_dirs:
@@ -374,15 +283,6 @@ def main() -> None:
 		print("\nRun with --eval-set <name> or --all to execute.")
 		return
 
-<<<<<<< HEAD
-    # Run eval sets
-    print(f"Running {len(all_eval_sets)} eval set(s)...")
-    for eval_path in all_eval_sets:
-        try:
-            run_eval_via_adk(eval_path, verbose=args.verbose)
-        except Exception as e:
-            logger.error("Failed to run %s: %s", eval_path.name, e)
-=======
 	# Run eval sets
 	print(f"Running {len(all_eval_sets)} eval set(s)...")
 	for eval_path in all_eval_sets:
@@ -390,7 +290,6 @@ def main() -> None:
 			run_eval_via_adk(eval_path, verbose=args.verbose)
 		except Exception as e:
 			logger.exception("Failed to run %s: %s", eval_path.name, e)
->>>>>>> origin/main
 
 
 if __name__ == "__main__":

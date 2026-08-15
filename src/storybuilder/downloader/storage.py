@@ -155,8 +155,6 @@ def upload_many_s3(
 
 	try:
 		import boto3  # pyrefly: ignore [missing-import]
-<<<<<<< HEAD
-
 	except ImportError as exc:
 		msg = "S3 uploads require the 'boto3' package. Install it with `pip install boto3`."
 		raise ImportError(
@@ -176,27 +174,6 @@ def upload_many_s3(
 		except Exception as e:
 			return filename, e
 
-=======
-	except ImportError as exc:
-		msg = "S3 uploads require the 'boto3' package. Install it with `pip install boto3`."
-		raise ImportError(
-			msg,
-		) from exc
-
-	import concurrent.futures
-
-	s3_client = boto3.client("s3")
-	base_dir = Path(source_directory).resolve() if source_directory else None
-	key_prefix = prefix.strip("/")
-
-	def upload_file(filename: str) -> tuple[str, Any]:
-		try:
-			_upload_single_s3(s3_client, bucket_name, key_prefix, filename, base_dir)
-			return filename, None
-		except Exception as e:
-			return filename, e
-
->>>>>>> origin/main
 	with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
 		futures = {executor.submit(upload_file, fn): fn for fn in filenames}
 		for future in concurrent.futures.as_completed(futures):

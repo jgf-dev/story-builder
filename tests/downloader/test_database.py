@@ -677,8 +677,6 @@ class TestParseHeader(unittest.TestCase):
         # Actually, empty content + title = not None since we check "not content and not title"
         self.assertIsNotNone(result)
         self.assertEqual(result["content"], "")
-<<<<<<< HEAD
-=======
 
     def test_import_to_sqlite_script_compiles(self) -> None:
         script_path = Path(__file__).resolve().parents[2] / "scripts" / "import_to_sqlite.py"
@@ -690,7 +688,6 @@ class TestParseHeader(unittest.TestCase):
             )
 
 
->>>>>>> origin/main
 class TestMonolithicDatabase(unittest.TestCase):
     """Tests for monolithic SQLModel-based database in db.py."""
 

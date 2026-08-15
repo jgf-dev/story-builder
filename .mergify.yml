@@ -52,12 +52,6 @@ pull_request_rules:
     actions:
       label:
         add:
-<<<<<<< HEAD
-          - "@jules"
-          - "@devin"
-      comment:
-        message: "@jules @devin can you fix the merge conflicts?"
-=======
           - "jules"
           - "failures"
       comment:
@@ -65,7 +59,6 @@ pull_request_rules:
       review:
         type: REQUEST_CHANGES
         message: Can copilot or jules fix the merge conflicts?
->>>>>>> origin/main
   - name: Keep PRs up to date
     conditions:
       - -draft

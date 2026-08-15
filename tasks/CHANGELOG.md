@@ -3,16 +3,6 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
-<<<<<<< HEAD
-## [6da5155](https://github.com/jgf2/story-builder/commit/6da5155) - 2026-08-05
-
-### Summary
-Resolved merge conflicts across `dashboard.html`, `evals/run_adk_eval.py`, `src/storybuilder/analysis/extract_entities.py`, `src/storybuilder/dashboard/data.py`, `src/storybuilder/downloader/network.py`, `src/storybuilder/downloader/storage.py`, `tasks/CHANGELOG.md`, `tests/agents/test_subagent.py`, and `tests/dashboard/test_dashboard.py`.
-
-### Fixed
-- Preserved existing type hints, helper functions, and assertion logic from HEAD.
-- Formatted Python source files using `ruff format` and verified test suite execution.
-=======
 ## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-15
 
 ### Summary
@@ -59,7 +49,6 @@ Resolved git merge conflicts in `scripts/import_to_sqlite.py`.
 - Preserved type annotations `batch: list[tuple[object, ...]]` in `_flush_batch` signature.
 - Formatted file using `ruff format`.
 - Verified test suite execution with `pytest tests/dashboard/test_dashboard.py`.
->>>>>>> origin/main
 
 ## [730456f](https://github.com/jgf2/story-builder/commit/730456f) - 2026-08-02
 

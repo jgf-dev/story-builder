@@ -1,6 +1,19 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [PR-1754](https://github.com/jgf-dev/story-builder/pull/1754) - 2026-08-15
+
+### Summary
+Continued PR #1754 by resolving merge conflicts with `origin/main` and addressing outstanding review feedback.
+
+### Fixed
+- `main.py` now loads the project `.env` from the script's directory before `braintrust.auto_instrument()` runs, ensuring environment variables are available for library initialization.
+- `src/storybuilder/dashboard/pages/archive_stats.py` removed redundant column-existence checks after the empty-database guard.
+- Aligned repository with `origin/main` by removing deleted `.circleci/config.yml` and `.circleci/test-suites.yml`.
+
+### Added
+- Added test coverage for the merged changes; full suite passes (360 passed, 1 skipped, 3 subtests passed).
+
 ## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-02
 
 ### Summary

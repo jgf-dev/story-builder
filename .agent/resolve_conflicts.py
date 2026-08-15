@@ -27,9 +27,7 @@ def resolve_file(filepath):
 	print(f"Resolving conflicts in: {filepath}")
 	content = pathlib.Path(filepath).read_text(encoding="utf-8")
 
-	pattern = re.compile(
-		re.DOTALL,
-	)
+	pattern = re.compile(r"^<<<<<<<.*?\n(.*?)\n=======\n(.*?)\n>>>>>>>.*?$", re.DOTALL | re.MULTILINE)
 
 	basename = os.path.basename(filepath)
 

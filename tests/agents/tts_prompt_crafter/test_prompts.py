@@ -6,7 +6,7 @@ from storybuilder.agents.tts_prompt_crafter.prompts import get_prompt
 from storybuilder.agents.tts_prompt_crafter.prompts import get_story
 
 
-def test_get_prompt_success(tmp_path):
+def test_get_prompt_success(tmp_path) -> None:
     prompt_file = tmp_path / "test_prompt.md"
     prompt_file.write_text("Hello, prompt!")
 

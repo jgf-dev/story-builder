@@ -374,7 +374,6 @@ class TestCLIInternalFunctions(unittest.TestCase):
 
     def test_print_config_basic(self) -> None:
         """Test _print_config prints expected config."""
-        from storybuilder.downloader.cli import _print_config
         import io
         import sys
         from unittest.mock import patch

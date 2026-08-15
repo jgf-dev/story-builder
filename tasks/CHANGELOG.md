@@ -3,6 +3,7 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
+<<<<<<< HEAD
 ## [6da5155](https://github.com/jgf2/story-builder/commit/6da5155) - 2026-08-05
 
 ### Summary
@@ -11,6 +12,54 @@ Resolved merge conflicts across `dashboard.html`, `evals/run_adk_eval.py`, `src/
 ### Fixed
 - Preserved existing type hints, helper functions, and assertion logic from HEAD.
 - Formatted Python source files using `ruff format` and verified test suite execution.
+=======
+## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-15
+
+### Summary
+Resolved the pull request merge conflicts against `origin/main`.
+
+### Fixed
+- Merged the latest `origin/main` changes into this branch and removed the remaining conflict markers from the affected source, test, and changelog files.
+
+## [da889c4](https://github.com/jgf2/story-builder/commit/da889c4) - 2026-08-10
+
+### Summary
+Resolved git merge conflicts across read_story and search_explorer dashboard pages.
+
+### Fixed
+- Resolved merge conflicts and indentation mismatches in `src/storybuilder/dashboard/pages/read_story.py` and `src/storybuilder/dashboard/pages/search_explorer.py`.
+- Preserved `word_count` rendering in search explorer card display.
+- Verified test suite execution with `uv run pytest tests/dashboard/` (44 passed).
+
+## [c4c860f](https://github.com/jgf2/story-builder/commit/c4c860f) - 2026-08-05
+
+### Summary
+Resolved git merge conflicts across analysis, dashboard, genai, downloader, scripts, and test modules.
+
+### Fixed
+- Resolved merge conflicts in `.agent/` scripts, `scripts/import_to_sqlite.py`, `src/storybuilder/dashboard/data.py`, `src/storybuilder/downloader/`, `src/storybuilder/genai/`, `src/storybuilder/utils/`, and tests (`test_analyze_sentiment.py`, `test_dashboard.py`, `test_cartesia.py`).
+- Formatted Python source files using `ruff format`.
+- Verified test suite execution (`pytest tests/dashboard/test_dashboard.py tests/analysis/test_analyze_sentiment.py tests/genai/test_cartesia.py` - 29 passed).
+## [f955183](https://github.com/jgf2/story-builder/commit/f955183) - 2026-08-05
+
+### Summary
+Resolved merge conflicts across `.mergify.yml`, `CHANGELOG.md`, `dashboard.html`, `src/storybuilder/dashboard/config.py`, and `tests/dashboard/test_dashboard.py`.
+
+### Fixed
+- Preserved dynamic path resolution logic checking both environment variables and active module mocks in `src/storybuilder/dashboard/config.py`.
+- Formatted `tests/dashboard/test_dashboard.py` with consistent tab indentation.
+- Verified test suite execution (`pytest tests/dashboard/test_dashboard.py` - 22 passed).
+
+## [2eb81a8](https://github.com/jgf2/story-builder/commit/2eb81a8) - 2026-08-05
+
+### Summary
+Resolved git merge conflicts in `scripts/import_to_sqlite.py`.
+
+### Fixed
+- Preserved type annotations `batch: list[tuple[object, ...]]` in `_flush_batch` signature.
+- Formatted file using `ruff format`.
+- Verified test suite execution with `pytest tests/dashboard/test_dashboard.py`.
+>>>>>>> origin/main
 
 ## [730456f](https://github.com/jgf2/story-builder/commit/730456f) - 2026-08-02
 

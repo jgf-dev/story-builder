@@ -1,4 +1,3 @@
-from google.genai.types import SafetySetting
 import os
 import unittest
 from pathlib import Path

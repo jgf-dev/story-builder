@@ -8,7 +8,7 @@ from typing import ClassVar
 
 from sqlalchemy import func, literal_column
 from sqlalchemy.engine import Engine
-from sqlmodel import Field, Session, SQLModel, create_engine, select, text
+from sqlmodel import Field, Session, SQLModel, create_engine, select, text, col
 
 logging = std_logging.getLogger(__name__)
 
@@ -391,6 +391,7 @@ def search_stories(
 	date_to: "str | None" = None,
 	**kwargs,
 ) -> list[dict]:
+<<<<<<< HEAD
 	"""Search the monolithic database using SQLModel and SQLAlchemy expressions."""
 	limit: int = kwargs.get("limit", 100)
 	snippets: bool = kwargs.get("snippets", True)
@@ -398,6 +399,15 @@ def search_stories(
 	entity_suffixes: list[str] | None = kwargs.get("entity_suffixes", None)
 	if entity_suffixes == []:
 		return []
+=======
+    """Search the monolithic database using SQLModel and SQLAlchemy expressions."""
+    limit: int = kwargs.get("limit", 100)
+    snippets: bool = kwargs.get("snippets", True)
+    query: str | None = kwargs.get("query", None)
+    entity_suffixes: list[str] | None = kwargs.get("entity_suffixes", None)
+    if entity_suffixes == []:
+        return []
+>>>>>>> origin/main
 
 	if query is not None:
 		fts_query = query
@@ -437,6 +447,7 @@ def search_stories(
 					snippet_expr,
 				).select_from(Story)
 
+<<<<<<< HEAD
 				if category and category != "All":
 					query_stmt = query_stmt.where(Story.category == category)
 				if author and author != "All":
@@ -456,6 +467,28 @@ def search_stories(
 						Story.path.like(f"%{suffix}") for suffix in entity_suffixes
 					]  # pyrefly: ignore [missing-attribute]  # pylint: disable=no-member
 					query_stmt = query_stmt.where(or_(*or_clauses))
+=======
+                if category and category != "All":
+                    query_stmt = query_stmt.where(Story.category == category)
+                if author and author != "All":
+                    query_stmt = query_stmt.where(Story.author_name == author)
+                if date_from:
+                    query_stmt = query_stmt.where(
+                        Story.publication_date >= date_from,
+                    )  # pyrefly: ignore [unsupported-operation]
+                if date_to:
+                    query_stmt = query_stmt.where(
+                        Story.publication_date <= date_to,
+                    )  # pyrefly: ignore [unsupported-operation]
+                if entity_suffixes:
+                    from sqlalchemy import or_
+
+                    or_clauses = [
+                        col(Story.path).endswith(suffix)
+                        for suffix in entity_suffixes  # pylint: disable=no-member
+                    ]  # pyrefly: ignore [missing-attribute]  # pylint: disable=no-member
+                    query_stmt = query_stmt.where(or_(*or_clauses))
+>>>>>>> origin/main
 
 				query_stmt = query_stmt.join(fts_table, Story.id == fts_table.c.rowid)
 				query_stmt = query_stmt.where(literal_column("stories_fts").op("MATCH")(fts_query))
@@ -492,6 +525,7 @@ def search_stories(
 			if entity_suffixes:
 				from sqlalchemy import or_
 
+<<<<<<< HEAD
 				or_clauses = [
 					Story.path.like(f"%{suffix}") for suffix in entity_suffixes
 				]  # pyrefly: ignore [missing-attribute]  # pylint: disable=no-member
@@ -511,6 +545,28 @@ def search_stories(
 		except Exception as e:
 			std_logging.exception("Error executing search_stories", exc_info=e)
 			return []
+=======
+                or_clauses = [
+                    col(Story.path).endswith(suffix)  # pylint: disable=no-member
+                    for suffix in entity_suffixes  # pylint: disable=no-member
+                ]  # pyrefly: ignore [missing-attribute]  # pylint: disable=no-member
+                stmt = stmt.where(or_(*or_clauses))
+
+            stmt = stmt.order_by(
+                col(Story.publication_date).desc()  # pylint: disable=no-member
+            )  # pyrefly: ignore [missing-attribute]  # pylint: disable=no-member
+            stmt = stmt.limit(limit)
+            stories = session.exec(stmt).all()
+            output = []
+            for s in stories:
+                d = s.model_dump()
+                d["snippet"] = None
+                output.append(d)
+            return output
+        except Exception as e:
+            std_logging.exception("Error executing search_stories", exc_info=e)
+            return []
+>>>>>>> origin/main
 
 
 # -- Insert -------------------------------------------------------------
@@ -669,6 +725,7 @@ def get_all_partition_paths() -> list[str]:
 	"""
 	from pathlib import Path
 
+<<<<<<< HEAD
 	candidates: list[Path] = []
 	if _db_dir:
 		candidates.append(Path(_db_dir))
@@ -690,3 +747,26 @@ def get_all_partition_paths() -> list[str]:
 			if dbs:
 				return dbs
 	return []
+=======
+    candidates: list[Path] = []
+    if _db_dir:
+        candidates.append(Path(_db_dir))
+    candidates.extend(
+        [
+            Path.cwd() / "stories" / "db",
+            Path("stories") / "db",
+            Path("stories"),
+        ],
+    )
+
+    for base in candidates:
+        if base.exists() and base.is_dir():
+            dbs = sorted(
+                str(p)
+                for p in base.glob("*.db")
+                if not p.name.startswith(".") and p.name not in {"stories.db", "meta.db", "nlp_analysis.db"}
+            )
+            if dbs:
+                return dbs
+    return []
+>>>>>>> origin/main

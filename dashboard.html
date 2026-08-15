@@ -193,12 +193,8 @@
     }
 
     .stats {
-      margin: 0;
-      list-style: none;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-      padding: 0 20px 20px;
     }
 
     .stat {
@@ -291,12 +287,21 @@
             <h2 id="stats-heading">Quick Stats</h2>
             <p class="sub" id="stats-desc">Derived from the current file contents.</p>
           </header>
+<<<<<<< HEAD
           <div class="stats" role="group" aria-labelledby="stats-heading" aria-describedby="stats-desc">
             <div class="stat"><span class="k">Active</span><span class="v" id="activeCount">0</span></div>
             <div class="stat"><span class="k">Waiting</span><span class="v" id="waitingCount">0</span></div>
             <div class="stat"><span class="k">Someday</span><span class="v" id="somedayCount">0</span></div>
             <div class="stat"><span class="k">Done</span><span class="v" id="doneCount">0</span></div>
           </div>
+=======
+          <ul class="stats notes" aria-labelledby="stats-heading" aria-describedby="stats-desc">
+            <li class="stat"><span class="k">Active</span><span class="v" id="activeCount">0</span></li>
+            <li class="stat"><span class="k">Waiting</span><span class="v" id="waitingCount">0</span></li>
+            <li class="stat"><span class="k">Someday</span><span class="v" id="somedayCount">0</span></li>
+            <li class="stat"><span class="k">Done</span><span class="v" id="doneCount">0</span></li>
+          </ul>
+>>>>>>> origin/main
         </section>
 
         <section class="card" aria-labelledby="how-to-heading" aria-describedby="how-to-desc">

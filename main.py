@@ -2,16 +2,17 @@
 import os
 from pathlib import Path
 
-import braintrust
-
 from storybuilder.utils.env import load_env
 
 
-braintrust.auto_instrument()
-
-# Load the project's .env file regardless of the working directory so imports
-# that touch environment variables below see the expected configuration.
+# Load the project's .env file before any third-party instrumentation reads
+# environment variables such as Braintrust API keys or project config.
 load_env(Path(__file__).with_name(".env"))
+
+import braintrust  # noqa: E402
+
+
+braintrust.auto_instrument()
 
 if __name__ == "__main__":
     from storybuilder.genai import client

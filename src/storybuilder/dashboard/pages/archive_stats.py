@@ -20,9 +20,9 @@ def render_archive_stats() -> None:
         st.info("No archive data available yet.")
         return
 
-    # Overview metrics row
-    total_stories = df_years["Stories Count"].sum() if "Stories Count" in df_years.columns else 0
-    total_words = df_years["Total Words"].sum() if "Total Words" in df_years.columns else 0
+    # Overview metrics row (columns are guaranteed by the guard above)
+    total_stories = df_years["Stories Count"].sum()
+    total_words = df_years["Total Words"].sum()
 
     cols = st.columns(3)
     cols[0].metric("Total Stories", f"{total_stories:,}")

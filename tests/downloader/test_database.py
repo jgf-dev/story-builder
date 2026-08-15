@@ -687,6 +687,8 @@ class TestParseHeader(unittest.TestCase):
                 cfile=os.path.join(tmp, "import_to_sqlite.pyc"),
                 doraise=True,
             )
+
+
 class TestMonolithicDatabase(unittest.TestCase):
     """Tests for monolithic SQLModel-based database in db.py."""
 
@@ -703,7 +705,7 @@ class TestMonolithicDatabase(unittest.TestCase):
         from storybuilder.downloader import db
         conn = db.init_db(self.db_path)
         self.assertIsNotNone(conn)
-        
+
         # Verify stories table exists
         cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='stories'")
         self.assertIsNotNone(cursor.fetchone())
@@ -879,6 +881,7 @@ class TestImportToSQLite(unittest.TestCase):
 
     def test_flush_batch_compatibility(self) -> None:
         import import_to_sqlite
+
         from storybuilder.downloader import db
 
         db_path = os.path.join(self.temp_dir, "import_test.db")
@@ -916,6 +919,7 @@ class TestDBSearch(unittest.TestCase):
 
     def setUp(self) -> None:
         import tempfile
+
         from storybuilder.downloader import db
 
         self.temp_dir = tempfile.mkdtemp()
@@ -1043,6 +1047,7 @@ class TestDBContentOperations(unittest.TestCase):
 
     def setUp(self) -> None:
         import tempfile
+
         from storybuilder.downloader import db
 
         self.temp_dir = tempfile.mkdtemp()

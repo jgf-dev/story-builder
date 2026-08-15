@@ -8,7 +8,7 @@ from typing import ClassVar
 
 from sqlalchemy import func, literal_column
 from sqlalchemy.engine import Engine
-from sqlmodel import Field, Session, SQLModel, create_engine, select, text
+from sqlmodel import Field, Session, SQLModel, create_engine, select, text, col
 
 logging = std_logging.getLogger(__name__)
 
@@ -394,8 +394,8 @@ def search_stories(
     """Search the monolithic database using SQLModel and SQLAlchemy expressions."""
     limit: int = kwargs.get("limit", 100)
     snippets: bool = kwargs.get("snippets", True)
-    query: str | None = kwargs.get("query")
-    entity_suffixes: list[str] | None = kwargs.get("entity_suffixes")
+    query: str | None = kwargs.get("query", None)
+    entity_suffixes: list[str] | None = kwargs.get("entity_suffixes", None)
     if entity_suffixes == []:
         return []
 
@@ -442,13 +442,20 @@ def search_stories(
                 if author and author != "All":
                     query_stmt = query_stmt.where(Story.author_name == author)
                 if date_from:
-                    query_stmt = query_stmt.where(Story.publication_date >= date_from)  # pyrefly: ignore [unsupported-operation]
+                    query_stmt = query_stmt.where(
+                        Story.publication_date >= date_from,
+                    )  # pyrefly: ignore [unsupported-operation]
                 if date_to:
-                    query_stmt = query_stmt.where(Story.publication_date <= date_to)  # pyrefly: ignore [unsupported-operation]
+                    query_stmt = query_stmt.where(
+                        Story.publication_date <= date_to,
+                    )  # pyrefly: ignore [unsupported-operation]
                 if entity_suffixes:
                     from sqlalchemy import or_
 
-                    or_clauses = [Story.path.like(f"%{suffix}") for suffix in entity_suffixes]  # pyrefly: ignore [missing-attribute]  # pylint: disable=no-member
+                    or_clauses = [
+                        col(Story.path).endswith(suffix)
+                        for suffix in entity_suffixes  # pylint: disable=no-member
+                    ]  # pyrefly: ignore [missing-attribute]  # pylint: disable=no-member
                     query_stmt = query_stmt.where(or_(*or_clauses))
 
                 query_stmt = query_stmt.join(fts_table, Story.id == fts_table.c.rowid)
@@ -486,10 +493,15 @@ def search_stories(
             if entity_suffixes:
                 from sqlalchemy import or_
 
-                or_clauses = [Story.path.like(f"%{suffix}") for suffix in entity_suffixes]  # pyrefly: ignore [missing-attribute]  # pylint: disable=no-member
+                or_clauses = [
+                    col(Story.path).endswith(suffix)  # pylint: disable=no-member
+                    for suffix in entity_suffixes  # pylint: disable=no-member
+                ]  # pyrefly: ignore [missing-attribute]  # pylint: disable=no-member
                 stmt = stmt.where(or_(*or_clauses))
 
-            stmt = stmt.order_by(Story.publication_date.desc())  # pyrefly: ignore [missing-attribute]  # pylint: disable=no-member
+            stmt = stmt.order_by(
+                col(Story.publication_date).desc()  # pylint: disable=no-member
+            )  # pyrefly: ignore [missing-attribute]  # pylint: disable=no-member
             stmt = stmt.limit(limit)
             stories = session.exec(stmt).all()
             output = []
@@ -662,19 +674,20 @@ def get_all_partition_paths() -> list[str]:
     candidates: list[Path] = []
     if _db_dir:
         candidates.append(Path(_db_dir))
-    candidates.extend([
-        Path.cwd() / "stories" / "db",
-        Path("stories") / "db",
-        Path("stories"),
-    ])
+    candidates.extend(
+        [
+            Path.cwd() / "stories" / "db",
+            Path("stories") / "db",
+            Path("stories"),
+        ],
+    )
 
     for base in candidates:
         if base.exists() and base.is_dir():
             dbs = sorted(
                 str(p)
                 for p in base.glob("*.db")
-                if not p.name.startswith(".")
-                and p.name not in {"stories.db", "meta.db", "nlp_analysis.db"}
+                if not p.name.startswith(".") and p.name not in {"stories.db", "meta.db", "nlp_analysis.db"}
             )
             if dbs:
                 return dbs

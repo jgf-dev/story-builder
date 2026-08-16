@@ -1,23 +1,23 @@
+from google.genai.client import Client
 import argparse
 import base64
 import glob
 import logging
 import os
+from os import PathLike
 import pathlib
 import re
 import time
-import wave
-from os import PathLike
 from typing import Any
-
-from google import genai
-from google.genai.client import Client
+import wave
 
 from storybuilder.utils.env import load_env
+from google import genai
 
-logger = logging.getLogger(__name__)
 
 load_env()
+
+logger = logging.getLogger(__name__)
 
 
 def wave_file_writer(
@@ -156,9 +156,9 @@ class ApiKeyRotator:
 	def rotate(self) -> None:
 		"""Rotates to the next available API key and instantiates a new Client."""
 		self.current_key_idx = (self.current_key_idx + 1) % len(self.api_keys)
-		new_key_name, new_api_key = self.api_keys[self.current_key_idx]
+		_, new_api_key = self.api_keys[self.current_key_idx]
 		self._client = genai.Client(api_key=new_api_key)
-		print(f"  Switching to key '{new_key_name}'")
+		print("  Switching to the next configured API key")
 
 	@property
 	def total_keys(self) -> int:

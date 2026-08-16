@@ -56,7 +56,7 @@ def init_db(db_path) -> Connection:
 	return conn
 
 
-def is_processed(cursor: Cursor, filepath: str):
+def is_processed(cursor: Cursor, filepath: str) -> bool:
 	"""Check if a file has already been processed."""
 	cursor.execute("SELECT id FROM stories WHERE filepath = ?", (filepath,))
 	return cursor.fetchone() is not None

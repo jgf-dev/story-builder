@@ -5,10 +5,11 @@ import tempfile
 
 from storybuilder.genai.client import wave_file_writer
 
-def test_wave_file_writer_creates_valid_wave_file():
+
+def test_wave_file_writer_creates_valid_wave_file() -> None:
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_file = pathlib.Path(temp_dir) / "test.wav"
-        test_pcm = b'\x00\x00\x00\x00\x00\x00\x00\x00'
+        test_pcm = b"\x00\x00\x00\x00\x00\x00\x00\x00"
         channels = 1
         rate = 24000
         sample_width = 2
@@ -23,10 +24,11 @@ def test_wave_file_writer_creates_valid_wave_file():
             assert wf.getframerate() == rate
             assert wf.readframes(wf.getnframes()) == test_pcm
 
-def test_wave_file_writer_default_params():
+
+def test_wave_file_writer_default_params() -> None:
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_file = pathlib.Path(temp_dir) / "test_default.wav"
-        test_pcm = b'\x00\x00\x00\x00\x00\x00\x00\x00'
+        test_pcm = b"\x00\x00\x00\x00\x00\x00\x00\x00"
 
         wave_file_writer(str(temp_file), test_pcm)
 

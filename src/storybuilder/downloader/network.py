@@ -1,12 +1,14 @@
+from requests.models import Response
 import time
 
 import requests
+
 
 # Base URL for the classic Nifty Archive
 BASE_URL = "https://nifty.org/nifty/"
 
 # Global proxy and rotation settings
-PROXIES: dict[str, str] | None = None
+PROXIES = None
 ENABLE_ROTATION: bool = False
 
 

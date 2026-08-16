@@ -23,6 +23,7 @@ import os
 import sys
 from pathlib import Path
 
+
 logging.basicConfig(
 	level=logging.INFO,
 	format="%(asctime)s - %(levelname)s - %(message)s",
@@ -34,8 +35,8 @@ PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 # Agent paths
-TTS_AGENT_DIR = PROJECT_ROOT / ".agent" / "skills" / "tts-prompt-crafter"
-CARTESIA_AGENT_DIR = PROJECT_ROOT / "src" / "storybuilder" / "cartesia"
+TTS_AGENT_DIR = PROJECT_ROOT / "src" / "storybuilder" / "agents" / "tts_prompt_crafter"
+CARTESIA_AGENT_DIR = PROJECT_ROOT / "src" / "storybuilder" / "agents" / "cartesia_tts_prompt_crafter"
 
 
 def discover_eval_sets(agent_dir: Path) -> list[Path]:

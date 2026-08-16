@@ -3,6 +3,17 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
+## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-16
+
+### Summary
+Resolved merge conflicts across `CHANGELOG.md`, `src/storybuilder/dashboard/pages/search_explorer.py`, and `tests/genai/test_cartesia.py`. Fixed SQLite import batch column alignment and test imports.
+
+### Fixed
+- Resolved merge conflicts in `CHANGELOG.md`, `search_explorer.py`, and `test_cartesia.py`.
+- Fixed SQL column mapping in `scripts/import_to_sqlite.py` `_flush_batch` by removing obsolete `email_date` column.
+- Added missing `get_logger` import in `tests/utils/test_logging_config.py`.
+- Verified complete test suite passing (361 passed).
+
 ## [72d34f0](https://github.com/jgf2/story-builder/commit/72d34f0) - 2026-08-05
 
 ### Summary
@@ -398,7 +409,7 @@ Preventing any resource leaks in long-running processes like the Streamlit works
    import sys
 
    if "storybuilder.dashboard.data" in sys.modules:
-       importlib.reload(sys.modules["storybuilder.dashboard.data"])
+   	importlib.reload(sys.modules["storybuilder.dashboard.data"])
    # ... [reloads config, sidebar, and pages similarly]
    ```
 2. Removed all temporary debugging logging files.

@@ -10,7 +10,7 @@ on:
 
 jobs:
   changes:
-    runs-on: Linux
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: read
@@ -60,7 +60,7 @@ jobs:
   test-downloader:
     needs: changes
     if: needs.changes.outputs.downloader == 'true' || needs.changes.outputs.common == 'true'
-    runs-on: Linux
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
@@ -95,7 +95,7 @@ jobs:
   test-dashboard:
     needs: changes
     if: needs.changes.outputs.dashboard == 'true' || needs.changes.outputs.common == 'true'
-    runs-on: Linux
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
@@ -130,7 +130,7 @@ jobs:
   test-genai:
     needs: changes
     if: needs.changes.outputs.genai == 'true' || needs.changes.outputs.common == 'true'
-    runs-on: Linux
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
@@ -165,7 +165,7 @@ jobs:
   test-analysis:
     needs: changes
     if: needs.changes.outputs.analysis == 'true' || needs.changes.outputs.common == 'true'
-    runs-on: Linux
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
@@ -200,7 +200,7 @@ jobs:
   test-agents:
     needs: changes
     if: needs.changes.outputs.agents == 'true' || needs.changes.outputs.common == 'true'
-    runs-on: Linux
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
@@ -235,7 +235,7 @@ jobs:
   test-misc:
     needs: changes
     if: needs.changes.outputs.common == 'true'
-    runs-on: Linux
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
@@ -304,7 +304,7 @@ jobs:
       - test-agents
       - test-misc
     if: always() && github.event_name == 'pull_request'
-    runs-on: Linux
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write

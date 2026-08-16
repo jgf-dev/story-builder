@@ -28,7 +28,7 @@ coverage.xml
 test.db
 *.diff
 .ruff_cache
-.jules/
+.jules
 .cache
 .benchmarks
 coverage_html/
@@ -36,3 +36,4 @@ coverage_html/
 tasks/lint.ruff
 .idea/
 tasks/flags/
+.jules/

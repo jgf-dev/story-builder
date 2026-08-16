@@ -1,5 +1,6 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
 from storybuilder.downloader.network import rotate_windscribe_ip
 
@@ -20,7 +21,8 @@ class TestRotateWindscribeIp(unittest.TestCase):
             ["windscribe-cli", "ip", "rotate"],
             capture_output=True,
             text=True,
-            timeout=30, check=False,
+            timeout=30,
+            check=False,
         )
         mock_sleep.assert_called_once_with(10)
 

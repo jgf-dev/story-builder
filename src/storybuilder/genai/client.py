@@ -1,23 +1,23 @@
+from google.genai.client import Client
 import argparse
 import base64
 import glob
 import logging
 import os
+from os import PathLike
 import pathlib
 import re
 import time
-import wave
-from os import PathLike
 from typing import Any
-
-from google import genai
-from google.genai.client import Client
+import wave
 
 from storybuilder.utils.env import load_env
+from google import genai
 
-logger = logging.getLogger(__name__)
 
 load_env()
+
+logger = logging.getLogger(__name__)
 
 
 def wave_file_writer(

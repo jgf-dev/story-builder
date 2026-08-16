@@ -3,6 +3,28 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
+## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-16
+
+### Summary
+Resolved merge conflicts across `scripts/import_to_sqlite.py`, `src/storybuilder/analysis/extract_entities.py`, `src/storybuilder/genai/client.py`, and `tasks/CHANGELOG.md`.
+
+### Fixed
+- Fixed SQL column mapping in `scripts/import_to_sqlite.py` `_flush_batch` by removing obsolete `email_date` column.
+- Resolved type annotation in `src/storybuilder/analysis/extract_entities.py`.
+- Preserved key rotation logging in `src/storybuilder/genai/client.py`.
+- Verified full test suite execution.
+
+## [72d34f0](https://github.com/jgf2/story-builder/commit/72d34f0) - 2026-08-05
+
+### Summary
+Resolved git merge conflicts across `.jules/palette.md`, `evals/run_adk_eval.py`, and `src/storybuilder/downloader/network.py`.
+
+### Fixed
+- Preserved `.jules/palette.md` accessibility learning notes and landmark documentation.
+- Retained path handling logic in `evals/run_adk_eval.py`.
+- Kept tab-formatted request rotation and retry implementations in `src/storybuilder/downloader/network.py`.
+- Verified test suite execution with `pytest tests/downloader/test_network.py`.
+
 ## [730456f](https://github.com/jgf2/story-builder/commit/730456f) - 2026-08-02
 
 ### Summary
@@ -400,7 +422,7 @@ Preventing any resource leaks in long-running processes like the Streamlit works
    import sys
 
    if "storybuilder.dashboard.data" in sys.modules:
-       importlib.reload(sys.modules["storybuilder.dashboard.data"])
+   	importlib.reload(sys.modules["storybuilder.dashboard.data"])
    # ... [reloads config, sidebar, and pages similarly]
    ```
 2. Removed all temporary debugging logging files.

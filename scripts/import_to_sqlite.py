@@ -24,6 +24,8 @@ from pathlib import Path
 # Use shared db module
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
+# ——— Schema ——————————————————————————————————————————————————————————————————
+
 # Import shared database functions
 from storybuilder.downloader.db import (
 	_parse_author,  # pyrefly: ignore [private-import]
@@ -189,8 +191,11 @@ def import_files(
 	return imported, skipped
 
 
-def _flush_batch(conn: sqlite3.Connection, batch: list, force: bool = False) -> int:
-
+def _flush_batch(
+	conn: sqlite3.Connection,
+	batch: list[tuple[object, ...]],
+	force: bool = False,
+) -> int:
 	sql = """
         INSERT OR REPLACE INTO stories
             (path, orientation, category, story_slug, chapter_num,

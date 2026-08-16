@@ -26,7 +26,7 @@ ALLOWED_LABELS = {
 }
 
 
-def init_db(db_path: str | Path) -> Connection:
+def init_db(db_path) -> Connection:
 	"""Initialize the SQLite database."""
 	conn = sqlite3.connect(db_path)
 	cursor = conn.cursor()
@@ -56,19 +56,19 @@ def init_db(db_path: str | Path) -> Connection:
 	return conn
 
 
-def get_processed_files(cursor: Cursor) -> set[str]:
-	"""Get a set of all processed filepaths."""
-	try:
-		cursor.execute("SELECT filepath FROM stories")
-		return {row[0] for row in cursor.fetchall()}
-	except sqlite3.OperationalError:
-		return set()
-
-
-def is_processed(cursor: Cursor, filepath: str) -> bool:
+def is_processed(cursor: Cursor, filepath: str):
 	"""Check if a file has already been processed."""
 	cursor.execute("SELECT id FROM stories WHERE filepath = ?", (filepath,))
 	return cursor.fetchone() is not None
+
+
+def get_all_processed_filepaths(cursor: Cursor) -> set[str]:
+	"""Fetch all processed filepaths into a set for O(1) lookups."""
+	cursor.execute("SELECT filepath FROM stories")
+	return {row[0] for row in cursor.fetchall()}
+
+
+get_processed_files = get_all_processed_filepaths
 
 
 def parse_args() -> Namespace:
@@ -114,7 +114,7 @@ def parse_args() -> Namespace:
 	return parser.parse_args()
 
 
-def load_spacy_model(model_name: str, use_gpu: bool) -> Language | None:
+def load_spacy_model(model_name, use_gpu) -> Language | None:
 	"""Load the spaCy model with optional GPU support."""
 	try:
 		if use_gpu:
@@ -182,15 +182,17 @@ def main() -> None:
 	all_files = list(Path(args.stories_dir).rglob("*.txt"))
 	print(f"Found {len(all_files)} total text files.")
 
-	processed_files = set() if args.force else get_processed_files(cursor)
-
 	processed_count = 0
 	pbar = tqdm(total=min(len(all_files), args.limit), desc="Processing files")
+
+	processed_filepaths = set()
+	if not args.force:
+		processed_filepaths = get_all_processed_filepaths(cursor)
 
 	for filepath in all_files:
 		filepath_str = str(filepath)
 
-		if not args.force and filepath_str in processed_files:
+		if not args.force and filepath_str in processed_filepaths:
 			continue
 
 		try:

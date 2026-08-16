@@ -50,6 +50,7 @@ def render_search_explorer(filters: dict) -> None:
                 <b>Category:</b> {safe_category} |
                 <b>Published:</b> {safe_pub_date} |
                 <b>Words:</b> {word_count:,}
+
             </p>
         """
 
@@ -73,7 +74,7 @@ def render_search_explorer(filters: dict) -> None:
 			if st.button("Read", key=f"read_{res['path']}_{res['db_year']}"):
 				st.session_state.selected_story_path = res["path"]
 				st.session_state.selected_story_year = res["db_year"]
-				# Programmatically update radio key by modifying query params and session state navigation
+				# Programmatically update radio key by modifying session state navigation
 				st.session_state["nav_page"] = "📖 Read Story"
 				st.rerun()
 		st.write("")

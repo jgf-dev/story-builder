@@ -687,6 +687,8 @@ class TestParseHeader(unittest.TestCase):
                 cfile=os.path.join(tmp, "import_to_sqlite.pyc"),
                 doraise=True,
             )
+
+
 class TestMonolithicDatabase(unittest.TestCase):
     """Tests for monolithic SQLModel-based database in db.py."""
 
@@ -703,7 +705,7 @@ class TestMonolithicDatabase(unittest.TestCase):
         from storybuilder.downloader import db
         conn = db.init_db(self.db_path)
         self.assertIsNotNone(conn)
-        
+
         # Verify stories table exists
         cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='stories'")
         self.assertIsNotNone(cursor.fetchone())

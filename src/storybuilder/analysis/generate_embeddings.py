@@ -61,7 +61,10 @@ def setup_collections(db_path) -> tuple[ClientAPI, Collection, Collection]:
 
 
 def process_story(
-	filepath_str: str, collection_chunks: Collection, collection_averages: Collection, model: SentenceTransformer,
+	filepath_str: str,
+	collection_chunks: Collection,
+	collection_averages: Collection,
+	model: SentenceTransformer,
 ) -> bool:
 	existing = collection_averages.get(ids=[filepath_str])
 	if existing and existing["ids"]:

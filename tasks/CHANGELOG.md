@@ -20,6 +20,12 @@ Resolved merge conflicts across `CHANGELOG.md`, `src/storybuilder/dashboard/page
 Resolved git merge conflicts across `.jules/palette.md`, `evals/run_adk_eval.py`, and `src/storybuilder/downloader/network.py`.
 
 ### Fixed
+## [72d34f0](https://github.com/jgf2/story-builder/commit/72d34f0) - 2026-08-05
+
+### Summary
+Resolved git merge conflicts across `.jules/palette.md`, `evals/run_adk_eval.py`, and `src/storybuilder/downloader/network.py`.
+
+### Fixed
 - Preserved `.jules/palette.md` accessibility learning notes and landmark documentation.
 - Retained path handling logic in `evals/run_adk_eval.py`.
 - Kept tab-formatted request rotation and retry implementations in `src/storybuilder/downloader/network.py`.

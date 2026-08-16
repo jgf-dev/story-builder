@@ -20,6 +20,10 @@ Resolved merge conflicts across `CHANGELOG.md`, `src/storybuilder/dashboard/page
 
 ### Summary
 Continued PR #1754 by resolving merge conflicts with `origin/main` and addressing outstanding review feedback. Standardized GitHub Actions workflows to use GitHub-hosted runner labels.
+## [PR-1754](https://github.com/jgf-dev/story-builder/pull/1754) - 2026-08-15
+
+### Summary
+Continued PR #1754 by resolving merge conflicts with `origin/main` and addressing outstanding review feedback.
 
 ### Fixed
 - `main.py` now loads the project `.env` from the script's directory before `braintrust.auto_instrument()` runs, ensuring environment variables are available for library initialization.
@@ -77,6 +81,14 @@ Resolved merge conflicts across dashboard reader/explorer pages, downloader pack
 - Retained `upload_sqlite_to_bigquery` export in `src/storybuilder/downloader/__init__.py`.
 - Restored `find_multi_chapter_stories` test import in `tests/analysis/test_analyze_sentiment.py`.
 
+## [PR-XXX](https://github.com/jgf-dev/story-builder/pull/XXX) - 2026-08-03
+
+### Summary
+Standardized GitHub Actions workflows to use GitHub-hosted runner labels.
+
+### Fixed
+- Replaced all `runs-on: Linux` entries with `runs-on: ubuntu-latest` in `.github/workflows/pylint.yml`, `.github/workflows/opencode.yml`, `.github/workflows/summary.yml`, and `.github/workflows/test.yml` to prevent jobs from remaining queued without a matching runner.
+
 ## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-03
 
 ### Summary
@@ -84,6 +96,7 @@ Compacted `AGENTS.md` by consolidating duplicate layout/structure listings and g
 
 ### Fixed
 - Reduced `AGENTS.md` verbosity and token count by >55% while preserving all CLI flags, gotchas, prompt schemas, and environment rules.
+
 ## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-02
 
 ### Summary

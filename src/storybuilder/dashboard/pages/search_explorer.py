@@ -50,6 +50,8 @@ def render_search_explorer(filters: dict) -> None:
                 <b>Category:</b> {safe_category} |
                 <b>Published:</b> {safe_pub_date} |
                 <b>Words:</b> {word_count:,}
+
+
             </p>
         """
 

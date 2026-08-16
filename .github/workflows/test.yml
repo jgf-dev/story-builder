@@ -276,7 +276,7 @@ jobs:
       - test-agents
       - test-misc
     if: always()
-    runs-on: Linux
+    runs-on: ubuntu-latest
     steps:
       - name: Verify test jobs succeeded
         run: |

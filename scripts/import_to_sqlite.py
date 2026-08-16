@@ -24,6 +24,8 @@ from pathlib import Path
 # Use shared db module
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
+# ——— Schema ——————————————————————————————————————————————————————————————————
+
 # Import shared database functions
 from storybuilder.downloader.db import (
 	_parse_author,  # pyrefly: ignore [private-import]
@@ -198,9 +200,9 @@ def _flush_batch(
         INSERT OR REPLACE INTO stories
             (path, orientation, category, story_slug, chapter_num,
              title, author_name, author_email,
-             publication_date, url,
+             publication_date, url, email_date,
              char_count, word_count, content)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
 	try:
 		conn.executemany(sql, batch)

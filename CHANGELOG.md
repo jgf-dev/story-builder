@@ -1,6 +1,7 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+
 ## [PR-1754](https://github.com/jgf-dev/story-builder/pull/1754) - 2026-08-15
 
 ### Summary

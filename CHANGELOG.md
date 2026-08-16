@@ -14,6 +14,7 @@ Continued PR #1754 by resolving merge conflicts with `origin/main` and addressin
 ### Added
 - Added test coverage for the merged changes; full suite passes (360 passed, 1 skipped, 3 subtests passed).
 
+
 ## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-05
 
 ### Summary

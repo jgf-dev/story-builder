@@ -35,8 +35,6 @@ from .tools import list_stories, read_story, split_scene_files, write_scene_file
 
 load_env()
 
-load_env()
-
 warnings.filterwarnings("ignore")
 configure_logging(level=logging.DEBUG)
 logger = get_logger(__name__)

@@ -7,65 +7,65 @@ import streamlit as st
 # Shared Constants
 LONG_YEAR = 4
 BRACKET_LABELS = [
-    "Short (<1K)",
-    "Medium-Short (1K-5K)",
-    "Medium (5K-10K)",
-    "Medium-Long (10K-20K)",
-    "Long (20K-50K)",
-    "Epic (>50K)",
+	"Short (<1K)",
+	"Medium-Short (1K-5K)",
+	"Medium (5K-10K)",
+	"Medium-Long (10K-20K)",
+	"Long (20K-50K)",
+	"Epic (>50K)",
 ]
 
 
 def get_db_dir() -> str:
-    """Retrieve the DB directory path, dynamically checking for environment variables or active testing mocks."""
-    if "STORYBUILDER_DB_DIR" in os.environ:
-        return os.environ["STORYBUILDER_DB_DIR"]
-    for mod_name in ("__main__", "dashboard"):
-        if mod_name in sys.modules:
-            val = getattr(sys.modules[mod_name], "DB_DIR", None)
-            if val is not None:
-                return val
-    return "stories/db"
+	"""Retrieve the DB directory path, dynamically checking for environment variables or active testing mocks."""
+	if "STORYBUILDER_DB_DIR" in os.environ:
+		return os.environ["STORYBUILDER_DB_DIR"]
+	for mod_name in ("__main__", "dashboard"):
+		if mod_name in sys.modules:
+			val = getattr(sys.modules[mod_name], "DB_DIR", None)
+			if val is not None:
+				return val
+	return "stories/db"
 
 
 def get_nlp_db_path() -> str:
-    """Retrieve the NLP DB path, dynamically checking for environment variables or active testing mocks."""
-    if "STORYBUILDER_NLP_DB_PATH" in os.environ:
-        return os.environ["STORYBUILDER_NLP_DB_PATH"]
-    for mod_name in ("__main__", "dashboard"):
-        if mod_name in sys.modules:
-            val = getattr(sys.modules[mod_name], "NLP_DB_PATH", None)
-            if val is not None:
-                return val
-    return str(Path(get_db_dir()) / "nlp_analysis.db")
+	"""Retrieve the NLP DB path, dynamically checking for environment variables or active testing mocks."""
+	if "STORYBUILDER_NLP_DB_PATH" in os.environ:
+		return os.environ["STORYBUILDER_NLP_DB_PATH"]
+	for mod_name in ("__main__", "dashboard"):
+		if mod_name in sys.modules:
+			val = getattr(sys.modules[mod_name], "NLP_DB_PATH", None)
+			if val is not None:
+				return val
+	return str(Path(get_db_dir()) / "nlp_analysis.db")
 
 
 def get_meta_db_path() -> str:
-    """Retrieve the metadata DB path, dynamically checking for environment variables or active testing mocks."""
-    if "STORYBUILDER_META_DB_PATH" in os.environ:
-        return os.environ["STORYBUILDER_META_DB_PATH"]
-    for mod_name in ("__main__", "dashboard"):
-        if mod_name in sys.modules:
-            val = getattr(sys.modules[mod_name], "META_DB_PATH", None)
-            if val is not None:
-                return val
-    return str(Path(get_db_dir()) / "dashboard_metadata.db")
+	"""Retrieve the metadata DB path, dynamically checking for environment variables or active testing mocks."""
+	if "STORYBUILDER_META_DB_PATH" in os.environ:
+		return os.environ["STORYBUILDER_META_DB_PATH"]
+	for mod_name in ("__main__", "dashboard"):
+		if mod_name in sys.modules:
+			val = getattr(sys.modules[mod_name], "META_DB_PATH", None)
+			if val is not None:
+				return val
+	return str(Path(get_db_dir()) / "dashboard_metadata.db")
 
 
 def setup_page() -> None:
-    """Configure basic page properties."""
-    st.set_page_config(
-        page_title="StoryBuilder Workspace Dashboard",
-        page_icon="📚",
-        layout="wide",
-        initial_sidebar_state="expanded",
-    )
+	"""Configure basic page properties."""
+	st.set_page_config(
+		page_title="StoryBuilder Workspace Dashboard",
+		page_icon="📚",
+		layout="wide",
+		initial_sidebar_state="expanded",
+	)
 
 
 def inject_custom_css() -> None:
-    """Inject styling override for premium design."""
-    st.html(
-        """
+	"""Inject styling override for premium design."""
+	st.html(
+		"""
         <style>
             /* Main background and container styling */
             .reportview-container {
@@ -110,12 +110,12 @@ def inject_custom_css() -> None:
             }
         </style>
         """,
-    )
+	)
 
 
 def init_session_state() -> None:
-    """Initialize shared routing states in session state."""
-    if "selected_story_path" not in st.session_state:
-        st.session_state.selected_story_path = None
-    if "selected_story_year" not in st.session_state:
-        st.session_state.selected_story_year = None
+	"""Initialize shared routing states in session state."""
+	if "selected_story_path" not in st.session_state:
+		st.session_state.selected_story_path = None
+	if "selected_story_year" not in st.session_state:
+		st.session_state.selected_story_year = None

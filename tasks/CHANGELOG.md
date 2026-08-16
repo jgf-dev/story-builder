@@ -3,6 +3,26 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
+## [da889c4](https://github.com/jgf2/story-builder/commit/da889c4) - 2026-08-10
+
+### Summary
+Resolved git merge conflicts across read_story and search_explorer dashboard pages.
+
+### Fixed
+- Resolved merge conflicts and indentation mismatches in `src/storybuilder/dashboard/pages/read_story.py` and `src/storybuilder/dashboard/pages/search_explorer.py`.
+- Preserved `word_count` rendering in search explorer card display.
+- Verified test suite execution with `uv run pytest tests/dashboard/` (44 passed).
+
+## [c4c860f](https://github.com/jgf2/story-builder/commit/c4c860f) - 2026-08-05
+
+### Summary
+Resolved git merge conflicts across analysis, dashboard, genai, downloader, scripts, and test modules.
+
+### Fixed
+- Resolved merge conflicts in `.agent/` scripts, `scripts/import_to_sqlite.py`, `src/storybuilder/dashboard/data.py`, `src/storybuilder/downloader/`, `src/storybuilder/genai/`, `src/storybuilder/utils/`, and tests (`test_analyze_sentiment.py`, `test_dashboard.py`, `test_cartesia.py`).
+- Formatted Python source files using `ruff format`.
+- Verified test suite execution (`pytest tests/dashboard/test_dashboard.py tests/analysis/test_analyze_sentiment.py tests/genai/test_cartesia.py` - 29 passed).
+
 ## [c650177](https://github.com/jgf2/story-builder/commit/c650177) - 2026-08-01
 
 ### Summary

@@ -21,16 +21,16 @@ import sys
 import time
 from pathlib import Path
 
+
 # Use shared db module
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 # Import shared database functions
-from storybuilder.downloader.db import (
-    _parse_author,  # pyrefly: ignore [private-import]
-    _parse_output_path,  # pyrefly: ignore [private-import]
-    optimize_fts,
-)
+from storybuilder.downloader.db import _parse_author  # pyrefly: ignore [private-import]
+from storybuilder.downloader.db import _parse_output_path  # pyrefly: ignore [private-import]
 from storybuilder.downloader.db import init_db as _db_init_db
+from storybuilder.downloader.db import optimize_fts
+
 
 try:
     from storybuilder.downloader.db import _is_partitioned as IS_PARTITIONED  # pyrefly: ignore [private-import]

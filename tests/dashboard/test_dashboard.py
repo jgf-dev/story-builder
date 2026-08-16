@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# pyrefly: ignore [missing-import]
 """Tests for the Streamlit dashboard queries and metadata utilities."""
 
 import os
@@ -10,7 +9,6 @@ import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
-
 
 # Ensure src and scripts are importable
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))

@@ -51,6 +51,7 @@ def render_search_explorer(filters: dict) -> None:
                 <b>Published:</b> {safe_pub_date} |
                 <b>Words:</b> {word_count:,}
 
+
             </p>
         """
 

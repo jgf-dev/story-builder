@@ -14,7 +14,82 @@ Continued PR #1754 by resolving merge conflicts with `origin/main` and addressin
 ### Added
 - Added test coverage for the merged changes; full suite passes (360 passed, 1 skipped, 3 subtests passed).
 
+
+## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-05
+
+### Summary
+Resolved git merge conflicts across 7 files (`.jules/palette.md`, `CHANGELOG.md`, `scripts/import_to_sqlite.py`, `read_story.py`, `search_explorer.py`, `storage.py`, and `test_dashboard.py`).
+
+### Fixed
+- Merged `.jules/palette.md` accessibility learnings chronologically.
+- Restored typed `_flush_batch` definition in `scripts/import_to_sqlite.py`.
+- Standardized tab indentation and safe `word_count` rendering in `read_story.py` and `search_explorer.py`.
+- Maintained `# pyrefly: ignore [missing-import]` comment for `boto3` in `storage.py`.
+- Adopted environment variable patching for test database paths in `tests/dashboard/test_dashboard.py`.
+
+
+## [8d5c3f6](https://github.com/jgf2/story-builder/commit/8d5c3f68a51c87de4167a2c7ab50d1ef0cf76211) - 2026-08-04
+
+### Summary
+Resolved merge conflicts in `scripts/import_to_sqlite.py`, `src/storybuilder/dashboard/data.py`, `src/storybuilder/dashboard/pages/search_explorer.py`, and `tests/dashboard/test_dashboard.py`. Standardized tab indentation and verified test suite (76 passed).
+
+### Fixed
+- Preserved type annotations for `_flush_batch` in `scripts/import_to_sqlite.py`.
+- Resolved tab vs space indentation in `src/storybuilder/dashboard/data.py`, `search_explorer.py`, and `tests/dashboard/test_dashboard.py`.
+- Fixed top-level class definition for `TestDashboardConfig` in `tests/dashboard/test_dashboard.py`.
+
+## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-03
+
+### Summary
+Resolved merge conflicts across database import tools, sentiment analysis pipeline, dashboard data layer, downloader scraper, and unit test suites.
+
+### Fixed
+- Resolved merge conflict in `scripts/import_to_sqlite.py` by restoring `_flush_batch`.
+- Preserved fallback handling for long texts in `src/storybuilder/analysis/analyze_sentiment.py`.
+- Kept `_meta_db_initialized_paths` state tracking in `src/storybuilder/dashboard/data.py`.
+- Cleaned up tab indentation and navigation state updates in `src/storybuilder/dashboard/pages/search_explorer.py`.
+- Adopted refactored `_process_subcategory_page` loop in `src/storybuilder/downloader/scraper.py`.
+- Consolidated unit tests in `tests/analysis/test_analyze_sentiment.py`, `tests/dashboard/test_dashboard.py`, `tests/genai/test_cartesia.py`, and `tests/genai/test_play_audio.py`.
+
+## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-03
+
+### Summary
+Resolved merge conflicts across dashboard reader/explorer pages, downloader package exports, and sentiment analysis test suite.
+
+### Fixed
+- Resolved merge conflicts in `src/storybuilder/dashboard/pages/read_story.py` and `search_explorer.py` by preserving `word_count` rendering.
+- Retained `upload_sqlite_to_bigquery` export in `src/storybuilder/downloader/__init__.py`.
+- Restored `find_multi_chapter_stories` test import in `tests/analysis/test_analyze_sentiment.py`.
+
+## [PR-XXX](https://github.com/jgf-dev/story-builder/pull/XXX) - 2026-08-03
+
+### Summary
+Standardized GitHub Actions workflows to use GitHub-hosted runner labels.
+
+### Fixed
+- Replaced all `runs-on: Linux` entries with `runs-on: ubuntu-latest` in `.github/workflows/pylint.yml`, `.github/workflows/opencode.yml`, `.github/workflows/summary.yml`, and `.github/workflows/test.yml` to prevent jobs from remaining queued without a matching runner.
+
+## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-03
+
+### Summary
+Compacted `AGENTS.md` by consolidating duplicate layout/structure listings and grouping repository rules and workflows strictly by technical domain.
+
+### Fixed
+- Reduced `AGENTS.md` verbosity and token count by >55% while preserving all CLI flags, gotchas, prompt schemas, and environment rules.
+
 ## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-02
+
+### Summary
+Added BigQuery upload script `bq_upload.py` (`storybuilder-bq`) in `src/storybuilder/downloader` to stream/stage SQLite tables (including `stories/db/stories.db`) into Google BigQuery datasets.
+
+### Added
+- `src/storybuilder/downloader/bq_upload.py`: Batch NDJSON loader and GCS staging client for uploading SQLite tables to BigQuery.
+- `storybuilder-bq` CLI entrypoint in `pyproject.toml`.
+- Unit test suite `tests/downloader/test_bq_upload.py` covering schema mapping, batch chunking, NDJSON serialization, GCS staging, dry-run, and BigQuery client execution.
+- Exported `upload_sqlite_to_bigquery` in `src/storybuilder/downloader/__init__.py`.
+
+## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-02
+
 
 ### Summary
 Resolved merge conflicts across dashboard layout, ADK eval runner, accessibility palette, storage guard, and CI configuration.

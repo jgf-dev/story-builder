@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-16
+
+### Summary
+Resolved merge conflicts across `CHANGELOG.md`, `src/storybuilder/dashboard/pages/search_explorer.py`, and `tests/genai/test_cartesia.py`. Fixed SQLite import batch column alignment and test imports.
+
+### Fixed
+- Resolved merge conflicts in `CHANGELOG.md`, `src/storybuilder/dashboard/pages/search_explorer.py`, and `tests/genai/test_cartesia.py`.
+- Fixed SQL column mapping in `scripts/import_to_sqlite.py` `_flush_batch` by removing obsolete `email_date` column.
+- Added missing `get_logger` import in `tests/utils/test_logging_config.py`.
+
+### Added
+- Maintained `test_wave_file` in `tests/genai/test_cartesia.py` and verified full test suite passes (361 passed).
+
+
+## [PR-1754](https://github.com/jgf-dev/story-builder/pull/1754) - 2026-08-15
+
+### Summary
+Continued PR #1754 by resolving merge conflicts with `origin/main` and addressing outstanding review feedback. Standardized GitHub Actions workflows to use GitHub-hosted runner labels.
 ## [PR-1754](https://github.com/jgf-dev/story-builder/pull/1754) - 2026-08-15
 
 ### Summary
@@ -11,6 +29,7 @@ Continued PR #1754 by resolving merge conflicts with `origin/main` and addressin
 - `main.py` now loads the project `.env` from the script's directory before `braintrust.auto_instrument()` runs, ensuring environment variables are available for library initialization.
 - `src/storybuilder/dashboard/pages/archive_stats.py` removed redundant column-existence checks after the empty-database guard.
 - Aligned repository with `origin/main` by removing deleted `.circleci/config.yml` and `.circleci/test-suites.yml`.
+- Replaced all `runs-on: Linux` entries with `runs-on: ubuntu-latest` in `.github/workflows/pylint.yml`, `.github/workflows/opencode.yml`, `.github/workflows/summary.yml`, and `.github/workflows/test.yml` to prevent jobs from remaining queued without a matching runner.
 
 ### Added
 - Added test coverage for the merged changes; full suite passes (360 passed, 1 skipped, 3 subtests passed).

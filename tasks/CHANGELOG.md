@@ -6,6 +6,20 @@ description: Explanation of changes per commits
 ## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-16
 
 ### Summary
+Resolved merge conflicts across `CHANGELOG.md`, `src/storybuilder/dashboard/pages/search_explorer.py`, and `tests/genai/test_cartesia.py`. Fixed SQLite import batch column alignment and test imports.
+
+### Fixed
+- Resolved merge conflicts in `CHANGELOG.md`, `search_explorer.py`, and `test_cartesia.py`.
+- Fixed SQL column mapping in `scripts/import_to_sqlite.py` `_flush_batch` by removing obsolete `email_date` column.
+- Added missing `get_logger` import in `tests/utils/test_logging_config.py`.
+- Verified complete test suite passing (361 passed).
+
+## [72d34f0](https://github.com/jgf2/story-builder/commit/72d34f0) - 2026-08-05
+
+### Summary
+Resolved git merge conflicts across `.jules/palette.md`, `evals/run_adk_eval.py`, and `src/storybuilder/downloader/network.py`.
+
+### Fixed
 Resolved merge conflicts across `scripts/import_to_sqlite.py`, `src/storybuilder/analysis/extract_entities.py`, `src/storybuilder/genai/client.py`, and `tasks/CHANGELOG.md`.
 
 ### Fixed

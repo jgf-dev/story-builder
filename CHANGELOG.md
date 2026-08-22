@@ -2,13 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-16
+## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-22
 
 ### Summary
-Fixed failing CI checks and test suite errors on main.
+Resolved merge conflicts across `CHANGELOG.md`, `evals/run_adk_eval.py`, `scripts/import_to_sqlite.py`, `tests/genai/test_cartesia.py`, and `tests/utils/test_logging_config.py`.
 
 ### Fixed
-- Fixed SQL column mapping in `scripts/import_to_sqlite.py` `_flush_batch` by removing obsolete `email_date` column.
+- Resolved merge conflicts across codebase.
+- Fixed SQL column mapping in `scripts/import_to_sqlite.py` `_flush_batch`.
 - Added missing `get_logger` import in `tests/utils/test_logging_config.py`.
 - Replaced `runs-on: Linux` with `runs-on: ubuntu-latest` in `.github/workflows/test.yml`.
 
@@ -22,6 +23,7 @@ Continued PR #1754 by resolving merge conflicts with `origin/main` and addressin
 - `main.py` now loads the project `.env` from the script's directory before `braintrust.auto_instrument()` runs, ensuring environment variables are available for library initialization.
 - `src/storybuilder/dashboard/pages/archive_stats.py` removed redundant column-existence checks after the empty-database guard.
 - Aligned repository with `origin/main` by removing deleted `.circleci/config.yml` and `.circleci/test-suites.yml`.
+- Replaced all `runs-on: Linux` entries with `runs-on: ubuntu-latest` in `.github/workflows/pylint.yml`, `.github/workflows/opencode.yml`, `.github/workflows/summary.yml`, and `.github/workflows/test.yml` to prevent jobs from remaining queued without a matching runner.
 
 ### Added
 - Added test coverage for the merged changes; full suite passes (360 passed, 1 skipped, 3 subtests passed).

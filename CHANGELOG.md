@@ -12,9 +12,10 @@ Resolved merge conflicts across `scripts/import_to_sqlite.py`, `src/storybuilder
 - Added type annotation to `is_processed` in `src/storybuilder/analysis/extract_entities.py`.
 - Preserved key name rotation logging in `src/storybuilder/genai/client.py`.
 - Added missing `get_logger` import in `tests/utils/test_logging_config.py`.
+- Replaced `runs-on: Linux` with `runs-on: ubuntu-latest` in `.github/workflows/test.yml`.
 
 ### Added
-- Verified full test suite passes (361 passed).
+- Verified full test suite passes (349 passed).
 
 
 ## [PR-1754](https://github.com/jgf-dev/story-builder/pull/1754) - 2026-08-15

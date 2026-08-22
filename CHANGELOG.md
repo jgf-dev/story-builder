@@ -12,6 +12,17 @@ Resolved merge conflicts across `CHANGELOG.md`, `evals/run_adk_eval.py`, `script
 - Fixed SQL column mapping in `scripts/import_to_sqlite.py` `_flush_batch`.
 - Added missing `get_logger` import in `tests/utils/test_logging_config.py`.
 - Replaced `runs-on: Linux` with `runs-on: ubuntu-latest` in `.github/workflows/test.yml`.
+Resolved merge conflicts across `scripts/import_to_sqlite.py`, `src/storybuilder/analysis/extract_entities.py`, `src/storybuilder/genai/client.py`, and `tasks/CHANGELOG.md`.
+
+### Fixed
+- Fixed SQL column mapping in `scripts/import_to_sqlite.py` `_flush_batch` by removing obsolete `email_date` column.
+- Added type annotation to `is_processed` in `src/storybuilder/analysis/extract_entities.py`.
+- Preserved key name rotation logging in `src/storybuilder/genai/client.py`.
+- Added missing `get_logger` import in `tests/utils/test_logging_config.py`.
+- Replaced `runs-on: Linux` with `runs-on: ubuntu-latest` in `.github/workflows/test.yml`.
+
+### Added
+- Verified full test suite passes (349 passed).
 
 
 ## [PR-1754](https://github.com/jgf-dev/story-builder/pull/1754) - 2026-08-15

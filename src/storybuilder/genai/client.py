@@ -156,9 +156,9 @@ class ApiKeyRotator:
 	def rotate(self) -> None:
 		"""Rotates to the next available API key and instantiates a new Client."""
 		self.current_key_idx = (self.current_key_idx + 1) % len(self.api_keys)
-		_, new_api_key = self.api_keys[self.current_key_idx]
+		new_key_name, new_api_key = self.api_keys[self.current_key_idx]
 		self._client = genai.Client(api_key=new_api_key)
-		print("  Switching to the next configured API key")
+		print(f"  Switching to key '{new_key_name}'")
 
 	@property
 	def total_keys(self) -> int:

@@ -20,6 +20,18 @@ Resolved merge conflicts across `CHANGELOG.md`, `src/storybuilder/dashboard/page
 
 ### Summary
 Continued PR #1754 by resolving merge conflicts with `origin/main` and addressing outstanding review feedback. Standardized GitHub Actions workflows to use GitHub-hosted runner labels.
+Resolved merge conflicts across `scripts/import_to_sqlite.py`, `src/storybuilder/analysis/extract_entities.py`, `src/storybuilder/genai/client.py`, and `tasks/CHANGELOG.md`.
+
+### Fixed
+- Fixed SQL column mapping in `scripts/import_to_sqlite.py` `_flush_batch` by removing obsolete `email_date` column.
+- Added type annotation to `is_processed` in `src/storybuilder/analysis/extract_entities.py`.
+- Preserved key name rotation logging in `src/storybuilder/genai/client.py`.
+- Added missing `get_logger` import in `tests/utils/test_logging_config.py`.
+
+### Added
+- Verified full test suite passes (361 passed).
+
+
 ## [PR-1754](https://github.com/jgf-dev/story-builder/pull/1754) - 2026-08-15
 
 ### Summary

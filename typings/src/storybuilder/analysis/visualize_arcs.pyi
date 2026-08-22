@@ -1,13 +1,13 @@
 from _typeshed import Incomplete
 
-from sqlite3 import Connection
-from plotly.graph_objs._figure import Figure
-from pandas.core.frame import DataFrame
 import argparse
 import sqlite3
 from pathlib import Path
+from sqlite3 import Connection
 import pandas as pd
 import plotly.graph_objects as go
+from pandas.core.frame import DataFrame
+from plotly.graph_objs._figure import Figure
 
 
 def fetch_story(conn: Connection, story_query: Incomplete = None) -> tuple[int, Any] | tuple[None, None]: ...

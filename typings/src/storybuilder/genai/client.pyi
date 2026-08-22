@@ -1,31 +1,52 @@
-from _typeshed import Incomplete
-
-from google.genai.client import Client
 import argparse
 import base64
 import glob
+import logging
 import os
 import pathlib
 import re
 import time
 import wave
-from storybuilder.utils.env import load_env
+from os import PathLike
+from typing import Any
 from google import genai
+from google.genai.client import Client
+from storybuilder.utils.env import load_env
+
+logger: Logger
 
 
-def wave_file_writer(filename: Incomplete, pcm: bytes, channels: Incomplete = 1, rate: Incomplete = 24000, sample_width: Incomplete = 2) -> None: ...
+def wave_file_writer(filename: str | PathLike[Any], pcm: bytes, channels: int = 1, rate: int = 24000, sample_width: int = 2) -> None: ...
 
 
-def parse_speech_config(markdown_content: str) -> Incomplete: ...
+def parse_speech_config(markdown_content: str) -> list[dict[str, str]]: ...
 
 
 def get_gemini_api_keys() -> list[tuple[str, str]]: ...
 
 
-def process_file(md_file: str, wav_file: str, previous_id: Incomplete, api_state: dict[str, Client | int | list[tuple[str, str]]]) -> Incomplete: ...
+class ApiKeyRotator:
+    api_keys: list[tuple[str, str]]
+    current_key_idx: int
+
+    def __init__(self, api_keys: list[tuple[str, str]]) -> None: ...
+
+    @property
+    def current_key_name(self) -> str: ...
+
+    @property
+    def client(self) -> Client: ...
+
+    def rotate(self) -> None: ...
+
+    @property
+    def total_keys(self) -> int: ...
 
 
-def process_directory(directory: Incomplete) -> None: ...
+def process_file(md_file: str, wav_file: str, previous_id: str | None, rotator: ApiKeyRotator) -> str | None: ...
+
+
+def process_directory(directory: str | pathlib.Path) -> None: ...
 
 
 def main() -> None: ...

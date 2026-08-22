@@ -126,7 +126,6 @@ class RubricEvaluator:
 		overall_score = sum(s.weighted_score for s in dimension_scores)
 		passed = overall_score >= self.threshold
 
-		total = overall_score
 		max_possible = sum(d.weight for d in self.dimensions)
 		summary = (
 			f"Overall score: {overall_score:.2f}/{max_possible:.2f} "

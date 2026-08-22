@@ -2,8 +2,7 @@ import glob
 import os
 from pathlib import Path
 from typing import Any
-from google.cloud.storage import Client
-from google.cloud.storage import transfer_manager
+from google.cloud.storage import Client, transfer_manager
 
 
 def upload_many(bucket_name: str, filenames: list[str], source_directory: str = "", workers: int = 8) -> None: ...

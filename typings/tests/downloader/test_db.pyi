@@ -1,9 +1,10 @@
-import unittest
-import tempfile
-import shutil
 import os
+import shutil
 import sqlite3
-from unittest.mock import patch, MagicMock
+import tempfile
+import unittest
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
 
 class TestDBInit(unittest.TestCase):

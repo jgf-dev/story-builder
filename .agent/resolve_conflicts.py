@@ -10,6 +10,7 @@ def run_git_cmd(args):
 
 def find_files_with_conflict_markers():
 	# Scan files in src/, scripts/, tests/, evals/, tasks/, etc. or use grep
+	res = run_git_cmd(["git", "diff", "--name-only", "--diff-filter=U"])
 	files = res.stdout.strip().split("\n")
 	valid_files = []
 	for f in files:
@@ -42,7 +43,7 @@ def resolve_file(filepath):
 			our_lines = ours.split("\n")
 			their_lines = theirs.split("\n")
 			combined = sorted(list(set(our_lines + their_lines)))
-			combined = [l.strip() for l in combined if l.strip()]
+			combined = [entry.strip() for entry in combined if entry.strip()]
 			return "\n".join(combined) + "\n"
 
 		# Rule 2: launch.json
@@ -66,9 +67,9 @@ def resolve_file(filepath):
 			for line in theirs.split("\n"):
 				if "streamlit" in line or "tqdm" in line:
 					lines.append(line.strip())
-			lines = [l for l in lines if l]
+			lines = [entry for entry in lines if entry]
 			strip_chars = ' ",'
-			formatted_lines = [f'    "{l.strip(strip_chars)}",' for l in lines]
+			formatted_lines = [f'    "{entry.strip(strip_chars)}",' for entry in lines]
 			return "\n".join(formatted_lines) + "\n"
 
 		# Rule 6: Database/Scraper related files

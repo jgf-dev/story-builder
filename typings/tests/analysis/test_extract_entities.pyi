@@ -5,18 +5,26 @@ import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import MagicMock, patch
-from storybuilder.analysis.extract_entities import init_db, is_processed, main
+from unittest.mock import MagicMock
+from unittest.mock import patch
+from storybuilder.analysis.extract_entities import get_processed_files
+from storybuilder.analysis.extract_entities import init_db
+from storybuilder.analysis.extract_entities import main
 
 
 class TestExtractEntities(unittest.TestCase):
+    conn: Connection
+    db_fd: int
+    db_path: str
+    stories_dir: TemporaryDirectory[str]
+
     def setUp(self) -> None: ...
 
     def tearDown(self) -> None: ...
 
     def test_init_db(self) -> None: ...
 
-    def test_is_processed(self) -> None: ...
+    def test_get_processed_files(self) -> None: ...
 
     @patch("argparse.ArgumentParser.parse_args")
     @patch("spacy.load")

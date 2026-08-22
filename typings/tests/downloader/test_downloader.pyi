@@ -1,16 +1,17 @@
 from _typeshed import Incomplete
 
-import unittest
-import unittest.mock
 import datetime
 import os
 import tempfile
-from unittest.mock import patch, MagicMock
+import unittest
+import unittest.mock
 from pathlib import Path
-from storybuilder.downloader.date_parser import parse_nifty_date
-from storybuilder.downloader.scraper import parse_listing_rows
+from unittest.mock import MagicMock
+from unittest.mock import patch
 from storybuilder.downloader import cache
 from storybuilder.downloader import storage as dl_storage
+from storybuilder.downloader.date_parser import parse_nifty_date
+from storybuilder.downloader.scraper import parse_listing_rows
 
 
 class TestDateParser(unittest.TestCase):
@@ -134,6 +135,8 @@ class TestNetwork(unittest.TestCase):
 
 
 class TestWriter(unittest.TestCase):
+    temp_dir: str
+
     def setUp(self) -> None: ...
 
     def tearDown(self) -> None: ...

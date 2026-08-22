@@ -2,7 +2,9 @@ from __future__ import annotations
 import os
 import wave
 from types import SimpleNamespace
-from typing import Any, AsyncIterator, Callable
+from typing import Any
+from typing import AsyncIterator
+from typing import Callable
 from unittest.mock import MagicMock
 
 LIVE_API_ENV: Literal['STORYBUILDER_LIVE_API'] = "STORYBUILDER_LIVE_API"

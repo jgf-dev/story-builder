@@ -8,7 +8,6 @@ import torch
 from chromadb.api import ClientAPI
 from chromadb.api.models.Collection import Collection
 from sentence_transformers import SentenceTransformer
-from sentence_transformers.sentence_transformer.model import SentenceTransformer
 from tqdm import tqdm
 
 

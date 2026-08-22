@@ -6,20 +6,16 @@ import re
 import sqlite3
 import threading
 from pathlib import Path
-from sqlalchemy import func
-from sqlalchemy import literal_column
-from sqlmodel import Field
-from sqlmodel import Session
-from sqlmodel import SQLModel
-from sqlmodel import create_engine
-from sqlmodel import select
-from sqlmodel import text
+from typing import ClassVar
+from sqlalchemy import Column, Integer, MetaData, Table, Text, func, literal_column
+from sqlalchemy.engine import Engine
+from sqlmodel import Field, Session, SQLModel, col, create_engine, select, text
 
 logging: Logger
 
 
 class Story(SQLModel, table=True):
-    __tablename__: Literal['stories'] = "stories"
+    __tablename__: ClassVar[str] = "stories"
     id: int | None
     path: str
     orientation: str
@@ -36,12 +32,8 @@ class Story(SQLModel, table=True):
     content: str
     created_at: str | None
 
+    def __init__(self, *, id: Decimal | bool | bytes | float | int | str | None = ..., path: bytearray | bytes | str = ..., orientation: bytearray | bytes | str = ..., category: bytearray | bytes | str | None = ..., story_slug: bytearray | bytes | str | None = ..., chapter_num: Decimal | bool | bytes | float | int | str | None = ..., title: bytearray | bytes | str | None = ..., author_name: bytearray | bytes | str | None = ..., author_email: bytearray | bytes | str | None = ..., publication_date: bytearray | bytes | str | None = ..., url: bytearray | bytes | str | None = ..., char_count: Decimal | bool | bytes | float | int | str = ..., word_count: Decimal | bool | bytes | float | int | str = ..., content: bytearray | bytes | str = ..., created_at: bytearray | bytes | str | None = ..., **kwargs: Incomplete) -> None: ...
 
-from sqlalchemy import Column
-from sqlalchemy import Integer
-from sqlalchemy import MetaData
-from sqlalchemy import Table
-from sqlalchemy import Text
 
 metadata_fts: MetaData
 stories_fts: Table

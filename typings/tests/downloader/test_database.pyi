@@ -1,4 +1,5 @@
 import os
+import py_compile
 import shutil
 import sqlite3
 import sys
@@ -36,6 +37,9 @@ class TestParseOutputPath(unittest.TestCase):
 
 
 class TestDatabaseInit(unittest.TestCase):
+    db_path: str
+    temp_dir: str
+
     def setUp(self) -> None: ...
 
     def tearDown(self) -> None: ...
@@ -52,6 +56,9 @@ class TestDatabaseInit(unittest.TestCase):
 
 
 class TestInsertStory(unittest.TestCase):
+    db_path: str
+    temp_dir: str
+
     def setUp(self) -> None: ...
 
     def tearDown(self) -> None: ...
@@ -66,6 +73,9 @@ class TestInsertStory(unittest.TestCase):
 
 
 class TestFTSSearch(unittest.TestCase):
+    db_path: str
+    temp_dir: str
+
     def setUp(self) -> None: ...
 
     def tearDown(self) -> None: ...
@@ -78,6 +88,8 @@ class TestFTSSearch(unittest.TestCase):
 
 
 class TestParseHeader(unittest.TestCase):
+    temp_dir: str
+
     def setUp(self) -> None: ...
 
     def tearDown(self) -> None: ...
@@ -94,8 +106,13 @@ class TestParseHeader(unittest.TestCase):
 
     def test_empty_content(self) -> None: ...
 
+    def test_import_to_sqlite_script_compiles(self) -> None: ...
+
 
 class TestMonolithicDatabase(unittest.TestCase):
+    db_path: str
+    temp_dir: str
+
     def setUp(self) -> None: ...
 
     def tearDown(self) -> None: ...
@@ -110,6 +127,8 @@ class TestMonolithicDatabase(unittest.TestCase):
 
 
 class TestImportToSQLite(unittest.TestCase):
+    temp_dir: str
+
     def setUp(self) -> None: ...
 
     def tearDown(self) -> None: ...
@@ -124,8 +143,13 @@ class TestImportToSQLite(unittest.TestCase):
 
     def test_empty_content(self) -> None: ...
 
+    def test_flush_batch_compatibility(self) -> None: ...
+
 
 class TestDBSearch(unittest.TestCase):
+    db_path: str
+    temp_dir: str
+
     def setUp(self) -> None: ...
 
     def tearDown(self) -> None: ...
@@ -156,6 +180,9 @@ class TestDBParseOutputPath(unittest.TestCase):
 
 
 class TestDBContentOperations(unittest.TestCase):
+    db_path: str
+    temp_dir: str
+
     def setUp(self) -> None: ...
 
     def tearDown(self) -> None: ...

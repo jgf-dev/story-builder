@@ -2,10 +2,9 @@ from _typeshed import Incomplete
 
 import pytest
 from evals.agentic.reflection_evaluator import ReflectionEvaluator
-from evals.agentic.rubric_evaluator import RubricDimension
-from evals.agentic.rubric_evaluator import RubricEvaluator
+from evals.agentic.rubric_evaluator import RubricDimension, RubricEvaluator
 
-TTS_EVALUATION_RUBRIC: Incomplete
+TTS_EVALUATION_RUBRIC: list[RubricDimension]
 GREETING_QUERIES: list[str]
 PIPELINE_QUERIES: list[str]
 EDGE_CASES: list[str]

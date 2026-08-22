@@ -1,3 +1,5 @@
+from _typeshed import Incomplete
+
 import unittest
 from unittest.mock import patch
 import pytest
@@ -32,3 +34,10 @@ class TestGenAIClient(unittest.TestCase):
     def test_get_gemini_api_keys_primary_only(self) -> None: ...
 
     def test_get_gemini_api_keys_with_rotations(self) -> None: ...
+
+    def test_apikey_rotator(self) -> None: ...
+
+    def test_handle_exception_404(self) -> None: ...
+
+    @patch("time.sleep")
+    def test_handle_exception_quota_rotation(self, mock_sleep: Incomplete) -> None: ...

@@ -1,16 +1,20 @@
-import unittest
-import sqlite3
-import tempfile
-import shutil
-import sys
 import io
+import shutil
+import sqlite3
+import sys
+import tempfile
+import unittest
 import warnings
-from unittest.mock import patch
 from pathlib import Path
+from unittest.mock import patch
 from storybuilder.analysis.compare_narratives import main
 
 
 class TestCompareNarratives(unittest.TestCase):
+    conn: Connection
+    db_path: str
+    temp_dir: str
+
     def setUp(self) -> None: ...
 
     def tearDown(self) -> None: ...

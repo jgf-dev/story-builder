@@ -1,10 +1,10 @@
 from _typeshed import Incomplete
 
-from argparse import Namespace
 import argparse
 import os
 import sqlite3
 import sys
+from argparse import Namespace
 from pathlib import Path
 
 

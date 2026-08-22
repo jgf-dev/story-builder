@@ -5,8 +5,7 @@ import shutil
 import sqlite3
 import sys
 from pathlib import Path
-from storybuilder.downloader.db import INDEXES
-from storybuilder.downloader.db import SCHEMA
+from storybuilder.downloader.db import INDEXES, SCHEMA
 
 
 def get_db_filename_from_date(story_date: Incomplete) -> str: ...

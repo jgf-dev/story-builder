@@ -1,8 +1,10 @@
 from _typeshed import Incomplete
 
 import unittest
-from unittest.mock import patch, MagicMock
-from storybuilder.analysis.visualize_tsne import main, parse_args
+from unittest.mock import MagicMock
+from unittest.mock import patch
+from storybuilder.analysis.visualize_tsne import main
+from storybuilder.analysis.visualize_tsne import parse_args
 
 
 class TestVisualizeTSNE(unittest.TestCase):

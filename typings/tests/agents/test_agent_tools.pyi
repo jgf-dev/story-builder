@@ -5,6 +5,10 @@ import unittest
 
 
 class TestReadStory(unittest.TestCase):
+    patcher: _patch[str]
+    story_path: str
+    tmpdir: str
+
     def setUp(self) -> None: ...
 
     def tearDown(self) -> None: ...
@@ -19,6 +23,9 @@ class TestReadStory(unittest.TestCase):
 
 
 class TestListStories(unittest.TestCase):
+    patcher: _patch[str]
+    tmpdir: str
+
     def setUp(self) -> None: ...
 
     def tearDown(self) -> None: ...
@@ -35,6 +42,9 @@ class TestListStories(unittest.TestCase):
 
 
 class TestWriteSceneFile(unittest.TestCase):
+    story_path: str
+    tmpdir: str
+
     def setUp(self) -> None: ...
 
     def tearDown(self) -> None: ...
@@ -51,6 +61,10 @@ class TestWriteSceneFile(unittest.TestCase):
 
 
 class TestSplitSceneFiles(unittest.TestCase):
+    output_dir: str
+    story_path: str
+    tmpdir: str
+
     def setUp(self) -> None: ...
 
     def tearDown(self) -> None: ...

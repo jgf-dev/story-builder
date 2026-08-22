@@ -931,6 +931,7 @@ def error_handling_example(client: Cartesia) -> None:
 
 
 if __name__ == "__main__":
+	import inspect
 	import os
 	import sys
 

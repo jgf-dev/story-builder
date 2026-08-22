@@ -1,13 +1,17 @@
 from _typeshed import Incomplete
 
-import unittest
-from unittest.mock import patch, MagicMock
 import argparse
-from storybuilder.downloader.cli import _setup_network
+import unittest
+from unittest.mock import MagicMock
+from unittest.mock import patch
 from storybuilder.downloader import network
+from storybuilder.downloader.cli import _setup_network
 
 
 class TestCLI(unittest.TestCase):
+    original_proxies: dict[str, str] | None
+    original_rotation: bool
+
     def setUp(self) -> None: ...
 
     def tearDown(self) -> None: ...
@@ -41,8 +45,9 @@ class TestCLICacheIntegration(unittest.TestCase):
     @patch("storybuilder.downloader.cli.save_cache")
     @patch("storybuilder.downloader.cli.get_subcategories")
     @patch("storybuilder.downloader.cli._scrape_subcategories")
+    @patch("storybuilder.downloader.cli._upload_to_cloud")
     @patch("storybuilder.downloader.cli._download_stories")
-    def test_main_loads_and_saves_cache(self, mock_download: Incomplete, mock_scrape: Incomplete, mock_get_subs: Incomplete, mock_save: Incomplete, mock_load: Incomplete) -> None: ...
+    def test_main_loads_and_saves_cache(self, mock_download: Incomplete, mock_upload: Incomplete, mock_scrape: Incomplete, mock_get_subs: Incomplete, mock_save: Incomplete, mock_load: Incomplete) -> None: ...
 
 
 class TestCLIEarlyReturns(unittest.TestCase):

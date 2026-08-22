@@ -9,12 +9,12 @@ META_DB_PATH: Literal['stories/db/dashboard_metadata.db'] = "stories/db/dashboar
 
 from storybuilder.dashboard.config import init_session_state, inject_custom_css, setup_page
 from storybuilder.dashboard.data import (
-    add_favorite,  # noqa: F401
-    get_db_files,  # noqa: F401
-    get_favorites,  # noqa: F401
-    get_story_by_path,  # noqa: F401
-    query_stories,  # noqa: F401
-    remove_favorite,  # noqa: F401
+	add_favorite,  # noqa: F401
+	get_db_files,  # noqa: F401
+	get_favorites,  # noqa: F401
+	get_story_by_path,  # noqa: F401
+	query_stories,  # noqa: F401
+	remove_favorite,  # noqa: F401
 )
 from storybuilder.dashboard.pages.archive_stats import render_archive_stats
 from storybuilder.dashboard.pages.favorites_tags import render_favorites_tags

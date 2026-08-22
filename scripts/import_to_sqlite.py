@@ -19,7 +19,9 @@ import os
 import sqlite3
 import sys
 import time
+from collections.abc import Sequence
 from pathlib import Path
+from typing import Any
 
 # Use shared db module
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
@@ -193,7 +195,7 @@ def import_files(
 
 def _flush_batch(
 	conn: sqlite3.Connection,
-	batch: list[tuple[object, ...]],
+	batch: Sequence[tuple[Any, ...]],
 	force: bool = False,
 ) -> int:
 	sql = """

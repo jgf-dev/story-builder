@@ -1,14 +1,13 @@
 from _typeshed import Incomplete
 
-from sentence_transformers.sentence_transformer.model import SentenceTransformer
-from chromadb.api.models.Collection import Collection
-from chromadb.api import ClientAPI
-from argparse import Namespace
 import argparse
+from argparse import Namespace
 from pathlib import Path
 import chromadb
 import numpy as np
 import torch
+from chromadb.api import ClientAPI
+from chromadb.api.models.Collection import Collection
 from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
 

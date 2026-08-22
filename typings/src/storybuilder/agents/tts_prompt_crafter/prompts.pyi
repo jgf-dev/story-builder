@@ -2,7 +2,7 @@ import os
 import pathlib
 
 PROMPTS_DIR: str
-STORIES_DIR: str | None
+STORIES_DIR: str
 
 
 def get_prompt(name: str) -> str: ...

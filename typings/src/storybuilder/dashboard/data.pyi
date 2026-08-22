@@ -9,6 +9,7 @@ from storybuilder.dashboard.config import BRACKET_LABELS, LONG_YEAR, get_db_dir,
 from storybuilder.downloader import db as storybuilder_db
 
 logger: Logger
+MIN_ENTITY_PATH_PARTS: Literal[3] = 3
 
 
 def get_db_files() -> list[Path]: ...
@@ -39,11 +40,13 @@ class StorySearchQuery:
     entity_label: str = "PERSON"
     limit: int = 100
 
+    def __init__(self, fts_query: str = ..., category: str = ..., author: str = ..., year_range: tuple[int, int] | None = ..., entity_text: str = ..., entity_label: str = ..., limit: int = ...) -> None: ...
+
 
 def query_stories(params: StorySearchQuery | None = None, *, fts_query: str = "", category: str = "All", author: str = "All", year_range: tuple[int, int] | None = None, entity_text: str = "", entity_label: str = "PERSON", limit: int = 100) -> list[dict]: ...
 
 
-def get_story_by_path(story_path: str, db_year: int | str | None = None) -> dict | None: ...
+def get_story_by_path(story_path: str, _db_year: int | str | None = None) -> dict | None: ...
 
 
 def add_favorite(story_path: str, title: str, author: str, tags: str | None, notes: str | None) -> bool: ...
@@ -53,3 +56,6 @@ def remove_favorite(story_path: str) -> bool: ...
 
 
 def get_favorites() -> list[dict]: ...
+
+
+def get_favorites_publication_years(fav_paths: list[str]) -> dict[str, int]: ...

@@ -24,10 +24,10 @@ class TestEvalSetDiscovery:
 
 class TestEvalSetStructure:
     @pytest.mark.parametrize(
-        "eval_path",
-        discover_eval_sets(TTS_AGENT_DIR) + discover_eval_sets(CARTESIA_AGENT_DIR),
-        ids=lambda p: p.parent.name + "/" + p.stem,
-    )
+		"eval_path",
+		discover_eval_sets(TTS_AGENT_DIR) + discover_eval_sets(CARTESIA_AGENT_DIR),
+		ids=lambda p: p.parent.name + "/" + p.stem,
+	)
     def test_eval_set_structure(self, eval_path: Path) -> None: ...
 
     def test_all_eval_sets_have_unique_ids(self) -> None: ...
@@ -36,10 +36,10 @@ class TestEvalSetStructure:
 class TestEvalRunViaADK:
     @pytest.mark.slow
     @pytest.mark.parametrize(
-        "eval_path",
-        discover_eval_sets(TTS_AGENT_DIR),
-        ids=lambda p: p.stem,
-    )
+		"eval_path",
+		discover_eval_sets(TTS_AGENT_DIR),
+		ids=lambda p: p.stem,
+	)
     def test_run_tts_eval_set(self, eval_path: Path) -> None: ...
 
     @pytest.mark.slow

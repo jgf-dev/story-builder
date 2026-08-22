@@ -7,6 +7,8 @@ from unittest.mock import patch
 
 
 class TestEnvModule(unittest.TestCase):
+    env_backup: dict[str, str]
+
     def setUp(self) -> None: ...
 
     def tearDown(self) -> None: ...

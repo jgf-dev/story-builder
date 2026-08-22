@@ -51,6 +51,23 @@ class TestNetwork(unittest.TestCase):
 
 
 class TestDBIntegration(unittest.TestCase):
+    db_path: str
+    mock_get_subcategories: AsyncMock | MagicMock
+    mock_init_db: AsyncMock | MagicMock
+    mock_parse_args: AsyncMock | MagicMock
+    mock_process_subcategory: AsyncMock | MagicMock
+    mock_save_story: AsyncMock | MagicMock
+    mock_upload: AsyncMock | MagicMock
+    mock_upload_s3: AsyncMock | MagicMock
+    original_db_path: Incomplete
+    patcher: _patch_pass_arg[AsyncMock | MagicMock]
+    patcher_db: _patch_pass_arg[AsyncMock | MagicMock]
+    patcher_get_subcats: _patch_pass_arg[AsyncMock | MagicMock]
+    patcher_proc_subcat: _patch_pass_arg[AsyncMock | MagicMock]
+    patcher_upload: _patch_pass_arg[AsyncMock | MagicMock]
+    patcher_upload_s3: _patch_pass_arg[AsyncMock | MagicMock]
+    patcher_writer: _patch_pass_arg[AsyncMock | MagicMock]
+
     def setUp(self) -> None: ...
 
     def tearDown(self) -> None: ...

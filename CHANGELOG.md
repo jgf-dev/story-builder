@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-16
+
+### Summary
+Fixed failing CI checks and test suite errors on main.
+
+### Fixed
+- Fixed SQL column mapping in `scripts/import_to_sqlite.py` `_flush_batch` by removing obsolete `email_date` column.
+- Added missing `get_logger` import in `tests/utils/test_logging_config.py`.
+- Replaced `runs-on: Linux` with `runs-on: ubuntu-latest` in `.github/workflows/test.yml`.
+
+
 ## [PR-1754](https://github.com/jgf-dev/story-builder/pull/1754) - 2026-08-15
 
 ### Summary

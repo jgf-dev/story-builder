@@ -20,10 +20,6 @@ Resolved merge conflicts across `CHANGELOG.md`, `src/storybuilder/dashboard/page
 
 ### Summary
 Continued PR #1754 by resolving merge conflicts with `origin/main` and addressing outstanding review feedback. Standardized GitHub Actions workflows to use GitHub-hosted runner labels.
-## [PR-1754](https://github.com/jgf-dev/story-builder/pull/1754) - 2026-08-15
-
-### Summary
-Continued PR #1754 by resolving merge conflicts with `origin/main` and addressing outstanding review feedback.
 
 ### Fixed
 - `main.py` now loads the project `.env` from the script's directory before `braintrust.auto_instrument()` runs, ensuring environment variables are available for library initialization.

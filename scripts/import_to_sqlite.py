@@ -200,9 +200,9 @@ def _flush_batch(
         INSERT OR REPLACE INTO stories
             (path, orientation, category, story_slug, chapter_num,
              title, author_name, author_email,
-             publication_date, url, email_date,
+             publication_date, url,
              char_count, word_count, content)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
 	try:
 		conn.executemany(sql, batch)

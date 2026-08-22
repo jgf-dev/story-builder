@@ -68,9 +68,9 @@ import os
 import requests
 
 response = requests.get(
-    "https://api.x.ai/v1/tts/voices",
-    headers={"Authorization": f"Bearer {os.environ['XAI_API_KEY']}"},
-    timeout=60,
+	"https://api.x.ai/v1/tts/voices",
+	headers={"Authorization": f"Bearer {os.environ['XAI_API_KEY']}"},
+	timeout=60,
 )
 response.raise_for_status()
 print(json.dumps(response.json(), indent=2))
@@ -84,22 +84,22 @@ import os
 import requests
 
 response = requests.post(
-    "https://api.x.ai/v1/tts",
-    headers={
-        "Authorization": f"Bearer {os.environ['XAI_API_KEY']}",
-        "Content-Type": "application/json",
-    },
-    json={
-        "text": "Hello! Welcome to the xAI Text to Speech API.",
-        "voice_id": "eve",
-        "language": "en",
-    },
-    timeout=120,
+	"https://api.x.ai/v1/tts",
+	headers={
+		"Authorization": f"Bearer {os.environ['XAI_API_KEY']}",
+		"Content-Type": "application/json",
+	},
+	json={
+		"text": "Hello! Welcome to the xAI Text to Speech API.",
+		"voice_id": "eve",
+		"language": "en",
+	},
+	timeout=120,
 )
 response.raise_for_status()
 
 with open("hello.mp3", "wb") as f:
-    f.write(response.content)
+	f.write(response.content)
 ```
 
 ### Create a Custom Voice, Then Use It
@@ -110,33 +110,33 @@ import os
 import requests
 
 with open("reference.wav", "rb") as f:
-    create = requests.post(
-        "https://api.x.ai/v1/custom-voices",
-        headers={"Authorization": f"Bearer {os.environ['XAI_API_KEY']}"},
-        files={"file": ("reference.wav", f, "audio/wav")},
-        data={"name": "Friendly Narrator", "language": "en"},
-        timeout=300,
-    )
+	create = requests.post(
+		"https://api.x.ai/v1/custom-voices",
+		headers={"Authorization": f"Bearer {os.environ['XAI_API_KEY']}"},
+		files={"file": ("reference.wav", f, "audio/wav")},
+		data={"name": "Friendly Narrator", "language": "en"},
+		timeout=300,
+	)
 create.raise_for_status()
 voice_id = create.json()["voice_id"]
 
 speech = requests.post(
-    "https://api.x.ai/v1/tts",
-    headers={
-        "Authorization": f"Bearer {os.environ['XAI_API_KEY']}",
-        "Content-Type": "application/json",
-    },
-    json={
-        "text": "Hello! This is my custom voice.",
-        "voice_id": voice_id,
-        "language": "en",
-    },
-    timeout=120,
+	"https://api.x.ai/v1/tts",
+	headers={
+		"Authorization": f"Bearer {os.environ['XAI_API_KEY']}",
+		"Content-Type": "application/json",
+	},
+	json={
+		"text": "Hello! This is my custom voice.",
+		"voice_id": voice_id,
+		"language": "en",
+	},
+	timeout=120,
 )
 speech.raise_for_status()
 
 with open("custom.mp3", "wb") as f:
-    f.write(speech.content)
+	f.write(speech.content)
 ```
 
 For WAV, PCM, MULAW, ALAW, sample rate, or bitrate options, re-check the current xAI REST docs and use the exact documented field names. Do not invent an `output_format` parameter if the docs have changed.

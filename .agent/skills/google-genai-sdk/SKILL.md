@@ -94,8 +94,7 @@ By default, interactions are stored (`store=True`):
 
 ```python
 interaction = client.interactions.create(
-    model="gemini-3.5-flash",
-    input="Explain quantum computing in one short sentence."
+	model="gemini-3.5-flash", input="Explain quantum computing in one short sentence."
 )
 
 # Accessing output via convenience property:
@@ -111,16 +110,11 @@ To continue a conversation and leverage server-side history, pass the previous i
 
 ```python
 # Turn 1
-interaction1 = client.interactions.create(
-    model="gemini-3.5-flash",
-    input="My favorite color is green."
-)
+interaction1 = client.interactions.create(model="gemini-3.5-flash", input="My favorite color is green.")
 
 # Turn 2
 interaction2 = client.interactions.create(
-    model="gemini-3.5-flash",
-    input="What is my favorite color?",
-    previous_interaction_id=interaction1.id
+	model="gemini-3.5-flash", input="What is my favorite color?", previous_interaction_id=interaction1.id
 )
 
 print(interaction2.output_text)  # "Your favorite color is green."
@@ -136,16 +130,12 @@ print(interaction2.output_text)  # "Your favorite color is green."
 For real-time responses or long-running requests, set `stream=True`. Iterate over the yielded events and check the event type:
 
 ```python
-stream = client.interactions.create(
-    model="gemini-3.5-flash",
-    input="Write a short poem about the ocean.",
-    stream=True
-)
+stream = client.interactions.create(model="gemini-3.5-flash", input="Write a short poem about the ocean.", stream=True)
 
 for event in stream:
-    if event.event_type == "step.delta":
-        if event.delta.type == "text":
-            print(event.delta.text, end="", flush=True)
+	if event.event_type == "step.delta":
+		if event.delta.type == "text":
+			print(event.delta.text, end="", flush=True)
 ```
 
 ---
@@ -156,14 +146,13 @@ The Interactions API handles tool use seamlessly. Define a standard Python funct
 
 ```python
 def get_current_weather(location: str) -> str:
-    """Gets the current weather for a location."""
-    # Dummy mock response
-    return f"The weather in {location} is sunny and 72 degrees."
+	"""Gets the current weather for a location."""
+	# Dummy mock response
+	return f"The weather in {location} is sunny and 72 degrees."
+
 
 interaction = client.interactions.create(
-    model="gemini-3.5-flash",
-    input="What is the weather like in Seattle?",
-    tools=[get_current_weather]
+	model="gemini-3.5-flash", input="What is the weather like in Seattle?", tools=[get_current_weather]
 )
 
 print(interaction.output_text)
@@ -180,26 +169,26 @@ import time
 
 # Start background agent interaction
 interaction = client.interactions.create(
-    agent="deep-research-preview-04-2026",
-    input="Perform a comprehensive research on clean energy innovations in 2026.",
-    background=True
+	agent="deep-research-preview-04-2026",
+	input="Perform a comprehensive research on clean energy innovations in 2026.",
+	background=True,
 )
 
 print(f"Started interaction with ID: {interaction.id}")
 
 # Poll for completion
 while True:
-    status_check = client.interactions.get(id=interaction.id)
-    if status_check.status == "COMPLETED":
-        print("Research Completed!")
-        print(status_check.output_text)
-        break
-    elif status_check.status == "FAILED":
-        print("Research Failed.")
-        break
+	status_check = client.interactions.get(id=interaction.id)
+	if status_check.status == "COMPLETED":
+		print("Research Completed!")
+		print(status_check.output_text)
+		break
+	elif status_check.status == "FAILED":
+		print("Research Failed.")
+		break
 
-    print("Still researching...")
-    time.sleep(10)
+	print("Still researching...")
+	time.sleep(10)
 ```
 
 ### Managing Background Interactions
@@ -226,22 +215,20 @@ For detailed guidelines, prompt structures, audio tags, voice options, and best 
 import base64
 import wave
 
+
 def save_wav(filename, pcm_data):
-    with wave.open(filename, "wb") as wf:
-        wf.setnchannels(1)      # 1 channel (mono)
-        wf.setsampwidth(2)      # 16-bit
-        wf.setframerate(24000)  # 24kHz
-        wf.writeframes(pcm_data)
+	with wave.open(filename, "wb") as wf:
+		wf.setnchannels(1)  # 1 channel (mono)
+		wf.setsampwidth(2)  # 16-bit
+		wf.setframerate(24000)  # 24kHz
+		wf.writeframes(pcm_data)
+
 
 interaction = client.interactions.create(
-    model="gemini-3.1-flash-tts-preview",
-    input="[excitedly] Hello, this is synthesized directly from the text!",
-    response_modalities=["audio"],
-    generation_config={
-        "speech_config": [
-            {"voice": "Kore"}
-        ]
-    }
+	model="gemini-3.1-flash-tts-preview",
+	input="[excitedly] Hello, this is synthesized directly from the text!",
+	response_modalities=["audio"],
+	generation_config={"speech_config": [{"voice": "Kore"}]},
 )
 
 # Access audio via output_audio convenience property

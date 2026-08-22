@@ -185,8 +185,8 @@ Add new parametrized test methods to the existing test classes or create new tes
 ```python
 @pytest.mark.parametrize("query", ["new query 1", "new query 2"])
 def test_new_scenario(self, adk_events, query):
-    events = adk_events(query)
-    # ... assertions ...
+	events = adk_events(query)
+	# ... assertions ...
 ```
 
 ## Viewing Results

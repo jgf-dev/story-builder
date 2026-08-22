@@ -312,27 +312,25 @@ To convert text to single-speaker audio, set the response modality to "audio", a
     import wave
     import base64
 
+
     def wave_file(filename, pcm, channels=1, rate=24000, sample_width=2):
-        with wave.open(filename, "wb") as wf:
-            wf.setnchannels(channels)
-            wf.setsampwidth(sample_width)
-            wf.setframerate(rate)
-            wf.writeframes(pcm)
+    	with wave.open(filename, "wb") as wf:
+    		wf.setnchannels(channels)
+    		wf.setsampwidth(sample_width)
+    		wf.setframerate(rate)
+    		wf.writeframes(pcm)
+
 
     client = genai.Client()
 
     interaction = client.interactions.create(
-        model="gemini-3.1-flash-tts-preview",
-        input="Say cheerfully: Have a wonderful day!",
-        response_modalities=["audio"],
-        generation_config={
-            "speech_config": [
-                {"voice": "Kore"}
-            ]
-        }
+    	model="gemini-3.1-flash-tts-preview",
+    	input="Say cheerfully: Have a wonderful day!",
+    	response_modalities=["audio"],
+    	generation_config={"speech_config": [{"voice": "Kore"}]},
     )
 
-    wave_file('out.wav', base64.b64decode(interaction.output_audio.data))
+    wave_file("out.wav", base64.b64decode(interaction.output_audio.data))
     ```
 
 You can retrieve generated audio data by using the `interaction.output_audio` property, which returns the last generated audio block. For details on convenience properties, see the [Interactions overview](https://ai.google.dev/gemini-api/docs/interactions#convenience-properties).
@@ -406,23 +404,20 @@ The TTS models only output audio, but you can use [other models](https://ai.goog
     client = genai.Client()
 
     transcript_interaction = client.interactions.create(
-       model="gemini-3.5-flash",
-       input="""Generate a short transcript around 100 words that reads
+    	model="gemini-3.5-flash",
+    	input="""Generate a short transcript around 100 words that reads
                 like it was clipped from a podcast by excited herpetologists.
-                The hosts names are Dr. Anya and Liam."""
+                The hosts names are Dr. Anya and Liam.""",
     )
     transcript = transcript_interaction.output_text
 
     tts_interaction = client.interactions.create(
-       model="gemini-3.1-flash-tts-preview",
-       input=transcript,
-       response_modalities=["audio"],
-       generation_config={
-          "speech_config": [
-             {"speaker": "Dr. Anya", "voice": "Kore"},
-             {"speaker": "Liam", "voice": "Puck"}
-          ]
-       }
+    	model="gemini-3.1-flash-tts-preview",
+    	input=transcript,
+    	response_modalities=["audio"],
+    	generation_config={
+    		"speech_config": [{"speaker": "Dr. Anya", "voice": "Kore"}, {"speaker": "Liam", "voice": "Puck"}]
+    	},
     )
     ```
 
@@ -457,14 +452,14 @@ The Gemini API evaluates content across four adjustable harm categories. For ero
 from google.genai import types
 
 safety_settings = [
-    types.SafetySetting(
-        category=types.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-        threshold=types.HarmBlockThreshold.BLOCK_NONE,
-    ),
-    types.SafetySetting(
-        category=types.HarmCategory.HARM_CATEGORY_HARASSMENT,
-        threshold=types.HarmBlockThreshold.BLOCK_NONE,
-    ),
+	types.SafetySetting(
+		category=types.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+		threshold=types.HarmBlockThreshold.BLOCK_NONE,
+	),
+	types.SafetySetting(
+		category=types.HarmCategory.HARM_CATEGORY_HARASSMENT,
+		threshold=types.HarmBlockThreshold.BLOCK_NONE,
+	),
 ]
 ```
 

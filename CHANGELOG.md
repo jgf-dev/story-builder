@@ -5,12 +5,13 @@ All notable changes to this project will be documented in this file.
 ## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-16
 
 ### Summary
-Resolved merge conflicts across `CHANGELOG.md`, `src/storybuilder/dashboard/pages/search_explorer.py`, and `tests/genai/test_cartesia.py`. Fixed SQLite import batch column alignment and test imports.
+Resolved merge conflicts across `CHANGELOG.md`, `src/storybuilder/dashboard/pages/search_explorer.py`, and `tests/genai/test_cartesia.py`. Fixed SQLite import batch column alignment, test imports, and runner labels in test workflows.
 
 ### Fixed
 - Resolved merge conflicts in `CHANGELOG.md`, `src/storybuilder/dashboard/pages/search_explorer.py`, and `tests/genai/test_cartesia.py`.
 - Fixed SQL column mapping in `scripts/import_to_sqlite.py` `_flush_batch` by removing obsolete `email_date` column.
 - Added missing `get_logger` import in `tests/utils/test_logging_config.py`.
+- Replaced `runs-on: Linux` with `runs-on: ubuntu-latest` in `.github/workflows/test.yml`.
 
 ### Added
 - Maintained `test_wave_file` in `tests/genai/test_cartesia.py` and verified full test suite passes (361 passed).

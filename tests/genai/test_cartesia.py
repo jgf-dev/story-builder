@@ -22,10 +22,10 @@ class TestCartesiaClient(unittest.TestCase):
             wave_file(tmp_name, pcm_data, channels=2, rate=44100, sample_width=2)
 
             with wave.open(tmp_name, "rb") as wf:
-                assert wf.getnchannels() == 2  # ruff: ignore[assert]
-                assert wf.getsampwidth() == 2  # ruff: ignore[assert]
-                assert wf.getframerate() == 44100  # ruff: ignore[assert]
-                assert wf.readframes(1024) == pcm_data  # ruff: ignore[assert]
+                self.assertEqual(wf.getnchannels(), 2)
+                self.assertEqual(wf.getsampwidth(), 2)
+                self.assertEqual(wf.getframerate(), 44100)
+                self.assertEqual(wf.readframes(1024), pcm_data)
         finally:
             pathlib.Path(tmp_name).unlink()
 
@@ -39,9 +39,9 @@ class TestCartesiaClient(unittest.TestCase):
         """
         config = parse_speech_config_cartesia(markdown_content)
 
-        assert config["Jace"] == VOICE_MAP["algenib"]  # ruff: ignore[assert]
-        assert config["Levi"] == VOICE_MAP["kyle"]  # ruff: ignore[assert]
-        assert config["Kerry"] == "6ccbfb76-1fc6-48f7-b71d-91ac6298247b"  # ruff: ignore[assert]
+        self.assertEqual(config["Jace"], VOICE_MAP["algenib"])
+        self.assertEqual(config["Levi"], VOICE_MAP["kyle"])
+        self.assertEqual(config["Kerry"], "6ccbfb76-1fc6-48f7-b71d-91ac6298247b")
 
     def test_parse_transcript_segments(self) -> None:
         markdown_content = """# AUDIO PROFILE
@@ -69,23 +69,25 @@ class TestCartesiaClient(unittest.TestCase):
         )
 
         # Check segment grouping (the two Jace lines are adjacent and should be grouped together!)
-        assert len(segments) == 4  # ruff: ignore[assert]
+        self.assertEqual(len(segments), 4)
 
         # Segment 1: Jace lines grouped
-        assert segments[0][0] == "jace-voice-uuid"  # ruff: ignore[assert]
-        assert segments[0][1] == "Hello, my name is Jace. And this is my second line."  # ruff: ignore[assert]
+        self.assertEqual(segments[0][0], "jace-voice-uuid")
+        self.assertEqual(
+            segments[0][1], "Hello, my name is Jace. And this is my second line."
+        )
 
         # Segment 2: Narrator
-        assert segments[1][0] == "narrator-voice-uuid"  # ruff: ignore[assert]
-        assert segments[1][1] == "This is the narrator speaking here."  # ruff: ignore[assert]
+        self.assertEqual(segments[1][0], "narrator-voice-uuid")
+        self.assertEqual(segments[1][1], "This is the narrator speaking here.")
 
         # Segment 3: Levi fallback
-        assert segments[2][0] == NAME_FALLBACK_MAP["levi"]  # ruff: ignore[assert]
-        assert segments[2][1], "Hey == Levi here!"  # ruff: ignore[assert]
+        self.assertEqual(segments[2][0], NAME_FALLBACK_MAP["levi"])
+        self.assertEqual(segments[2][1], "Hey, Levi here!")
 
         # Segment 4: Jace
-        assert segments[3][0] == "jace-voice-uuid"  # ruff: ignore[assert]
-        assert segments[3][1] == "Back to Jace."  # ruff: ignore[assert]
+        self.assertEqual(segments[3][0], "jace-voice-uuid")
+        self.assertEqual(segments[3][1], "Back to Jace.")
 
 
 if __name__ == "__main__":

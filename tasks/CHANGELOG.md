@@ -27,21 +27,6 @@ Resolved merge conflicts across `CHANGELOG.md`, `src/storybuilder/dashboard/page
 ### Summary
 Resolved git merge conflicts across `.jules/palette.md`, `evals/run_adk_eval.py`, and `src/storybuilder/downloader/network.py`.
 
-### Fixed
-Resolved merge conflicts across `scripts/import_to_sqlite.py`, `src/storybuilder/analysis/extract_entities.py`, `src/storybuilder/genai/client.py`, and `tasks/CHANGELOG.md`.
-
-### Fixed
-- Fixed SQL column mapping in `scripts/import_to_sqlite.py` `_flush_batch` by removing obsolete `email_date` column.
-- Resolved type annotation in `src/storybuilder/analysis/extract_entities.py`.
-- Preserved key rotation logging in `src/storybuilder/genai/client.py`.
-- Verified full test suite execution.
-
-## [72d34f0](https://github.com/jgf2/story-builder/commit/72d34f0) - 2026-08-05
-
-### Summary
-Resolved git merge conflicts across `.jules/palette.md`, `evals/run_adk_eval.py`, and `src/storybuilder/downloader/network.py`.
-
-### Fixed
 - Preserved `.jules/palette.md` accessibility learning notes and landmark documentation.
 - Retained path handling logic in `evals/run_adk_eval.py`.
 - Kept tab-formatted request rotation and retry implementations in `src/storybuilder/downloader/network.py`.

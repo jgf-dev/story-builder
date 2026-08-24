@@ -128,24 +128,30 @@ _monolithic_db_path: "str | None" = None
 _db_path_global: "str | None" = None
 _lock = threading.Lock()
 
-# -- Regex patterns -----------------------------------------------------
-
-_EMAIL_AUTHOR_RE = re.compile(r"^((?:[^<>\n]+|<[^<>\n]+>)+)\s*<([^<>\n]+)>\s*$")
-_CHAPTER_SUFFIX_RE = re.compile(r"^(.+?)-(\d+)$")
-
 # -- Author parsing -----------------------------------------------------
+
+_CHAPTER_SUFFIX_RE = re.compile(r"^(.+?)-(\d+)$")
+_KNOWN_ORIENTATIONS = {"gay", "lesbian", "bisexual", "transgender", "bestiality"}
 
 
 def _parse_author(raw: "str | None") -> "tuple[str | None, str | None]":
 	"""Parse 'Name <email>' or bare email into (name, email)."""
 	if not raw:
 		return None, None
-	m = _EMAIL_AUTHOR_RE.match(raw)
-	if m:
-		return m.group(1).strip(), m.group(2).strip()
+	raw = raw.strip()
+	if not raw:
+		return None, None
+
+	if raw.endswith(">") and "<" in raw:
+		last_lt = raw.rfind("<")
+		name_part = raw[:last_lt].strip()
+		email_part = raw[last_lt + 1 : -1].strip()
+		if email_part:
+			return (name_part if name_part else None), email_part
+
 	if "@" in raw and "<" not in raw:
-		return None, raw.strip()
-	return raw.strip(), None
+		return None, raw
+	return raw, None
 
 
 # -- Path parsing -------------------------------------------------------
@@ -159,24 +165,59 @@ def _parse_output_path(output_path: str) -> "tuple[str, str, str, int | None]":
 	"""
 	parts = Path(output_path).parts
 
-	# Expected layouts (parts indices):
-	# 3-part:   [output_dir, orientation, file] -> category = filename
-	# 4-part:   [output_dir, orientation, category, file]
-	# 5+ part:  [output_dir, orientation, category, story_slug, file]
-
 	if len(parts) < 3:
 		raise ValueError(f"Invalid output path: {output_path}. Must have at least 3 parts.")
 
-	# orientation is the second path element
-	orientation = parts[1]
+	# Check if any part matches a known orientation
+	orientation_idx = next(
+		(i for i, p in enumerate(parts) if p.lower() in _KNOWN_ORIENTATIONS),
+		None,
+	)
 
+	if orientation_idx is not None and orientation_idx < len(parts) - 1:
+		orientation = parts[orientation_idx]
+		sub_parts = parts[orientation_idx + 1 :]
+		filename_stem = Path(sub_parts[-1]).stem
+
+		if len(sub_parts) == 1:
+			category = sub_parts[0]
+			story_slug = filename_stem
+			chapter_num = None
+			if m := _CHAPTER_SUFFIX_RE.match(story_slug):
+				story_slug = m.group(1)
+				chapter_num = int(m.group(2))
+			return orientation, category, story_slug, chapter_num
+
+		if len(sub_parts) == 2:
+			category = sub_parts[0]
+			story_slug = filename_stem
+			chapter_num = None
+			if m := _CHAPTER_SUFFIX_RE.match(story_slug):
+				story_slug = m.group(1)
+				chapter_num = int(m.group(2))
+			return orientation, category, story_slug, chapter_num
+
+		# 3+ sub_parts: category, story_slug, ..., file
+		category = sub_parts[0]
+		story_slug = sub_parts[-2]
+		chapter_num = None
+		if m := _CHAPTER_SUFFIX_RE.match(story_slug):
+			story_slug = m.group(1)
+			chapter_num = int(m.group(2))
+			return orientation, category, story_slug, chapter_num
+
+		if m := _CHAPTER_SUFFIX_RE.match(filename_stem):
+			chapter_num = int(m.group(2))
+
+		return orientation, category, story_slug, chapter_num
+
+	# Fallback legacy behavior
+	orientation = parts[1]
 	filename_stem = Path(parts[-1]).stem
 
 	if len(parts) == 3:
-		# category is the filename for the short form, slug is stem
 		category = parts[2]
 		story_slug = filename_stem
-		# detect chapter number in filename (e.g., story-3)
 		chapter_num = None
 		if m := _CHAPTER_SUFFIX_RE.match(story_slug):
 			story_slug = m.group(1)
@@ -192,17 +233,14 @@ def _parse_output_path(output_path: str) -> "tuple[str, str, str, int | None]":
 			chapter_num = int(m.group(2))
 		return orientation, category, story_slug, chapter_num
 
-	# 5+ parts: story_slug provided as the penultimate element
 	category = parts[2]
 	story_slug = parts[-2]
 	chapter_num = None
-	# If story_slug itself encodes chapter (unlikely), prefer that.
 	if m := _CHAPTER_SUFFIX_RE.match(story_slug):
 		story_slug = m.group(1)
 		chapter_num = int(m.group(2))
 		return orientation, category, story_slug, chapter_num
 
-	# Otherwise, check filename for chapter suffix but do not override slug.
 	if m := _CHAPTER_SUFFIX_RE.match(filename_stem):
 		chapter_num = int(m.group(2))
 

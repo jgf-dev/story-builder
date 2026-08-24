@@ -65,9 +65,28 @@ class TestParseAuthor(unittest.TestCase):
         self.assertEqual(name, "<Special> Author")
         self.assertEqual(email, "special@example.com")
 
+    def test_long_author_string_no_catastrophic_backtracking(self) -> None:
+        from storybuilder.downloader.db import _parse_author
+
+        long_str = "By John Doe and Jane Doe and Friends From Highschool"
+        name, email = _parse_author(long_str)
+        self.assertEqual(name, long_str)
+        self.assertIsNone(email)
+
 
 class TestParseOutputPath(unittest.TestCase):
     """Tests for _parse_output_path in storybuilder.downloader.db."""
+
+    def test_nested_output_dir_stories_text(self) -> None:
+        from storybuilder.downloader.db import _parse_output_path
+
+        orientation, category, slug, num = _parse_output_path(
+            "stories/text/gay/adult-friends/washboard-tails.txt"
+        )
+        self.assertEqual(orientation, "gay")
+        self.assertEqual(category, "adult-friends")
+        self.assertEqual(slug, "washboard-tails")
+        self.assertIsNone(num)
 
     def test_multi_chapter_story(self) -> None:
         from storybuilder.downloader.db import _parse_output_path

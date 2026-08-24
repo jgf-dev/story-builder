@@ -8,13 +8,18 @@ from pathlib import Path
 from storybuilder.downloader.storage import upload_many as upload_many_gcs
 from storybuilder.downloader.storage import upload_many_s3
 
+
 # Add project root to sys.path to enable absolute imports when run directly as a script
 if __name__ == "__main__" and __package__ is None:
 	sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from storybuilder.downloader import db, network
-from storybuilder.downloader.cache import load_cache, safe_print, save_cache
-from storybuilder.downloader.scraper import get_subcategories, process_subcategory
+from storybuilder.downloader import db
+from storybuilder.downloader import network
+from storybuilder.downloader.cache import load_cache
+from storybuilder.downloader.cache import safe_print
+from storybuilder.downloader.cache import save_cache
+from storybuilder.downloader.scraper import get_subcategories
+from storybuilder.downloader.scraper import process_subcategory
 from storybuilder.downloader.writer import download_single_target
 
 
@@ -56,13 +61,13 @@ def _parse_args() -> argparse.Namespace:
 	)
 	parser.add_argument(
 		"--socks5-proxy",
-		default="192.168.2.10:37459",
+		default=None,
 		help="SOCKS5 proxy server to route requests through (e.g. 127.0.0.1:1080).",
 	)
 	parser.add_argument(
 		"--rotate-on-refusal",
 		action="store_true",
-		default=True,
+		default=False,
 		help="Enable IP rotation using windscribe-cli if requests are refused or fail.",
 	)
 	parser.add_argument(

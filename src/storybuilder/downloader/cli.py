@@ -85,7 +85,7 @@ def _parse_args() -> argparse.Namespace:
 	parser.add_argument(
 		"--db",
 		default="stories/db",
-		help="SQLite database path or directory. Stories are inserted into partitioned databases under this path as they download. Set to empty string to disable.",
+		help="SQLite database path or directory. Stories are inserted into the monolithic database (stories.db) under this path as they download. Set to empty string to disable.",
 	)
 	parser.add_argument(
 		"--s3-bucket",

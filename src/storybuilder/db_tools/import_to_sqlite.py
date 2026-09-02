@@ -3,10 +3,11 @@
 Import all Nifty story .txt files into a SQLite database with FTS5 full-text search.
 
 Replaces 73K individual .txt files with a single, searchable database file.
-Run this from the repo root.
+Installed as the `story-import` console script (or run via
+`python -m storybuilder.db_tools.import_to_sqlite`).
 
 Usage:
-    python scripts/import_to_sqlite.py [--db stories/stories.db] [--limit N] [--force]
+    story-import [--db stories/stories.db] [--limit N] [--force]
 
 Schema:
     stories table — metadata + full text content
@@ -23,23 +24,16 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
+
 # Use shared db module
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 # ——— Schema ——————————————————————————————————————————————————————————————————
 
 # Import shared database functions
-from storybuilder.downloader.db import (
-	_parse_author,  # pyrefly: ignore [private-import]
-	_parse_output_path,  # pyrefly: ignore [private-import]
-	optimize_fts,
-)
+from storybuilder.downloader.db import _parse_author  # pyrefly: ignore [private-import]
+from storybuilder.downloader.db import _parse_output_path  # pyrefly: ignore [private-import]
 from storybuilder.downloader.db import init_db as _db_init_db
-
-try:
-	from storybuilder.downloader.db import _is_partitioned as IS_PARTITIONED  # pyrefly: ignore [private-import]
-except ImportError:
-	IS_PARTITIONED = False
 
 
 logger = logging.getLogger(__name__)
@@ -284,11 +278,8 @@ def main() -> None:
 
 	# Build FTS index (should already be built via triggers, but optimize)
 	print("\n  Optimizing FTS index...")
-	if not IS_PARTITIONED:
-		conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
-		conn.commit()
-	else:
-		optimize_fts()
+	conn.execute("INSERT INTO stories_fts(stories_fts) VALUES ('optimize')")
+	conn.commit()
 
 	# Print stats
 	row = conn.execute(

@@ -45,8 +45,10 @@ dependencies = [
 ]
 
 [project.scripts]
-downloader = "storybuilder.downloader.cli:main"
-genai-tts  = "storybuilder.genai.tts:main"
+downloader   = "storybuilder.downloader.cli:main"
+genai-tts    = "storybuilder.genai.tts:main"
+story-import = "storybuilder.db_tools.import_to_sqlite:main"
+story-db     = "storybuilder.db_tools.story_db:main"
 
 [build-system]
 requires      = ["uv_build>=0.11.15,<0.12.0"]
@@ -155,4 +157,3 @@ markers = [
     "agentic: marks tests using agentic evaluation patterns (reflection, rubric)",
     "integration: live external services (Gemini/Vertex/TTS); unit suite uses fakes by default — enable live path with STORYBUILDER_LIVE_API=1",
 ]
-

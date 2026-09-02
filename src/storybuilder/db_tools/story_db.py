@@ -4,22 +4,22 @@ Query the stories SQLite database — search, browse, and export.
 
 Usage:
     # Full-text search
-    python scripts/story_db.py search "vampire"
-    python scripts/story_db.py search "werewolf" --author "Mark Arsenault"
-    python scripts/story_db.py search "adventure" --category college --limit 20
-    python scripts/story_db.py search "romance" --date-from 2023-01-01
+    story-db search "vampire"
+    story-db search "werewolf" --author "Mark Arsenault"
+    story-db search "adventure" --category college --limit 20
+    story-db search "romance" --date-from 2023-01-01
 
     # Get a specific story by path/slug
-    python scripts/story_db.py get "721-anderson-avenue"
-    python scripts/story_db.py get "a-beautiful-friendship" --export
+    story-db get "721-anderson-avenue"
+    story-db get "a-beautiful-friendship" --export
 
     # Browse stories
-    python scripts/story_db.py list --category adult-friends --limit 10
-    python scripts/story_db.py list --author "Mark Arsenault" --sort date
+    story-db list --category adult-friends --limit 10
+    story-db list --author "Mark Arsenault" --sort date
 
     # Stats
-    python scripts/story_db.py stats
-    python scripts/story_db.py stats --category college
+    story-db stats
+    story-db stats --category college
 """
 
 import argparse

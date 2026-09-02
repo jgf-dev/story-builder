@@ -6,9 +6,22 @@ import threading
 from pathlib import Path
 from typing import ClassVar
 
-from sqlalchemy import Column, Integer, MetaData, Table, Text, func, literal_column
+from sqlalchemy import Column
+from sqlalchemy import Integer
+from sqlalchemy import MetaData
+from sqlalchemy import Table
+from sqlalchemy import Text
+from sqlalchemy import func
+from sqlalchemy import literal_column
 from sqlalchemy.engine import Engine
-from sqlmodel import Field, Session, SQLModel, col, create_engine, select, text
+from sqlmodel import Field
+from sqlmodel import Session
+from sqlmodel import SQLModel
+from sqlmodel import col
+from sqlmodel import create_engine
+from sqlmodel import select
+from sqlmodel import text
+
 
 logging = std_logging.getLogger(__name__)
 
@@ -122,7 +135,6 @@ CREATE INDEX IF NOT EXISTS idx_stories_char_count      ON stories(char_count);
 _conn: "sqlite3.Connection | None" = None
 _engine: "Engine | None" = None
 _connections: dict[str, sqlite3.Connection] = {}
-_is_partitioned = False
 _db_dir: "str | None" = None
 _monolithic_db_path: "str | None" = None
 _db_path_global: "str | None" = None
@@ -284,7 +296,12 @@ def _resume_interrupted_migration(conn: sqlite3.Connection) -> bool:
 
 
 def migrate_legacy_schema(conn: sqlite3.Connection) -> bool:
-	"""Rebuild legacy story databases that still include the removed email_date column."""
+	"""Rebuild legacy story databases that still include the removed email_date column.
+
+	OBSOLETE: The standalone migration script (scripts/migrate_email_date.py) has been
+	removed. This now runs only as a defensive self-heal inside init_db / _migrate_schema
+	for any remaining legacy database; no new migrations are expected.
+	"""
 	if _resume_interrupted_migration(conn):
 		return True
 
@@ -339,7 +356,7 @@ def _migrate_schema(conn: "sqlite3.Connection") -> None:
 
 def init_db(db_path: str) -> "sqlite3.Connection":
 	"""Initialize the database (idempotent). Returns the connection."""
-	global _conn, _is_partitioned, _db_dir, _monolithic_db_path, _engine, _db_path_global
+	global _conn, _db_dir, _monolithic_db_path, _engine, _db_path_global
 
 	is_dir = Path(db_path).is_dir() or (not db_path.endswith(".db") and not Path(db_path).suffix)
 
@@ -350,7 +367,6 @@ def init_db(db_path: str) -> "sqlite3.Connection":
 		Path(os.path.dirname(db_path) or ".").mkdir(exist_ok=True, parents=True)
 		resolved_path = db_path
 
-	_is_partitioned = False
 	_db_dir = os.path.dirname(resolved_path)
 	_monolithic_db_path = resolved_path
 	_db_path_global = resolved_path
@@ -672,7 +688,7 @@ def optimize_fts() -> None:
 
 
 def close_db() -> None:
-	global _conn, _engine, _is_partitioned, _db_dir, _monolithic_db_path, _db_path_global
+	global _conn, _engine, _db_dir, _monolithic_db_path, _db_path_global
 	with _lock:
 		if _conn is not None:
 			try:
@@ -688,43 +704,6 @@ def close_db() -> None:
 			except Exception:
 				logging.debug("Engine dispose failed", exc_info=True)
 		_engine = None
-		_is_partitioned = False
 		_db_dir = None
 		_monolithic_db_path = None
 		_db_path_global = None
-
-
-# Backward-compatible alias
-search_all_partitions = search_stories
-
-
-def get_all_partition_paths() -> list[str]:
-	"""Return filesystem paths to partitioned story .db files.
-
-	Provides the function referenced by scripts/dashboard/__init__.py
-	for legacy compatibility. Returns paths to year-specific DBs
-	when using partitioned mode.
-	"""
-	from pathlib import Path
-
-	candidates: list[Path] = []
-	if _db_dir:
-		candidates.append(Path(_db_dir))
-	candidates.extend(
-		[
-			Path.cwd() / "stories" / "db",
-			Path("stories") / "db",
-			Path("stories"),
-		],
-	)
-
-	for base in candidates:
-		if base.exists() and base.is_dir():
-			dbs = sorted(
-				str(p)
-				for p in base.glob("*.db")
-				if not p.name.startswith(".") and p.name not in {"stories.db", "meta.db", "nlp_analysis.db"}
-			)
-			if dbs:
-				return dbs
-	return []

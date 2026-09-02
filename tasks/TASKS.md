@@ -60,3 +60,5 @@
 - [x] ~~Implement basic named entity recognition to extract character names, locations, and other entities from stories.~~ (2026-06-19)
 - [x] ~~Implement a prompt composer agent to compose prompts for TTS engine.~~ (2026-06-19)
 - [x] ~~Merge QWEN.md into AGENTS.md~~ (2026-06-19)
+- [x] ~~Migrate database layer to a SQLModel monolithic architecture~~ (2026-07-10) — Deprecated year-partitioning, consolidated all records into `stories.db`, and replaced raw SQL with SQLModel `select()`/`execute_query()`/`search_stories()` (see `tasks/monolithic_db_plan.md`).
+- [x] ~~Modularize the Streamlit dashboard~~ (2026-07-15) — Split the 875-line `scripts/dashboard.py` monolith into `src/storybuilder/dashboard/` (`config.py`, `data.py`, `ui/sidebar.py`, `pages/`), leaving `scripts/dashboard.py` as a thin launcher (see `tasks/dashboard_refactor_draft.md`).

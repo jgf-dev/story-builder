@@ -47,10 +47,9 @@ storybuilder/
 │       ├── downloader/          # Scraping, IP rotation, writer, and caching layers
 │       ├── analysis/            # Sentiment, entity, embedding, and visualization CLIs
 │       ├── genai/               # Google GenAI TTS client & voice assigners
+│       ├── db_tools/            # SQLite import (story-import) & FTS search (story-db) CLIs
 │       └── utils/               # Prompts and common utilities
-├── scripts/                     # SQLite database indexing and querying scripts
-│   ├── import_to_sqlite.py      # Idempotent DB importer with FTS5 table setup
-│   └── story_db.py              # FTS search, retrieval, and stats CLI
+├── scripts/                     # Misc tooling (dashboard launcher, merge helpers)
 └── tests/                       # Unit and integration test suite
 ```
 
@@ -111,16 +110,12 @@ storybuilder --category gay --start-date 1990-01-01 --end-date 2025-12-31 --outp
 Parse and register the downloaded plain texts into the FTS5-indexed database:
 
 ```bash
-python3 scripts/import_to_sqlite.py --db stories/stories.db
+story-import --db stories/stories.db
 ```
 
 If you already have an older database that still contains the removed
 `email_date` column, it will be migrated automatically the next time the DB is
-opened through the shared SQLite layer. You can also migrate it manually with:
-
-```bash
-python3 scripts/migrate_email_date.py stories/stories.db
-```
+opened through the shared SQLite layer.
 
 ### Step 3: Run NLP Analysis
 

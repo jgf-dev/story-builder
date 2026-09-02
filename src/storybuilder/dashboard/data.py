@@ -7,8 +7,13 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-from storybuilder.dashboard.config import BRACKET_LABELS, LONG_YEAR, get_db_dir, get_meta_db_path, get_nlp_db_path
+from storybuilder.dashboard.config import BRACKET_LABELS
+from storybuilder.dashboard.config import LONG_YEAR
+from storybuilder.dashboard.config import get_db_dir
+from storybuilder.dashboard.config import get_meta_db_path
+from storybuilder.dashboard.config import get_nlp_db_path
 from storybuilder.downloader import db as storybuilder_db
+
 
 logger = getLogger(__name__)
 
@@ -21,7 +26,7 @@ def _ensure_db() -> None:
 
 
 def get_db_files() -> list[Path]:
-	"""Retrieve all year-partitioned databases, sorted."""
+	"""List year-named story databases (YYYY.db) in the db directory, sorted; empty in monolithic mode."""
 	db_dir = get_db_dir()
 	if not Path(db_dir).exists():
 		return []

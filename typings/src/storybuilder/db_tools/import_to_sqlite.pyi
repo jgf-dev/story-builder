@@ -10,7 +10,6 @@ from typing import Any
 from storybuilder.downloader.db import (
 	_parse_author,  # pyrefly: ignore [private-import]
 	_parse_output_path,  # pyrefly: ignore [private-import]
-	optimize_fts,
 )
 from storybuilder.downloader.db import init_db as _db_init_db
 

@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-24
+
+### Summary
+Promoted `import_to_sqlite.py` and `story_db.py` into packaged console-script CLIs (`story-import`, `story-db`).
+
+### Changed
+- Moved `scripts/import_to_sqlite.py` → `src/storybuilder/db_tools/import_to_sqlite.py` and `scripts/story_db.py` → `src/storybuilder/db_tools/story_db.py` (new `db_tools` subpackage) so they install as proper console scripts.
+- Registered `story-import` and `story-db` entry points in `pyproject.toml` (`[project.scripts]`).
+- Updated `README.md`, `AGENTS.md`, `.github/workflows/test.yml`, `.agent/resolve_conflicts.py`, and `tests/downloader/test_database.py` to reference the new package paths and console commands.
+
 ## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-22
 
 ### Summary

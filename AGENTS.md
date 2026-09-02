@@ -15,7 +15,7 @@ StoryBuilder is a Python toolkit for narrative fiction scraping, SQLite/FTS5 ind
 
 ### Structure & Layout
 - `src/storybuilder/` — Core package (`downloader/`, `genai/`, `cartesia/`, `xaiapi/`, `bedrock/`, `utils/`, `analysis/`). Uses `sys.path` hacks for direct module execution.
-- `scripts/` — SQLite import and search tooling (`import_to_sqlite.py`, `story_db.py`).
+- `src/storybuilder/db_tools/` — SQLite import (`story-import`) and FTS search (`story-db`) console-script CLIs.
 - `tests/` — `unittest`-based suite run via `uv run pytest`.
 - `src/prompts/` & `.agent/skills/` — Prompt templates, splitter script (`split_prompts.py`), and workflow docs.
 - `stories/` & `nifty_stories/` — Output story text files and archived audio parts.
@@ -40,10 +40,10 @@ StoryBuilder is a Python toolkit for narrative fiction scraping, SQLite/FTS5 ind
   - Output header: Prepend `=====` title/author/date/url header. Duplicate target files across subcategories are copied via `shutil.copy2` after first fetch.
 
 ### 3. Database Import & Search (SQLite FTS5)
-- **Import**: `python scripts/import_to_sqlite.py [--db stories/stories.db] [--limit N] [--force]`
+- **Import**: `story-import [--db stories/stories.db] [--limit N] [--force]`
   - Idempotent via `UNIQUE(path)`. Parses two-line `=====` header and `Name <email>` authors.
   - FTS5 external content virtual table is kept in sync **exclusively** by 3 `AFTER` triggers (`INSERT`, `DELETE`, `UPDATE`). Direct table edits desync search.
-- **Search CLI**: `python scripts/story_db.py --db stories/stories.db search "query" [--author X] [--category Y] [--date-from ...] [--limit 20] [--snippets]` (subcommands: `search`, `get`, `list`, `stats`).
+- **Search CLI**: `story-db --db stories/stories.db search "query" [--author X] [--category Y] [--date-from ...] [--limit 20] [--snippets]` (subcommands: `search`, `get`, `list`, `stats`).
 
 ### 4. Analysis & Vector Pipeline
 Execute in order (argparse + GPU-first `--gpu` flag, idempotent skip):

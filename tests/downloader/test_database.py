@@ -11,13 +11,8 @@ import unittest
 from pathlib import Path
 
 
-# Ensure the src package is importable
+# Ensure the src package (and thus storybuilder.db_tools) is importable
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-# Also make scripts/ importable (they don't have __init__.py but we can still import
-# the modules directly if we add the parent directory)
-_scripts_dir = str(Path(__file__).resolve().parents[2] / "scripts")
-if _scripts_dir not in sys.path:
-    sys.path.insert(0, _scripts_dir)
 
 
 class TestParseAuthor(unittest.TestCase):
@@ -622,7 +617,7 @@ class TestParseHeader(unittest.TestCase):
             "It had multiple paragraphs.\n"
         )
         path = self._write_story_file("test.txt", content)
-        import import_to_sqlite
+        from storybuilder.db_tools import import_to_sqlite
 
         result = import_to_sqlite.parse_header(path)
         self.assertIsNotNone(result)
@@ -643,7 +638,7 @@ class TestParseHeader(unittest.TestCase):
             "URL: https://example.com\n" + "=" * 80 + "\n\n" + "Email content here.\n"
         )
         path = self._write_story_file("email.txt", content)
-        import import_to_sqlite
+        from storybuilder.db_tools import import_to_sqlite
 
         result = import_to_sqlite.parse_header(path)
         self.assertIsNotNone(result)
@@ -652,7 +647,7 @@ class TestParseHeader(unittest.TestCase):
         self.assertEqual(result["author_email"], "user@host.com")
 
     def test_missing_file(self) -> None:
-        import import_to_sqlite
+        from storybuilder.db_tools import import_to_sqlite
 
         result = import_to_sqlite.parse_header("/nonexistent/file.txt")
         self.assertIsNone(result)
@@ -660,13 +655,13 @@ class TestParseHeader(unittest.TestCase):
     def test_no_header_marker(self) -> None:
         content = "Just plain text without any header markers.\n"
         path = self._write_story_file("noheader.txt", content)
-        import import_to_sqlite
+        from storybuilder.db_tools import import_to_sqlite
 
         result = import_to_sqlite.parse_header(path)
         self.assertIsNone(result)
 
     def test_minimal_header(self) -> None:
-        import import_to_sqlite
+        from storybuilder.db_tools import import_to_sqlite
 
         content = (
             "=" * 80 + "\n"
@@ -682,7 +677,7 @@ class TestParseHeader(unittest.TestCase):
         self.assertEqual(result["content"], "body")
 
     def test_empty_content(self) -> None:
-        import import_to_sqlite
+        from storybuilder.db_tools import import_to_sqlite
 
         content = (
             "=" * 80 + "\n"
@@ -699,7 +694,9 @@ class TestParseHeader(unittest.TestCase):
         self.assertEqual(result["content"], "")
 
     def test_import_to_sqlite_script_compiles(self) -> None:
-        script_path = Path(__file__).resolve().parents[2] / "scripts" / "import_to_sqlite.py"
+        script_path = (
+            Path(__file__).resolve().parents[2] / "src" / "storybuilder" / "db_tools" / "import_to_sqlite.py"
+        )
         with tempfile.TemporaryDirectory() as tmp:
             py_compile.compile(
                 str(script_path),
@@ -807,7 +804,7 @@ class TestImportToSQLite(unittest.TestCase):
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_parse_header_valid(self) -> None:
-        import import_to_sqlite
+        from storybuilder.db_tools import import_to_sqlite
 
         content = (
             "================================================================================\n"
@@ -834,7 +831,7 @@ class TestImportToSQLite(unittest.TestCase):
         )
 
     def test_parse_header_missing_fields(self) -> None:
-        import import_to_sqlite
+        from storybuilder.db_tools import import_to_sqlite
 
         content = (
             "================================================================================\n"
@@ -854,7 +851,7 @@ class TestImportToSQLite(unittest.TestCase):
         self.assertEqual(result["content"], "Body content here.")
 
     def test_parse_header_invalid_format(self) -> None:
-        import import_to_sqlite
+        from storybuilder.db_tools import import_to_sqlite
 
         # Missing the second divider
         content = (
@@ -868,7 +865,7 @@ class TestImportToSQLite(unittest.TestCase):
         self.assertIsNone(result)
 
     def test_minimal_header(self) -> None:
-        import import_to_sqlite
+        from storybuilder.db_tools import import_to_sqlite
 
         content = (
             "=" * 80 + "\n"
@@ -884,7 +881,7 @@ class TestImportToSQLite(unittest.TestCase):
         self.assertEqual(result["content"], "body")
 
     def test_empty_content(self) -> None:
-        import import_to_sqlite
+        from storybuilder.db_tools import import_to_sqlite
 
         content = (
             "=" * 80 + "\n"
@@ -899,8 +896,7 @@ class TestImportToSQLite(unittest.TestCase):
         self.assertEqual(result["content"], "")
 
     def test_flush_batch_compatibility(self) -> None:
-        import import_to_sqlite
-
+        from storybuilder.db_tools import import_to_sqlite
         from storybuilder.downloader import db
 
         db_path = os.path.join(self.temp_dir, "import_test.db")

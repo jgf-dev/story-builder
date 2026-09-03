@@ -5,6 +5,7 @@ from xai_sdk.sync.chat import Chat
 
 from storybuilder.utils.env import load_env
 
+
 load_env()
 
 client: Client = Client(

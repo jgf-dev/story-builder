@@ -4,6 +4,8 @@ author: Cody
 tags: sports, bwwm, wrestling, gym, friends
 ---
 
+# Part 1: I Came During Tryouts
+
 I never planned on joining the wrestling team. I just figured girls liked wrestlers. Something about big dudes getting sweaty and pummeling each other, muscles colliding, and being good with your body seemed like a pantie dropper. I just wanted to be a pussy magnet and get my dick wet before my reputation as a dude with no game became fixed and permanent. I was just going to show up, try out, look athletic enough to get noticed, and take a few selfies during the process for instagram. Instead, I walked into one of the weirdest, most confusing afternoons of my life.
 
 I wasn't completely without assets to begin with. I was average height for my age, but I compared myself to other guys, and I definitely had better than average muscle tone, at least by the definition and "cum gutters" and stuff like that. I had been going to the gym a couple times a week for a year or so, and my arms and core and legs were good. I had done a decent amount of "looksmaxing" and even had been unironically on a mewing grind multiple times, getting facial definition. Still, I hadn't really ever been able to talk to a girl and actually turn it into a thing. I would get nervous and kind of just blow it.

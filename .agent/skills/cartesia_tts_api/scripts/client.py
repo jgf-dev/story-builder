@@ -1,9 +1,11 @@
 import os
 
 from cartesia import Cartesia
-from cartesia.types import VoiceSpecifierParam, WAVOutputFormatParam
+from cartesia.types import VoiceSpecifierParam
+from cartesia.types import WAVOutputFormatParam
 
 from storybuilder.utils.env import load_env
+
 
 load_env()
 

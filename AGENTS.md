@@ -7,13 +7,14 @@ Non-obvious repository knowledge, workflows, architecture, and operational gotch
 StoryBuilder is a Python toolkit for narrative fiction scraping, SQLite/FTS5 indexing, sentiment/entity/embedding analysis, and multi-provider TTS generation (Gemini, Cartesia, xAI).
 
 | Layer | Technology & Libraries |
-|---|---|
+| --- | --- |
 | Language & Tooling | Python 3.12+, `uv` package manager |
 | NLP & Vectors | spaCy (`en_core_web_sm`, `en_core_web_lg`), HuggingFace, sentence-transformers, ChromaDB |
 | Audio / TTS | Google GenAI (Interactions API), Cartesia, xAI Grok |
 | Data & Cloud | SQLite (FTS5), AWS Bedrock AgentCore / Boto3 |
 
 ### Structure & Layout
+
 - `src/storybuilder/` — Core package (`downloader/`, `genai/`, `cartesia/`, `xaiapi/`, `bedrock/`, `utils/`, `analysis/`). Uses `sys.path` hacks for direct module execution.
 - `src/storybuilder/db_tools/` — SQLite import (`story-import`) and FTS search (`story-db`) console-script CLIs.
 - `tests/` — `unittest`-based suite run via `uv run pytest`.
@@ -25,11 +26,13 @@ StoryBuilder is a Python toolkit for narrative fiction scraping, SQLite/FTS5 ind
 ## Workflows & Essential Commands
 
 ### 1. Environment Setup
+
 - **Dependencies**: `uv sync --all-extras --dev`
 - **spaCy Models**: `python -m spacy download en_core_web_sm && python -m spacy download en_core_web_lg`
 - **API Keys (`.env`)**: Requires `GEMINI_API_KEY` (rotate with `GEMINI_API_KEY_1`, `GEMINI_API_KEY_2`, etc. on quota limits), `CARTESIA_API_KEY`, `XAI_API_KEY`, and AWS credentials.
 
 ### 2. Downloader (Nifty Scraper & Fetcher)
+
 - **CLI**: `storybuilder --category gay --start-date 1990-01-01 --end-date 2025-12-31 --output-dir nifty_stories --socks5-proxy 192.168.2.10:37459 --rotate-on-refusal --max-scraping 5 --max-workers 5` (or `python -m storybuilder.downloader.cli`).
 - **Flags**: `--force` (bypass cache early-stop), `--delay` (inter-request sleep; 0.01s default in parser, 1.0s in help text).
 - **Subsystem & Gotchas**:
@@ -40,13 +43,16 @@ StoryBuilder is a Python toolkit for narrative fiction scraping, SQLite/FTS5 ind
   - Output header: Prepend `=====` title/author/date/url header. Duplicate target files across subcategories are copied via `shutil.copy2` after first fetch.
 
 ### 3. Database Import & Search (SQLite FTS5)
+
 - **Import**: `story-import [--db stories/stories.db] [--limit N] [--force]`
   - Idempotent via `UNIQUE(path)`. Parses two-line `=====` header and `Name <email>` authors.
   - FTS5 external content virtual table is kept in sync **exclusively** by 3 `AFTER` triggers (`INSERT`, `DELETE`, `UPDATE`). Direct table edits desync search.
 - **Search CLI**: `story-db --db stories/stories.db search "query" [--author X] [--category Y] [--date-from ...] [--limit 20] [--snippets]` (subcommands: `search`, `get`, `list`, `stats`).
 
 ### 4. Analysis & Vector Pipeline
+
 Execute in order (argparse + GPU-first `--gpu` flag, idempotent skip):
+
 1. `python -m storybuilder.analysis.extract_entities --stories-dir nifty_stories --gpu`
 2. `python -m storybuilder.analysis.analyze_sentiment --stories-dir test_stories --gpu`
 3. `python -m storybuilder.analysis.generate_embeddings --stories-dir test_stories` (populates dual Chroma collections: `story_chunks` + `story_averages`)
@@ -57,6 +63,7 @@ Execute in order (argparse + GPU-first `--gpu` flag, idempotent skip):
 8. `python -m storybuilder.genai.test_voices`
 
 ### 5. TTS Prompt Crafter & Generation
+
 - **Prompt Splitter**: `python .agent/skills/tts-prompt-crafter/scripts/split_prompts.py <dir-containing-*-scene*.md>`
   - Archives original `*-scene*.md` files into zero-padded `01-part.md`, `02-part.md`, etc. Chunks on 3rd unique speaker or >1800 characters.
   - Mandatory header: Must start with exact literal `# SYSTEM PREAMBLE: Synthesize speech ONLY for the transcripts under the #### TRANSCRIPT headers. ...` (prevents model reading structural headings aloud).
@@ -72,10 +79,12 @@ Execute in order (argparse + GPU-first `--gpu` flag, idempotent skip):
 ## Conventions & Integration
 
 ### Code & Test Standards
+
 - **Testing**: `uv run pytest` (runs `unittest.TestCase` modules under `tests/`). Uses `unittest.mock.patch` for network/cache isolation and `tempfile.mkdtemp()`.
 - **Style Rules**: Python 3.12+ type hints required. Use `argparse` for all CLIs. Threading lock objects use `_lock` suffix (`print_lock`, `cache_lock`, `seen_folders_lock`).
 
 ### Git & Linear Integration
+
 - **Git**: Branch off `main`. Use conventional commit prefixes (`feat:`, `fix:`).
 - **Changelog**: Append summary to `./**/CHANGELOG.md` following standard format (best-effort, non-blocking).
 - **Linear**: PRs automatically sync via `.github/workflows/auto-linear.yml` using `PRO` team key and `GIT-` issue prefix. `tasks/TASKS.md` tracks tasks. GraphQL API: `https://api.linear.app/graphql`.

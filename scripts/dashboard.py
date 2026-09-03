@@ -4,6 +4,7 @@ import os
 import sys
 from pathlib import Path
 
+
 # Ensure src layout package is importable
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
@@ -30,17 +31,17 @@ NLP_DB_PATH = "stories/db/nlp_analysis.db"
 META_DB_PATH = "stories/db/dashboard_metadata.db"
 
 # Rerouting rendering to modular components
-from storybuilder.dashboard.config import init_session_state, inject_custom_css, setup_page
+from storybuilder.dashboard.config import init_session_state
+from storybuilder.dashboard.config import inject_custom_css
+from storybuilder.dashboard.config import setup_page
 
 # Expose key data operations at module level to satisfy test imports
-from storybuilder.dashboard.data import (
-	add_favorite,  # noqa: F401
-	get_db_files,  # noqa: F401
-	get_favorites,  # noqa: F401
-	get_story_by_path,  # noqa: F401
-	query_stories,  # noqa: F401
-	remove_favorite,  # noqa: F401
-)
+from storybuilder.dashboard.data import add_favorite  # noqa: F401
+from storybuilder.dashboard.data import get_db_files  # noqa: F401
+from storybuilder.dashboard.data import get_favorites  # noqa: F401
+from storybuilder.dashboard.data import get_story_by_path  # noqa: F401
+from storybuilder.dashboard.data import query_stories  # noqa: F401
+from storybuilder.dashboard.data import remove_favorite  # noqa: F401
 
 # Expose pages
 from storybuilder.dashboard.pages.archive_stats import render_archive_stats

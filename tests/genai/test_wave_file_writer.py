@@ -1,7 +1,7 @@
 import os
 import pathlib
-import wave
 import tempfile
+import wave
 
 from storybuilder.genai.client import wave_file_writer
 

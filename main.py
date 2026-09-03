@@ -4,11 +4,13 @@ from pathlib import Path
 
 from storybuilder.utils.env import load_env
 
+
 # Load the project's .env file before any third-party instrumentation reads
 # environment variables such as Braintrust API keys or project config.
 load_env(Path(__file__).with_name(".env"))
 
 import braintrust  # noqa: E402
+
 
 braintrust.auto_instrument()
 

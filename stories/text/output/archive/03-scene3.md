@@ -4,13 +4,14 @@
 
 ## "Scene 3: Shower Tensions and the Hold"
 
-### THE SCENE: High school locker room and showers.
+### THE SCENE: High school locker room and showers
 
 The acoustic space is highly reverberant, filled with the echo of running water, splashing, and distant adolescent laughter. The air is thick with steam and the scent of soap. The physical proximity shifts from distant observation to sudden, tight, and warm skin-on-skin contact.
 
 ### DIRECTOR'S NOTES
 
 Style:
+
 - Cody (Voice: Enceladus): Breathless, deeply vulnerable, carrying a lingering tension and newly awakened desire. High glottal flow. Maintain 85% voice identity polish, 15% emotional range.
 - Sam (Voice: Orus): Deep, smooth, playful yet commanding. Raised soft palate, calm and knowing.
 

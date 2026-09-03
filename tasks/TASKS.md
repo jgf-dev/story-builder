@@ -4,7 +4,8 @@
 
 ### Priority
 
-- [x] **Reduce the number of audio files generated during tests** Not more than 2-3 files generated, if absolutely necessary.  - #ISSUE
+- [x] **Reduce the number of audio files generated during tests** Not more than 2-3 files generated, if absolutely
+necessary. - #ISSUE
 
 ### Testability and Agent Benchmarks
 
@@ -29,20 +30,25 @@
 ### Phase 2: TTS & Audio Enhancements
 
 - [ ] **Add a Cartesia TTS client** - wire up Cartesia support alongside the existing TTS flow. #TASK
-- [ ] **Improve TTS output validation** - verify audio generation, voice assignment, dialogue coverage, sound effects, and performance adherence. #FIXME
+- [ ] **Improve TTS output validation** - verify audio generation, voice assignment, dialogue coverage, sound effects,
+and performance adherence. #FIXME
 
 ## Waiting On
 
-- [x] **Optimize FTS across year partitions** - scan all year databases and batch-run `optimize_fts()` or the equivalent PRAGMA optimization path. #ISSUE
-- [x] **Support cross-partition search** - dynamically attach partition files with `ATTACH DATABASE` when performing global queries. #ISSUE
+- [x] **Optimize FTS across year partitions** - scan all year databases and batch-run `optimize_fts()` or the
+equivalent PRAGMA optimization path. #ISSUE
+- [x] **Support cross-partition search** - dynamically attach partition files with `ATTACH DATABASE` when performing
+global queries. #ISSUE
 
 ## Someday
 
 - [ ] **Add an ElevenLabs TTS client** #TASK
 - [ ] **Make the prompt composer engine-agnostic** - generate prompts for multiple TTS engines. #TASK
 
-- [ ] **Elevate the TTS output into a high-end, immersive audio drama** (often referred to as an "enhanced audiobook" or "binaural audio play") #TASK
-  - [ ] **Gather a targeted collection of sound assets in your DAW** See `stories/text/output/i_came_during_tryouts/daw.md` for an example. #IDEA
+- [ ] **Elevate the TTS output into a high-end, immersive audio drama** (often referred to as an "enhanced audiobook"
+or "binaural audio play") #TASK
+  - [ ] **Gather a targeted collection of sound assets in your DAW** See
+  `stories/text/output/i_came_during_tryouts/daw.md` for an example. #IDEA
   - [ ] **Implement advanced audio engineering techniques** to create a polished, professional final product #IDEA
 
 ## XAI TTS API Skill Implementation
@@ -52,13 +58,19 @@
 
 ## Done
 
-- [x] ~~Clean up single script files in the root directory and move the useful scripts to appropriate submodules.~~ (2026-06-19)
+- [x] ~~Clean up single script files in the root directory and move the useful scripts to appropriate
+submodules.~~ (2026-06-19)
 - [x] ~~Implement story scraper to scrape stories from nifty.org~~ (2026-06-19)
 - [x] ~~Implement SQL database schema and database management module to store stories.~~ (2026-06-19)
 - [x] ~~Add FTS5 to the database schema.~~ (2026-06-19)
 - [x] ~~Partition database by year.~~ (2026-06-19)
-- [x] ~~Implement basic named entity recognition to extract character names, locations, and other entities from stories.~~ (2026-06-19)
+- [x] ~~Implement basic named entity recognition to extract character names, locations, and other entities
+from stories.~~ (2026-06-19)
 - [x] ~~Implement a prompt composer agent to compose prompts for TTS engine.~~ (2026-06-19)
 - [x] ~~Merge QWEN.md into AGENTS.md~~ (2026-06-19)
-- [x] ~~Migrate database layer to a SQLModel monolithic architecture~~ (2026-07-10) — Deprecated year-partitioning, consolidated all records into `stories.db`, and replaced raw SQL with SQLModel `select()`/`execute_query()`/`search_stories()` (see `tasks/monolithic_db_plan.md`).
-- [x] ~~Modularize the Streamlit dashboard~~ (2026-07-15) — Split the 875-line `scripts/dashboard.py` monolith into `src/storybuilder/dashboard/` (`config.py`, `data.py`, `ui/sidebar.py`, `pages/`), leaving `scripts/dashboard.py` as a thin launcher (see `tasks/dashboard_refactor_draft.md`).
+- [x] ~~Migrate database layer to a SQLModel monolithic architecture~~ (2026-07-10) — Deprecated year-partitioning,
+consolidated all records into `stories.db`, and replaced raw SQL with SQLModel
+`select()`/`execute_query()`/`search_stories()` (see `tasks/monolithic_db_plan.md`).
+- [x] ~~Modularize the Streamlit dashboard~~ (2026-07-15) — Split the 875-line `scripts/dashboard.py` monolith into
+`src/storybuilder/dashboard/` (`config.py`, `data.py`, `ui/sidebar.py`, `pages/`), leaving `scripts/dashboard.py` as a
+thin launcher (see `tasks/dashboard_refactor_draft.md`).

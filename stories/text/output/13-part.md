@@ -1,4 +1,4 @@
-# SYSTEM PREAMBLE: Synthesize speech ONLY for the transcripts under the #### TRANSCRIPT headers. Do NOT read aloud the section titles, scene descriptions, actor names, or director notes.
+# SYSTEM PREAMBLE: Synthesize speech ONLY for the transcripts under the #### TRANSCRIPT headers. Do NOT read aloud the section titles, scene descriptions, actor names, or director notes
 
 # AUDIO PROFILE: Levi, Ewan
 
@@ -23,6 +23,7 @@ Accent: Standard American
 After witnessing Jace and Kerry's fight, Levi and Ewan clean up, discussing the marital problems. Back in their bedroom, Levi playfully attempts to rekindle intimacy but is interrupted by a mysterious noise. They discover Jace alone on the porch by the hot tub. Ewan encourages Levi to go talk to his troubled brother, emphasizing the importance of family support.
 
 #### TRANSCRIPT
+
 Ewan: Did you know they were having trouble?
 Levi: My had no idea.
 Levi: I gathered up the plates as he tossed all the empty bottles into the trash. Jace had consumed more alcohol than food, and that might have been part of the problem. Or, maybe he needed the alcohol to deal with Kerry? I really had no idea.

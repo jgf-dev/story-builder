@@ -8,6 +8,7 @@ from google.genai import types
 
 from storybuilder.utils.env import load_env
 
+
 load_env()
 api_key = os.getenv("GEMINI_API_KEY")
 if not api_key:

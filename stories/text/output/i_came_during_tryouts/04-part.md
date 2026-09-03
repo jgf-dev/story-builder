@@ -4,13 +4,14 @@
 
 ## "Scene 4: Confessions on the Walk Home"
 
-### THE SCENE: An outdoor neighborhood sidewalk.
+### THE SCENE: An outdoor neighborhood sidewalk
 
 Cool, open-air acoustic environment with the faint rustle of wind and the crunch of sneakers on gravel. The tense, hot atmosphere of the gym is completely gone, replaced by a refreshing, casual chill. The physical distance between the two characters is friendly and relaxed.
 
 ### DIRECTOR'S NOTES
 
 Style:
+
 - Cody (Voice: Enceladus): Casual, slightly embarrassed but relieved, laughing off his anxiety. Clearer, more open projection but retaining his youthful, slightly soft tone.
 - Ryan (Voice: Sadachbia): Energetic, bright, conversational, and direct. Speaks with flat modern slang inflections.
 
@@ -22,6 +23,7 @@ Accent: Standard American
 Cody meets up with his friend Ryan outside the school and confesses the embarrassing, life-altering experience he just had on the wrestling mats with Sam.
 
 #### TRANSCRIPT
+
 Cody: Outside, the air hit my face cool and sharp.
 Cody: My buddy Ryan was waiting for me by the bike rack.
 Ryan: [interest] "So, how were tryouts?"

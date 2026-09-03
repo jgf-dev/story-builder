@@ -4,13 +4,14 @@
 
 ## "Scene 1: Intimidated on the Mats"
 
-### THE SCENE: High School Wrestling Gym.
+### THE SCENE: High School Wrestling Gym
 
 The air is thick with the smell of rubber mats and stale sweat. Sounds of heavy footsteps, bodies hitting the floor, and distant chatter echo loudly off the high metal ceiling. Cody stands near the edge of the mats, feeling small, exposed, and nervous. Sam stands a few feet away, tall, confident, radiating warmth and self-assurance.
 
 ### DIRECTOR'S NOTES
 
 Style:
+
 - Cody (Voice: Enceladus): Vulnerable, youthful, and slightly self-conscious. High glottal flow, slightly nervous baseline. Maintain 85% voice identity polish, 15% emotional range.
 - Sam (Voice: Orus): Deep, confident, and low-pitched with a natural gravelly resonance. Smooth and slightly teasing.
 
@@ -22,6 +23,7 @@ Accent: Standard American
 Cody enters the intimidating wrestling tryouts under the false pretense of trying to impress girls, only to find himself completely out of his depth. He is spotted by Sam, an attractive and dominant acquaintance, who immediately claims him as a sparring partner.
 
 #### TRANSCRIPT
+
 Cody: I never planned on joining the wrestling team.
 Cody: [sighs] I just figured girls liked wrestlers.
 Cody: Something about big dudes getting sweaty and pummeled... it just seemed like a way to get noticed.

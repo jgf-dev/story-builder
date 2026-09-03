@@ -158,7 +158,8 @@ Or invoke directly via the Python module:
 python3 -m storybuilder.genai.client --dir stories/the_secret_vacation
 ```
 
-Skips existing `.wav` files; uses stateful interaction continuity across parts.
+Skips existing `.wav` files; uses stateful interaction continuity across parts
+
 ---
 
 ## 🧪 Running Tests

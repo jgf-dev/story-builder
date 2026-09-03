@@ -15,6 +15,7 @@ from google.genai.client import Client
 
 from storybuilder.utils.env import load_env
 
+
 load_env()
 
 logger = logging.getLogger(__name__)

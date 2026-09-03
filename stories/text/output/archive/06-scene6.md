@@ -1,10 +1,10 @@
-# SYSTEM PREAMBLE: Synthesize speech ONLY for the transcripts under the #### TRANSCRIPT headers. Do NOT read aloud the section titles, scene descriptions, actor names, or director notes.
+# SYSTEM PREAMBLE: Synthesize speech ONLY for the transcripts under the #### TRANSCRIPT headers. Do NOT read aloud the section titles, scene descriptions, actor names, or director notes
 
 # AUDIO PROFILE: Levi & Ewan
 
 ## "Brotherly Intervention"
 
-### THE SCENE: Inside Levi and Ewan's bedroom.
+### THE SCENE: Inside Levi and Ewan's bedroom
 
 The room is dim, private. Ewan has just seen Jace outside from the window. The atmosphere is supportive and encouraging from Ewan's side, but reluctant from Levi's. There's a soft, intimate quality to their conversation, despite the serious topic.
 

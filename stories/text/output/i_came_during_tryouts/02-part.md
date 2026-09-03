@@ -4,13 +4,14 @@
 
 ## "Scene 2: Under His Weight"
 
-### THE SCENE: Directly on the wrestling mats.
+### THE SCENE: Directly on the wrestling mats
 
 Close, hot, and suffocatingly intimate. The sounds of the rest of the gym fade into a distant blur. The air is warm and heavy with sweat. The physical contact is absolute—Sam's heavy chest is pressed flat against Cody's back, pinning him to the rubber mat. The acoustic space is deadened, capturing the microscopic biological textures of their breathing.
 
 ### DIRECTOR'S NOTES
 
 Style:
+
 - Cody (Voice: Enceladus): Extremely breathy, panicky, and physically overwhelmed. High glottal flow. Voice should shake with involuntary physical pleasure and shame.
 - Sam (Voice: Orus): Low, gravelly "bedroom voice" with extreme microphone proximity. Whispered, dominant, and warm but teasing.
 
@@ -22,6 +23,7 @@ Accent: Standard American
 Sam easily pins Cody to the mat. The intense physical proximity causes Cody to get an involuntary erection. Sam notices and, instead of exposing him, shifts his weight to hide Cody's state from the coach, eventually grinding Cody to a sudden, overwhelming orgasm right on the mat.
 
 #### TRANSCRIPT
+
 Cody: [pant] We started slow... crouched low, circling each other.
 Cody: [gasp] But his hands were on me before I knew it.
 Cody: One second I was standing... and the next, I was flat on my face.

@@ -1,6 +1,7 @@
 import os
 import pathlib
 
+
 PROMPTS_DIR = os.path.join(os.path.dirname(__file__), "prompts")
 STORIES_DIR = os.getenv("STORIES_TEXT") or ""
 

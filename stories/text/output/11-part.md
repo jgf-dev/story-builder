@@ -1,4 +1,4 @@
-# SYSTEM PREAMBLE: Synthesize speech ONLY for the transcripts under the #### TRANSCRIPT headers. Do NOT read aloud the section titles, scene descriptions, actor names, or director notes.
+# SYSTEM PREAMBLE: Synthesize speech ONLY for the transcripts under the #### TRANSCRIPT headers. Do NOT read aloud the section titles, scene descriptions, actor names, or director notes
 
 # AUDIO PROFILE: Levi, Ewan, Jace, Kerry
 
@@ -23,6 +23,7 @@ Accent: Standard American
 The group enjoys a relaxed dinner and card games, with Levi receiving compliments on his cooking. The evening takes a sharp turn when Kerry, tired from travel, wants to go to bed, but Jace resists. A heated argument breaks out, revealing underlying marital issues, leaving Levi and Ewan shocked.
 
 #### TRANSCRIPT
+
 Kerry: [yawning] I'm getting sleepy, babe. Let's go to bed.
 Jace: Bed? It's barely ten o'clock. I'm not ready for bed yet.
 Kerry: Come on, babe. We had a long day of travel. I'm tired.

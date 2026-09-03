@@ -3,7 +3,7 @@
 This directory contains the evaluation framework for the Google ADK agents in the StoryBuilder project. It provides three complementary evaluation approaches:
 
 | Approach | Description | Location |
-|----------|-------------|----------|
+| ---------- | ------------- | ---------- |
 | **ADK Built-in Eval** | Conversation replay with automated metrics (tool use, response match, task success) | `.evalset.json` files in agent directories |
 | **Agentic Evaluation** | Reflection loops, rubric-based scoring, and LLM-as-judge patterns | `evals/agentic/` |
 | **Pytest Integration** | Discoverable test cases in VS Code Test Explorer and CI | `evals/test_*.py` |
@@ -97,7 +97,7 @@ uv run python evals/run_adk_eval.py --all --verbose
 ### `test_adk_eval_sets.py` — ADK Eval Set Validation
 
 | Test | Description | Markers |
-|------|-------------|---------|
+| ------ | ------------- | --------- |
 | `TestEvalSetDiscovery` | Verifies `.evalset.json` files exist for each agent | — |
 | `TestEvalSetStructure` | Validates internal schema of every eval set | — |
 | `TestEvalRunViaADK` | Runs eval sets through the ADK evaluation engine | `slow` |
@@ -105,7 +105,7 @@ uv run python evals/run_adk_eval.py --all --verbose
 ### `test_tts_prompt_crafter_agentic.py` — Agentic Evaluation
 
 | Test | Description | Markers |
-|------|-------------|---------|
+| ------ | ------------- | --------- |
 | `TestTTSPromptCrafterGreetings` | Rubric-based evaluation of greeting responses | `agentic` |
 | `TestTTSPromptCrafterPipeline` | Full pipeline execution (story → scenes) | `slow`, `agentic` |
 | `TestTTSPromptCrafterEdgeCases` | Error handling for missing paths, empty queries | `agentic` |
@@ -123,7 +123,8 @@ Recorded conversation traces that the ADK replays and scores against built-in me
 - **`rubric_based_*`**: Custom rubric scoring for response quality and tool use
 
 Found in each agent's directory, e.g.:
-```
+
+```bash
 src/storybuilder/agents/tts_prompt_crafter/eval_set_1.evalset.json
 src/storybuilder/agents/tts_prompt_crafter/.adk/eval_history/*.evalset_result.json
 ```
@@ -185,23 +186,28 @@ Add new parametrized test methods to the existing test classes or create new tes
 ```python
 @pytest.mark.parametrize("query", ["new query 1", "new query 2"])
 def test_new_scenario(self, adk_events, query):
-	events = adk_events(query)
-	# ... assertions ...
+ events = adk_events(query)
+ # ... assertions ...
 ```
 
 ## Viewing Results
 
 ### VS Code Test Explorer
+
 Tests appear in the sidebar with pass/fail status. Click any test to see detailed output.
 
 ### ADK Eval Results
+
 After running ADK eval sets, results are saved to:
-```
+
+```bash
 src/storybuilder/agents/tts_prompt_crafter/.adk/eval_history/*.evalset_result.json
 ```
 
 ### Test Output
+
 Run with `-v` or `--verbose` for detailed output including rubric scores per dimension:
+
 ```bash
 uv run pytest evals/test_tts_prompt_crafter_agentic.py -v --tb=long
 ```

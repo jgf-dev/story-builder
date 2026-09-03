@@ -4,23 +4,27 @@ This is a structured scene prompt for Gemini TTS.
 # Vacation with My Straight Brother - Scene 3: Dinner and Drama
 
 ## AUDIO PROFILE
+
 - **Narrator (Levi)**: puck
 - **Ewan**: charon
 - **Jace**: fenrir
 - **Kerry**: aoede
 
 ## THE SCENE
+
 - **Setting**: Cabin Kitchen and Dining Table.
 - **Mood**: Friendly, casual, domestic, transitioning to tense, hostile, and awkward.
 - **Narrative Perspective**: First-person (Levi).
 
 ## DIRECTOR'S NOTES
+
 - **Levi** as narrator is warm, reflective, and appreciative of his brother's acceptance. In character, he is hospitable and helpful.
 - **Jace** starts off very friendly, complimentary, and casual. As he drinks more, he becomes stubborn and defensive when confronted by Kerry.
 - **Kerry** is tense and passive-aggressive. She whispers with concern about Levi drinking, complains about being tired, and then snaps angrily, stomping away.
 - **Ewan** is friendly, supportive, and acts as a stabilizing presence, keeping out of the couple's argument.
 
 ## TRANSCRIPT
+
 [Narrator (Levi)]
 That first afternoon was mostly both couples unpacking suitcases and making sure we each knew where everything was. Ewan and I had brought most of the food, while Jace and Kerry supplied the alcohol.
 

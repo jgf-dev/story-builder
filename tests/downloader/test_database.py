@@ -588,7 +588,6 @@ class TestFTSSearch(unittest.TestCase):
         self.assertEqual(len(results), 2)
 
 
-
 class TestParseHeader(unittest.TestCase):
     """Tests for parse_header in import_to_sqlite.py."""
 
@@ -787,7 +786,6 @@ class TestMonolithicDatabase(unittest.TestCase):
         results = db.search_stories(fts_query="banana", snippets=True)
         self.assertEqual(len(results), 1)
         self.assertIn("banana", results[0]["snippet"])
-
 
 
 class TestImportToSQLite(unittest.TestCase):
@@ -1093,6 +1091,90 @@ class TestDBContentOperations(unittest.TestCase):
         self.assertIn("Test Author", result["author"])
         self.assertEqual(result["url"], "http://ex/test")
         self.assertIn("Test content", result["content"])
+
+
+class TestFlagBulkTouchedDates(unittest.TestCase):
+    """Tests for flag_bulk_touched_dates."""
+
+    def setUp(self) -> None:
+        self.temp_dir = tempfile.mkdtemp()
+        self.db_path = os.path.join(self.temp_dir, "test.db")
+
+    def tearDown(self) -> None:
+        from storybuilder.downloader import db
+
+        db.close_db()
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+    def _insert(self, idx: int, date: str) -> None:
+        from storybuilder.downloader.db import insert_story
+
+        insert_story(
+            output_path=f"nifty_stories/gay/college/bulk-{idx}.txt",
+            title=f"Bulk Story {idx}",
+            author="Test Author <test@example.com>",
+            story_date=date,
+            url=f"https://example.com/{idx}",
+            content=f"content {idx} uniquetoken{idx}",
+        )
+
+    def test_flags_dense_dates_only(self) -> None:
+        from storybuilder.downloader import db
+
+        conn = db.init_db(self.db_path)
+        for i in range(10):
+            self._insert(i, "2027-05-05")
+        for i in range(10, 13):
+            self._insert(i, "2027-05-06")
+
+        flagged = db.flag_bulk_touched_dates(day_threshold=5)
+
+        self.assertEqual(flagged, 10)
+        counts = dict(
+            conn.execute(
+                "SELECT publication_date, COUNT(*) FROM stories GROUP BY publication_date"
+            ).fetchall()
+        )
+        self.assertEqual(counts.get(db.BULK_TOUCH_EPOCH_DATE), 10)
+        self.assertEqual(counts.get("2027-05-06"), 3)
+        self.assertNotIn("2027-05-05", counts)
+
+    def test_idempotent_and_epoch_excluded(self) -> None:
+        from storybuilder.downloader import db
+
+        db.init_db(self.db_path)
+        for i in range(8):
+            self._insert(i, "2027-05-05")
+
+        self.assertEqual(db.flag_bulk_touched_dates(day_threshold=5), 8)
+        self.assertEqual(db.flag_bulk_touched_dates(day_threshold=5), 0)
+
+    def test_triggers_and_fts_stay_intact(self) -> None:
+        from storybuilder.downloader import db
+
+        conn = db.init_db(self.db_path)
+        for i in range(10):
+            self._insert(i, "2027-05-05")
+
+        db.flag_bulk_touched_dates(day_threshold=5)
+
+        triggers = conn.execute(
+            "SELECT COUNT(*) FROM sqlite_master WHERE type='trigger' "
+            "AND name IN ('stories_ai','stories_ad','stories_au')"
+        ).fetchone()[0]
+        self.assertEqual(triggers, 3)
+        stories_n = conn.execute("SELECT COUNT(*) FROM stories").fetchone()[0]
+        fts_n = conn.execute("SELECT COUNT(*) FROM stories_fts").fetchone()[0]
+        self.assertEqual(stories_n, fts_n)
+        hits = conn.execute(
+            "SELECT COUNT(*) FROM stories_fts WHERE stories_fts MATCH 'uniquetoken3'"
+        ).fetchone()[0]
+        self.assertEqual(hits, 1)
+
+    def test_no_op_without_connection(self) -> None:
+        from storybuilder.downloader import db
+
+        self.assertEqual(db.flag_bulk_touched_dates(), 0)
 
 
 if __name__ == "__main__":

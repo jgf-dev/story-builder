@@ -123,7 +123,7 @@ def save_story(story_url, output_path, story_date, delay) -> bool:
 	return True
 
 
-def _is_already_downloaded(idx_str, url, output_paths, story_date) -> bool:
+def is_already_downloaded(idx_str, url, output_paths, story_date) -> bool:
 	if db.get_conn() is not None:
 		# Check if all paths exist in the database
 		all_exist = True
@@ -183,7 +183,7 @@ def download_single_target(idx_str, url, output_paths, story_date, delay, force:
 	Downloads a single target story and handles duplicate copy replication.
 	Returns True if successful, False otherwise.
 	"""
-	if not force and _is_already_downloaded(idx_str, url, output_paths, story_date):
+	if not force and is_already_downloaded(idx_str, url, output_paths, story_date):
 		return True
 
 	safe_print(f"\n[{idx_str}] Downloading target...")
@@ -193,3 +193,7 @@ def download_single_target(idx_str, url, output_paths, story_date, delay, force:
 		# If the story appears in multiple subcategories, copy or insert them
 		_replicate_story(primary_path, output_paths, story_date)
 	return success
+
+
+# Backward-compatibility alias for the pre-rename private helper.
+_is_already_downloaded = is_already_downloaded

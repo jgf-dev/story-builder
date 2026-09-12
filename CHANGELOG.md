@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-09-11
+
+### Summary
+
+Sequential downloader loop no longer sleeps the inter-request delay for targets skipped as already downloaded; added automatic bulk-touch date flagging and cleaned up the stories database (dedup + redate).
+
+### Fixed
+
+- `_download_stories_sequential` in `src/storybuilder/downloader/cli.py` now pre-checks `is_already_downloaded` and continues without `time.sleep(delay)`, so the delay is only applied after actual HTTP downloads.
+
+### Added
+
+- `db.flag_bulk_touched_dates()` (db.py) resets `publication_date` to the unix-epoch sentinel `1970-01-01` for any exact date carrying more than 150 stories/day (organic max ~102/day; archive bulk-touch days run 400-700+). Called automatically at the end of a `storybuilder` CLI run before FTS optimize. Bypasses the `stories_au` trigger during the date-only bulk UPDATE and restores it verbatim.
+- Data cleanup (stories.db): merged 1,905 richer content versions (with original usenet `Date:` headers) from duplicate `stories/text/` rows into their `nifty_stories/` twins, deleted 16,340 duplicate rows, and flagged 162,996 bulk-touched stories (Jun 2025-Sep 2026 archive migration mtime window) as `1970-01-01`. Backup of pre-redate values in `logs/missdated-backup-20260911.jsonl`.
+
+### Changed
+
+- Renamed `_is_already_downloaded` → `is_already_downloaded` (public) in `src/storybuilder/downloader/writer.py`, keeping a backward-compatible private alias.
+
 ## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-24
 
 ### Summary

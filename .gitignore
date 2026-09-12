@@ -37,3 +37,6 @@ tasks/lint.ruff
 .idea/
 tasks/flags/
 .jules/
+
+# Scrape logs and local data backups
+logs/

@@ -145,6 +145,17 @@ _lock = threading.Lock()
 _CHAPTER_SUFFIX_RE = re.compile(r"^(.+?)-(\d+)$")
 _KNOWN_ORIENTATIONS = {"gay", "lesbian", "bisexual", "transgender", "bestiality"}
 
+# -- Bulk-touch detection ----------------------------------------------
+
+# Sentinel publication_date for stories whose listing date was destroyed by
+# archive-side bulk file rewrites (mtime touch events). Unix epoch keeps them
+# identifiable and out of year-over-year distributions.
+BULK_TOUCH_EPOCH_DATE = "1970-01-01"
+
+# Organic maximum observed is ~100 stories/day (1993-07-18: 102); bulk-touch
+# days run 400-700+. Any exact date above this threshold is an artifact.
+BULK_TOUCH_DAY_THRESHOLD = 150
+
 
 def _parse_author(raw: "str | None") -> "tuple[str | None, str | None]":
 	"""Parse 'Name <email>' or bare email into (name, email)."""
@@ -672,6 +683,68 @@ def get_story(output_path: str, story_date: str = "") -> "dict | None":
 		except Exception as e:
 			std_logging.exception("Unexpected error retrieving story at %s", output_path, exc_info=e)
 			return None
+
+
+def flag_bulk_touched_dates(day_threshold: int = BULK_TOUCH_DAY_THRESHOLD) -> int:
+	"""Reset implausibly dense publication dates to the unix-epoch sentinel.
+
+	Archive migrations rewrite file mtimes, so thousands of stories can share
+	a listing date unrelated to their real publication date. Any exact date
+	carrying more than ``day_threshold`` stories is treated as a bulk-touch
+	artifact and every story on it gets
+	``publication_date = BULK_TOUCH_EPOCH_DATE``.
+
+	``publication_date`` is not FTS-indexed, so the ``stories_au`` trigger is
+	dropped for the duration of the bulk UPDATE (avoiding a full
+	re-tokenization of every affected document) and recreated verbatim after.
+	Returns the number of rows flagged.
+	"""
+	conn = _conn
+	if conn is None:
+		return 0
+
+	with _lock:
+		rows = conn.execute(
+			"SELECT publication_date FROM stories "
+			"WHERE publication_date IS NOT NULL AND publication_date != '' "
+			"AND publication_date != ? "
+			"GROUP BY publication_date HAVING COUNT(*) > ?",
+			(BULK_TOUCH_EPOCH_DATE, day_threshold),
+		).fetchall()
+		if not rows:
+			return 0
+		dates = [r[0] for r in rows]
+
+		au = conn.execute("SELECT sql FROM sqlite_master WHERE type='trigger' AND name='stories_au'").fetchone()
+		try:
+			if au:
+				conn.execute("DROP TRIGGER stories_au")
+			flagged = 0
+			chunk_size = 500
+			for i in range(0, len(dates), chunk_size):
+				chunk = dates[i : i + chunk_size]
+				placeholders = ",".join("?" * len(chunk))
+				cur = conn.execute(
+					f"UPDATE stories SET publication_date=? WHERE publication_date IN ({placeholders})",
+					[BULK_TOUCH_EPOCH_DATE, *chunk],
+				)
+				flagged += cur.rowcount
+			conn.commit()
+		finally:
+			if au:
+				conn.execute(au[0])
+			conn.commit()
+
+	logging.info(
+		"Flagged %d stories on %d bulk-touched dates (>%d/day) as %s: %s%s",
+		flagged,
+		len(dates),
+		day_threshold,
+		BULK_TOUCH_EPOCH_DATE,
+		", ".join(dates[:5]),
+		", ..." if len(dates) > 5 else "",
+	)
+	return flagged
 
 
 def optimize_fts() -> None:

@@ -21,6 +21,7 @@ from storybuilder.downloader.cache import save_cache
 from storybuilder.downloader.scraper import get_subcategories
 from storybuilder.downloader.scraper import process_subcategory
 from storybuilder.downloader.writer import download_single_target
+from storybuilder.downloader.writer import is_already_downloaded
 
 
 def _parse_args() -> argparse.Namespace:
@@ -253,6 +254,14 @@ def _download_stories_sequential(
 	successful_downloads = 0
 	for idx, (key, target) in enumerate(all_story_targets.items()):
 		idx_str = f"{idx + 1}/{total_downloads}"
+		if not force and is_already_downloaded(
+			idx_str,
+			target["url"],
+			target["output_paths"],
+			target["date"],
+		):
+			successful_downloads += 1
+			continue
 		success = download_single_target(
 			idx_str,
 			target["url"],
@@ -373,6 +382,9 @@ def main() -> None:
 	_download_stories(all_story_targets, args)
 
 	if args.db:
+		flagged = db.flag_bulk_touched_dates()
+		if flagged:
+			print(f"Flagged {flagged} bulk-touched stories with publication_date={db.BULK_TOUCH_EPOCH_DATE}")
 		db.optimize_fts()
 		db.close_db()
 		print(f"Stories saved to database: {args.db}")

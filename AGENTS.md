@@ -40,6 +40,7 @@ StoryBuilder is a Python toolkit for narrative fiction scraping, SQLite/FTS5 ind
   - 2-phase pipeline: Scrape listing targets then fetch concurrently (`ThreadPoolExecutor`).
   - Cache safety: Early stop is safe ONLY if `is_complete` OR `min_cached_date <= start_date` (`metadata_cache.json`). Multi-chapter "Dir" folders use a separate `folder_date` key. Thread lock `seen_folders` prevents duplicate multi-chapter folder processing.
   - Date parsing (`parse_nifty_date`): Imputes missing years from reference date; rolls future dates to prior year. Fallback regex handles bare "Jun 6".
+  - Bulk-touch sentinel: archive migrations rewrite file mtimes (Jun 2025–Jun 2026 event touched ~163k stories). `db.flag_bulk_touched_dates()` runs automatically at CLI end and resets `publication_date` to `1970-01-01` for any date with >150 stories/day (organic max ~102). ~80% of flagged rows carry a recoverable usenet `Date:` header inside `content` (`email.utils.parsedate_to_datetime` parses them cleanly).
   - Output header: Prepend `=====` title/author/date/url header. Duplicate target files across subcategories are copied via `shutil.copy2` after first fetch.
 
 ### 3. Database Import & Search (SQLite FTS5)

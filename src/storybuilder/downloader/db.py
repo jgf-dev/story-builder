@@ -1,8 +1,10 @@
+import datetime
 import logging as std_logging
 import os
 import re
 import sqlite3
 import threading
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 from typing import ClassVar
 
@@ -745,6 +747,96 @@ def flag_bulk_touched_dates(day_threshold: int = BULK_TOUCH_DAY_THRESHOLD) -> in
 		", ..." if len(dates) > 5 else "",
 	)
 	return flagged
+
+
+_DATE_HEADER_RE = re.compile(r"(?m)^Date:\s+(.+)$")
+
+
+def redate_from_content_headers(
+	epoch_date: str = BULK_TOUCH_EPOCH_DATE,
+	min_date: str = "1980-01-01",
+	dry_run: bool = False,
+) -> "dict[str, int]":
+	"""Recover true publication dates from embedded usenet ``Date:`` headers.
+
+	Stories flagged by :func:`flag_bulk_touched_dates` still carry their
+	original usenet-style ``Date:`` header inside ``content`` in ~80% of
+	cases. For each flagged story the first header is parsed (RFC 2822 via
+	``email.utils.parsedate_to_datetime``) and, when the resulting date falls
+	within ``[min_date, today]``, written back to ``publication_date``.
+
+	``publication_date`` is not FTS-indexed, so the ``stories_au`` trigger is
+	dropped for the duration of the batched UPDATE and recreated verbatim
+	after. Returns stats: scanned, redated, no_header, parse_failed,
+	out_of_range.
+	"""
+	conn = _conn
+	stats = {"scanned": 0, "redated": 0, "no_header": 0, "parse_failed": 0, "out_of_range": 0}
+	if conn is None:
+		return stats
+
+	min_d = datetime.date.fromisoformat(min_date)
+	max_d = datetime.date.today()
+	updates: "list[tuple[str, int]]" = []
+
+	with _lock:
+		cursor = conn.execute(
+			"SELECT id, substr(content, 1, 2000) FROM stories WHERE publication_date = ?",
+			(epoch_date,),
+		)
+		for row_id, head in cursor:
+			stats["scanned"] += 1
+			if stats["scanned"] % 25000 == 0:
+				logging.info("redate scan: %d scanned, %d redatable so far", stats["scanned"], len(updates))
+			m = _DATE_HEADER_RE.search(head or "")
+			if not m:
+				stats["no_header"] += 1
+				continue
+			try:
+				dt = parsedate_to_datetime(m.group(1).strip())
+			except (TypeError, ValueError):
+				stats["parse_failed"] += 1
+				continue
+			d = dt.date()
+			if d < min_d or d > max_d:
+				stats["out_of_range"] += 1
+				continue
+			updates.append((d.isoformat(), row_id))
+		cursor.close()
+
+		stats["redated"] = len(updates)
+		if dry_run or not updates:
+			logging.info(
+				"Redate%s: scanned=%d redatable=%d no_header=%d parse_failed=%d out_of_range=%d",
+				" dry run" if dry_run else "",
+				stats["scanned"],
+				stats["redated"],
+				stats["no_header"],
+				stats["parse_failed"],
+				stats["out_of_range"],
+			)
+			return stats
+
+		au = conn.execute("SELECT sql FROM sqlite_master WHERE type='trigger' AND name='stories_au'").fetchone()
+		try:
+			if au:
+				conn.execute("DROP TRIGGER stories_au")
+			conn.executemany("UPDATE stories SET publication_date=? WHERE id=?", updates)
+			conn.commit()
+		finally:
+			if au:
+				conn.execute(au[0])
+			conn.commit()
+
+	logging.info(
+		"Redated %d/%d stories from content Date: headers (no_header=%d, parse_failed=%d, out_of_range=%d)",
+		stats["redated"],
+		stats["scanned"],
+		stats["no_header"],
+		stats["parse_failed"],
+		stats["out_of_range"],
+	)
+	return stats
 
 
 def optimize_fts() -> None:

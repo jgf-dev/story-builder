@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-09-12
+
+### Summary
+
+Added header-based re-dating for bulk-touch-flagged stories (`story-db redate`) and ran it over stories.db, recovering 131,769 true publication dates.
+
+### Added
+
+- `db.redate_from_content_headers()` (db.py): parses embedded usenet `Date:` headers (RFC 2822 via `email.utils.parsedate_to_datetime`) in stories carrying the `1970-01-01` bulk-touch sentinel and restores the true publication date when within `[min_date, today]`. Bypasses the `stories_au` trigger during the batched date-only UPDATE; supports `dry_run`. Returns stats (scanned/redated/no_header/parse_failed/out_of_range).
+- `story-db redate [--min-date 1980-01-01] [--dry-run]` subcommand.
+- Production run on stories.db: scanned=162,996, redated=131,769 (80.8%), no_header=31,134, parse_failed=93. Year distribution now shows a smooth archive growth curve (peak ~12-13k/yr in 2005-2012 and 2020); remaining epoch rows are exactly the header-less ones. FTS verified in sync (311,440 rows).
+
 ## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-09-11
 
 ### Summary

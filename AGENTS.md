@@ -40,7 +40,7 @@ StoryBuilder is a Python toolkit for narrative fiction scraping, SQLite/FTS5 ind
   - 2-phase pipeline: Scrape listing targets then fetch concurrently (`ThreadPoolExecutor`).
   - Cache safety: Early stop is safe ONLY if `is_complete` OR `min_cached_date <= start_date` (`metadata_cache.json`). Multi-chapter "Dir" folders use a separate `folder_date` key. Thread lock `seen_folders` prevents duplicate multi-chapter folder processing.
   - Date parsing (`parse_nifty_date`): Imputes missing years from reference date; rolls future dates to prior year. Fallback regex handles bare "Jun 6".
-  - Bulk-touch sentinel: archive migrations rewrite file mtimes (Jun 2025–Jun 2026 event touched ~163k stories). `db.flag_bulk_touched_dates()` runs automatically at CLI end and resets `publication_date` to `1970-01-01` for any date with >150 stories/day (organic max ~102). ~80% of flagged rows carry a recoverable usenet `Date:` header inside `content` (`email.utils.parsedate_to_datetime` parses them cleanly).
+  - Bulk-touch sentinel: archive migrations rewrite file mtimes (Jun 2025–Jun 2026 event touched ~163k stories). `db.flag_bulk_touched_dates()` runs automatically at CLI end and resets `publication_date` to `1970-01-01` for any date with >150 stories/day (organic max ~102). ~80% of flagged rows carry a recoverable usenet `Date:` header inside `content`: `story-db redate` (→ `db.redate_from_content_headers()`) restores them (recovered 131,769/162,996 = 80.8%); header-less rows stay at the epoch sentinel.
   - Output header: Prepend `=====` title/author/date/url header. Duplicate target files across subcategories are copied via `shutil.copy2` after first fetch.
 
 ### 3. Database Import & Search (SQLite FTS5)
@@ -48,7 +48,7 @@ StoryBuilder is a Python toolkit for narrative fiction scraping, SQLite/FTS5 ind
 - **Import**: `story-import [--db stories/stories.db] [--limit N] [--force]`
   - Idempotent via `UNIQUE(path)`. Parses two-line `=====` header and `Name <email>` authors.
   - FTS5 external content virtual table is kept in sync **exclusively** by 3 `AFTER` triggers (`INSERT`, `DELETE`, `UPDATE`). Direct table edits desync search.
-- **Search CLI**: `story-db --db stories/stories.db search "query" [--author X] [--category Y] [--date-from ...] [--limit 20] [--snippets]` (subcommands: `search`, `get`, `list`, `stats`).
+- **Search CLI**: `story-db --db stories/stories.db search "query" [--author X] [--category Y] [--date-from ...] [--limit 20] [--snippets]` (subcommands: `search`, `get`, `list`, `stats`, `redate`).
 
 ### 4. Analysis & Vector Pipeline
 

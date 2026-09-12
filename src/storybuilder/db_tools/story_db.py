@@ -292,6 +292,23 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
 	print()
 
 
+def cmd_redate(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None) -> None:
+	"""Recover true dates for bulk-touch-flagged stories from content headers."""
+	from storybuilder.downloader import db as downloader_db
+
+	downloader_db.init_db(args.db)
+	try:
+		stats = downloader_db.redate_from_content_headers(min_date=args.min_date, dry_run=args.dry_run)
+	finally:
+		downloader_db.close_db()
+	mode = " (dry run)" if args.dry_run else ""
+	print(
+		f"Redate{mode}: scanned={stats['scanned']:,} redated={stats['redated']:,} "
+		f"no_header={stats['no_header']:,} parse_failed={stats['parse_failed']:,} "
+		f"out_of_range={stats['out_of_range']:,}"
+	)
+
+
 # ——— Main ————————————————————————————————————————————————————————————————————————
 
 
@@ -370,6 +387,14 @@ def main() -> None:
 	p = sub.add_parser("stats", help="Database statistics")
 	p.add_argument("--category", help="Filter by category")
 
+	# redate
+	p = sub.add_parser(
+		"redate",
+		help="Recover dates for bulk-touch-flagged (1970-01-01) stories from embedded usenet Date: headers",
+	)
+	p.add_argument("--min-date", default="1980-01-01", help="Earliest plausible header date (default: 1980-01-01)")
+	p.add_argument("--dry-run", action="store_true", help="Report stats without writing")
+
 	args = parser.parse_args()
 	conn, db_paths = _resolve_connection(args)
 
@@ -378,6 +403,7 @@ def main() -> None:
 		"get": cmd_get,
 		"list": cmd_list,
 		"stats": cmd_stats,
+		"redate": cmd_redate,
 	}
 	dispatch[args.command](conn, args, db_paths)
 	conn.close()

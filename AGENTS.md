@@ -48,7 +48,8 @@ StoryBuilder is a Python toolkit for narrative fiction scraping, SQLite/FTS5 ind
 - **Import**: `story-import [--db stories/stories.db] [--limit N] [--force]`
   - Idempotent via `UNIQUE(path)`. Parses two-line `=====` header and `Name <email>` authors.
   - FTS5 external content virtual table is kept in sync **exclusively** by 3 `AFTER` triggers (`INSERT`, `DELETE`, `UPDATE`). Direct table edits desync search.
-- **Search CLI**: `story-db --db stories/stories.db search "query" [--author X] [--category Y] [--date-from ...] [--limit 20] [--snippets]` (subcommands: `search`, `get`, `list`, `stats`, `redate`).
+- **Search CLI**: `story-db --db stories/stories.db search "query" [--author X] [--category Y] [--date-from ...] [--limit 20] [--snippets]` (subcommands: `search`, `get`, `list`, `stats`, `redate`, `refetch`, `interpolate`).
+- **Epoch-date recovery pipeline**: `story-db redate` (usenet `Date:` headers already in content) → `story-db refetch` (extension-less URLs now served as text/plain WITH headers; also enriches content/title/author) → `story-db interpolate` (estimates remaining chapter dates from dated siblings by chapter_num; linear interpolation / median-pace extrapolation). Touched listing dates carry NO chronological signal — never use them as estimators.
 
 ### 4. Analysis & Vector Pipeline
 

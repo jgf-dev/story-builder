@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-09-13
+
+### Summary
+
+Added recovery paths for the remaining epoch-flagged (header-less) stories: archive re-fetch and sibling-chapter date interpolation.
+
+### Added
+
+- `src/storybuilder/downloader/refetch.py` + `story-db refetch [--delay 1.5] [--limit N] [--dry-run] [--no-content-update]`: extension-less URLs flagged `1970-01-01` are now served by nifty.org as `text/plain` with the original usenet `Date:`/`From:`/`Subject:` headers; re-fetching recovers the true date (validated against dated sibling chapters), replaces the HTML-stripped content with the richer raw text, and fills Unknown title/author. Duplicate URLs are fetched once and applied to all rows.
+- `db.interpolate_sibling_dates()` + `story-db interpolate [--dry-run]`: chapters of a series (same category+story_slug) were posted in order, so epoch-flagged chapters with a chapter_num get dates by linear interpolation between the nearest dated siblings, or median-pace extrapolation at series ends, clamped to [min_date, today].
+- Validation: re-fetched `Date:` headers of 4 sampled chapters matched their sibling-chapter timelines exactly (2015/2017/2019/2022) — headers are genuine post dates, not migration artifacts. Touched listing dates carry no chronological signal (true years spread uniformly per touch month), so old listing dates are not usable as estimators.
+
 ## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-09-12
 
 ### Summary

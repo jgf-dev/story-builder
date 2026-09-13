@@ -1292,5 +1292,300 @@ class TestRedateFromContentHeaders(unittest.TestCase):
 		self.assertEqual(hits, 1)
 
 
+class TestInterpolateSiblingDates(unittest.TestCase):
+	"""Tests for interpolate_sibling_dates."""
+
+	def setUp(self) -> None:
+		self.temp_dir = tempfile.mkdtemp()
+		self.db_path = os.path.join(self.temp_dir, "test.db")
+
+	def tearDown(self) -> None:
+		from storybuilder.downloader import db
+
+		db.close_db()
+		shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+	def _insert(self, slug: str, ch: "str | None", date: str, category: str = "college") -> None:
+		from storybuilder.downloader.db import insert_story
+
+		name = f"{slug}-{ch}" if ch is not None else slug
+		insert_story(
+			output_path=f"nifty_stories/gay/{category}/{slug}/{name}.txt",
+			title=f"T {name}",
+			author="Test Author",
+			story_date=date,
+			url=f"https://example.com/{name}",
+			content=f"content {name} token{name.replace('-', '')}",
+		)
+
+	def test_interpolates_between_dated_siblings(self) -> None:
+		from storybuilder.downloader import db
+
+		conn = db.init_db(self.db_path)
+		self._insert("slug-a", "1", "2020-01-01")
+		self._insert("slug-a", "2", db.BULK_TOUCH_EPOCH_DATE)
+		self._insert("slug-a", "3", "2020-01-11")
+
+		stats = db.interpolate_sibling_dates()
+
+		self.assertEqual(stats["interpolated"], 1)
+		self.assertEqual(stats["updated"], 1)
+		date = conn.execute("SELECT publication_date FROM stories WHERE path LIKE '%slug-a-2%'").fetchone()[0]
+		self.assertEqual(date, "2020-01-06")
+
+	def test_extrapolates_at_series_ends(self) -> None:
+		from storybuilder.downloader import db
+
+		conn = db.init_db(self.db_path)
+		self._insert("slug-a", "1", "2020-01-01")
+		self._insert("slug-a", "3", "2020-01-11")
+		self._insert("slug-a", "5", db.BULK_TOUCH_EPOCH_DATE)
+		self._insert("slug-b", "0", db.BULK_TOUCH_EPOCH_DATE)
+		self._insert("slug-b", "2", "2020-03-01")
+		self._insert("slug-b", "4", "2020-03-11")
+
+		stats = db.interpolate_sibling_dates()
+
+		self.assertEqual(stats["extrapolated"], 2)
+		tail = conn.execute("SELECT publication_date FROM stories WHERE path LIKE '%slug-a-5%'").fetchone()[0]
+		self.assertEqual(tail, "2020-01-21")
+		head = conn.execute("SELECT publication_date FROM stories WHERE path LIKE '%slug-b-0%'").fetchone()[0]
+		self.assertEqual(head, "2020-02-20")
+
+	def test_clamps_extrapolation_to_today(self) -> None:
+		import datetime as dt
+
+		from storybuilder.downloader import db
+
+		conn = db.init_db(self.db_path)
+		yesterday = (dt.date.today() - dt.timedelta(days=1)).isoformat()
+		self._insert("slug-c", "1", yesterday)
+		self._insert("slug-c", "3", db.BULK_TOUCH_EPOCH_DATE)
+
+		db.interpolate_sibling_dates()
+
+		date = conn.execute("SELECT publication_date FROM stories WHERE path LIKE '%slug-c-3%'").fetchone()[0]
+		self.assertEqual(date, dt.date.today().isoformat())
+
+	def test_category_isolation(self) -> None:
+		from storybuilder.downloader import db
+
+		conn = db.init_db(self.db_path)
+		self._insert("slug-a", "1", "2020-01-01", category="college")
+		self._insert("slug-a", "2", db.BULK_TOUCH_EPOCH_DATE, category="college")
+		self._insert("slug-a", "1", db.BULK_TOUCH_EPOCH_DATE, category="athletics")
+		self._insert("slug-a", "3", db.BULK_TOUCH_EPOCH_DATE, category="athletics")
+
+		stats = db.interpolate_sibling_dates()
+
+		self.assertEqual(stats["updated"], 1)
+		untouched = conn.execute(
+			"SELECT COUNT(*) FROM stories WHERE category='athletics' AND publication_date=?",
+			(db.BULK_TOUCH_EPOCH_DATE,),
+		).fetchone()[0]
+		self.assertEqual(untouched, 2)
+
+	def test_skipped_no_chapter(self) -> None:
+		from storybuilder.downloader import db
+
+		db.init_db(self.db_path)
+		self._insert("slug-a", "1", "2020-01-01")
+		self._insert("slug-a", None, db.BULK_TOUCH_EPOCH_DATE)
+
+		stats = db.interpolate_sibling_dates()
+
+		self.assertEqual(stats["skipped_no_chapter"], 1)
+		self.assertEqual(stats["updated"], 0)
+
+	def test_dry_run_writes_nothing(self) -> None:
+		from storybuilder.downloader import db
+
+		conn = db.init_db(self.db_path)
+		self._insert("slug-a", "1", "2020-01-01")
+		self._insert("slug-a", "2", db.BULK_TOUCH_EPOCH_DATE)
+		self._insert("slug-a", "3", "2020-01-11")
+
+		stats = db.interpolate_sibling_dates(dry_run=True)
+
+		self.assertEqual(stats["updated"], 1)
+		date = conn.execute("SELECT publication_date FROM stories WHERE path LIKE '%slug-a-2%'").fetchone()[0]
+		self.assertEqual(date, db.BULK_TOUCH_EPOCH_DATE)
+
+	def test_triggers_and_fts_stay_intact(self) -> None:
+		from storybuilder.downloader import db
+
+		conn = db.init_db(self.db_path)
+		self._insert("slug-a", "1", "2020-01-01")
+		self._insert("slug-a", "2", db.BULK_TOUCH_EPOCH_DATE)
+		self._insert("slug-a", "3", "2020-01-11")
+
+		db.interpolate_sibling_dates()
+
+		triggers = conn.execute(
+			"SELECT COUNT(*) FROM sqlite_master WHERE type='trigger' "
+			"AND name IN ('stories_ai','stories_ad','stories_au')"
+		).fetchone()[0]
+		self.assertEqual(triggers, 3)
+		stories_n = conn.execute("SELECT COUNT(*) FROM stories").fetchone()[0]
+		fts_n = conn.execute("SELECT COUNT(*) FROM stories_fts").fetchone()[0]
+		self.assertEqual(stories_n, fts_n)
+
+
+class TestRefetchHeaderlessDates(unittest.TestCase):
+	"""Tests for refetch.refetch_headerless_dates."""
+
+	def setUp(self) -> None:
+		self.temp_dir = tempfile.mkdtemp()
+		self.db_path = os.path.join(self.temp_dir, "test.db")
+
+	def tearDown(self) -> None:
+		from storybuilder.downloader import db
+
+		db.close_db()
+		shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+	def _insert(self, idx: int, url: str, date: "str | None" = None) -> None:
+		from storybuilder.downloader import db
+		from storybuilder.downloader.db import insert_story
+
+		insert_story(
+			output_path=f"nifty_stories/gay/college/rf-{idx}.txt",
+			title="Unknown",
+			author="Unknown",
+			story_date=date if date is not None else db.BULK_TOUCH_EPOCH_DATE,
+			url=url,
+			content=f"stripped content {idx}",
+		)
+
+	@staticmethod
+	def _response(status=200, text=""):
+		from unittest.mock import MagicMock
+
+		resp = MagicMock()
+		resp.status_code = status
+		resp.text = text
+		return resp
+
+	def test_is_headerless_url(self) -> None:
+		from storybuilder.downloader.refetch import is_headerless_url
+
+		self.assertTrue(is_headerless_url("https://nifty.org/nifty/gay/x/story-10"))
+		self.assertTrue(is_headerless_url("https://nifty.org/nifty/gay/x/story-10/"))
+		self.assertFalse(is_headerless_url("https://nifty.org/nifty/gay/x/story-10.html"))
+		self.assertFalse(is_headerless_url("https://nifty.org/nifty/gay/x/story.txt"))
+		self.assertFalse(is_headerless_url("https://nifty.org/nifty/gay/x/story.pdf"))
+
+	def test_refetch_updates_date_content_and_metadata(self) -> None:
+		from unittest.mock import patch
+
+		from storybuilder.downloader import db
+		from storybuilder.downloader import refetch
+
+		conn = db.init_db(self.db_path)
+		self._insert(1, "https://nifty.org/nifty/gay/college/rf-1")
+		body = (
+			"Date: Wed, 28 Dec 2011 22:57:49 -0800\n"
+			"From: Jane Doe <jane@example.com>\n"
+			"Subject: My Great Story\n\nBody text here"
+		)
+		with patch("storybuilder.downloader.refetch.requests.get", return_value=self._response(text=body)) as mock_get:
+			stats = refetch.refetch_headerless_dates(delay=0)
+
+		self.assertEqual(stats["dated"], 1)
+		self.assertEqual(stats["rows_updated"], 1)
+		self.assertEqual(mock_get.call_count, 1)
+		row = conn.execute(
+			"SELECT publication_date, content, title, author_name, author_email, char_count FROM stories"
+		).fetchone()
+		self.assertEqual(row[0], "2011-12-28")
+		self.assertEqual(row[1], body)
+		self.assertEqual(row[2], "My Great Story")
+		self.assertEqual(row[3], "Jane Doe")
+		self.assertEqual(row[4], "jane@example.com")
+		self.assertEqual(row[5], len(body))
+
+	def test_duplicate_urls_fetched_once(self) -> None:
+		from unittest.mock import patch
+
+		from storybuilder.downloader import db
+		from storybuilder.downloader import refetch
+
+		conn = db.init_db(self.db_path)
+		url = "https://nifty.org/nifty/gay/college/dup-story"
+		self._insert(1, url)
+		self._insert(2, url)
+		body = "Date: Wed, 28 Dec 2011 22:57:49 -0800\n\nBody"
+		with patch("storybuilder.downloader.refetch.requests.get", return_value=self._response(text=body)) as mock_get:
+			stats = refetch.refetch_headerless_dates(delay=0)
+
+		self.assertEqual(mock_get.call_count, 1)
+		self.assertEqual(stats["rows_updated"], 2)
+		n = conn.execute("SELECT COUNT(*) FROM stories WHERE publication_date='2011-12-28'").fetchone()[0]
+		self.assertEqual(n, 2)
+
+	def test_html_urls_not_fetched(self) -> None:
+		from unittest.mock import patch
+
+		from storybuilder.downloader import db
+		from storybuilder.downloader import refetch
+
+		db.init_db(self.db_path)
+		self._insert(1, "https://nifty.org/nifty/gay/college/rf-1.html")
+		with patch("storybuilder.downloader.refetch.requests.get") as mock_get:
+			stats = refetch.refetch_headerless_dates(delay=0)
+
+		self.assertEqual(mock_get.call_count, 0)
+		self.assertEqual(stats["candidates"], 0)
+
+	def test_no_header_and_http_error_and_out_of_range(self) -> None:
+		import datetime as dt
+		from email.utils import format_datetime
+		from unittest.mock import patch
+
+		from storybuilder.downloader import db
+		from storybuilder.downloader import refetch
+
+		conn = db.init_db(self.db_path)
+		self._insert(1, "https://nifty.org/nifty/gay/college/nohdr")
+		self._insert(2, "https://nifty.org/nifty/gay/college/gone")
+		future = format_datetime(dt.datetime.now(dt.timezone.utc) + dt.timedelta(days=400))
+		self._insert(3, "https://nifty.org/nifty/gay/college/future")
+
+		def fake_get(url, **kwargs):
+			if "nohdr" in url:
+				return self._response(text="<html><body>no headers</body></html>")
+			if "gone" in url:
+				return self._response(status=404, text="")
+			return self._response(text=f"Date: {future}\n\nBody")
+
+		with patch("storybuilder.downloader.refetch.requests.get", side_effect=fake_get):
+			stats = refetch.refetch_headerless_dates(delay=0)
+
+		self.assertEqual(stats["no_header"], 1)
+		self.assertEqual(stats["http_error"], 1)
+		self.assertEqual(stats["out_of_range"], 1)
+		self.assertEqual(stats["dated"], 0)
+		n = conn.execute(
+			"SELECT COUNT(*) FROM stories WHERE publication_date=?", (db.BULK_TOUCH_EPOCH_DATE,)
+		).fetchone()[0]
+		self.assertEqual(n, 3)
+
+	def test_dry_run_writes_nothing(self) -> None:
+		from unittest.mock import patch
+
+		from storybuilder.downloader import db
+		from storybuilder.downloader import refetch
+
+		conn = db.init_db(self.db_path)
+		self._insert(1, "https://nifty.org/nifty/gay/college/rf-1")
+		body = "Date: Wed, 28 Dec 2011 22:57:49 -0800\n\nBody"
+		with patch("storybuilder.downloader.refetch.requests.get", return_value=self._response(text=body)):
+			stats = refetch.refetch_headerless_dates(delay=0, dry_run=True)
+
+		self.assertEqual(stats["dated"], 1)
+		date = conn.execute("SELECT publication_date FROM stories").fetchone()[0]
+		self.assertEqual(date, db.BULK_TOUCH_EPOCH_DATE)
+
+
 if __name__ == "__main__":
 	unittest.main()

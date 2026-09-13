@@ -309,6 +309,39 @@ def cmd_redate(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = No
 	)
 
 
+def cmd_refetch(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None) -> None:
+	"""Re-fetch epoch-flagged extension-less stories to recover Date: headers."""
+	from storybuilder.downloader import db as downloader_db
+	from storybuilder.downloader import refetch
+
+	downloader_db.init_db(args.db)
+	try:
+		stats = refetch.refetch_headerless_dates(
+			delay=args.delay,
+			limit=args.limit,
+			dry_run=args.dry_run,
+			min_date=args.min_date,
+			update_content=not args.no_content_update,
+		)
+	finally:
+		downloader_db.close_db()
+	mode = " (dry run)" if args.dry_run else ""
+	print(f"Refetch{mode}: " + "  ".join(f"{k}={v:,}" for k, v in stats.items()))
+
+
+def cmd_interpolate(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None) -> None:
+	"""Estimate epoch-flagged chapter dates from dated sibling chapters."""
+	from storybuilder.downloader import db as downloader_db
+
+	downloader_db.init_db(args.db)
+	try:
+		stats = downloader_db.interpolate_sibling_dates(min_date=args.min_date, dry_run=args.dry_run)
+	finally:
+		downloader_db.close_db()
+	mode = " (dry run)" if args.dry_run else ""
+	print(f"Interpolate{mode}: " + "  ".join(f"{k}={v:,}" for k, v in stats.items()))
+
+
 # ——— Main ————————————————————————————————————————————————————————————————————————
 
 
@@ -395,6 +428,29 @@ def main() -> None:
 	p.add_argument("--min-date", default="1980-01-01", help="Earliest plausible header date (default: 1980-01-01)")
 	p.add_argument("--dry-run", action="store_true", help="Report stats without writing")
 
+	# refetch
+	p = sub.add_parser(
+		"refetch",
+		help="Re-fetch epoch-flagged extension-less stories from the archive to recover Date: headers",
+	)
+	p.add_argument("--delay", type=float, default=1.5, help="Seconds between requests (default: 1.5)")
+	p.add_argument("--limit", type=int, default=None, help="Max unique URLs to fetch")
+	p.add_argument("--min-date", default="1980-01-01", help="Earliest plausible header date (default: 1980-01-01)")
+	p.add_argument("--dry-run", action="store_true", help="Report stats without writing")
+	p.add_argument(
+		"--no-content-update",
+		action="store_true",
+		help="Only update dates; keep existing content/title/author",
+	)
+
+	# interpolate
+	p = sub.add_parser(
+		"interpolate",
+		help="Estimate dates for epoch-flagged chapters from dated sibling chapters",
+	)
+	p.add_argument("--min-date", default="1980-01-01", help="Earliest plausible date (default: 1980-01-01)")
+	p.add_argument("--dry-run", action="store_true", help="Report stats without writing")
+
 	args = parser.parse_args()
 	conn, db_paths = _resolve_connection(args)
 
@@ -404,6 +460,8 @@ def main() -> None:
 		"list": cmd_list,
 		"stats": cmd_stats,
 		"redate": cmd_redate,
+		"refetch": cmd_refetch,
+		"interpolate": cmd_interpolate,
 	}
 	dispatch[args.command](conn, args, db_paths)
 	conn.close()

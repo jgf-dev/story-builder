@@ -1,8 +1,10 @@
+import bisect
 import datetime
 import logging as std_logging
 import os
 import re
 import sqlite3
+import statistics
 import threading
 from email.utils import parsedate_to_datetime
 from pathlib import Path
@@ -836,6 +838,115 @@ def redate_from_content_headers(
 		stats["parse_failed"],
 		stats["out_of_range"],
 	)
+	return stats
+
+
+def interpolate_sibling_dates(min_date: str = "1980-01-01", dry_run: bool = False) -> "dict[str, int]":
+	"""Estimate dates for epoch-flagged chapters from dated sibling chapters.
+
+	Chapters of a multi-chapter story (same ``category`` + ``story_slug``)
+	were posted in chapter order, so dated chapters form a monotonic
+	timeline. Epoch-flagged chapters with a ``chapter_num`` get a date by
+	linear interpolation between the nearest dated chapters on either side,
+	or pace-based extrapolation at the series ends (median days/chapter over
+	the 10 most recent known gaps), clamped to ``[min_date, today]``.
+
+	Date-only updates: the ``stories_au`` trigger is bypassed and restored as
+	in :func:`redate_from_content_headers`. Returns stats: groups,
+	interpolated, extrapolated, skipped_no_chapter, updated.
+	"""
+	conn = _conn
+	stats = {"groups": 0, "interpolated": 0, "extrapolated": 0, "skipped_no_chapter": 0, "updated": 0}
+	if conn is None:
+		return stats
+
+	min_d = datetime.date.fromisoformat(min_date)
+	max_d = datetime.date.today()
+
+	groups = conn.execute(
+		"SELECT category, story_slug FROM stories "
+		"WHERE story_slug IS NOT NULL "
+		"GROUP BY category, story_slug "
+		"HAVING SUM(publication_date = ?) > 0 "
+		"AND SUM(publication_date != ? AND publication_date >= ?) > 0",
+		(BULK_TOUCH_EPOCH_DATE, BULK_TOUCH_EPOCH_DATE, min_date),
+	).fetchall()
+	stats["groups"] = len(groups)
+
+	updates: "list[tuple[str, int]]" = []
+	for category, slug in groups:
+		rows = conn.execute(
+			"SELECT id, chapter_num, publication_date FROM stories "
+			"WHERE category=? AND story_slug=? AND chapter_num IS NOT NULL",
+			(category, slug),
+		).fetchall()
+		known: "dict[int, datetime.date]" = {}
+		unknown: "list[tuple[int, int]]" = []
+		for rid, ch, pub in rows:
+			if pub and pub != BULK_TOUCH_EPOCH_DATE and pub >= min_date:
+				try:
+					known[ch] = datetime.date.fromisoformat(pub[:10])
+				except ValueError:
+					continue
+			elif pub == BULK_TOUCH_EPOCH_DATE:
+				unknown.append((rid, ch))
+		stats["skipped_no_chapter"] += conn.execute(
+			"SELECT COUNT(*) FROM stories "
+			"WHERE category=? AND story_slug=? AND chapter_num IS NULL AND publication_date=?",
+			(category, slug, BULK_TOUCH_EPOCH_DATE),
+		).fetchone()[0]
+		if not known or not unknown:
+			continue
+
+		sorted_known = sorted(known.items())
+		known_chs = [c for c, _ in sorted_known]
+		known_dates = [d for _, d in sorted_known]
+
+		# Median days-per-chapter over the most recent known gaps.
+		gaps = [
+			((d2 - d1).days / (c2 - c1), c1) for (c1, d1), (c2, d2) in zip(sorted_known, sorted_known[1:]) if c2 > c1
+		]
+		recent = [g for g, _ in sorted(gaps, key=lambda x: x[1], reverse=True)[:10]]
+		pace = max(statistics.median(recent), 0.0) if recent else 30.0
+
+		for rid, ch in unknown:
+			idx = bisect.bisect_left(known_chs, ch)
+			prev = (known_chs[idx - 1], known_dates[idx - 1]) if idx > 0 else None
+			nxt = (known_chs[idx], known_dates[idx]) if idx < len(known_chs) else None
+			if prev and nxt:
+				span = nxt[0] - prev[0]
+				frac = (ch - prev[0]) / span if span else 0.0
+				d = prev[1] + datetime.timedelta(days=round((nxt[1] - prev[1]).days * frac))
+				stats["interpolated"] += 1
+			elif prev:
+				d = prev[1] + datetime.timedelta(days=round(pace * (ch - prev[0])))
+				stats["extrapolated"] += 1
+			elif nxt:
+				d = nxt[1] - datetime.timedelta(days=round(pace * (nxt[0] - ch)))
+				stats["extrapolated"] += 1
+			else:
+				continue
+			d = max(min_d, min(d, max_d))
+			updates.append((d.isoformat(), rid))
+
+	stats["updated"] = len(updates)
+	if dry_run or not updates:
+		logging.info("Interpolate%s: %s", " dry run" if dry_run else "", stats)
+		return stats
+
+	with _lock:
+		au = conn.execute("SELECT sql FROM sqlite_master WHERE type='trigger' AND name='stories_au'").fetchone()
+		try:
+			if au:
+				conn.execute("DROP TRIGGER stories_au")
+			conn.executemany("UPDATE stories SET publication_date=? WHERE id=?", updates)
+			conn.commit()
+		finally:
+			if au:
+				conn.execute(au[0])
+			conn.commit()
+
+	logging.info("Interpolated dates for %d stories across %d series: %s", len(updates), len(groups), stats)
 	return stats
 
 

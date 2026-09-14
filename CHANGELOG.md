@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-09-14
+
+### Summary
+
+Added `stories.date_source` provenance column tracking how each publication_date was obtained, with stamping in every write path and a full production backfill.
+
+### Added
+
+- `stories.date_source TEXT NOT NULL DEFAULT 'listing'` (model, SCHEMA DDL, STORY_COLUMNS, O(1) ALTER migration in `_migrate_schema`). Vocabulary constants in db.py: `listing` (scrape mtime), `content_header` / `refetch_header` (exact usenet Date: headers), `interpolated` / `extrapolated` (sibling estimates), `unresolved` (epoch sentinel).
+- Stamping in all write paths: `insert_story(date_source=...)` defaults to `listing`; `flag_bulk_touched_dates` → `unresolved`; `redate_from_content_headers` → `content_header`; `refetch_headerless_dates` → `refetch_header`; `interpolate_sibling_dates` → `interpolated`/`extrapolated` per branch. `_replicate_story` carries the source through; `get_story` returns it; `story-db get` displays it.
+- Production backfill (311,440 rows): listing=148,444, content_header=135,550, unresolved=18,829, extrapolated=7,343, interpolated=1,274. Reclassified from the backup JSONL + content-header detection + sibling-span analysis. FTS verified in sync.
+- 8 new tests (migration, stamping per write path, get_story).
+
+### Notes
+
+- The historical Sep-13 refetch recoveries (3,757 rows) are indistinguishable post-hoc from redate recoveries (per-URL success list was not logged), so both are labeled `content_header` — identical date accuracy. Future `story-db refetch` runs stamp `refetch_header` correctly.
+
 ## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-09-13
 
 ### Summary

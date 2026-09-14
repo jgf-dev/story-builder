@@ -163,11 +163,12 @@ def refetch_headerless_dates(
 			if content is not None:
 				author_name, author_email = db._parse_author(new_author)
 				conn.execute(
-					"UPDATE stories SET publication_date=?, content=?, char_count=?, word_count=?, "
+					"UPDATE stories SET publication_date=?, date_source=?, content=?, char_count=?, word_count=?, "
 					"title=COALESCE(?, title), author_name=COALESCE(?, author_name), "
 					"author_email=COALESCE(?, author_email) WHERE id=?",
 					(
 						new_date,
+						db.DATE_SOURCE_REFETCH_HEADER,
 						content,
 						len(content),
 						len(content.split()),
@@ -179,8 +180,8 @@ def refetch_headerless_dates(
 				)
 			else:
 				conn.execute(
-					"UPDATE stories SET publication_date=? WHERE id=?",
-					(new_date, rid),
+					"UPDATE stories SET publication_date=?, date_source=? WHERE id=?",
+					(new_date, db.DATE_SOURCE_REFETCH_HEADER, rid),
 				)
 			stats["rows_updated"] += 1
 		conn.commit()

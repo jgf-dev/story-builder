@@ -45,6 +45,7 @@ class Story(SQLModel, table=True):
 	author_name: str | None = Field(default=None, index=True)
 	author_email: str | None = Field(default=None)
 	publication_date: str | None = Field(default=None, index=True)
+	date_source: str = Field(default="listing", sa_column_kwargs={"server_default": text("'listing'")})
 	url: str | None = Field(default=None)
 	char_count: int = Field(index=True)
 	word_count: int = Field()
@@ -74,6 +75,7 @@ STORY_COLUMNS = (
 	"author_name",
 	"author_email",
 	"publication_date",
+	"date_source",
 	"url",
 	"char_count",
 	"word_count",
@@ -93,6 +95,7 @@ CREATE TABLE IF NOT EXISTS stories (
     author_name     TEXT,
     author_email    TEXT,
     publication_date TEXT,
+    date_source     TEXT NOT NULL DEFAULT 'listing',
     url             TEXT,
     char_count      INTEGER NOT NULL,
     word_count      INTEGER NOT NULL,
@@ -159,6 +162,15 @@ BULK_TOUCH_EPOCH_DATE = "1970-01-01"
 # Organic maximum observed is ~100 stories/day (1993-07-18: 102); bulk-touch
 # days run 400-700+. Any exact date above this threshold is an artifact.
 BULK_TOUCH_DAY_THRESHOLD = 150
+
+# Allowed values for stories.date_source — provenance of publication_date,
+# ordered by confidence: exact sources first, estimates last.
+DATE_SOURCE_LISTING = "listing"  # original scrape listing date (server mtime)
+DATE_SOURCE_CONTENT_HEADER = "content_header"  # usenet Date: header in content
+DATE_SOURCE_REFETCH_HEADER = "refetch_header"  # Date: header from archive re-fetch
+DATE_SOURCE_INTERPOLATED = "interpolated"  # between dated sibling chapters
+DATE_SOURCE_EXTRAPOLATED = "extrapolated"  # series-end pace estimate
+DATE_SOURCE_UNRESOLVED = "unresolved"  # bulk-touch victim at the epoch sentinel
 
 
 def _parse_author(raw: "str | None") -> "tuple[str | None, str | None]":
@@ -364,6 +376,11 @@ def migrate_legacy_schema(conn: sqlite3.Connection) -> bool:
 def _migrate_schema(conn: "sqlite3.Connection") -> None:
 	"""Apply schema migrations to an existing partition or database file."""
 	migrate_legacy_schema(conn)
+	columns = _table_columns(conn, "stories")
+	if columns and "date_source" not in columns:
+		conn.execute("ALTER TABLE stories ADD COLUMN date_source TEXT NOT NULL DEFAULT 'listing'")
+		conn.commit()
+		logging.info("Added date_source column to stories table")
 
 
 # -- DB init ------------------------------------------------------------
@@ -593,6 +610,7 @@ def insert_story(
 	story_date: str,
 	url: str,
 	content: str,
+	date_source: str = DATE_SOURCE_LISTING,
 ) -> bool:
 	"""Insert a story into the database. Thread-safe."""
 	engine = _engine
@@ -617,6 +635,7 @@ def insert_story(
 				db_story.author_name = author_name
 				db_story.author_email = author_email
 				db_story.publication_date = story_date
+				db_story.date_source = date_source
 				db_story.url = url
 				db_story.char_count = char_count
 				db_story.word_count = word_count
@@ -633,6 +652,7 @@ def insert_story(
 					author_name=author_name,
 					author_email=author_email,
 					publication_date=story_date,
+					date_source=date_source,
 					url=url,
 					char_count=char_count,
 					word_count=word_count,
@@ -680,6 +700,7 @@ def get_story(output_path: str, story_date: str = "") -> "dict | None":
 					"title": db_story.title or "Unknown",
 					"author": author,
 					"story_date": db_story.publication_date,
+					"date_source": db_story.date_source,
 					"url": db_story.url,
 					"content": db_story.content,
 				}
@@ -729,8 +750,8 @@ def flag_bulk_touched_dates(day_threshold: int = BULK_TOUCH_DAY_THRESHOLD) -> in
 				chunk = dates[i : i + chunk_size]
 				placeholders = ",".join("?" * len(chunk))
 				cur = conn.execute(
-					f"UPDATE stories SET publication_date=? WHERE publication_date IN ({placeholders})",
-					[BULK_TOUCH_EPOCH_DATE, *chunk],
+					f"UPDATE stories SET publication_date=?, date_source=? WHERE publication_date IN ({placeholders})",
+					[BULK_TOUCH_EPOCH_DATE, DATE_SOURCE_UNRESOLVED, *chunk],
 				)
 				flagged += cur.rowcount
 			conn.commit()
@@ -779,7 +800,7 @@ def redate_from_content_headers(
 
 	min_d = datetime.date.fromisoformat(min_date)
 	max_d = datetime.date.today()
-	updates: "list[tuple[str, int]]" = []
+	updates: "list[tuple[str, str, int]]" = []
 
 	with _lock:
 		cursor = conn.execute(
@@ -803,7 +824,7 @@ def redate_from_content_headers(
 			if d < min_d or d > max_d:
 				stats["out_of_range"] += 1
 				continue
-			updates.append((d.isoformat(), row_id))
+			updates.append((d.isoformat(), DATE_SOURCE_CONTENT_HEADER, row_id))
 		cursor.close()
 
 		stats["redated"] = len(updates)
@@ -823,7 +844,7 @@ def redate_from_content_headers(
 		try:
 			if au:
 				conn.execute("DROP TRIGGER stories_au")
-			conn.executemany("UPDATE stories SET publication_date=? WHERE id=?", updates)
+			conn.executemany("UPDATE stories SET publication_date=?, date_source=? WHERE id=?", updates)
 			conn.commit()
 		finally:
 			if au:
@@ -873,7 +894,7 @@ def interpolate_sibling_dates(min_date: str = "1980-01-01", dry_run: bool = Fals
 	).fetchall()
 	stats["groups"] = len(groups)
 
-	updates: "list[tuple[str, int]]" = []
+	updates: "list[tuple[str, str, int]]" = []
 	for category, slug in groups:
 		rows = conn.execute(
 			"SELECT id, chapter_num, publication_date FROM stories "
@@ -917,17 +938,20 @@ def interpolate_sibling_dates(min_date: str = "1980-01-01", dry_run: bool = Fals
 				span = nxt[0] - prev[0]
 				frac = (ch - prev[0]) / span if span else 0.0
 				d = prev[1] + datetime.timedelta(days=round((nxt[1] - prev[1]).days * frac))
+				source = DATE_SOURCE_INTERPOLATED
 				stats["interpolated"] += 1
 			elif prev:
 				d = prev[1] + datetime.timedelta(days=round(pace * (ch - prev[0])))
+				source = DATE_SOURCE_EXTRAPOLATED
 				stats["extrapolated"] += 1
 			elif nxt:
 				d = nxt[1] - datetime.timedelta(days=round(pace * (nxt[0] - ch)))
+				source = DATE_SOURCE_EXTRAPOLATED
 				stats["extrapolated"] += 1
 			else:
 				continue
 			d = max(min_d, min(d, max_d))
-			updates.append((d.isoformat(), rid))
+			updates.append((d.isoformat(), source, rid))
 
 	stats["updated"] = len(updates)
 	if dry_run or not updates:
@@ -939,7 +963,7 @@ def interpolate_sibling_dates(min_date: str = "1980-01-01", dry_run: bool = Fals
 		try:
 			if au:
 				conn.execute("DROP TRIGGER stories_au")
-			conn.executemany("UPDATE stories SET publication_date=? WHERE id=?", updates)
+			conn.executemany("UPDATE stories SET publication_date=?, date_source=? WHERE id=?", updates)
 			conn.commit()
 		finally:
 			if au:

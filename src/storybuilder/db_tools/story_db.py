@@ -156,6 +156,8 @@ def cmd_get(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None)
 			+ (f" <{row['author_email']}>" if row["author_email"] else ""),
 		)
 		print(f"Date:     {row['publication_date'] or 'Unknown'}")
+		if "date_source" in row.keys():
+			print(f"Source:   {row['date_source'] or 'listing'}")
 		print(f"URL:      {row['url'] or 'N/A'}")
 		print(f"Category: {row['category']}")
 		print(f"Chapter:  {row['chapter_num'] or 'single'}")

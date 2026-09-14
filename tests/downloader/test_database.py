@@ -1587,5 +1587,154 @@ class TestRefetchHeaderlessDates(unittest.TestCase):
 		self.assertEqual(date, db.BULK_TOUCH_EPOCH_DATE)
 
 
+class TestDateSourceProvenance(unittest.TestCase):
+	"""Tests for date_source provenance stamping and migration."""
+
+	def setUp(self) -> None:
+		self.temp_dir = tempfile.mkdtemp()
+		self.db_path = os.path.join(self.temp_dir, "test.db")
+
+	def tearDown(self) -> None:
+		from storybuilder.downloader import db
+
+		db.close_db()
+		shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+	def _insert(self, idx: int, date: str, content: str, url: str = "", **kwargs) -> None:
+		from storybuilder.downloader.db import insert_story
+
+		insert_story(
+			output_path=f"nifty_stories/gay/college/prov-{idx}.txt",
+			title=f"Story {idx}",
+			author="Test Author",
+			story_date=date,
+			url=url or f"https://example.com/prov-{idx}",
+			content=content,
+			**kwargs,
+		)
+
+	def test_migration_adds_column_with_default(self) -> None:
+		from storybuilder.downloader.db import init_db
+
+		raw = sqlite3.connect(self.db_path)
+		raw.execute(
+			"""CREATE TABLE stories (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                path TEXT UNIQUE NOT NULL,
+                orientation TEXT NOT NULL DEFAULT 'gay',
+                category TEXT, story_slug TEXT, chapter_num INTEGER,
+                title TEXT, author_name TEXT, author_email TEXT,
+                publication_date TEXT, url TEXT,
+                char_count INTEGER NOT NULL, word_count INTEGER NOT NULL,
+                content TEXT NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )"""
+		)
+		raw.execute("INSERT INTO stories (path, char_count, word_count, content) VALUES ('a/b/c.txt', 3, 1, 'abc')")
+		raw.commit()
+		raw.close()
+
+		conn = init_db(self.db_path)
+		cols = [r[1] for r in conn.execute("PRAGMA table_info(stories)").fetchall()]
+		self.assertIn("date_source", cols)
+		self.assertEqual(conn.execute("SELECT date_source FROM stories").fetchone()[0], "listing")
+
+	def test_insert_story_stamps_listing_and_override(self) -> None:
+		from storybuilder.downloader import db
+
+		conn = db.init_db(self.db_path)
+		self._insert(1, "2020-01-01", "body provone")
+		self._insert(2, "2020-01-02", "body provtwo", date_source="content_header")
+		rows = dict(conn.execute("SELECT path, date_source FROM stories").fetchall())
+		self.assertEqual(rows["nifty_stories/gay/college/prov-1.txt"], "listing")
+		self.assertEqual(rows["nifty_stories/gay/college/prov-2.txt"], "content_header")
+
+	def test_get_story_returns_date_source(self) -> None:
+		from storybuilder.downloader import db
+
+		db.init_db(self.db_path)
+		self._insert(1, "2020-01-01", "body provthree")
+		story = db.get_story("nifty_stories/gay/college/prov-1.txt")
+		self.assertEqual(story["date_source"], "listing")
+
+	def test_flag_stamps_unresolved(self) -> None:
+		from storybuilder.downloader import db
+
+		conn = db.init_db(self.db_path)
+		for i in range(10):
+			self._insert(i, "2027-05-05", f"body provflag{i}")
+
+		db.flag_bulk_touched_dates(day_threshold=5)
+
+		row = conn.execute("SELECT publication_date, date_source FROM stories LIMIT 1").fetchone()
+		self.assertEqual(row[0], db.BULK_TOUCH_EPOCH_DATE)
+		self.assertEqual(row[1], "unresolved")
+
+	def test_redate_stamps_content_header(self) -> None:
+		from storybuilder.downloader import db
+
+		conn = db.init_db(self.db_path)
+		self._insert(1, db.BULK_TOUCH_EPOCH_DATE, "Date: Wed, 28 Dec 2011 22:57:49 -0800\n\nBody provredate")
+
+		db.redate_from_content_headers()
+
+		row = conn.execute("SELECT publication_date, date_source FROM stories").fetchone()
+		self.assertEqual(row[0], "2011-12-28")
+		self.assertEqual(row[1], "content_header")
+
+	def test_interpolate_stamps_interpolated_and_extrapolated(self) -> None:
+		from storybuilder.downloader import db
+
+		conn = db.init_db(self.db_path)
+
+		def ins(slug, ch, date):
+			from storybuilder.downloader.db import insert_story
+
+			insert_story(
+				output_path=f"nifty_stories/gay/college/{slug}/{slug}-{ch}.txt",
+				title="T",
+				author="A",
+				story_date=date,
+				url=f"https://example.com/{slug}-{ch}",
+				content=f"body {slug}{ch} tok{slug}{ch}",
+			)
+
+		ins("slug-a", "1", "2020-01-01")
+		ins("slug-a", "2", db.BULK_TOUCH_EPOCH_DATE)
+		ins("slug-a", "3", "2020-01-11")
+		ins("slug-a", "5", db.BULK_TOUCH_EPOCH_DATE)
+
+		stats = db.interpolate_sibling_dates()
+
+		self.assertEqual(stats["interpolated"], 1)
+		self.assertEqual(stats["extrapolated"], 1)
+		rows = dict(
+			conn.execute(
+				"SELECT story_slug || '-' || chapter_num, date_source FROM stories WHERE chapter_num IS NOT NULL"
+			).fetchall()
+		)
+		self.assertEqual(rows["slug-a-2"], "interpolated")
+		self.assertEqual(rows["slug-a-5"], "extrapolated")
+
+	def test_refetch_stamps_refetch_header(self) -> None:
+		from unittest.mock import MagicMock
+		from unittest.mock import patch
+
+		from storybuilder.downloader import db
+		from storybuilder.downloader import refetch
+
+		conn = db.init_db(self.db_path)
+		self._insert(1, db.BULK_TOUCH_EPOCH_DATE, "stripped", url="https://nifty.org/nifty/gay/college/prov-1")
+		body = "Date: Wed, 28 Dec 2011 22:57:49 -0800\n\nBody provrefetch"
+		resp = MagicMock()
+		resp.status_code = 200
+		resp.text = body
+		with patch("storybuilder.downloader.refetch.requests.get", return_value=resp):
+			refetch.refetch_headerless_dates(delay=0)
+
+		row = conn.execute("SELECT publication_date, date_source FROM stories").fetchone()
+		self.assertEqual(row[0], "2011-12-28")
+		self.assertEqual(row[1], "refetch_header")
+
+
 if __name__ == "__main__":
 	unittest.main()

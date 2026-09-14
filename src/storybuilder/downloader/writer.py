@@ -175,6 +175,7 @@ def _replicate_story(primary_path, output_paths, story_date) -> None:
 					story_date=story_data["story_date"],
 					url=story_data["url"],
 					content=story_data["content"],
+					date_source=story_data.get("date_source") or "listing",
 				)
 
 

@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-09-16
+
+### Summary
+
+`story-db` maintenance commands (redate/refetch/interpolate) now auto-upload stories.db to GCS after writing changes.
+
+### Added
+
+- `_upload_stories_db` / `_maybe_upload` helpers in `story_db.py`: after a maintenance command writes changes (and the WAL is checkpointed via `close_db`), `stories.db` is uploaded to `gs://nifty-index` (best-effort; failures print a warning without aborting). Skipped on dry runs, no-op runs, or `--no-upload`; bucket configurable via `--gcs-bucket`.
+- 5 new tests (path resolution, failure tolerance, upload conditions, cmd-level hooks); full suite 398 passing.
+
 ## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-09-14
 
 ### Summary

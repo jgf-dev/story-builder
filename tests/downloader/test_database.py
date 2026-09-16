@@ -1736,5 +1736,111 @@ class TestDateSourceProvenance(unittest.TestCase):
 		self.assertEqual(row[1], "refetch_header")
 
 
+class TestMaintenanceUpload(unittest.TestCase):
+	"""Tests for GCS upload hooks in story-db maintenance commands."""
+
+	def test_upload_stories_db_resolves_dir_and_file(self) -> None:
+		from unittest.mock import patch
+
+		from storybuilder.db_tools.story_db import _upload_stories_db
+
+		temp = tempfile.mkdtemp()
+		try:
+			with open(os.path.join(temp, "stories.db"), "w"):
+				pass
+			with patch("storybuilder.downloader.storage.upload_many_gcs") as mock_up:
+				ok = _upload_stories_db(temp, "test-bucket")
+			self.assertTrue(ok)
+			pos, kw = mock_up.call_args
+			self.assertEqual(pos[0], "test-bucket")
+			self.assertTrue(pos[2][0].endswith("stories.db"))
+			self.assertEqual(kw["source_directory"], temp)
+
+			with patch("storybuilder.downloader.storage.upload_many_gcs") as mock_up:
+				ok = _upload_stories_db(os.path.join(temp, "stories.db"), "test-bucket")
+			self.assertTrue(ok)
+			mock_up.assert_called_once()
+		finally:
+			shutil.rmtree(temp, ignore_errors=True)
+
+	def test_upload_failure_does_not_raise(self) -> None:
+		from unittest.mock import patch
+
+		from storybuilder.db_tools.story_db import _upload_stories_db
+
+		temp = tempfile.mkdtemp()
+		try:
+			with open(os.path.join(temp, "stories.db"), "w"):
+				pass
+			with patch(
+				"storybuilder.downloader.storage.upload_many_gcs",
+				side_effect=RuntimeError("boom"),
+			):
+				ok = _upload_stories_db(temp, "test-bucket")
+			self.assertFalse(ok)
+		finally:
+			shutil.rmtree(temp, ignore_errors=True)
+
+	def test_maybe_upload_conditions(self) -> None:
+		from argparse import Namespace
+		from unittest.mock import patch
+
+		from storybuilder.db_tools.story_db import _maybe_upload
+
+		base = {"db": "stories/db", "gcs_bucket": "b", "dry_run": False, "no_upload": False}
+		with patch("storybuilder.db_tools.story_db._upload_stories_db") as mock_up:
+			_maybe_upload(Namespace(**base), changed=True)
+			_maybe_upload(Namespace(**base), changed=False)
+			_maybe_upload(Namespace(**{**base, "dry_run": True}), changed=True)
+			_maybe_upload(Namespace(**{**base, "no_upload": True}), changed=True)
+		self.assertEqual(mock_up.call_count, 1)
+
+	def test_cmd_redate_triggers_upload_on_change(self) -> None:
+		from argparse import Namespace
+		from unittest.mock import patch
+
+		from storybuilder.db_tools.story_db import cmd_redate
+
+		args = Namespace(
+			db="stories/db",
+			min_date="1980-01-01",
+			dry_run=False,
+			no_upload=False,
+			gcs_bucket="test-bucket",
+		)
+		stats = {"scanned": 5, "redated": 3, "no_header": 2, "parse_failed": 0, "out_of_range": 0}
+		with (
+			patch("storybuilder.downloader.db.init_db"),
+			patch("storybuilder.downloader.db.close_db"),
+			patch("storybuilder.downloader.db.redate_from_content_headers", return_value=stats),
+			patch("storybuilder.db_tools.story_db._maybe_upload") as mock_maybe,
+		):
+			cmd_redate(None, args)
+		mock_maybe.assert_called_once_with(args, True)
+
+	def test_cmd_interpolate_skips_upload_when_no_changes(self) -> None:
+		from argparse import Namespace
+		from unittest.mock import patch
+
+		from storybuilder.db_tools.story_db import cmd_interpolate
+
+		args = Namespace(
+			db="stories/db",
+			min_date="1980-01-01",
+			dry_run=False,
+			no_upload=False,
+			gcs_bucket="test-bucket",
+		)
+		stats = {"groups": 0, "interpolated": 0, "extrapolated": 0, "skipped_no_chapter": 0, "updated": 0}
+		with (
+			patch("storybuilder.downloader.db.init_db"),
+			patch("storybuilder.downloader.db.close_db"),
+			patch("storybuilder.downloader.db.interpolate_sibling_dates", return_value=stats),
+			patch("storybuilder.db_tools.story_db._maybe_upload") as mock_maybe,
+		):
+			cmd_interpolate(None, args)
+		mock_maybe.assert_called_once_with(args, False)
+
+
 if __name__ == "__main__":
 	unittest.main()

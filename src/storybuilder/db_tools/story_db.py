@@ -294,6 +294,31 @@ def cmd_stats(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = Non
 	print()
 
 
+def _upload_stories_db(db_path: str, bucket: str) -> bool:
+	"""Upload the monolithic stories.db to GCS after a maintenance write (best-effort).
+
+	Callers must close the downloader DB connection first so the WAL is
+	checkpointed and the file is consistent. Returns True on success.
+	"""
+	from storybuilder.downloader.storage import upload_many_gcs
+
+	p = Path(db_path)
+	target = p / "stories.db" if p.is_dir() else p
+	try:
+		upload_many_gcs(bucket, "", [str(target)], source_directory=str(target.parent))
+		print(f"Uploaded {target.name} to gs://{bucket}/{target.name}")
+		return True
+	except Exception as e:
+		print(f"WARNING: GCS upload of {target} failed: {e}", file=sys.stderr)
+		return False
+
+
+def _maybe_upload(args, changed: bool) -> None:
+	"""Upload stories.db unless dry-run, nothing changed, or --no-upload."""
+	if changed and not args.dry_run and not args.no_upload:
+		_upload_stories_db(args.db, args.gcs_bucket)
+
+
 def cmd_redate(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None) -> None:
 	"""Recover true dates for bulk-touch-flagged stories from content headers."""
 	from storybuilder.downloader import db as downloader_db
@@ -309,6 +334,7 @@ def cmd_redate(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = No
 		f"no_header={stats['no_header']:,} parse_failed={stats['parse_failed']:,} "
 		f"out_of_range={stats['out_of_range']:,}"
 	)
+	_maybe_upload(args, stats["redated"] > 0)
 
 
 def cmd_refetch(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None) -> None:
@@ -329,6 +355,7 @@ def cmd_refetch(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = N
 		downloader_db.close_db()
 	mode = " (dry run)" if args.dry_run else ""
 	print(f"Refetch{mode}: " + "  ".join(f"{k}={v:,}" for k, v in stats.items()))
+	_maybe_upload(args, stats["rows_updated"] > 0)
 
 
 def cmd_interpolate(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None) -> None:
@@ -342,6 +369,7 @@ def cmd_interpolate(conn: sqlite3.Connection, args, db_paths: "list[str] | None"
 		downloader_db.close_db()
 	mode = " (dry run)" if args.dry_run else ""
 	print(f"Interpolate{mode}: " + "  ".join(f"{k}={v:,}" for k, v in stats.items()))
+	_maybe_upload(args, stats["updated"] > 0)
 
 
 # ——— Main ————————————————————————————————————————————————————————————————————————
@@ -429,6 +457,10 @@ def main() -> None:
 	)
 	p.add_argument("--min-date", default="1980-01-01", help="Earliest plausible header date (default: 1980-01-01)")
 	p.add_argument("--dry-run", action="store_true", help="Report stats without writing")
+	p.add_argument("--no-upload", action="store_true", help="Skip GCS upload of stories.db after writing changes")
+	p.add_argument(
+		"--gcs-bucket", default="nifty-index", help="GCS bucket for post-maintenance upload (default: nifty-index)"
+	)
 
 	# refetch
 	p = sub.add_parser(
@@ -444,6 +476,10 @@ def main() -> None:
 		action="store_true",
 		help="Only update dates; keep existing content/title/author",
 	)
+	p.add_argument("--no-upload", action="store_true", help="Skip GCS upload of stories.db after writing changes")
+	p.add_argument(
+		"--gcs-bucket", default="nifty-index", help="GCS bucket for post-maintenance upload (default: nifty-index)"
+	)
 
 	# interpolate
 	p = sub.add_parser(
@@ -452,6 +488,10 @@ def main() -> None:
 	)
 	p.add_argument("--min-date", default="1980-01-01", help="Earliest plausible date (default: 1980-01-01)")
 	p.add_argument("--dry-run", action="store_true", help="Report stats without writing")
+	p.add_argument("--no-upload", action="store_true", help="Skip GCS upload of stories.db after writing changes")
+	p.add_argument(
+		"--gcs-bucket", default="nifty-index", help="GCS bucket for post-maintenance upload (default: nifty-index)"
+	)
 
 	args = parser.parse_args()
 	conn, db_paths = _resolve_connection(args)

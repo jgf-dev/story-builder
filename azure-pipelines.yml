@@ -11,14 +11,8 @@ pool:
 
 strategy:
   matrix:
-    Python38:
-      python.version: '3.8'
-    Python39:
-      python.version: '3.9'
-    Python310:
-      python.version: '3.10'
-    Python311:
-      python.version: '3.11'
+    Python312:
+      python.version: '3.12'
 
 steps:
 - task: UsePythonVersion@0
@@ -26,12 +20,19 @@ steps:
     versionSpec: '$(python.version)'
   displayName: 'Use Python $(python.version)'
 
-- script: |
-    python -m pip install --upgrade pip
-    pip install -r requirements.txt
+- bash: |
+    python -m pip install uv
+  displayName: 'Install uv'
+
+- bash: |
+    uv sync --all-extras --dev
   displayName: 'Install dependencies'
 
-- script: |
-    pip install pytest pytest-azurepipelines
-    pytest
+- bash: |
+    uv run python -m spacy download en_core_web_sm
+    uv run python -m spacy download en_core_web_lg
+  displayName: 'Download spaCy models'
+
+- bash: |
+    uv run pytest
   displayName: 'pytest'

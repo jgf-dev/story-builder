@@ -15,19 +15,17 @@ steps:
     versionSpec: '$(python.version)'
   displayName: 'Use Python $(python.version)'
 
-- bash: |
-    python -m pip install uv
+- bash: python -m pip install uv
   displayName: 'Install uv'
 
-- bash: |
-    uv sync --all-extras --dev
+- bash: uv sync --all-extras --dev
   displayName: 'Install dependencies'
 
-- bash: |
-    uv run python -m spacy download en_core_web_sm
-    uv run python -m spacy download en_core_web_lg
-  displayName: 'Download spaCy models'
+- bash: uv run python -m spacy download en_core_web_sm
+  displayName: 'Download spaCy en_core_web_sm model'
 
-- bash: |
-    uv run pytest
+- bash: uv run python -m spacy download en_core_web_lg
+  displayName: 'Download spaCy en_core_web_lg model'
+
+- bash: uv run pytest
   displayName: 'pytest'

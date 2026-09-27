@@ -20,12 +20,8 @@ steps:
     versionSpec: '$(python.version)'
   displayName: 'Use Python $(python.version)'
 
-- task: CmdLine@2
-  displayName: 'Run tests'
+- task: Bash@3
+  displayName: 'Run CI script'
   inputs:
-    script: |
-      python -m pip install uv
-      uv sync --all-extras --dev
-      uv run python -m spacy download en_core_web_sm
-      uv run python -m spacy download en_core_web_lg
-      uv run pytest
+    targetType: 'filePath'
+    filePath: '$(Build.SourcesDirectory)/scripts/run_ci.sh'

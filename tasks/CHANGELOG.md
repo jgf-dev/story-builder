@@ -3,6 +3,17 @@ title: Storybuilder dev changelog
 description: Explanation of changes per commits
 ---
 
+## [Unreleased] - 2026-09-21
+
+### Summary
+
+Aligned README and AGENTS.md with the installed CLIs, Streamlit dashboard, ADK agents, and current package layout.
+
+### Changed
+
+- `README.md`: document `downloader` (not `storybuilder`), real defaults (`stories/text`), dashboard, Cartesia client, ADK agents, `uv run pytest`, and operator troubleshooting.
+- `AGENTS.md`: replace stale `cartesia/`/`xaiapi/`/`bedrock`/`src/prompts/`/`auto-linear.yml` map with `dashboard/`, `agents/`, evals, and current env/CLI flags.
+
 ## [HASH](https://github.com/jgf2/story-builder/commit/HASH) - 2026-08-22
 
 ### Summary

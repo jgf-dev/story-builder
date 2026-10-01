@@ -20,7 +20,6 @@ steps:
   displayName: 'Use Python $(python.version)'
 
 - script: |
-    set -euo pipefail
     python -m pip install --upgrade pip
     pip install uv
     uv sync --dev
@@ -28,6 +27,5 @@ steps:
   displayName: 'Install dependencies with uv'
 
 - script: |
-    set -euo pipefail
     uv run pytest
   displayName: 'pytest'

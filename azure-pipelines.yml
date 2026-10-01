@@ -19,14 +19,9 @@ steps:
     versionSpec: '$(python.version)'
   displayName: 'Use Python $(python.version)'
 
-- script: python -m pip install --upgrade pip uv
-  displayName: 'Install uv'
-
-- script: uv sync --dev
-  displayName: 'Install dependencies'
-
-- script: uv run python -m spacy download en_core_web_sm
-  displayName: 'Download spaCy model'
-
-- script: uv run python -m pytest
-  displayName: 'pytest'
+- script: |
+    python -m pip install --upgrade pip uv
+    uv sync --dev
+    uv run python -m spacy download en_core_web_sm
+    uv run python -m pytest
+  displayName: 'Install dependencies and run pytest'

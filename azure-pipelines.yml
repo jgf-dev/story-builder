@@ -1,5 +1,6 @@
 # Python package
-# Create and test a Python package on Python 3.12 with uv.
+# Create and test a Python package on multiple Python versions.
+# Add steps that analyze code, save the dist with the build record, publish to a PyPI-compatible index, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/python
 
 trigger:
@@ -10,8 +11,14 @@ pool:
 
 strategy:
   matrix:
-    Python312:
-      python.version: '3.12'
+    Python38:
+      python.version: '3.8'
+    Python39:
+      python.version: '3.9'
+    Python310:
+      python.version: '3.10'
+    Python311:
+      python.version: '3.11'
 
 steps:
 - task: UsePythonVersion@0
@@ -20,8 +27,11 @@ steps:
   displayName: 'Use Python $(python.version)'
 
 - script: |
-    python -m pip install --upgrade pip uv
-    uv sync --dev
-    uv run python -m spacy download en_core_web_sm
-    uv run python -m pytest
-  displayName: 'Install dependencies and run pytest'
+    python -m pip install --upgrade pip
+    pip install -r requirements.txt
+  displayName: 'Install dependencies'
+
+- script: |
+    pip install pytest pytest-azurepipelines
+    pytest
+  displayName: 'pytest'

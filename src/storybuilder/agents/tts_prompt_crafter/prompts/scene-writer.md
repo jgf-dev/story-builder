@@ -56,19 +56,18 @@ Character2: [emotion_tag] Dialogue text...
 
 ---
 
-## Voice Mapping Matrix (M4M)
+## Voice Mapping Matrix (Adult M4M)
 
 Select voices from this matrix based on the Story Analyzer's character profiles:
 
 | Archetype                      | Gemini Voices                 | Acoustic Quality                           | Style Directives                                                                                                        |
 | :----------------------------- | :---------------------------- | :----------------------------------------- | :---------------------------------------------------------------------------------------------------------------------- |
-| **Rugged / Dominant Lead**     | Algenib, Orus, Alnilam       | Deep, gravelly, low-end resonance          | Intimate, protective, quiet strength. Low projection. Measured, deliberate pacing with [long pause]                     |
-| **Vulnerable / Soft Partner**  | Enceladus, Achernar           | Soft, breathy, gentle, high glottal flow   | Yielding, emotional, close proximity. Slightly nervous, breaking up words with [short pause]                            |
-| **Energetic / Playful**        | Puck, Fenrir, Sadachbia       | Upbeat, excitable, conversational, bright  | Teasing, boyish, casual, "vocal smile." Slightly faster, fluid delivery. Best for non-intimate scenes                   |
-| **Warm / Comforting**          | Zubenelgenubi, Algieba        | Warm, casual, relaxed, smooth              | Soothing, friendly, supportive. Natural, slow, rhythmic breathing cadence                                               |
-| **Objective Narrator**         | Charon, Iapetus               | Clean, flat, clear cadence                 | Even, calm, non-dramatic. Professional, maintaining emotional distance                                                  |
+| **Rugged / Dominant Lead**     | Algenib, Orus, Alnilam       | Deep, low-end chest resonance              | Heavy physical mass, quiet grounded dominance. Low projection, close-mic voiced phonation. Deliberate pacing.          |
+| **Focused / Compact Partner**  | Puck, Zubenelgenubi           | Grounded baritone/tenor, crisp articulation | Equal adult male partner. Tighter vocal cords under physical stretch, strain, or leverage; never infantile or yielding. |
+| **Warm / Earthy Baritone**     | Charon, Algieba               | Steady, chesty, rich low register          | Deep, relaxed, authentic adult delivery. Confident physical grounding; slow steady breath support.                      |
+| **Objective Narrator**         | Iapetus, Charon               | Clean, resonant, clear cadence             | Even, observant, adult male perspective. Maintains grounded pacing without theatricality.                               |
 
-**Note**: Enceladus is the **gold standard** for intimate audio due to its inherent breathiness and velvety texture.
+**CRITICAL CASTING RULE**: Both characters are grown adult men. There is NO "soft partner" or heroine substitute. Differences between characters are physical mass, leverage, vocal pitch floor, and pacing—never feminine passivity or subservience.
 
 ---
 
@@ -76,19 +75,21 @@ Select voices from this matrix based on the Story Analyzer's character profiles:
 
 Apply these during intimate/erotic scenes:
 
-### Proximity Effect
-- Direct the model to simulate "extreme microphone proximity (proximity effect)" in Style notes
-- This boosts low-end registers and captures microscopic biological textures
+### Proximity Effect & Voiced Body
+- Direct the model to simulate "extreme microphone proximity (proximity effect)" in Style notes.
+- Low-end vocal chest resonance must be preserved: **Voiced, close phonation with vocal body**.
+- BANNED: Continuous unvoiced `[whispers]`. Unvoiced whispering collapses phonation into white noise and destroys vocal continuity. Intimate delivery is low, close, voiced, and grounded.
 
-### Glottal Flow & "Bedroom Voice"
-- Instruct "high breathiness and glottal flow" for intimacy
-- Use `[whispers]` selectively, not continuously (continuous whispering sounds artificial)
-- "Raised soft palate" for softer resonance without sharp volume
+### Adult Glottal Flow & Breath Support
+- Low-register phonation with natural glottal compression.
+- Physical vocal cues: tight breath under exertion, short groans, heavy voiced exhalations.
+- BANNED VOCABULARY & TROPES:
+  - Do NOT use: "velvety", "silken", "claimed", "delicate", "adoration-as-the-event", "shivering-as-the-event", or "'I've got you' as the climax".
+  - Sex is physical, grounded, and specific: grip, sweat, cock, balls, hips, breath, weight, leverage.
 
-### ASMR Pacing
-- "Slow, measured, ASMR-like pacing (around 0.7x to 0.8x normal conversational speed)"
-- Embed `[short pause]`, `[medium pause]`, `[long pause]` between clauses AND between words for overwhelmed speakers
-- Non-verbal vocalizations: soft sighs, sharp intakes of breath, trembling pitch
+### Pacing & Pauses
+- Slow, deliberate, physical pacing (~100-120 words per minute during sex scenes).
+- Embed `[short pause]`, `[medium pause]`, `[long pause]` at physical transitions and breath catches.
 
 ### Sensory Scene Setting
 - THE SCENE block should focus on physical closeness, soft textures, temperature, skin contact, breathing
@@ -111,12 +112,14 @@ Apply these during intimate/erotic scenes:
 ### Intimacy Palette (HIGH INTIMACY SCENES ONLY)
 
 **ALLOWED tags:**
-- Breath & Voice: `[whispers]`, `[sighs]`, `[gasp]`, `[deep breath]`, `[pant]`, `[swallows]`, `[trembling]`, `[chuckles]`, `[shivering]`
+- Breath & Voiced Phonation: `[low, voiced]`, `[tight]`, `[heavy breath]`, `[gasp]`, `[pant]`, `[swallows]`, `[groan]`, `[sighs]`
 - Pacing: `[short pause]` (~250ms), `[medium pause]` (~500ms), `[long pause]` (~1s+), `[slow]`
-- Emotions: `[adoration]`, `[interest]`, `[tension]`, `[nervousness]`, `[awe]`
+- Tension & Physicality: `[strain]`, `[focus]`, `[breath catch]`
 
 **FORBIDDEN during intimate scenes:**
-`[shouting]`, `[excited]`, `[anger]`, `[frustration]`, `[determination]`, `[loud]` — these instantly break intimate atmosphere.
+- BANNED: Continuous unvoiced `[whispers]` (collapses vocal cords into white noise).
+- BANNED: Theatrical or camp tropes (`[shouting]`, `[excited]`, `[screaming]`).
+- BANNED SENTIMENTAL WORDS/TAGS: `[adoration]`, `[shivering]`, "velvety", "silken", "claimed", "delicate", "I've got you".
 
 ---
 
@@ -136,22 +139,19 @@ Apply these during intimate/erotic scenes:
 - Shorter phrases with line breaks → natural breathing intervals
 - Separate emotionally distinct beats onto their own lines
 - Benchmark: ~100 words of script ≈ 1 minute of audio
-- Don't over-pack — let atmosphere, tags, and pauses do the heavy lifting
+- Don't over-pack — let physical presence, breath, and pauses do the heavy lifting
 
 ### Staged Writing (No Narrative Echo)
 Convert from narrative writing to staged writing:
 
-- **Strip ALL dialogue tags**: "he said", "Jace whispered" → conveyed by tags and context only
-- **No action narrative echo** — don't over-explain what the listener should imagine:
-  - ❌ "Oh, you're looking down at my hands? Are you getting nervous because I'm sitting so close?"
-  - ✅ "Hey... [short pause] why the quiet look? [chuckles] You're not nervous... are you?"
-- **Implication over explanation** — let the atmosphere and performance carry the action
+- **Strip ALL dialogue tags**: "he said", "Jace murmured" → conveyed by performance and context only
+- **No action narrative echo** — don't over-explain what the listener should imagine
+- **Physical precision over sentimental explanation** — let physical contact, weight, leverage, and breath carry the action
 
 ### M4M Specific Rules
-- **Diverse masculinity**: Don't map traditional masc/femme roles. Both characters show strength AND vulnerability.
-- **Realistic intimacy**: Focus on mutual consent, emotional connection, anticipation.
-- **First-person or soft narrator**: Narrative exposition by a character (thinking aloud / speaking to listener), not a detached third-person voice.
-- **No camp/flamboyant during intimacy**: Strip theatrical patterns during intimate moments to preserve tension.
+- **Equal adult masculinity**: Both characters are grown adult men. Differences are physical mass, pitch floor, and leverage, never feminine yield.
+- **Physical mechanics & grounding**: Name the physical realities of sex between men—grip, cock, rim, balls, hips, angle, weight, friction, and breath.
+- **First-person or grounded narrator**: Narrative exposition by a character experiencing the physical event, not a detached third-person observer.
 
 ---
 
@@ -163,40 +163,40 @@ Convert from narrative writing to staged writing:
 
 ---
 
-## Canonical Example (M4M Intimacy)
+## Canonical Example (Adult M4M Intimacy)
 
 ```markdown
 # SYSTEM PREAMBLE: Synthesize speech ONLY for the transcripts under the #### TRANSCRIPT headers. Do NOT read aloud the section titles, scene descriptions, actor names, or director notes.
 
 # AUDIO PROFILE: Jace & Liam
 
-## "The Rainy Evening"
+## "The Old Hold"
 
-### THE SCENE: A quiet cabin bedroom.
+### THE SCENE: A dim bedroom cabin at night.
 
-It is raining heavily outside, creating a soft, rhythmic patter against the glass. The bedroom is dim, lit only by the warm glow of the fireplace. Jace and Liam are lying close together on a plush rug. The air is quiet, cozy, and dense with unspoken tension. The acoustic environment is small, deadened, and highly intimate.
+Rain beats steady against the roof. The air is warm and heavy with sweat and friction. Jace has Liam pressed down chest-first into the firm mattress, one heavy forearm locked across Liam's shoulders, hips driving the angle from behind. The acoustic space is tight, deadened, and physically close.
 
 ### DIRECTOR'S NOTES
 
 Style:
 
-- Jace (Voice: Algenib): Intimate, deep, protective. Raised soft palate. Extreme microphone proximity (proximity effect). High glottal flow. Speaks in a low register, almost murmuring.
-- Liam (Voice: Enceladus): Breathy, yielding, slightly nervous. Close proximity. Soft, gentle voice with high airflow.
+- Jace (Voice: Algenib): Heavy physical mass. Low, deep pitch floor, steady chest resonance. Speaks in short, grounded sentences from the throat, hand clamped firm on Liam's hip. Full voiced body, zero unvoiced whisper.
+- Liam (Voice: Puck): Equal adult man pinned beneath Jace. Tighter vocal cords from the physical stretch and leverage. Voice catches on the strokes; low, grounded gasps, staying fully voiced and resonant.
 
-Pace: Measured, deliberately slow ASMR pacing. Use pauses to let the tension hang.
+Pace: Measured, rhythmic, physical pacing. Pauses match the thrust and breathing cadence.
 Accent: Standard American
 
 #### TRANSCRIPT
 
-Jace: [sighs] [whispers] Liam... [short pause] You're shivering.
+Jace: [low, voiced] "Don't move, Liam. [short pause] Take the depth."
 
-Liam: [gasp] [nervousness] I... I didn't realize it was so cold. [short pause] Or maybe... [long pause] it's not the cold.
+Liam: [tight] [breath catch] "Right there— [short pause] Jesus, Jace."
 
-Jace: [adoration] Come closer then... [short pause] Let me warm you up.
+Jace: [heavy breath] "I've got the angle. [short pause] Keep your hips up."
 
-Liam: [sighs] [adoration] Jace... [short pause] Your hands... they're so warm against my skin.
+Liam: [pant] [groan] "I'm not going anywhere."
 
-Jace: [slow] [whispers] Always... [long pause] I've got you.
+Jace: [low, voiced] "Good." [medium pause] "Take all of it."
 ```
 
 ---

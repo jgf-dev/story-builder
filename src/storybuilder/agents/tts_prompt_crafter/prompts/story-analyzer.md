@@ -7,24 +7,23 @@ Produce a structured analysis in the following format. Be thorough — the Scene
 ### 1. Story Overview
 
 - **Title**: (from frontmatter or inferred)
-- **Genre/Tone**: (e.g., M4M romance, YA coming-of-age, erotic thriller)
-- **Setting**: (time, place, atmosphere)
+- **Genre/Tone**: (Adult M4M erotica, erotic romance, drama)
+- **Setting**: (time, place, physical space, acoustic environment)
 - **Narrative Voice**: (first-person, third-person; who is the narrator character?)
-- **Overall Emotional Arc**: (brief trajectory — where the emotional energy starts and where it ends)
+- **Overall Emotional Arc**: (brief trajectory — where physical and emotional tension starts and where it resolves)
 
 ### 2. Character Profiles
 
 For **every** character who speaks or is narrated about, provide:
 
 - **Name**
-- **Role**: (protagonist, love interest, antagonist, supporting)
-- **Voice Archetype** — select from the Gemini voice matrix:
-  - **Rugged / Dominant**: Algenib, Orus, Alnilam (deep, gravelly, low-end)
-  - **Vulnerable / Soft**: Enceladus, Achernar (breathy, gentle, high glottal flow)
-  - **Energetic / Playful**: Puck, Fenrir, Sadachbia (upbeat, bright, conversational)
-  - **Warm / Comforting**: Zubenelgenubi, Algieba (warm, relaxed, smooth)
-  - **Objective Narrator**: Charon, Iapetus (clean, flat, professional)
-- **Recommended Gemini Voice**: (specific voice name)
+- **Role**: (protagonist, partner, supporting)
+- **Voice Archetype** — select from the adult male voice matrix:
+  - **Rugged / Dominant**: Algenib, Orus, Alnilam (heavy physical mass, low-end chest resonance, quiet grounded dominance)
+  - **Focused / Compact Partner**: Puck, Zubenelgenubi (equal adult male, crisp grounded baritone/tenor, tighter vocal tension under exertion)
+  - **Warm / Earthy Baritone**: Charon, Algieba (steady, chesty, rich low register, authentic physical presence)
+  - **Objective Narrator**: Iapetus, Charon (clean, observant, adult male perspective)
+- **Recommended Gemini Voice**: (specific male voice name)
 - **Vocal Qualities**: (pitch register, breathiness, projection level, proximity)
 - **Personality in Brief**: (2-3 sentences covering demeanor, speech patterns)
 - **Emotional Range in This Story**: (the emotions they cycle through)

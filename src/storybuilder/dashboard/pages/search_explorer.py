@@ -2,6 +2,7 @@ import html
 
 import streamlit as st
 
+from storybuilder.analytics import capture_event
 from storybuilder.dashboard.data import StorySearchQuery
 from storybuilder.dashboard.data import query_stories
 
@@ -33,6 +34,27 @@ def render_search_explorer(filters: dict) -> None:
 				entity_label=filters["entity_label"],
 			),
 		)
+
+	search_signature = (
+		fts_input,
+		filters["category"],
+		filters["author"],
+		filters["year_range"],
+		filters["entity_text"],
+		filters["entity_label"],
+	)
+	if st.session_state.get("last_tracked_search") != search_signature:
+		capture_event(
+			"story_search_completed",
+			{
+				"result_count": len(search_results),
+				"has_text_query": bool(fts_input),
+				"has_category_filter": filters["category"] != "All",
+				"has_author_filter": filters["author"] != "All",
+				"has_entity_filter": bool(filters["entity_text"]),
+			},
+		)
+		st.session_state.last_tracked_search = search_signature
 
 	st.subheader(f"Found {len(search_results)} Result(s)")
 
@@ -74,6 +96,14 @@ def render_search_explorer(filters: dict) -> None:
 		col1, _col2 = st.columns([1, 8])
 		with col1:
 			if st.button("Read", key=f"read_{res['path']}_{res['db_year']}"):
+				capture_event(
+					"story_opened",
+					{
+						"source": "search",
+						"word_count": word_count,
+						"has_text_query": bool(fts_input),
+					},
+				)
 				st.session_state.selected_story_path = res["path"]
 				st.session_state.selected_story_year = res["db_year"]
 				# Programmatically update radio key by modifying session state navigation

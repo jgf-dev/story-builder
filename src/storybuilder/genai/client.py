@@ -13,6 +13,9 @@ from typing import Any
 from google import genai
 from google.genai.client import Client
 
+from storybuilder.analytics import capture_event
+from storybuilder.analytics import capture_exception
+from storybuilder.analytics import initialize_posthog
 from storybuilder.utils.env import load_env
 
 
@@ -226,6 +229,13 @@ def _save_audio_from_interaction(interaction: Any, wav_file: str, md_file: str) 
 			print(f"  Extracted sample rate from mime_type: {sample_rate}Hz")
 
 	wave_file_writer(wav_file, audio_bytes, rate=sample_rate)
+	capture_event(
+		"audio_generated",
+		{
+			"sample_rate_hz": sample_rate,
+			"audio_byte_count": len(audio_bytes),
+		},
+	)
 	print(f"  Saved audio to {pathlib.Path(wav_file).name}")
 
 
@@ -254,6 +264,13 @@ def process_file(
 				previous_interaction_id=previous_id,
 			)
 		except Exception as e:
+			capture_exception(
+				e,
+				{
+					"operation": "tts_generation",
+					"attempt": attempt + 1,
+				},
+			)
 			previous_id, keys_tried, attempt, should_continue = _handle_exception(
 				e,
 				rotator,
@@ -299,11 +316,14 @@ def process_directory(directory: str | pathlib.Path) -> None:
 	print(f"Found {len(files)} prompt files to process in {directory}.")
 
 	previous_id = None
+	generated_count = 0
+	skipped_count = 0
 	for md_file in files:
 		base_name = os.path.splitext(pathlib.Path(md_file).name)[0]
 		wav_file = os.path.join(directory, f"{base_name}.wav")
 
 		if pathlib.Path(wav_file).exists():
+			skipped_count += 1
 			print(f"Skipping {pathlib.Path(md_file).name}, {pathlib.Path(wav_file).name} already exists.")
 			continue
 
@@ -313,9 +333,21 @@ def process_directory(directory: str | pathlib.Path) -> None:
 			previous_id,
 			rotator,
 		)
+		if pathlib.Path(wav_file).exists():
+			generated_count += 1
 
 		# Slight delay to respect rate limits
 		time.sleep(2)
+
+	capture_event(
+		"tts_run_completed",
+		{
+			"prompt_count": len(files),
+			"generated_count": generated_count,
+			"skipped_count": skipped_count,
+			"failed_count": len(files) - generated_count - skipped_count,
+		},
+	)
 
 
 def main() -> None:
@@ -325,6 +357,7 @@ def main() -> None:
 	``pyproject.toml``.  Equivalent to running
 	``python -m storybuilder.genai.client --dir <directory>``.
 	"""
+	initialize_posthog()
 	parser = argparse.ArgumentParser(description="Process TTS prompt files to generate audio.")
 	parser.add_argument(
 		"--dir",

@@ -3,6 +3,7 @@ import html
 
 import streamlit as st
 
+from storybuilder.analytics import capture_event
 from storybuilder.dashboard.data import get_favorites
 from storybuilder.dashboard.data import get_favorites_publication_years
 
@@ -63,6 +64,13 @@ def render_favorites_tags() -> None:
 				# Attempt to resolve database year based on path to load it in reader
 				db_year = path_to_db_year.get(f["story_path"], current_year)
 				if st.button("Read", key=f"read_fav_{f['story_path']}"):
+					capture_event(
+						"story_opened",
+						{
+							"source": "favorites",
+							"has_tag_filter": filter_tag != "All",
+						},
+					)
 					st.session_state.selected_story_path = f["story_path"]
 					st.session_state.selected_story_year = db_year
 					st.session_state["nav_page"] = "📖 Read Story"

@@ -2,6 +2,7 @@
 import os
 from pathlib import Path
 
+from storybuilder.analytics import initialize_posthog
 from storybuilder.utils.env import load_env
 
 
@@ -17,6 +18,7 @@ braintrust.auto_instrument()
 if __name__ == "__main__":
 	from storybuilder.genai import client
 
+	initialize_posthog()
 	braintrust.init_logger(project="storybuilder")
 	stories_text_dir = os.getenv("STORIES_TEXT", "stories/text")
 	client.process_directory(stories_text_dir)

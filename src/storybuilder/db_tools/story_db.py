@@ -372,6 +372,60 @@ def cmd_interpolate(conn: sqlite3.Connection, args, db_paths: "list[str] | None"
 	_maybe_upload(args, stats["updated"] > 0)
 
 
+# ——— Export ————————————————————————————————————————————————————————————————————
+
+
+def cmd_export_csv(conn: sqlite3.Connection, args, db_paths: "list[str] | None" = None) -> None:
+	"""Export stories to a CSV file."""
+	import csv
+
+	output_file = args.output
+	limit = args.limit
+
+	# Standard columns + optionally content
+	columns = [
+		"id",
+		"path",
+		"orientation",
+		"category",
+		"story_slug",
+		"chapter_num",
+		"title",
+		"author_name",
+		"author_email",
+		"publication_date",
+		"url",
+		"char_count",
+		"word_count",
+	]
+	if not args.no_content:
+		columns.append("content")
+
+	cols_sql = ", ".join(columns)
+	query = f"SELECT {cols_sql} FROM stories ORDER BY id"
+	if limit:
+		query += f" LIMIT {limit}"
+
+	print(f"Exporting stories to {output_file}...")
+	try:
+		with open(output_file, "w", encoding="utf-8", newline="") as f:
+			writer = csv.DictWriter(f, fieldnames=columns)
+			writer.writeheader()
+
+			cursor = conn.execute(query)
+			count = 0
+			for row in cursor:
+				writer.writerow(dict(row))
+				count += 1
+				if count % 1000 == 0:
+					print(f"\r  Exported {count:,} stories...", end="", flush=True)
+
+			print(f"\nDone! Exported {count:,} stories to {output_file}")
+	except Exception as e:
+		print(f"\nError during export: {e}", file=sys.stderr)
+		sys.exit(1)
+
+
 # ——— Main ————————————————————————————————————————————————————————————————————————
 
 
@@ -493,6 +547,16 @@ def main() -> None:
 		"--gcs-bucket", default="nifty-index", help="GCS bucket for post-maintenance upload (default: nifty-index)"
 	)
 
+	# export-csv
+	p = sub.add_parser("export-csv", help="Export stories to a CSV file")
+	p.add_argument("--output", "-o", default="stories_export.csv", help="Output CSV path (default: stories_export.csv)")
+	p.add_argument("--limit", type=int, default=None, help="Max stories to export")
+	p.add_argument(
+		"--no-content",
+		action="store_true",
+		help="Exclude story content from export (prevents huge files)",
+	)
+
 	args = parser.parse_args()
 	conn, db_paths = _resolve_connection(args)
 
@@ -504,6 +568,7 @@ def main() -> None:
 		"redate": cmd_redate,
 		"refetch": cmd_refetch,
 		"interpolate": cmd_interpolate,
+		"export-csv": cmd_export_csv,
 	}
 	dispatch[args.command](conn, args, db_paths)
 	conn.close()

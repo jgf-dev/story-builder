@@ -31,6 +31,7 @@ NLP_DB_PATH = "stories/db/nlp_analysis.db"
 META_DB_PATH = "stories/db/dashboard_metadata.db"
 
 # Rerouting rendering to modular components
+from storybuilder.analytics import initialize_posthog
 from storybuilder.dashboard.config import init_session_state
 from storybuilder.dashboard.config import inject_custom_css
 from storybuilder.dashboard.config import setup_page
@@ -54,6 +55,7 @@ from storybuilder.dashboard.ui.sidebar import render_sidebar
 def main() -> None:
 	# Setup page configurations as the first Streamlit instruction
 	setup_page()
+	initialize_posthog()
 	inject_custom_css()
 	init_session_state()
 

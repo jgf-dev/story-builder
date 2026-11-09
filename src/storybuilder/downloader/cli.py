@@ -13,6 +13,9 @@ from storybuilder.downloader.storage import upload_many_s3
 if __name__ == "__main__" and __package__ is None:
 	sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
+from storybuilder.analytics import capture_event
+from storybuilder.analytics import capture_exception
+from storybuilder.analytics import initialize_posthog
 from storybuilder.downloader import db
 from storybuilder.downloader import network
 from storybuilder.downloader.cache import load_cache
@@ -205,6 +208,7 @@ def _scrape_subcategories(
 				try:
 					_merge_targets(all_story_targets, future.result())
 				except Exception as e:
+					capture_exception(e, {"operation": "scrape_subcategory"})
 					safe_print(f"Error occurred in scraping worker thread: {e}")
 	else:
 		for sub in subcategories:
@@ -241,6 +245,7 @@ def _download_stories_parallel(
 				if future.result():
 					successful_downloads += 1
 			except Exception as e:
+				capture_exception(e, {"operation": "download_story"})
 				print(f"Error occurred in download worker thread: {e}")
 	return successful_downloads
 
@@ -343,6 +348,7 @@ def _upload_to_cloud(args: argparse.Namespace) -> None:
 
 
 def main() -> None:
+	initialize_posthog()
 	args = _parse_args()
 
 	if not _setup_network(args):
@@ -379,7 +385,20 @@ def main() -> None:
 	finally:
 		save_cache(cache_dir)
 
-	_download_stories(all_story_targets, args)
+	successful_downloads = _download_stories(all_story_targets, args)
+	capture_event(
+		"download_run_completed",
+		{
+			"category": args.category,
+			"target_count": len(all_story_targets),
+			"successful_downloads": successful_downloads,
+			"failed_downloads": len(all_story_targets) - successful_downloads,
+			"force_enabled": args.force,
+			"parallel_downloads": args.max_workers > 1,
+			"database_enabled": bool(args.db),
+			"cloud_upload_enabled": bool(args.s3_bucket or args.gcs_bucket),
+		},
+	)
 
 	if args.db:
 		flagged = db.flag_bulk_touched_dates()

@@ -11,23 +11,19 @@ Part: I/II
 
 ### Part I
 
-He was tearing up my insides, and I was loving every minute of it!
+He was in me to the root, and I took it. Ewan didn't ease off. I was ass-up, face in pillows that smelled like cleaner. I tried to get a hand under me. He shoved me back down and held me there.
 
-My boyfriend, Ewan, was not taking any mercy on me. I was ass-up on the bed with my head buried in a strange set of pillows that smelled of industrial cleaner. When I tried to sit up, he shoved me back into them face first and held me there.
+"Don't fucking move, Levi. I'm close. We finish before they get here." Sweat hit my back. He drove in harder. I stopped fighting the angle and let him have the depth. His cock dragged my rim, then seated. His balls slapped mine. Both hands locked on my hips.
 
-"Don't fucking move, Levi. I'm so close. We've got to finish before they arrive," he panted. Sweat dripped down onto my back as he hammered harder into me and I relaxed letting him have everything he wanted. My hole opening to him and taking him even deeper. His balls smacking up against my own as his hands moved to my hips and gripped harder.
+"Fuck—" He hit my prostate and my cock kicked against the sheet.
 
-"Oh God, yes!" I felt him hit that spot that made the world explode in colors.
+"God's not in this room," he said, and kept the same short strokes. "Stay down."
 
-"God is not here, baby," he taunted me and fucked rapidly, "but I'll make you see Heaven."
-
-He shoved me down on the bed and covered my body with his own. My cock grinding into the comforter and rubbing up against my stomach. He laced his arms through mine in one of the wrestling moves he still pulled out from his high school days, giving him a better grip and angle and raced toward the edge of ecstasy.
-
-"Fuck. Fuck. Fuck." He jammed his cock in with each gasp, and then he pushed home and stayed there as the room went silent. I felt him filling me up, and the rush made me lose myself as I spilled between my stomach and the bed. My hole clenching and twitching around his as we both came simultaneously.
+He dropped his chest on my back and threaded his arms through mine, the old pin, better grip, meaner angle. "Fuck. Fuck." He buried it and stayed. I felt him pulse. I came on the sheet, hole clamping his shaft.
 
 I felt him rest his head between my shoulder blades as my own arms began to tighten under the stress of being pulled backward for too long. "Babe, you're hurting me."
 
-"Oh, sorry," he chuckled and let me go. He pushed into my low back, leaving himself inside of me a moment longer as more of his seed drained into my guts where I really wanted it to stay. When he pulled out he gave my ass cheek a playful slap. "That's beautiful."
+"Oh, sorry," he chuckled and let me go. He pushed into my low back, leaving himself inside of me a moment longer. When he pulled out he gave my ass cheek a playful slap. "That's beautiful."
 
 "You're disgusting," I teased, turning slightly and pulling him into a kiss. I would have ridden him through round two if we had the time, but the sound of tires on the gravel outside had us both jumping up and getting dressed again.
 

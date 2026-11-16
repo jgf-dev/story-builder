@@ -1,0 +1,48 @@
+2026-09-13 03:40:45,693 - INFO - storybuilder.downloader.refetch - refetch: 5326 candidate rows, 4250 unique URLs
+2026-09-13 03:43:25,269 - INFO - storybuilder.downloader.refetch - refetch progress: 100/4250 urls, dated=96, rows_updated=111, http_error=0
+2026-09-13 03:46:05,849 - INFO - storybuilder.downloader.refetch - refetch progress: 200/4250 urls, dated=195, rows_updated=220, http_error=0
+2026-09-13 03:48:41,724 - WARNING - storybuilder.downloader.refetch - refetch HTTP 404 for https://nifty.org/nifty/gay/athletics/central-valley-high-series/central-valley-high-6
+2026-09-13 03:48:46,544 - INFO - storybuilder.downloader.refetch - refetch progress: 300/4250 urls, dated=289, rows_updated=340, http_error=1
+2026-09-13 03:51:27,295 - INFO - storybuilder.downloader.refetch - refetch progress: 400/4250 urls, dated=379, rows_updated=449, http_error=1
+2026-09-13 03:54:13,000 - INFO - storybuilder.downloader.refetch - refetch progress: 500/4250 urls, dated=470, rows_updated=566, http_error=1
+2026-09-13 03:56:53,409 - INFO - storybuilder.downloader.refetch - refetch progress: 600/4250 urls, dated=563, rows_updated=669, http_error=1
+2026-09-13 03:59:34,133 - INFO - storybuilder.downloader.refetch - refetch progress: 700/4250 urls, dated=655, rows_updated=776, http_error=1
+2026-09-13 04:02:14,800 - INFO - storybuilder.downloader.refetch - refetch progress: 800/4250 urls, dated=749, rows_updated=883, http_error=1
+2026-09-13 04:04:55,853 - INFO - storybuilder.downloader.refetch - refetch progress: 900/4250 urls, dated=844, rows_updated=1000, http_error=1
+2026-09-13 04:07:36,588 - INFO - storybuilder.downloader.refetch - refetch progress: 1000/4250 urls, dated=942, rows_updated=1113, http_error=1
+2026-09-13 04:10:17,324 - INFO - storybuilder.downloader.refetch - refetch progress: 1100/4250 urls, dated=1038, rows_updated=1229, http_error=1
+2026-09-13 04:12:57,609 - INFO - storybuilder.downloader.refetch - refetch progress: 1200/4250 urls, dated=1136, rows_updated=1353, http_error=1
+2026-09-13 04:15:38,307 - INFO - storybuilder.downloader.refetch - refetch progress: 1300/4250 urls, dated=1231, rows_updated=1459, http_error=1
+2026-09-13 04:16:23,285 - WARNING - storybuilder.downloader.refetch - refetch HTTP 404 for https://nifty.org/nifty/gay/athletics/central-valley-high-series/central-valley-high-7
+2026-09-13 04:18:19,050 - INFO - storybuilder.downloader.refetch - refetch progress: 1400/4250 urls, dated=1325, rows_updated=1573, http_error=2
+2026-09-13 04:20:59,880 - INFO - storybuilder.downloader.refetch - refetch progress: 1500/4250 urls, dated=1421, rows_updated=1684, http_error=2
+2026-09-13 04:23:40,769 - INFO - storybuilder.downloader.refetch - refetch progress: 1600/4250 urls, dated=1506, rows_updated=1781, http_error=2
+2026-09-13 04:26:22,469 - INFO - storybuilder.downloader.refetch - refetch progress: 1700/4250 urls, dated=1594, rows_updated=1882, http_error=2
+2026-09-13 04:29:03,417 - INFO - storybuilder.downloader.refetch - refetch progress: 1800/4250 urls, dated=1676, rows_updated=1975, http_error=2
+2026-09-13 04:31:44,280 - INFO - storybuilder.downloader.refetch - refetch progress: 1900/4250 urls, dated=1758, rows_updated=2062, http_error=2
+2026-09-13 04:33:01,526 - WARNING - storybuilder.downloader.refetch - refetch HTTP 404 for https://nifty.org/nifty/gay/athletics/central-valley-high-series/central-valley-high-8
+2026-09-13 04:47:45,835 - INFO - storybuilder.downloader.refetch - refetch progress: 2500/4250 urls, dated=1965, rows_updated=2299, http_error=3
+2026-09-13 04:50:26,243 - INFO - storybuilder.downloader.refetch - refetch progress: 2600/4250 urls, dated=2055, rows_updated=2401, http_error=3
+2026-09-13 04:53:06,998 - INFO - storybuilder.downloader.refetch - refetch progress: 2700/4250 urls, dated=2146, rows_updated=2512, http_error=3
+2026-09-13 04:55:47,656 - INFO - storybuilder.downloader.refetch - refetch progress: 2800/4250 urls, dated=2240, rows_updated=2619, http_error=3
+2026-09-13 04:57:52,737 - WARNING - storybuilder.downloader.refetch - refetch HTTP 404 for https://nifty.org/nifty/gay/athletics/jockboy-adventures/andy-8
+2026-09-13 04:58:28,034 - INFO - storybuilder.downloader.refetch - refetch progress: 2900/4250 urls, dated=2333, rows_updated=2728, http_error=4
+2026-09-13 05:01:08,353 - INFO - storybuilder.downloader.refetch - refetch progress: 3000/4250 urls, dated=2425, rows_updated=2833, http_error=4
+2026-09-13 05:03:49,070 - INFO - storybuilder.downloader.refetch - refetch progress: 3100/4250 urls, dated=2516, rows_updated=2943, http_error=4
+2026-09-13 05:06:29,404 - INFO - storybuilder.downloader.refetch - refetch progress: 3200/4250 urls, dated=2611, rows_updated=3050, http_error=4
+2026-09-13 05:09:10,342 - INFO - storybuilder.downloader.refetch - refetch progress: 3300/4250 urls, dated=2707, rows_updated=3166, http_error=4
+2026-09-13 05:11:51,293 - INFO - storybuilder.downloader.refetch - refetch progress: 3400/4250 urls, dated=2800, rows_updated=3276, http_error=4
+2026-09-13 05:14:31,941 - INFO - storybuilder.downloader.refetch - refetch progress: 3500/4250 urls, dated=2896, rows_updated=3389, http_error=4
+2026-09-13 05:17:12,569 - INFO - storybuilder.downloader.refetch - refetch progress: 3600/4250 urls, dated=2982, rows_updated=3482, http_error=4
+2026-09-13 05:19:53,322 - INFO - storybuilder.downloader.refetch - refetch progress: 3700/4250 urls, dated=3076, rows_updated=3589, http_error=4
+2026-09-13 05:22:34,317 - INFO - storybuilder.downloader.refetch - refetch progress: 3800/4250 urls, dated=3170, rows_updated=3699, http_error=4
+2026-09-13 05:23:00,138 - WARNING - storybuilder.downloader.refetch - refetch HTTP 404 for https://nifty.org/nifty/gay/authoritarian/mandrasat/mandrasat-II-1
+2026-09-13 05:23:11,466 - WARNING - storybuilder.downloader.refetch - refetch HTTP 404 for https://nifty.org/nifty/gay/authoritarian/bachelor-party-foes-off-track
+2026-09-13 05:27:48,223 - WARNING - storybuilder.downloader.refetch - refetch HTTP 403 for https://nifty.org/nifty/gay/non-english/papa-y-jj/papa-y-jj-4
+2026-09-13 05:27:51,394 - WARNING - storybuilder.downloader.refetch - refetch HTTP 403 for https://nifty.org/nifty/gay/non-english/papa-y-jj/papa-y-jj-3
+2026-09-13 05:27:52,972 - WARNING - storybuilder.downloader.refetch - refetch HTTP 403 for https://nifty.org/nifty/gay/non-english/papa-y-jj/papa-y-jj-1
+2026-09-13 05:27:54,562 - WARNING - storybuilder.downloader.refetch - refetch HTTP 403 for https://nifty.org/nifty/gay/non-english/papa-y-jj/papa-y-jj-2
+2026-09-13 05:34:37,447 - INFO - storybuilder.downloader.refetch - refetch done: {'candidates': 5326, 'unique_urls': 4250, 'fetched': 4250, 'dated': 3221, 'no_header': 1010, 'parse_failed': 9, 'out_of_range': 0, 'http_error': 10, 'rows_updated': 3757}
+Refetch: candidates=5,326  unique_urls=4,250  fetched=4,250  dated=3,221  no_header=1,010  parse_failed=9  out_of_range=0  http_error=10  rows_updated=3,757
+2026-09-13 05:36:12,099 - INFO - storybuilder.downloader.db - Interpolated dates for 8641 stories across 2021 series: {'groups': 2021, 'interpolated': 1361, 'extrapolated': 7280, 'skipped_no_chapter': 705, 'updated': 8641}
+Interpolate: groups=2,021  interpolated=1,361  extrapolated=7,280  skipped_no_chapter=705  updated=8,641

@@ -29,8 +29,8 @@ jobs:
           filters: |
             downloader:
               - 'src/storybuilder/downloader/**'
-              - 'scripts/import_to_sqlite.py'
-              - 'scripts/story_db.py'
+              - 'src/storybuilder/db_tools/import_to_sqlite.py'
+              - 'src/storybuilder/db_tools/story_db.py'
               - 'tests/downloader/**'
             dashboard:
               - 'src/storybuilder/dashboard/**'

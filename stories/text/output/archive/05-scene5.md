@@ -1,10 +1,10 @@
-# SYSTEM PREAMBLE: Synthesize speech ONLY for the transcripts under the #### TRANSCRIPT headers. Do NOT read aloud the section titles, scene descriptions, actor names, or director notes.
+# SYSTEM PREAMBLE: Synthesize speech ONLY for the transcripts under the #### TRANSCRIPT headers. Do NOT read aloud the section titles, scene descriptions, actor names, or director notes
 
 # AUDIO PROFILE: Levi & Ewan
 
 ## "Hot Tub Glow"
 
-### THE SCENE: The main living area of the cabin, then peering outside onto the porch.
+### THE SCENE: The main living area of the cabin, then peering outside onto the porch
 
 The cabin is quiet, with lights being turned off. There's a sense of domestic wind-down, but an unexpected mechanical noise breaks the silence. Outside, the porch lights are on, and the hot tub is bubbling. The acoustic environment shifts from a quiet interior to the subtle sounds of night and distant machinery.
 

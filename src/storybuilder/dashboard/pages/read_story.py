@@ -2,7 +2,11 @@ import textwrap
 
 import streamlit as st
 
-from storybuilder.dashboard.data import add_favorite, get_favorites, get_story_by_path, remove_favorite
+from storybuilder.analytics import capture_event
+from storybuilder.dashboard.data import add_favorite
+from storybuilder.dashboard.data import get_favorites
+from storybuilder.dashboard.data import get_story_by_path
+from storybuilder.dashboard.data import remove_favorite
 
 
 def render_read_story() -> None:
@@ -55,30 +59,46 @@ def render_read_story() -> None:
 				),
 			)
 
+			favorite_properties = {
+				"tag_count": len([tag for tag in fav_tags.split(",") if tag.strip()]),
+				"has_notes": bool(fav_notes.strip()),
+				"word_count": dict(story).get("word_count") or 0,
+			}
 			if is_fav:
 				if st.button("Update Info"):
-					add_favorite(
+					updated = add_favorite(
 						story["path"],
 						story["title"],
 						story["author_name"],
 						fav_tags,
 						fav_notes,
 					)
-					st.success("Updated!")
+					if updated:
+						capture_event("favorite_updated", favorite_properties)
+						st.success("Updated!")
+					else:
+						st.error("Could not update favorite.")
 				if st.button("Remove from Favorites"):
-					remove_favorite(story["path"])
-					st.success("Removed!")
-					st.rerun()
+					if remove_favorite(story["path"]):
+						capture_event("favorite_removed", favorite_properties)
+						st.success("Removed!")
+						st.rerun()
+					else:
+						st.error("Could not remove favorite.")
 			elif st.button("Add to Favorites"):
-				add_favorite(
+				added = add_favorite(
 					story["path"],
 					story["title"],
 					story["author_name"],
 					fav_tags,
 					fav_notes,
 				)
-				st.success("Added!")
-				st.rerun()
+				if added:
+					capture_event("favorite_added", favorite_properties)
+					st.success("Added!")
+					st.rerun()
+				else:
+					st.error("Could not add favorite.")
 
 		# Export to Markdown Button
 		header = textwrap.dedent(f"""

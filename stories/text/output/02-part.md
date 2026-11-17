@@ -1,4 +1,4 @@
-# SYSTEM PREAMBLE: Synthesize speech ONLY for the transcripts under the #### TRANSCRIPT headers. Do NOT read aloud the section titles, scene descriptions, actor names, or director notes.
+# SYSTEM PREAMBLE: Synthesize speech ONLY for the transcripts under the #### TRANSCRIPT headers. Do NOT read aloud the section titles, scene descriptions, actor names, or director notes
 
 # AUDIO PROFILE: Levi, Ewan, Jace, Kerry
 
@@ -23,6 +23,7 @@ Accent: Standard American
 Jace and Kerry arrive at the cabin. Levi, having just been intimate with Ewan, is still adjusting to the shift in atmosphere. He's surprised by Jace's changed appearance and unexpected warmth. A brief moment of jealousy arises as Kerry interacts with Ewan, but Levi quickly dismisses it. The scene establishes the initial dynamics between the four characters.
 
 #### TRANSCRIPT
+
 Levi: The cabin we had rented for our get away was far too big for only two couples,
 Levi: but I chose this one on purpose. It had all the amenities we wanted including bedrooms on different levels, plenty of space, a pool table, and a hot tub. The view of the Smoky Mountains surrounding us was breathtaking and exactly what we needed.
 Ewan: Wow.

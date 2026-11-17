@@ -24,7 +24,7 @@ StoryBuilder is an integrated Python toolkit and pipeline designed to scrape, st
 * **Interactive Narrative Visualizations**: Generate Plotly-based HTML plots of characters' emotional trajectories (emotional arcs) and t-SNE clustering visualizations.
 * **Streamlit Dashboard**: Search, read, favorite/tag, and inspect archive stats over the SQLite store.
 * **Multi-Speaker TTS Generation**: Intelligently chunk narrative transcripts by scenes and character dialogue, auto-assign voices (Gemini TTS / Cartesia), and output high-quality multi-speaker audio.
-* **ADK Agents**: `tts_prompt_crafter` (and a Cartesia YAML sibling) turn raw stories into canonical TTS prompt files. See [evals/README.md](evals/README.md).
+* **ADK Agents**: `tts_prompt_crafter` (and a Cartesia YAML sibling) turn raw stories into canonical TTS prompt files.
 
 ---
 
@@ -39,7 +39,7 @@ StoryBuilder is an integrated Python toolkit and pipeline designed to scrape, st
 * **Agents**: Google ADK
 * **Visualization**: Plotly, Scikit-learn (K-Means, t-SNE), Matplotlib
 
-Console scripts from `pyproject.toml`: `downloader`, `genai-tts`. There is no `storybuilder` CLI entrypoint.
+Console scripts from `pyproject.toml`: `downloader`, `genai-tts`, `story-import`, `story-db`. There is no `storybuilder` CLI entrypoint.
 
 ---
 
@@ -54,14 +54,10 @@ story-builder/
 │   ├── genai/                   # Gemini TTS, Cartesia client, voice helpers
 │   ├── dashboard/               # Streamlit pages (search, read, favorites, stats)
 │   ├── agents/                  # ADK tts_prompt_crafter + cartesia_tts_prompt_crafter
+│   ├── db_tools/                # SQLite import (story-import) & FTS search (story-db) CLIs
 │   └── utils/                   # Env/key rotation, HuggingFace upload helpers
 ├── scripts/
-│   ├── import_to_sqlite.py      # Idempotent DB importer with FTS5 table setup
-│   ├── story_db.py              # FTS search, retrieval, and stats CLI
-│   ├── dashboard.py             # Streamlit entry
-│   ├── migrate_email_date.py    # Drop legacy email_date
-│   └── repartition_db.py        # Year-partition helper (legacy layout)
-├── evals/                       # ADK / agentic evaluation
+│   └── dashboard.py             # Streamlit entry
 └── tests/                       # Unit and integration test suite
 ```
 
@@ -128,16 +124,12 @@ SOCKS5 needs `pysocks`. HTTP 403/429/503 can trigger Windscribe IP rotation when
 ### Step 2: Index Content into SQLite
 
 ```bash
-python3 scripts/import_to_sqlite.py --db stories/stories.db
+story-import --db stories/stories.db
 ```
 
 If you already have an older database that still contains the removed
 `email_date` column, it will be migrated automatically the next time the DB is
-opened through the shared SQLite layer. You can also migrate it manually with:
-
-```bash
-python3 scripts/migrate_email_date.py stories/stories.db
-```
+opened through the shared SQLite layer.
 
 FTS5 stays in sync **only** via AFTER INSERT/DELETE/UPDATE triggers. Direct table edits desync search.
 
@@ -204,8 +196,6 @@ python .agent/skills/tts-prompt-crafter/scripts/split_prompts.py <dir-containing
 
 A YAML Cartesia sibling lives at `src/storybuilder/agents/cartesia_tts_prompt_crafter/` and is not exported from `agents/__init__.py`.
 
-Eval how-to: [evals/README.md](evals/README.md).
-
 Gotchas:
 
 * Vertex memory bank IDs are hardcoded in `agent.py` (`storage-499607` / engine `8434441657599918080`).
@@ -221,7 +211,6 @@ CI and local development use `uv run pytest` (unittest-style cases under `tests/
 ```bash
 uv run pytest
 uv run pytest tests/downloader tests/dashboard -q
-uv run pytest evals/ -v -m "not slow"
 ```
 
 Markers: `slow`, `adk_eval`, `agentic`, `integration`. Live Gemini/Vertex/TTS paths stay off unless `STORYBUILDER_LIVE_API=1`.

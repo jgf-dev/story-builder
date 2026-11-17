@@ -2,6 +2,7 @@ import logging
 import sys
 from pathlib import Path
 
+
 DEFAULT_FORMAT = "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
 SIMPLE_FORMAT = "%(message)s"
 

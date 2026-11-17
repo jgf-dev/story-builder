@@ -3,7 +3,8 @@ import os
 from pathlib import Path
 from typing import Any
 
-from google.cloud.storage import Client, transfer_manager
+from google.cloud.storage import Client
+from google.cloud.storage import transfer_manager
 
 
 def _normalize_filenames(filenames: list[str], source_directory: str) -> list[str]:

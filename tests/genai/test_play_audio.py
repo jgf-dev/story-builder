@@ -1,7 +1,8 @@
 import sys
 from unittest.mock import patch
 
-from storybuilder.genai.play_audio import get_audio_player, natural_sort_key
+from storybuilder.genai.play_audio import get_audio_player
+from storybuilder.genai.play_audio import natural_sort_key
 
 
 def test_get_audio_player_darwin() -> None:

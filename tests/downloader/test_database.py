@@ -11,217 +11,213 @@ import unittest
 from pathlib import Path
 
 
-# Ensure the src package is importable
+# Ensure the src package (and thus storybuilder.db_tools) is importable
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
-# Also make scripts/ importable (they don't have __init__.py but we can still import
-# the modules directly if we add the parent directory)
-_scripts_dir = str(Path(__file__).resolve().parents[2] / "scripts")
-if _scripts_dir not in sys.path:
-    sys.path.insert(0, _scripts_dir)
 
 
 class TestParseAuthor(unittest.TestCase):
-    """Tests for _parse_author in storybuilder.downloader.db."""
+	"""Tests for _parse_author in storybuilder.downloader.db."""
 
-    def test_name_with_email(self) -> None:
-        from storybuilder.downloader.db import _parse_author
+	def test_name_with_email(self) -> None:
+		from storybuilder.downloader.db import _parse_author
 
-        name, email = _parse_author("John Doe <john@example.com>")
-        self.assertEqual(name, "John Doe")
-        self.assertEqual(email, "john@example.com")
+		name, email = _parse_author("John Doe <john@example.com>")
+		self.assertEqual(name, "John Doe")
+		self.assertEqual(email, "john@example.com")
 
-    def test_bare_email(self) -> None:
-        from storybuilder.downloader.db import _parse_author
+	def test_bare_email(self) -> None:
+		from storybuilder.downloader.db import _parse_author
 
-        name, email = _parse_author("anon@test.org")
-        self.assertIsNone(name)
-        self.assertEqual(email, "anon@test.org")
+		name, email = _parse_author("anon@test.org")
+		self.assertIsNone(name)
+		self.assertEqual(email, "anon@test.org")
 
-    def test_name_only(self) -> None:
-        from storybuilder.downloader.db import _parse_author
+	def test_name_only(self) -> None:
+		from storybuilder.downloader.db import _parse_author
 
-        name, email = _parse_author("Jane Austen")
-        self.assertEqual(name, "Jane Austen")
-        self.assertIsNone(email)
+		name, email = _parse_author("Jane Austen")
+		self.assertEqual(name, "Jane Austen")
+		self.assertIsNone(email)
 
-    def test_none_input(self) -> None:
-        from storybuilder.downloader.db import _parse_author
+	def test_none_input(self) -> None:
+		from storybuilder.downloader.db import _parse_author
 
-        name, email = _parse_author(None)
-        self.assertIsNone(name)
-        self.assertIsNone(email)
+		name, email = _parse_author(None)
+		self.assertIsNone(name)
+		self.assertIsNone(email)
 
-    def test_empty_string(self) -> None:
-        from storybuilder.downloader.db import _parse_author
+	def test_empty_string(self) -> None:
+		from storybuilder.downloader.db import _parse_author
 
-        name, email = _parse_author("")
-        self.assertIsNone(name)
-        self.assertIsNone(email)
+		name, email = _parse_author("")
+		self.assertIsNone(name)
+		self.assertIsNone(email)
 
-    def test_name_with_angle_brackets_in_name(self) -> None:
-        from storybuilder.downloader.db import _parse_author
+	def test_name_with_angle_brackets_in_name(self) -> None:
+		from storybuilder.downloader.db import _parse_author
 
-        name, email = _parse_author("<Special> Author <special@example.com>")
-        self.assertEqual(name, "<Special> Author")
-        self.assertEqual(email, "special@example.com")
+		name, email = _parse_author("<Special> Author <special@example.com>")
+		self.assertEqual(name, "<Special> Author")
+		self.assertEqual(email, "special@example.com")
+
+	def test_long_author_string_no_catastrophic_backtracking(self) -> None:
+		from storybuilder.downloader.db import _parse_author
+
+		long_str = "By John Doe and Jane Doe and Friends From Highschool"
+		name, email = _parse_author(long_str)
+		self.assertEqual(name, long_str)
+		self.assertIsNone(email)
 
 
 class TestParseOutputPath(unittest.TestCase):
-    """Tests for _parse_output_path in storybuilder.downloader.db."""
+	"""Tests for _parse_output_path in storybuilder.downloader.db."""
 
-    def test_multi_chapter_story(self) -> None:
-        from storybuilder.downloader.db import _parse_output_path
+	def test_nested_output_dir_stories_text(self) -> None:
+		from storybuilder.downloader.db import _parse_output_path
 
-        orientation, category, slug, num = _parse_output_path(
-            "nifty_stories/gay/adult-friends/my-story/my-story-3.txt"
-        )
-        self.assertEqual(orientation, "gay")
-        self.assertEqual(category, "adult-friends")
-        self.assertEqual(slug, "my-story")
-        self.assertEqual(num, 3)
+		orientation, category, slug, num = _parse_output_path("stories/text/gay/adult-friends/washboard-tails.txt")
+		self.assertEqual(orientation, "gay")
+		self.assertEqual(category, "adult-friends")
+		self.assertEqual(slug, "washboard-tails")
+		self.assertIsNone(num)
 
-    def test_single_chapter_flat(self) -> None:
-        from storybuilder.downloader.db import _parse_output_path
+	def test_multi_chapter_story(self) -> None:
+		from storybuilder.downloader.db import _parse_output_path
 
-        orientation, category, slug, num = _parse_output_path(
-            "nifty_stories/gay/adult-friends/my-story.txt"
-        )
-        self.assertEqual(orientation, "gay")
-        self.assertEqual(category, "adult-friends")
-        self.assertEqual(slug, "my-story")
-        self.assertIsNone(num)
+		orientation, category, slug, num = _parse_output_path("nifty_stories/gay/adult-friends/my-story/my-story-3.txt")
+		self.assertEqual(orientation, "gay")
+		self.assertEqual(category, "adult-friends")
+		self.assertEqual(slug, "my-story")
+		self.assertEqual(num, 3)
 
-    def test_short_path_fallback(self) -> None:
-        from storybuilder.downloader.db import _parse_output_path
+	def test_single_chapter_flat(self) -> None:
+		from storybuilder.downloader.db import _parse_output_path
 
-        # 3-part path: only output_dir/orientation/file — category = parts[2] = filename
-        orientation, category, slug, num = _parse_output_path(
-            "nifty_stories/gay/story.txt"
-        )
-        self.assertEqual(orientation, "gay")
-        # With 3 parts, category = parts[2] which is the filename 'story.txt'
-        self.assertEqual(category, "story.txt")
-        self.assertEqual(slug, "story")  # stem of filename
-        self.assertIsNone(num)
+		orientation, category, slug, num = _parse_output_path("nifty_stories/gay/adult-friends/my-story.txt")
+		self.assertEqual(orientation, "gay")
+		self.assertEqual(category, "adult-friends")
+		self.assertEqual(slug, "my-story")
+		self.assertIsNone(num)
 
-    def test_orientation_is_category(self) -> None:
-        from storybuilder.downloader.db import _parse_output_path
+	def test_short_path_fallback(self) -> None:
+		from storybuilder.downloader.db import _parse_output_path
 
-        orientation, category, slug, num = _parse_output_path(
-            "nifty_stories/lesbian/college/title/title-1.txt"
-        )
-        self.assertEqual(orientation, "lesbian")
-        self.assertEqual(category, "college")
-        self.assertEqual(slug, "title")
-        self.assertEqual(num, 1)
+		# 3-part path: only output_dir/orientation/file — category = parts[2] = filename
+		orientation, category, slug, num = _parse_output_path("nifty_stories/gay/story.txt")
+		self.assertEqual(orientation, "gay")
+		# With 3 parts, category = parts[2] which is the filename 'story.txt'
+		self.assertEqual(category, "story.txt")
+		self.assertEqual(slug, "story")  # stem of filename
+		self.assertIsNone(num)
 
-    def test_filename_without_chapter(self) -> None:
-        from storybuilder.downloader.db import _parse_output_path
+	def test_orientation_is_category(self) -> None:
+		from storybuilder.downloader.db import _parse_output_path
 
-        # 5-part path: downloads/gay/adult-friends/multi/my-story.txt
-        # parts[3] = 'multi' is the story_slug directory, not the filename
-        orientation, category, slug, num = _parse_output_path(
-            "downloads/gay/adult-friends/multi/my-story.txt"
-        )
-        self.assertEqual(orientation, "gay")
-        self.assertEqual(category, "adult-friends")
-        self.assertEqual(slug, "multi")  # parts[3], the subdirectory
-        self.assertIsNone(num)
+		orientation, category, slug, num = _parse_output_path("nifty_stories/lesbian/college/title/title-1.txt")
+		self.assertEqual(orientation, "lesbian")
+		self.assertEqual(category, "college")
+		self.assertEqual(slug, "title")
+		self.assertEqual(num, 1)
 
-    def test_html_file(self) -> None:
-        from storybuilder.downloader.db import _parse_output_path
+	def test_filename_without_chapter(self) -> None:
+		from storybuilder.downloader.db import _parse_output_path
 
-        orientation, category, slug, num = _parse_output_path(
-            "nifty_stories/gay/college/slug/story-5.html"
-        )
-        self.assertEqual(orientation, "gay")
-        self.assertEqual(category, "college")
-        self.assertEqual(slug, "slug")
-        self.assertEqual(num, 5)
+		# 5-part path: downloads/gay/adult-friends/multi/my-story.txt
+		# parts[3] = 'multi' is the story_slug directory, not the filename
+		orientation, category, slug, num = _parse_output_path("downloads/gay/adult-friends/multi/my-story.txt")
+		self.assertEqual(orientation, "gay")
+		self.assertEqual(category, "adult-friends")
+		self.assertEqual(slug, "multi")  # parts[3], the subdirectory
+		self.assertIsNone(num)
+
+	def test_html_file(self) -> None:
+		from storybuilder.downloader.db import _parse_output_path
+
+		orientation, category, slug, num = _parse_output_path("nifty_stories/gay/college/slug/story-5.html")
+		self.assertEqual(orientation, "gay")
+		self.assertEqual(category, "college")
+		self.assertEqual(slug, "slug")
+		self.assertEqual(num, 5)
 
 
 class TestDatabaseInit(unittest.TestCase):
-    """Tests for init_db, schema, and indexes."""
+	"""Tests for init_db, schema, and indexes."""
 
-    def setUp(self) -> None:
-        self.temp_dir = tempfile.mkdtemp()
-        self.db_path = os.path.join(self.temp_dir, "test.db")
+	def setUp(self) -> None:
+		self.temp_dir = tempfile.mkdtemp()
+		self.db_path = os.path.join(self.temp_dir, "test.db")
 
-    def tearDown(self) -> None:
-        # Reset the db module's global connection
-        from storybuilder.downloader import db
+	def tearDown(self) -> None:
+		# Reset the db module's global connection
+		from storybuilder.downloader import db
 
-        db.close_db()
-        shutil.rmtree(self.temp_dir, ignore_errors=True)
+		db.close_db()
+		shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def test_init_db_creates_tables(self) -> None:
-        from storybuilder.downloader.db import close_db
-        from storybuilder.downloader.db import init_db
+	def test_init_db_creates_tables(self) -> None:
+		from storybuilder.downloader.db import close_db
+		from storybuilder.downloader.db import init_db
 
-        conn = init_db(self.db_path)
-        try:
-            tables = conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
-            ).fetchall()
-            table_names = [r[0] for r in tables]
-            self.assertIn("stories", table_names)
-            self.assertIn("stories_fts", table_names)
-            self.assertIn("stories_fts_data", table_names)
-            self.assertIn("stories_fts_idx", table_names)
-        finally:
-            close_db()
+		conn = init_db(self.db_path)
+		try:
+			tables = conn.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name").fetchall()
+			table_names = [r[0] for r in tables]
+			self.assertIn("stories", table_names)
+			self.assertIn("stories_fts", table_names)
+			self.assertIn("stories_fts_data", table_names)
+			self.assertIn("stories_fts_idx", table_names)
+		finally:
+			close_db()
 
-    def test_init_db_creates_indexes(self) -> None:
-        from storybuilder.downloader.db import close_db
-        from storybuilder.downloader.db import init_db
+	def test_init_db_creates_indexes(self) -> None:
+		from storybuilder.downloader.db import close_db
+		from storybuilder.downloader.db import init_db
 
-        conn = init_db(self.db_path)
-        try:
-            indexes = conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='index' ORDER BY name"
-            ).fetchall()
-            index_names = [r[0] for r in indexes]
-            self.assertIn("idx_stories_category", index_names)
-            self.assertIn("idx_stories_story_slug", index_names)
-            self.assertIn("idx_stories_author_name", index_names)
-            self.assertIn("idx_stories_publication_date", index_names)
-        finally:
-            close_db()
+		conn = init_db(self.db_path)
+		try:
+			indexes = conn.execute("SELECT name FROM sqlite_master WHERE type='index' ORDER BY name").fetchall()
+			index_names = [r[0] for r in indexes]
+			self.assertIn("idx_stories_category", index_names)
+			self.assertIn("idx_stories_story_slug", index_names)
+			self.assertIn("idx_stories_author_name", index_names)
+			self.assertIn("idx_stories_publication_date", index_names)
+		finally:
+			close_db()
 
-    def test_init_db_has_orientation_column(self) -> None:
-        from storybuilder.downloader.db import close_db
-        from storybuilder.downloader.db import init_db
+	def test_init_db_has_orientation_column(self) -> None:
+		from storybuilder.downloader.db import close_db
+		from storybuilder.downloader.db import init_db
 
-        conn = init_db(self.db_path)
-        try:
-            cols = conn.execute("PRAGMA table_info(stories)").fetchall()
-            col_names = [c[1] for c in cols]
-            self.assertIn("orientation", col_names)
-            # orientation should have a default of 'gay'
-            orient_col = [c for c in cols if c[1] == "orientation"][0]
-            self.assertEqual(orient_col[4], "'gay'")  # default value
-            self.assertEqual(orient_col[3], 1)  # NOT NULL
-        finally:
-            close_db()
+		conn = init_db(self.db_path)
+		try:
+			cols = conn.execute("PRAGMA table_info(stories)").fetchall()
+			col_names = [c[1] for c in cols]
+			self.assertIn("orientation", col_names)
+			# orientation should have a default of 'gay'
+			orient_col = [c for c in cols if c[1] == "orientation"][0]
+			self.assertEqual(orient_col[4], "'gay'")  # default value
+			self.assertEqual(orient_col[3], 1)  # NOT NULL
+		finally:
+			close_db()
 
-    def test_init_db_wal_mode(self) -> None:
-        from storybuilder.downloader.db import close_db
-        from storybuilder.downloader.db import init_db
+	def test_init_db_wal_mode(self) -> None:
+		from storybuilder.downloader.db import close_db
+		from storybuilder.downloader.db import init_db
 
-        conn = init_db(self.db_path)
-        try:
-            mode = conn.execute("PRAGMA journal_mode").fetchone()[0]
-            self.assertEqual(mode.lower(), "wal")
-        finally:
-            close_db()
+		conn = init_db(self.db_path)
+		try:
+			mode = conn.execute("PRAGMA journal_mode").fetchone()[0]
+			self.assertEqual(mode.lower(), "wal")
+		finally:
+			close_db()
 
-    def test_init_db_migrates_email_date_column(self) -> None:
-        from storybuilder.downloader.db import close_db
-        from storybuilder.downloader.db import init_db
+	def test_init_db_migrates_email_date_column(self) -> None:
+		from storybuilder.downloader.db import close_db
+		from storybuilder.downloader.db import init_db
 
-        legacy_conn = sqlite3.connect(self.db_path)
-        legacy_conn.execute(
-            """
+		legacy_conn = sqlite3.connect(self.db_path)
+		legacy_conn.execute(
+			"""
             CREATE TABLE stories (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 path TEXT UNIQUE NOT NULL,
@@ -241,9 +237,9 @@ class TestDatabaseInit(unittest.TestCase):
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
             """
-        )
-        legacy_conn.execute(
-            """
+		)
+		legacy_conn.execute(
+			"""
             CREATE VIRTUAL TABLE stories_fts USING fts5(
                 title,
                 author_name,
@@ -252,17 +248,17 @@ class TestDatabaseInit(unittest.TestCase):
                 content_rowid=id
             )
             """
-        )
-        legacy_conn.execute(
-            """
+		)
+		legacy_conn.execute(
+			"""
             CREATE TRIGGER stories_ai AFTER INSERT ON stories BEGIN
                 INSERT INTO stories_fts(rowid, title, author_name, content)
                 VALUES (new.id, new.title, new.author_name, new.content);
             END;
             """
-        )
-        legacy_conn.execute(
-            """
+		)
+		legacy_conn.execute(
+			"""
             INSERT INTO stories (
                 path, orientation, category, story_slug, chapter_num,
                 title, author_name, author_email, email_date,
@@ -270,815 +266,1581 @@ class TestDatabaseInit(unittest.TestCase):
                 char_count, word_count, content, created_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (
-                "nifty_stories/gay/test/legacy.txt",
-                "gay",
-                "test",
-                "legacy",
-                1,
-                "Legacy Story",
-                "Legacy Author",
-                "legacy@example.com",
-                "2024-01-15",  # email_date
-                "2024-01-15",  # publication_date
-                "https://example.com/legacy",
-                123,
-                20,
-                "Legacy content here.",
-                "2024-01-16 12:34:56",
-            ),
-        )
+			(
+				"nifty_stories/gay/test/legacy.txt",
+				"gay",
+				"test",
+				"legacy",
+				1,
+				"Legacy Story",
+				"Legacy Author",
+				"legacy@example.com",
+				"2024-01-15",  # email_date
+				"2024-01-15",  # publication_date
+				"https://example.com/legacy",
+				123,
+				20,
+				"Legacy content here.",
+				"2024-01-16 12:34:56",
+			),
+		)
 
-        legacy_conn.commit()
-        legacy_conn.close()
+		legacy_conn.commit()
+		legacy_conn.close()
 
-        conn = init_db(self.db_path)
-        conn.row_factory = sqlite3.Row
-        try:
-            cols = conn.execute("PRAGMA table_info(stories)").fetchall()
-            col_names = [c[1] for c in cols]
-            self.assertNotIn("email_date", col_names)
-            self.assertIn("created_at", col_names)
+		conn = init_db(self.db_path)
+		conn.row_factory = sqlite3.Row
+		try:
+			cols = conn.execute("PRAGMA table_info(stories)").fetchall()
+			col_names = [c[1] for c in cols]
+			self.assertNotIn("email_date", col_names)
+			self.assertIn("created_at", col_names)
 
-            row = conn.execute("SELECT * FROM stories").fetchone()
-            self.assertIsNotNone(row)
-            self.assertEqual(row["path"], "nifty_stories/gay/test/legacy.txt")
-            self.assertEqual(row["title"], "Legacy Story")
-            self.assertEqual(row["publication_date"], "2024-01-15")
-            self.assertEqual(row["created_at"], "2024-01-16 12:34:56")
+			row = conn.execute("SELECT * FROM stories").fetchone()
+			self.assertIsNotNone(row)
+			self.assertEqual(row["path"], "nifty_stories/gay/test/legacy.txt")
+			self.assertEqual(row["title"], "Legacy Story")
+			self.assertEqual(row["publication_date"], "2024-01-15")
+			self.assertEqual(row["created_at"], "2024-01-16 12:34:56")
 
-            fts_count = conn.execute(
-                "SELECT COUNT(*) FROM stories_fts WHERE stories_fts MATCH 'legacy'"
-            ).fetchone()[0]
-            self.assertEqual(fts_count, 1)
-        finally:
-            close_db()
+			fts_count = conn.execute("SELECT COUNT(*) FROM stories_fts WHERE stories_fts MATCH 'legacy'").fetchone()[0]
+			self.assertEqual(fts_count, 1)
+		finally:
+			close_db()
 
 
 class TestInsertStory(unittest.TestCase):
-    """Tests for insert_story function."""
+	"""Tests for insert_story function."""
 
-    def setUp(self) -> None:
-        self.temp_dir = tempfile.mkdtemp()
-        self.db_path = os.path.join(self.temp_dir, "test.db")
+	def setUp(self) -> None:
+		self.temp_dir = tempfile.mkdtemp()
+		self.db_path = os.path.join(self.temp_dir, "test.db")
 
-    def tearDown(self) -> None:
-        from storybuilder.downloader import db
+	def tearDown(self) -> None:
+		from storybuilder.downloader import db
 
-        db.close_db()
-        shutil.rmtree(self.temp_dir, ignore_errors=True)
+		db.close_db()
+		shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def test_insert_and_retrieve(self) -> None:
-        from storybuilder.downloader.db import close_db
-        from storybuilder.downloader.db import init_db
-        from storybuilder.downloader.db import insert_story
+	def test_insert_and_retrieve(self) -> None:
+		from storybuilder.downloader.db import close_db
+		from storybuilder.downloader.db import init_db
+		from storybuilder.downloader.db import insert_story
 
-        conn = init_db(self.db_path)
-        conn.row_factory = sqlite3.Row
-        try:
-            success = insert_story(
-                output_path="nifty_stories/gay/adult-friends/story-slug/story-slug-1.txt",
-                title="Test Story",
-                author="Test Author <test@example.com>",
-                story_date="2024-01-15",
-                url="https://example.com/story",
-                content="This is the story content.",
-            )
-            self.assertTrue(success)
+		conn = init_db(self.db_path)
+		conn.row_factory = sqlite3.Row
+		try:
+			success = insert_story(
+				output_path="nifty_stories/gay/adult-friends/story-slug/story-slug-1.txt",
+				title="Test Story",
+				author="Test Author <test@example.com>",
+				story_date="2024-01-15",
+				url="https://example.com/story",
+				content="This is the story content.",
+			)
+			self.assertTrue(success)
 
-            row = conn.execute("SELECT * FROM stories").fetchone()
-            self.assertEqual(
-                row["path"],
-                "nifty_stories/gay/adult-friends/story-slug/story-slug-1.txt",
-            )
-            self.assertEqual(row["orientation"], "gay")
-            self.assertEqual(row["category"], "adult-friends")
-            self.assertEqual(row["story_slug"], "story-slug")
-            self.assertEqual(row["chapter_num"], 1)
-            self.assertEqual(row["title"], "Test Story")
-            self.assertEqual(row["author_name"], "Test Author")
-            self.assertEqual(row["author_email"], "test@example.com")
-            self.assertEqual(row["publication_date"], "2024-01-15")
-            self.assertEqual(row["url"], "https://example.com/story")
-            self.assertEqual(row["char_count"], 26)  # "This is the story content."
-            self.assertEqual(row["word_count"], 5)
-            self.assertEqual(row["content"], "This is the story content.")
-        finally:
-            close_db()
+			row = conn.execute("SELECT * FROM stories").fetchone()
+			self.assertEqual(
+				row["path"],
+				"nifty_stories/gay/adult-friends/story-slug/story-slug-1.txt",
+			)
+			self.assertEqual(row["orientation"], "gay")
+			self.assertEqual(row["category"], "adult-friends")
+			self.assertEqual(row["story_slug"], "story-slug")
+			self.assertEqual(row["chapter_num"], 1)
+			self.assertEqual(row["title"], "Test Story")
+			self.assertEqual(row["author_name"], "Test Author")
+			self.assertEqual(row["author_email"], "test@example.com")
+			self.assertEqual(row["publication_date"], "2024-01-15")
+			self.assertEqual(row["url"], "https://example.com/story")
+			self.assertEqual(row["char_count"], 26)  # "This is the story content."
+			self.assertEqual(row["word_count"], 5)
+			self.assertEqual(row["content"], "This is the story content.")
+		finally:
+			close_db()
 
-    def test_insert_no_author(self) -> None:
-        from storybuilder.downloader.db import close_db
-        from storybuilder.downloader.db import init_db
-        from storybuilder.downloader.db import insert_story
+	def test_insert_no_author(self) -> None:
+		from storybuilder.downloader.db import close_db
+		from storybuilder.downloader.db import init_db
+		from storybuilder.downloader.db import insert_story
 
-        conn = init_db(self.db_path)
-        conn.row_factory = sqlite3.Row
-        try:
-            success = insert_story(
-                output_path="nifty_stories/gay/college/story.txt",
-                title="Anon Story",
-                author="",
-                story_date="2023-06-01",
-                url="",
-                content="Anonymous content.",
-            )
-            self.assertTrue(success)
-            row = conn.execute("SELECT * FROM stories").fetchone()
-            self.assertIsNone(row["author_name"])
-            self.assertIsNone(row["author_email"])
-        finally:
-            close_db()
+		conn = init_db(self.db_path)
+		conn.row_factory = sqlite3.Row
+		try:
+			success = insert_story(
+				output_path="nifty_stories/gay/college/story.txt",
+				title="Anon Story",
+				author="",
+				story_date="2023-06-01",
+				url="",
+				content="Anonymous content.",
+			)
+			self.assertTrue(success)
+			row = conn.execute("SELECT * FROM stories").fetchone()
+			self.assertIsNone(row["author_name"])
+			self.assertIsNone(row["author_email"])
+		finally:
+			close_db()
 
-    def test_replace_on_duplicate_path(self) -> None:
-        from storybuilder.downloader.db import close_db
-        from storybuilder.downloader.db import init_db
-        from storybuilder.downloader.db import insert_story
+	def test_replace_on_duplicate_path(self) -> None:
+		from storybuilder.downloader.db import close_db
+		from storybuilder.downloader.db import init_db
+		from storybuilder.downloader.db import insert_story
 
-        conn = init_db(self.db_path)
-        conn.row_factory = sqlite3.Row
-        try:
-            insert_story(
-                output_path="nifty_stories/gay/test/story.txt",
-                title="First",
-                author="Author One",
-                story_date="2022-01-01",
-                url="http://a.com",
-                content="First content.",
-            )
-            insert_story(
-                output_path="nifty_stories/gay/test/story.txt",
-                title="Second",
-                author="Author Two",
-                story_date="2023-01-01",
-                url="http://b.com",
-                content="Second content.",
-            )
-            rows = conn.execute("SELECT * FROM stories").fetchall()
-            self.assertEqual(len(rows), 1)
-            self.assertEqual(rows[0]["title"], "Second")
-            self.assertEqual(rows[0]["content"], "Second content.")
-        finally:
-            close_db()
+		conn = init_db(self.db_path)
+		conn.row_factory = sqlite3.Row
+		try:
+			insert_story(
+				output_path="nifty_stories/gay/test/story.txt",
+				title="First",
+				author="Author One",
+				story_date="2022-01-01",
+				url="http://a.com",
+				content="First content.",
+			)
+			insert_story(
+				output_path="nifty_stories/gay/test/story.txt",
+				title="Second",
+				author="Author Two",
+				story_date="2023-01-01",
+				url="http://b.com",
+				content="Second content.",
+			)
+			rows = conn.execute("SELECT * FROM stories").fetchall()
+			self.assertEqual(len(rows), 1)
+			self.assertEqual(rows[0]["title"], "Second")
+			self.assertEqual(rows[0]["content"], "Second content.")
+		finally:
+			close_db()
 
-    def test_char_and_word_count(self) -> None:
-        from storybuilder.downloader.db import close_db
-        from storybuilder.downloader.db import init_db
-        from storybuilder.downloader.db import insert_story
+	def test_char_and_word_count(self) -> None:
+		from storybuilder.downloader.db import close_db
+		from storybuilder.downloader.db import init_db
+		from storybuilder.downloader.db import insert_story
 
-        conn = init_db(self.db_path)
-        conn.row_factory = sqlite3.Row
-        try:
-            insert_story(
-                output_path="nifty_stories/gay/test/count.txt",
-                title="Count Test",
-                author="Tester",
-                story_date="2024-01-01",
-                url="",
-                content="one two three four five",
-            )
-            row = conn.execute("SELECT * FROM stories").fetchone()
-            self.assertEqual(row["word_count"], 5)
-            self.assertEqual(row["char_count"], 23)  # "one two three four five"
-        finally:
-            close_db()
+		conn = init_db(self.db_path)
+		conn.row_factory = sqlite3.Row
+		try:
+			insert_story(
+				output_path="nifty_stories/gay/test/count.txt",
+				title="Count Test",
+				author="Tester",
+				story_date="2024-01-01",
+				url="",
+				content="one two three four five",
+			)
+			row = conn.execute("SELECT * FROM stories").fetchone()
+			self.assertEqual(row["word_count"], 5)
+			self.assertEqual(row["char_count"], 23)  # "one two three four five"
+		finally:
+			close_db()
 
 
 class TestFTSSearch(unittest.TestCase):
-    """Tests for FTS5 full-text search."""
+	"""Tests for FTS5 full-text search."""
 
-    def setUp(self) -> None:
-        self.temp_dir = tempfile.mkdtemp()
-        self.db_path = os.path.join(self.temp_dir, "test.db")
+	def setUp(self) -> None:
+		self.temp_dir = tempfile.mkdtemp()
+		self.db_path = os.path.join(self.temp_dir, "test.db")
 
-    def tearDown(self) -> None:
-        from storybuilder.downloader import db
+	def tearDown(self) -> None:
+		from storybuilder.downloader import db
 
-        db.close_db()
-        shutil.rmtree(self.temp_dir, ignore_errors=True)
+		db.close_db()
+		shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def test_fts_search_finds_content(self) -> None:
-        from storybuilder.downloader.db import close_db
-        from storybuilder.downloader.db import init_db
-        from storybuilder.downloader.db import insert_story
+	def test_fts_search_finds_content(self) -> None:
+		from storybuilder.downloader.db import close_db
+		from storybuilder.downloader.db import init_db
+		from storybuilder.downloader.db import insert_story
 
-        conn = init_db(self.db_path)
-        conn.row_factory = sqlite3.Row
-        try:
-            insert_story(
-                output_path="nifty_stories/gay/test/a.txt",
-                title="Vampire Love",
-                author="Bram Stoker",
-                story_date="1897-05-26",
-                url="",
-                content="The vampire lurked in the darkness of the castle.",
-            )
-            insert_story(
-                output_path="nifty_stories/gay/test/b.txt",
-                title="Werewolf Moon",
-                author="Lon Chaney",
-                story_date="1941-12-12",
-                url="",
-                content="Under the full moon the werewolf howled.",
-            )
+		conn = init_db(self.db_path)
+		conn.row_factory = sqlite3.Row
+		try:
+			insert_story(
+				output_path="nifty_stories/gay/test/a.txt",
+				title="Vampire Love",
+				author="Bram Stoker",
+				story_date="1897-05-26",
+				url="",
+				content="The vampire lurked in the darkness of the castle.",
+			)
+			insert_story(
+				output_path="nifty_stories/gay/test/b.txt",
+				title="Werewolf Moon",
+				author="Lon Chaney",
+				story_date="1941-12-12",
+				url="",
+				content="Under the full moon the werewolf howled.",
+			)
 
-            rows = conn.execute(
-                "SELECT s.title, snippet(stories_fts, 1, '<b>', '</b>', '...', 30) "
-                "FROM stories s JOIN stories_fts ON s.id = stories_fts.rowid "
-                "WHERE stories_fts MATCH 'vampire' ORDER BY rank"
-            ).fetchall()
-            self.assertEqual(len(rows), 1)
-            self.assertEqual(rows[0]["title"], "Vampire Love")
+			rows = conn.execute(
+				"SELECT s.title, snippet(stories_fts, 1, '<b>', '</b>', '...', 30) "
+				"FROM stories s JOIN stories_fts ON s.id = stories_fts.rowid "
+				"WHERE stories_fts MATCH 'vampire' ORDER BY rank"
+			).fetchall()
+			self.assertEqual(len(rows), 1)
+			self.assertEqual(rows[0]["title"], "Vampire Love")
 
-            rows = conn.execute(
-                "SELECT s.title FROM stories s "
-                "JOIN stories_fts ON s.id = stories_fts.rowid "
-                "WHERE stories_fts MATCH 'werewolf' ORDER BY rank"
-            ).fetchall()
-            self.assertEqual(len(rows), 1)
-            self.assertEqual(rows[0]["title"], "Werewolf Moon")
-        finally:
-            close_db()
+			rows = conn.execute(
+				"SELECT s.title FROM stories s "
+				"JOIN stories_fts ON s.id = stories_fts.rowid "
+				"WHERE stories_fts MATCH 'werewolf' ORDER BY rank"
+			).fetchall()
+			self.assertEqual(len(rows), 1)
+			self.assertEqual(rows[0]["title"], "Werewolf Moon")
+		finally:
+			close_db()
 
-    def test_fts_update_on_replace(self) -> None:
-        from storybuilder.downloader.db import close_db
-        from storybuilder.downloader.db import init_db
-        from storybuilder.downloader.db import insert_story
+	def test_fts_update_on_replace(self) -> None:
+		from storybuilder.downloader.db import close_db
+		from storybuilder.downloader.db import init_db
+		from storybuilder.downloader.db import insert_story
 
-        conn = init_db(self.db_path)
-        conn.row_factory = sqlite3.Row
-        try:
-            insert_story(
-                output_path="nifty_stories/gay/test/a.txt",
-                title="Original",
-                author="A",
-                story_date="2020-01-01",
-                url="",
-                content="original vampire content",
-            )
-            insert_story(
-                output_path="nifty_stories/gay/test/a.txt",
-                title="Updated",
-                author="B",
-                story_date="2021-01-01",
-                url="",
-                content="updated werewolf content",
-            )
+		conn = init_db(self.db_path)
+		conn.row_factory = sqlite3.Row
+		try:
+			insert_story(
+				output_path="nifty_stories/gay/test/a.txt",
+				title="Original",
+				author="A",
+				story_date="2020-01-01",
+				url="",
+				content="original vampire content",
+			)
+			insert_story(
+				output_path="nifty_stories/gay/test/a.txt",
+				title="Updated",
+				author="B",
+				story_date="2021-01-01",
+				url="",
+				content="updated werewolf content",
+			)
 
-            # Search for 'vampire' should give no results (was replaced)
-            rows = conn.execute(
-                "SELECT COUNT(*) FROM stories s "
-                "JOIN stories_fts ON s.id = stories_fts.rowid "
-                "WHERE stories_fts MATCH 'vampire'"
-            ).fetchone()[0]
-            self.assertEqual(rows, 0)
+			# Search for 'vampire' should give no results (was replaced)
+			rows = conn.execute(
+				"SELECT COUNT(*) FROM stories s "
+				"JOIN stories_fts ON s.id = stories_fts.rowid "
+				"WHERE stories_fts MATCH 'vampire'"
+			).fetchone()[0]
+			self.assertEqual(rows, 0)
 
-            # Search for 'werewolf' should find the updated story
-            rows = conn.execute(
-                "SELECT s.title FROM stories s "
-                "JOIN stories_fts ON s.id = stories_fts.rowid "
-                "WHERE stories_fts MATCH 'werewolf'"
-            ).fetchall()
-            self.assertEqual(len(rows), 1)
-            self.assertEqual(rows[0]["title"], "Updated")
-        finally:
-            close_db()
+			# Search for 'werewolf' should find the updated story
+			rows = conn.execute(
+				"SELECT s.title FROM stories s "
+				"JOIN stories_fts ON s.id = stories_fts.rowid "
+				"WHERE stories_fts MATCH 'werewolf'"
+			).fetchall()
+			self.assertEqual(len(rows), 1)
+			self.assertEqual(rows[0]["title"], "Updated")
+		finally:
+			close_db()
 
-    def test_optimize_fts_all(self) -> None:
-        from storybuilder.downloader import db
+	def test_optimize_fts_all(self) -> None:
+		from storybuilder.downloader import db
 
-        # Initialize with monolithic database path
-        db.init_db(self.db_path)
+		# Initialize with monolithic database path
+		db.init_db(self.db_path)
 
-        # Insert stories
-        db.insert_story(
-            output_path="nifty_stories/gay/adult-friends/story1.txt",
-            title="2012 Story",
-            author="Author One",
-            story_date="2012-05-14",
-            url="http://example.com/1",
-            content="Content for story 1.",
-        )
-        db.insert_story(
-            output_path="nifty_stories/gay/college/story2.txt",
-            title="2025 Story",
-            author="Author Two",
-            story_date="2025-05-10",
-            url="http://example.com/2",
-            content="Content for story 2.",
-        )
+		# Insert stories
+		db.insert_story(
+			output_path="nifty_stories/gay/adult-friends/story1.txt",
+			title="2012 Story",
+			author="Author One",
+			story_date="2012-05-14",
+			url="http://example.com/1",
+			content="Content for story 1.",
+		)
+		db.insert_story(
+			output_path="nifty_stories/gay/college/story2.txt",
+			title="2025 Story",
+			author="Author Two",
+			story_date="2025-05-10",
+			url="http://example.com/2",
+			content="Content for story 2.",
+		)
 
-        db.optimize_fts()
+		db.optimize_fts()
 
-        # Verify search works after optimize
-        results = db.search_stories(fts_query="Content")
-        self.assertEqual(len(results), 2)
-
+		# Verify search works after optimize
+		results = db.search_stories(fts_query="Content")
+		self.assertEqual(len(results), 2)
 
 
 class TestParseHeader(unittest.TestCase):
-    """Tests for parse_header in import_to_sqlite.py."""
+	"""Tests for parse_header in import_to_sqlite.py."""
 
-    def setUp(self) -> None:
-        self.temp_dir = tempfile.mkdtemp()
+	def setUp(self) -> None:
+		self.temp_dir = tempfile.mkdtemp()
 
-    def tearDown(self) -> None:
-        shutil.rmtree(self.temp_dir, ignore_errors=True)
+	def tearDown(self) -> None:
+		shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def _write_story_file(self, fname: str, content: str) -> str:
-        path = os.path.join(self.temp_dir, fname)
-        with open(path, "w", encoding="utf-8") as f:
-            f.write(content)
-        return path
+	def _write_story_file(self, fname: str, content: str) -> str:
+		path = os.path.join(self.temp_dir, fname)
+		with open(path, "w", encoding="utf-8") as f:
+			f.write(content)
+		return path
 
-    def test_standard_header(self) -> None:
-        content = (
-            "=" * 80 + "\n"
-            "Title: My Story\n"
-            "Author: Jane Writer <jane@email.com>\n"
-            "Publication Date: 2024-06-13\n"
-            "URL: https://example.com/story\n"
-            + "=" * 80
-            + "\n\n"
-            + "Once upon a time there was a story.\n"
-            "It had multiple paragraphs.\n"
-        )
-        path = self._write_story_file("test.txt", content)
-        import import_to_sqlite
+	def test_standard_header(self) -> None:
+		content = (
+			"=" * 80 + "\n"
+			"Title: My Story\n"
+			"Author: Jane Writer <jane@email.com>\n"
+			"Publication Date: 2024-06-13\n"
+			"URL: https://example.com/story\n" + "=" * 80 + "\n\n" + "Once upon a time there was a story.\n"
+			"It had multiple paragraphs.\n"
+		)
+		path = self._write_story_file("test.txt", content)
+		from storybuilder.db_tools import import_to_sqlite
 
-        result = import_to_sqlite.parse_header(path)
-        self.assertIsNotNone(result)
-        self.assertEqual(result["title"], "My Story")
-        self.assertEqual(result["author_name"], "Jane Writer")
-        self.assertEqual(result["author_email"], "jane@email.com")
-        self.assertEqual(result["publication_date"], "2024-06-13")
-        self.assertEqual(result["url"], "https://example.com/story")
-        self.assertIn("Once upon a time", result["content"])
-        self.assertIn("multiple paragraphs", result["content"])
+		result = import_to_sqlite.parse_header(path)
+		self.assertIsNotNone(result)
+		self.assertEqual(result["title"], "My Story")
+		self.assertEqual(result["author_name"], "Jane Writer")
+		self.assertEqual(result["author_email"], "jane@email.com")
+		self.assertEqual(result["publication_date"], "2024-06-13")
+		self.assertEqual(result["url"], "https://example.com/story")
+		self.assertIn("Once upon a time", result["content"])
+		self.assertIn("multiple paragraphs", result["content"])
 
-    def test_header_with_email_date(self) -> None:
-        content = (
-            "=" * 80 + "\n"
-            "Title: Email Story\n"
-            "Author: user@host.com\n"
-            "Publication Date: 2023-01-01\n"
-            "URL: https://example.com\n" + "=" * 80 + "\n\n" + "Email content here.\n"
-        )
-        path = self._write_story_file("email.txt", content)
-        import import_to_sqlite
+	def test_header_with_email_date(self) -> None:
+		content = (
+			"=" * 80 + "\n"
+			"Title: Email Story\n"
+			"Author: user@host.com\n"
+			"Publication Date: 2023-01-01\n"
+			"URL: https://example.com\n" + "=" * 80 + "\n\n" + "Email content here.\n"
+		)
+		path = self._write_story_file("email.txt", content)
+		from storybuilder.db_tools import import_to_sqlite
 
-        result = import_to_sqlite.parse_header(path)
-        self.assertIsNotNone(result)
-        self.assertEqual(result["title"], "Email Story")
-        self.assertIsNone(result["author_name"])
-        self.assertEqual(result["author_email"], "user@host.com")
+		result = import_to_sqlite.parse_header(path)
+		self.assertIsNotNone(result)
+		self.assertEqual(result["title"], "Email Story")
+		self.assertIsNone(result["author_name"])
+		self.assertEqual(result["author_email"], "user@host.com")
 
-    def test_missing_file(self) -> None:
-        import import_to_sqlite
+	def test_missing_file(self) -> None:
+		from storybuilder.db_tools import import_to_sqlite
 
-        result = import_to_sqlite.parse_header("/nonexistent/file.txt")
-        self.assertIsNone(result)
+		result = import_to_sqlite.parse_header("/nonexistent/file.txt")
+		self.assertIsNone(result)
 
-    def test_no_header_marker(self) -> None:
-        content = "Just plain text without any header markers.\n"
-        path = self._write_story_file("noheader.txt", content)
-        import import_to_sqlite
+	def test_no_header_marker(self) -> None:
+		content = "Just plain text without any header markers.\n"
+		path = self._write_story_file("noheader.txt", content)
+		from storybuilder.db_tools import import_to_sqlite
 
-        result = import_to_sqlite.parse_header(path)
-        self.assertIsNone(result)
+		result = import_to_sqlite.parse_header(path)
+		self.assertIsNone(result)
 
-    def test_minimal_header(self) -> None:
-        import import_to_sqlite
+	def test_minimal_header(self) -> None:
+		from storybuilder.db_tools import import_to_sqlite
 
-        content = (
-            "=" * 80 + "\n"
-            "Title: Minimal\n"
-            "Author: Min\n"
-            "Publication Date: 2024-01-01\n"
-            "URL: http://x.com\n" + "=" * 80 + "\n\n" + "body"
-        )
-        path = self._write_story_file("min.txt", content)
-        result = import_to_sqlite.parse_header(path)
-        self.assertIsNotNone(result)
-        self.assertEqual(result["title"], "Minimal")
-        self.assertEqual(result["content"], "body")
+		content = (
+			"=" * 80 + "\n"
+			"Title: Minimal\n"
+			"Author: Min\n"
+			"Publication Date: 2024-01-01\n"
+			"URL: http://x.com\n" + "=" * 80 + "\n\n" + "body"
+		)
+		path = self._write_story_file("min.txt", content)
+		result = import_to_sqlite.parse_header(path)
+		self.assertIsNotNone(result)
+		self.assertEqual(result["title"], "Minimal")
+		self.assertEqual(result["content"], "body")
 
-    def test_empty_content(self) -> None:
-        import import_to_sqlite
+	def test_empty_content(self) -> None:
+		from storybuilder.db_tools import import_to_sqlite
 
-        content = (
-            "=" * 80 + "\n"
-            "Title: Empty\n"
-            "Author: Nobody\n"
-            "Publication Date: 2024-01-01\n"
-            "URL: http://x.com\n" + "=" * 80 + "\n\n"
-        )
-        path = self._write_story_file("empty.txt", content)
-        result = import_to_sqlite.parse_header(path)
-        # returns None because content is empty and title is there but content is empty string
-        # Actually, empty content + title = not None since we check "not content and not title"
-        self.assertIsNotNone(result)
-        self.assertEqual(result["content"], "")
+		content = (
+			"=" * 80 + "\n"
+			"Title: Empty\n"
+			"Author: Nobody\n"
+			"Publication Date: 2024-01-01\n"
+			"URL: http://x.com\n" + "=" * 80 + "\n\n"
+		)
+		path = self._write_story_file("empty.txt", content)
+		result = import_to_sqlite.parse_header(path)
+		# returns None because content is empty and title is there but content is empty string
+		# Actually, empty content + title = not None since we check "not content and not title"
+		self.assertIsNotNone(result)
+		self.assertEqual(result["content"], "")
 
-    def test_import_to_sqlite_script_compiles(self) -> None:
-        script_path = Path(__file__).resolve().parents[2] / "scripts" / "import_to_sqlite.py"
-        with tempfile.TemporaryDirectory() as tmp:
-            py_compile.compile(
-                str(script_path),
-                cfile=os.path.join(tmp, "import_to_sqlite.pyc"),
-                doraise=True,
-            )
+	def test_import_to_sqlite_script_compiles(self) -> None:
+		script_path = Path(__file__).resolve().parents[2] / "src" / "storybuilder" / "db_tools" / "import_to_sqlite.py"
+		with tempfile.TemporaryDirectory() as tmp:
+			py_compile.compile(
+				str(script_path),
+				cfile=os.path.join(tmp, "import_to_sqlite.pyc"),
+				doraise=True,
+			)
 
 
 class TestMonolithicDatabase(unittest.TestCase):
-    """Tests for monolithic SQLModel-based database in db.py."""
+	"""Tests for monolithic SQLModel-based database in db.py."""
 
-    def setUp(self) -> None:
-        self.temp_dir = tempfile.mkdtemp()
-        self.db_path = os.path.join(self.temp_dir, "stories.db")
+	def setUp(self) -> None:
+		self.temp_dir = tempfile.mkdtemp()
+		self.db_path = os.path.join(self.temp_dir, "stories.db")
 
-    def tearDown(self) -> None:
-        from storybuilder.downloader import db
-        db.close_db()
-        shutil.rmtree(self.temp_dir, ignore_errors=True)
+	def tearDown(self) -> None:
+		from storybuilder.downloader import db
 
-    def test_init_db_creates_schema(self) -> None:
-        from storybuilder.downloader import db
-        conn = db.init_db(self.db_path)
-        self.assertIsNotNone(conn)
+		db.close_db()
+		shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-        # Verify stories table exists
-        cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='stories'")
-        self.assertIsNotNone(cursor.fetchone())
+	def test_init_db_creates_schema(self) -> None:
+		from storybuilder.downloader import db
 
-        # Verify stories_fts exists
-        cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='stories_fts'")
-        self.assertIsNotNone(cursor.fetchone())
+		conn = db.init_db(self.db_path)
+		self.assertIsNotNone(conn)
 
-    def test_insert_and_retrieve_story(self) -> None:
-        from storybuilder.downloader import db
-        db.init_db(self.db_path)
+		# Verify stories table exists
+		cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='stories'")
+		self.assertIsNotNone(cursor.fetchone())
 
-        success = db.insert_story(
-            output_path="nifty_stories/gay/adult-friends/test-story.txt",
-            title="My Special Test Story",
-            author="Author Name <author@example.com>",
-            story_date="2026-07-05",
-            url="http://example.com/test",
-            content="This is the content of my special test story with unique word banana.",
-        )
-        self.assertTrue(success)
+		# Verify stories_fts exists
+		cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='stories_fts'")
+		self.assertIsNotNone(cursor.fetchone())
 
-        # Check story_exists
-        self.assertTrue(db.story_exists("nifty_stories/gay/adult-friends/test-story.txt"))
+	def test_insert_and_retrieve_story(self) -> None:
+		from storybuilder.downloader import db
 
-        # Retrieve story
-        story = db.get_story("nifty_stories/gay/adult-friends/test-story.txt")
-        self.assertIsNotNone(story)
-        self.assertEqual(story["title"], "My Special Test Story")
-        self.assertEqual(story["author"], "Author Name <author@example.com>")
-        self.assertEqual(story["story_date"], "2026-07-05")
-        self.assertEqual(story["content"], "This is the content of my special test story with unique word banana.")
+		db.init_db(self.db_path)
 
-    def test_execute_query(self) -> None:
-        from storybuilder.downloader import db
-        db.init_db(self.db_path)
-        db.insert_story(
-            output_path="nifty_stories/gay/adult-friends/test-story.txt",
-            title="Test Story",
-            author="Author",
-            story_date="2026-07-05",
-            url="http://example.com",
-            content="Content",
-        )
+		success = db.insert_story(
+			output_path="nifty_stories/gay/adult-friends/test-story.txt",
+			title="My Special Test Story",
+			author="Author Name <author@example.com>",
+			story_date="2026-07-05",
+			url="http://example.com/test",
+			content="This is the content of my special test story with unique word banana.",
+		)
+		self.assertTrue(success)
 
-        rows = db.execute_query("SELECT COUNT(*) as cnt FROM {table}")
-        self.assertEqual(len(rows), 1)
-        self.assertEqual(rows[0]["cnt"], 1)
+		# Check story_exists
+		self.assertTrue(db.story_exists("nifty_stories/gay/adult-friends/test-story.txt"))
 
-    def test_search_stories_fts(self) -> None:
-        from storybuilder.downloader import db
-        db.init_db(self.db_path)
-        db.insert_story(
-            output_path="nifty_stories/gay/adult-friends/test-story.txt",
-            title="Banana Story",
-            author="Monkey",
-            story_date="2026-07-05",
-            url="http://example.com",
-            content="Monkey loves eating fresh sweet banana fruit everyday.",
-        )
+		# Retrieve story
+		story = db.get_story("nifty_stories/gay/adult-friends/test-story.txt")
+		self.assertIsNotNone(story)
+		self.assertEqual(story["title"], "My Special Test Story")
+		self.assertEqual(story["author"], "Author Name <author@example.com>")
+		self.assertEqual(story["story_date"], "2026-07-05")
+		self.assertEqual(story["content"], "This is the content of my special test story with unique word banana.")
 
-        # Full-text search matching banana
-        results = db.search_stories(fts_query="banana", snippets=True)
-        self.assertEqual(len(results), 1)
-        self.assertIn("banana", results[0]["snippet"])
+	def test_execute_query(self) -> None:
+		from storybuilder.downloader import db
 
+		db.init_db(self.db_path)
+		db.insert_story(
+			output_path="nifty_stories/gay/adult-friends/test-story.txt",
+			title="Test Story",
+			author="Author",
+			story_date="2026-07-05",
+			url="http://example.com",
+			content="Content",
+		)
+
+		rows = db.execute_query("SELECT COUNT(*) as cnt FROM {table}")
+		self.assertEqual(len(rows), 1)
+		self.assertEqual(rows[0]["cnt"], 1)
+
+	def test_search_stories_fts(self) -> None:
+		from storybuilder.downloader import db
+
+		db.init_db(self.db_path)
+		db.insert_story(
+			output_path="nifty_stories/gay/adult-friends/test-story.txt",
+			title="Banana Story",
+			author="Monkey",
+			story_date="2026-07-05",
+			url="http://example.com",
+			content="Monkey loves eating fresh sweet banana fruit everyday.",
+		)
+
+		# Full-text search matching banana
+		results = db.search_stories(fts_query="banana", snippets=True)
+		self.assertEqual(len(results), 1)
+		self.assertIn("banana", results[0]["snippet"])
 
 
 class TestImportToSQLite(unittest.TestCase):
-    def _write_story_file(self, filename: str, content: str) -> str:
-        path = os.path.join(self.temp_dir, filename)
-        with open(path, "w", encoding="utf-8") as f:
-            f.write(content)
-        return path
+	def _write_story_file(self, filename: str, content: str) -> str:
+		path = os.path.join(self.temp_dir, filename)
+		with open(path, "w", encoding="utf-8") as f:
+			f.write(content)
+		return path
 
-    def setUp(self) -> None:
-        self.temp_dir = tempfile.mkdtemp()
+	def setUp(self) -> None:
+		self.temp_dir = tempfile.mkdtemp()
 
-    def tearDown(self) -> None:
-        shutil.rmtree(self.temp_dir, ignore_errors=True)
+	def tearDown(self) -> None:
+		shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def test_parse_header_valid(self) -> None:
-        import import_to_sqlite
+	def test_parse_header_valid(self) -> None:
+		from storybuilder.db_tools import import_to_sqlite
 
-        content = (
-            "================================================================================\n"
-            "Title: Test Story\n"
-            "Author: John Doe <john@example.com>\n"
-            "Publication Date: 2024-01-01\n"
-            "URL: http://example.com/story\n"
-            "================================================================================\n"
-            "\n"
-            "This is the body of the story.\n"
-            "It has multiple lines.\n"
-        )
-        path = self._write_story_file("valid.txt", content)
-        result = import_to_sqlite.parse_header(path)
+		content = (
+			"================================================================================\n"
+			"Title: Test Story\n"
+			"Author: John Doe <john@example.com>\n"
+			"Publication Date: 2024-01-01\n"
+			"URL: http://example.com/story\n"
+			"================================================================================\n"
+			"\n"
+			"This is the body of the story.\n"
+			"It has multiple lines.\n"
+		)
+		path = self._write_story_file("valid.txt", content)
+		result = import_to_sqlite.parse_header(path)
 
-        self.assertIsNotNone(result)
-        self.assertEqual(result["title"], "Test Story")
-        self.assertEqual(result["author_name"], "John Doe")
-        self.assertEqual(result["author_email"], "john@example.com")
-        self.assertEqual(result["publication_date"], "2024-01-01")
-        self.assertEqual(result["url"], "http://example.com/story")
-        self.assertEqual(
-            result["content"], "This is the body of the story.\nIt has multiple lines."
-        )
+		self.assertIsNotNone(result)
+		self.assertEqual(result["title"], "Test Story")
+		self.assertEqual(result["author_name"], "John Doe")
+		self.assertEqual(result["author_email"], "john@example.com")
+		self.assertEqual(result["publication_date"], "2024-01-01")
+		self.assertEqual(result["url"], "http://example.com/story")
+		self.assertEqual(result["content"], "This is the body of the story.\nIt has multiple lines.")
 
-    def test_parse_header_missing_fields(self) -> None:
-        import import_to_sqlite
+	def test_parse_header_missing_fields(self) -> None:
+		from storybuilder.db_tools import import_to_sqlite
 
-        content = (
-            "================================================================================\n"
-            "Title: No Author Story\n"
-            "Publication Date: 2024-02-01\n"
-            "================================================================================\n"
-            "\n"
-            "Body content here."
-        )
-        path = self._write_story_file("missing.txt", content)
-        result = import_to_sqlite.parse_header(path)
-        self.assertIsNotNone(result)
-        self.assertEqual(result["title"], "No Author Story")
-        self.assertIsNone(result["author_name"])
-        self.assertIsNone(result["author_email"])
-        self.assertEqual(result["publication_date"], "2024-02-01")
-        self.assertEqual(result["content"], "Body content here.")
+		content = (
+			"================================================================================\n"
+			"Title: No Author Story\n"
+			"Publication Date: 2024-02-01\n"
+			"================================================================================\n"
+			"\n"
+			"Body content here."
+		)
+		path = self._write_story_file("missing.txt", content)
+		result = import_to_sqlite.parse_header(path)
+		self.assertIsNotNone(result)
+		self.assertEqual(result["title"], "No Author Story")
+		self.assertIsNone(result["author_name"])
+		self.assertIsNone(result["author_email"])
+		self.assertEqual(result["publication_date"], "2024-02-01")
+		self.assertEqual(result["content"], "Body content here.")
 
-    def test_parse_header_invalid_format(self) -> None:
-        import import_to_sqlite
+	def test_parse_header_invalid_format(self) -> None:
+		from storybuilder.db_tools import import_to_sqlite
 
-        # Missing the second divider
-        content = (
-            "================================================================================\n"
-            "Title: Bad Format\n"
-            "Author: Me\n"
-            "Some content that is not a header."
-        )
-        path = self._write_story_file("invalid.txt", content)
-        result = import_to_sqlite.parse_header(path)
-        self.assertIsNone(result)
+		# Missing the second divider
+		content = (
+			"================================================================================\n"
+			"Title: Bad Format\n"
+			"Author: Me\n"
+			"Some content that is not a header."
+		)
+		path = self._write_story_file("invalid.txt", content)
+		result = import_to_sqlite.parse_header(path)
+		self.assertIsNone(result)
 
-    def test_minimal_header(self) -> None:
-        import import_to_sqlite
+	def test_minimal_header(self) -> None:
+		from storybuilder.db_tools import import_to_sqlite
 
-        content = (
-            "=" * 80 + "\n"
-            "Title: Minimal\n"
-            "Author: Min\n"
-            "Publication Date: 2024-01-01\n"
-            "URL: http://x.com\n" + "=" * 80 + "\n\n" + "body"
-        )
-        path = self._write_story_file("min.txt", content)
-        result = import_to_sqlite.parse_header(path)
-        self.assertIsNotNone(result)
-        self.assertEqual(result["title"], "Minimal")
-        self.assertEqual(result["content"], "body")
+		content = (
+			"=" * 80 + "\n"
+			"Title: Minimal\n"
+			"Author: Min\n"
+			"Publication Date: 2024-01-01\n"
+			"URL: http://x.com\n" + "=" * 80 + "\n\n" + "body"
+		)
+		path = self._write_story_file("min.txt", content)
+		result = import_to_sqlite.parse_header(path)
+		self.assertIsNotNone(result)
+		self.assertEqual(result["title"], "Minimal")
+		self.assertEqual(result["content"], "body")
 
-    def test_empty_content(self) -> None:
-        import import_to_sqlite
+	def test_empty_content(self) -> None:
+		from storybuilder.db_tools import import_to_sqlite
 
-        content = (
-            "=" * 80 + "\n"
-            "Title: Empty\n"
-            "Author: Nobody\n"
-            "Publication Date: 2024-01-01\n"
-            "URL: http://x.com\n" + "=" * 80 + "\n\n"
-        )
-        path = self._write_story_file("empty.txt", content)
-        result = import_to_sqlite.parse_header(path)
-        self.assertIsNotNone(result)
-        self.assertEqual(result["content"], "")
+		content = (
+			"=" * 80 + "\n"
+			"Title: Empty\n"
+			"Author: Nobody\n"
+			"Publication Date: 2024-01-01\n"
+			"URL: http://x.com\n" + "=" * 80 + "\n\n"
+		)
+		path = self._write_story_file("empty.txt", content)
+		result = import_to_sqlite.parse_header(path)
+		self.assertIsNotNone(result)
+		self.assertEqual(result["content"], "")
 
-    def test_flush_batch_compatibility(self) -> None:
-        import import_to_sqlite
+	def test_flush_batch_compatibility(self) -> None:
+		from storybuilder.db_tools import import_to_sqlite
+		from storybuilder.downloader import db
 
-        from storybuilder.downloader import db
+		db_path = os.path.join(self.temp_dir, "import_test.db")
+		conn = db.init_db(db_path)
 
-        db_path = os.path.join(self.temp_dir, "import_test.db")
-        conn = db.init_db(db_path)
+		batch = [
+			(
+				"nifty_stories/gay/category/slug/slug.txt",
+				"gay",
+				"category",
+				"slug",
+				None,
+				"Title",
+				"Author",
+				"author@example.com",
+				"2024-01-01",
+				"http://example.com",
+				100,
+				20,
+				"Content body",
+			)
+		]
+		inserted = import_to_sqlite._flush_batch(conn, batch, force=False)
+		self.assertEqual(inserted, 1)
 
-        batch = [
-            (
-                "nifty_stories/gay/category/slug/slug.txt",
-                "gay",
-                "category",
-                "slug",
-                None,
-                "Title",
-                "Author",
-                "author@example.com",
-                "2024-01-01",
-                "http://example.com",
-                100,
-                20,
-                "Content body",
-            )
-        ]
-        inserted = import_to_sqlite._flush_batch(conn, batch, force=False)
-        self.assertEqual(inserted, 1)
-
-        cur = conn.execute("SELECT title, author_name, content FROM stories WHERE path = ?", (batch[0][0],))
-        row = cur.fetchone()
-        self.assertIsNotNone(row)
-        self.assertEqual(row[0], "Title")
-        conn.close()
+		cur = conn.execute("SELECT title, author_name, content FROM stories WHERE path = ?", (batch[0][0],))
+		row = cur.fetchone()
+		self.assertIsNotNone(row)
+		self.assertEqual(row[0], "Title")
+		conn.close()
 
 
 class TestDBSearch(unittest.TestCase):
-    """Tests for search_stories and related functions."""
+	"""Tests for search_stories and related functions."""
 
-    def setUp(self) -> None:
-        import tempfile
+	def setUp(self) -> None:
+		import tempfile
 
-        from storybuilder.downloader import db
+		from storybuilder.downloader import db
 
-        self.temp_dir = tempfile.mkdtemp()
-        self.db_path = os.path.join(self.temp_dir, "test.db")
-        db.init_db(self.db_path)
+		self.temp_dir = tempfile.mkdtemp()
+		self.db_path = os.path.join(self.temp_dir, "test.db")
+		db.init_db(self.db_path)
 
-        db.insert_story(
-            output_path="/tmp/story1.txt",
-            title="Love Story",
-            author="Author A",
-            story_date="2024-06-01",
-            url="http://ex/1",
-            content="A story about love and romance",
-        )
-        db.insert_story(
-            output_path="/tmp/story2.txt",
-            title="Adventure Tale",
-            author="Author B",
-            story_date="2024-07-15",
-            url="http://ex/2",
-            content="An adventure in the mountains",
-        )
+		db.insert_story(
+			output_path="/tmp/story1.txt",
+			title="Love Story",
+			author="Author A",
+			story_date="2024-06-01",
+			url="http://ex/1",
+			content="A story about love and romance",
+		)
+		db.insert_story(
+			output_path="/tmp/story2.txt",
+			title="Adventure Tale",
+			author="Author B",
+			story_date="2024-07-15",
+			url="http://ex/2",
+			content="An adventure in the mountains",
+		)
 
-    def tearDown(self) -> None:
-        import shutil
-        shutil.rmtree(self.temp_dir)
+	def tearDown(self) -> None:
+		import shutil
 
-    def test_search_stories_basic(self) -> None:
-        from storybuilder.downloader import db
+		shutil.rmtree(self.temp_dir)
 
-        results = db.search_stories("love")
-        self.assertEqual(len(results), 1)
-        self.assertEqual(results[0]["title"], "Love Story")
+	def test_search_stories_basic(self) -> None:
+		from storybuilder.downloader import db
 
-    def test_search_stories_with_category_filter(self) -> None:
-        from storybuilder.downloader import db
+		results = db.search_stories("love")
+		self.assertEqual(len(results), 1)
+		self.assertEqual(results[0]["title"], "Love Story")
 
-        results = db.search_stories("adventure", category="gay")
-        self.assertIsInstance(results, list)
+	def test_search_stories_with_category_filter(self) -> None:
+		from storybuilder.downloader import db
 
-    def test_search_stories_with_author_filter(self) -> None:
-        from storybuilder.downloader import db
+		results = db.search_stories("adventure", category="gay")
+		self.assertIsInstance(results, list)
 
-        results = db.search_stories("", author="Author A")
-        self.assertEqual(len(results), 1)
-        self.assertEqual(results[0]["author_name"], "Author A")
+	def test_search_stories_with_author_filter(self) -> None:
+		from storybuilder.downloader import db
 
-    def test_search_stories_date_range(self) -> None:
-        from storybuilder.downloader import db
+		results = db.search_stories("", author="Author A")
+		self.assertEqual(len(results), 1)
+		self.assertEqual(results[0]["author_name"], "Author A")
 
-        results = db.search_stories("", date_from="2024-06-01", date_to="2024-06-30")
-        self.assertEqual(len(results), 1)
-        self.assertEqual(results[0]["title"], "Love Story")
+	def test_search_stories_date_range(self) -> None:
+		from storybuilder.downloader import db
 
-    def test_search_stories_no_results(self) -> None:
-        from storybuilder.downloader import db
+		results = db.search_stories("", date_from="2024-06-01", date_to="2024-06-30")
+		self.assertEqual(len(results), 1)
+		self.assertEqual(results[0]["title"], "Love Story")
 
-        results = db.search_stories("nonexistent_word_xyz")
-        self.assertEqual(len(results), 0)
+	def test_search_stories_no_results(self) -> None:
+		from storybuilder.downloader import db
 
-    def test_search_stories_limit(self) -> None:
-        from storybuilder.downloader import db
+		results = db.search_stories("nonexistent_word_xyz")
+		self.assertEqual(len(results), 0)
 
-        results = db.search_stories("", limit=1)
-        self.assertLessEqual(len(results), 1)
+	def test_search_stories_limit(self) -> None:
+		from storybuilder.downloader import db
+
+		results = db.search_stories("", limit=1)
+		self.assertLessEqual(len(results), 1)
 
 
 class TestDBParseOutputPath(unittest.TestCase):
-    """Tests for _parse_output_path.
+	"""Tests for _parse_output_path.
 
-    Path format: output_dir/orientation/category/file (relative, no leading /)
-    """
+	Path format: output_dir/orientation/category/file (relative, no leading /)
+	"""
 
-    def test_parse_4part_path(self) -> None:
-        """4-part: output/orientation/category/file"""
-        from storybuilder.downloader.db import _parse_output_path
+	def test_parse_4part_path(self) -> None:
+		"""4-part: output/orientation/category/file"""
+		from storybuilder.downloader.db import _parse_output_path
 
-        orientation, category, story_slug, chapter = _parse_output_path(
-            "output/gay/romance/story.txt"
-        )
-        self.assertEqual(orientation, "gay")
-        self.assertEqual(category, "romance")
-        self.assertEqual(story_slug, "story")
+		orientation, category, story_slug, chapter = _parse_output_path("output/gay/romance/story.txt")
+		self.assertEqual(orientation, "gay")
+		self.assertEqual(category, "romance")
+		self.assertEqual(story_slug, "story")
 
-    def test_parse_5part_path(self) -> None:
-        """5-part: output/orientation/category/slug/file"""
-        from storybuilder.downloader.db import _parse_output_path
+	def test_parse_5part_path(self) -> None:
+		"""5-part: output/orientation/category/slug/file"""
+		from storybuilder.downloader.db import _parse_output_path
 
-        orientation, category, story_slug, chapter = _parse_output_path(
-            "output/gay/series/my-story/ch1.txt"
-        )
-        self.assertEqual(orientation, "gay")
-        self.assertEqual(category, "series")
-        self.assertEqual(story_slug, "my-story")
+		orientation, category, story_slug, chapter = _parse_output_path("output/gay/series/my-story/ch1.txt")
+		self.assertEqual(orientation, "gay")
+		self.assertEqual(category, "series")
+		self.assertEqual(story_slug, "my-story")
 
-    def test_parse_3part_path(self) -> None:
-        """3-part: output/orientation/file"""
-        from storybuilder.downloader.db import _parse_output_path
+	def test_parse_3part_path(self) -> None:
+		"""3-part: output/orientation/file"""
+		from storybuilder.downloader.db import _parse_output_path
 
-        orientation, category, story_slug, chapter = _parse_output_path(
-            "output/gay/some-story.txt"
-        )
-        self.assertEqual(orientation, "gay")
-        self.assertEqual(category, "some-story.txt")  # full filename for 3-part
-        self.assertEqual(story_slug, "some-story")
+		orientation, category, story_slug, chapter = _parse_output_path("output/gay/some-story.txt")
+		self.assertEqual(orientation, "gay")
+		self.assertEqual(category, "some-story.txt")  # full filename for 3-part
+		self.assertEqual(story_slug, "some-story")
 
-    def test_parse_with_chapter_suffix(self) -> None:
-        from storybuilder.downloader.db import _parse_output_path
+	def test_parse_with_chapter_suffix(self) -> None:
+		from storybuilder.downloader.db import _parse_output_path
 
-        orientation, category, story_slug, chapter = _parse_output_path(
-            "output/gay/series/chapter-5.txt"
-        )
-        self.assertEqual(story_slug, "chapter")
-        self.assertEqual(chapter, 5)
+		orientation, category, story_slug, chapter = _parse_output_path("output/gay/series/chapter-5.txt")
+		self.assertEqual(story_slug, "chapter")
+		self.assertEqual(chapter, 5)
 
-    def test_parse_invalid_too_short(self) -> None:
-        from storybuilder.downloader.db import _parse_output_path
+	def test_parse_invalid_too_short(self) -> None:
+		from storybuilder.downloader.db import _parse_output_path
 
-        with self.assertRaises(ValueError):
-            _parse_output_path("short.txt")
+		with self.assertRaises(ValueError):
+			_parse_output_path("short.txt")
 
 
 class TestDBContentOperations(unittest.TestCase):
-    """Tests for content update/delete operations."""
+	"""Tests for content update/delete operations."""
 
-    def setUp(self) -> None:
-        import tempfile
+	def setUp(self) -> None:
+		import tempfile
 
-        from storybuilder.downloader import db
+		from storybuilder.downloader import db
 
-        self.temp_dir = tempfile.mkdtemp()
-        self.db_path = os.path.join(self.temp_dir, "test.db")
-        db.init_db(self.db_path)
+		self.temp_dir = tempfile.mkdtemp()
+		self.db_path = os.path.join(self.temp_dir, "test.db")
+		db.init_db(self.db_path)
 
-    def tearDown(self) -> None:
-        import shutil
-        shutil.rmtree(self.temp_dir)
+	def tearDown(self) -> None:
+		import shutil
 
-    def test_get_story_returns_all_fields(self) -> None:
-        from storybuilder.downloader import db
+		shutil.rmtree(self.temp_dir)
 
-        db.insert_story(
-            output_path="/tmp/fields_test.txt",
-            title="Test Title",
-            author="Test Author",
-            story_date="2024-06-01",
-            url="http://ex/test",
-            content="Test content here",
-        )
+	def test_get_story_returns_all_fields(self) -> None:
+		from storybuilder.downloader import db
 
-        result = db.get_story("/tmp/fields_test.txt")
+		db.insert_story(
+			output_path="/tmp/fields_test.txt",
+			title="Test Title",
+			author="Test Author",
+			story_date="2024-06-01",
+			url="http://ex/test",
+			content="Test content here",
+		)
 
-        self.assertIsNotNone(result)
-        assert result is not None
-        self.assertEqual(result["title"], "Test Title")
-        self.assertIn("Test Author", result["author"])
-        self.assertEqual(result["url"], "http://ex/test")
-        self.assertIn("Test content", result["content"])
+		result = db.get_story("/tmp/fields_test.txt")
+
+		self.assertIsNotNone(result)
+		assert result is not None
+		self.assertEqual(result["title"], "Test Title")
+		self.assertIn("Test Author", result["author"])
+		self.assertEqual(result["url"], "http://ex/test")
+		self.assertIn("Test content", result["content"])
+
+
+class TestFlagBulkTouchedDates(unittest.TestCase):
+	"""Tests for flag_bulk_touched_dates."""
+
+	def setUp(self) -> None:
+		self.temp_dir = tempfile.mkdtemp()
+		self.db_path = os.path.join(self.temp_dir, "test.db")
+
+	def tearDown(self) -> None:
+		from storybuilder.downloader import db
+
+		db.close_db()
+		shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+	def _insert(self, idx: int, date: str) -> None:
+		from storybuilder.downloader.db import insert_story
+
+		insert_story(
+			output_path=f"nifty_stories/gay/college/bulk-{idx}.txt",
+			title=f"Bulk Story {idx}",
+			author="Test Author <test@example.com>",
+			story_date=date,
+			url=f"https://example.com/{idx}",
+			content=f"content {idx} uniquetoken{idx}",
+		)
+
+	def test_flags_dense_dates_only(self) -> None:
+		from storybuilder.downloader import db
+
+		conn = db.init_db(self.db_path)
+		for i in range(10):
+			self._insert(i, "2027-05-05")
+		for i in range(10, 13):
+			self._insert(i, "2027-05-06")
+
+		flagged = db.flag_bulk_touched_dates(day_threshold=5)
+
+		self.assertEqual(flagged, 10)
+		counts = dict(
+			conn.execute("SELECT publication_date, COUNT(*) FROM stories GROUP BY publication_date").fetchall()
+		)
+		self.assertEqual(counts.get(db.BULK_TOUCH_EPOCH_DATE), 10)
+		self.assertEqual(counts.get("2027-05-06"), 3)
+		self.assertNotIn("2027-05-05", counts)
+
+	def test_idempotent_and_epoch_excluded(self) -> None:
+		from storybuilder.downloader import db
+
+		db.init_db(self.db_path)
+		for i in range(8):
+			self._insert(i, "2027-05-05")
+
+		self.assertEqual(db.flag_bulk_touched_dates(day_threshold=5), 8)
+		self.assertEqual(db.flag_bulk_touched_dates(day_threshold=5), 0)
+
+	def test_triggers_and_fts_stay_intact(self) -> None:
+		from storybuilder.downloader import db
+
+		conn = db.init_db(self.db_path)
+		for i in range(10):
+			self._insert(i, "2027-05-05")
+
+		db.flag_bulk_touched_dates(day_threshold=5)
+
+		triggers = conn.execute(
+			"SELECT COUNT(*) FROM sqlite_master WHERE type='trigger' "
+			"AND name IN ('stories_ai','stories_ad','stories_au')"
+		).fetchone()[0]
+		self.assertEqual(triggers, 3)
+		stories_n = conn.execute("SELECT COUNT(*) FROM stories").fetchone()[0]
+		fts_n = conn.execute("SELECT COUNT(*) FROM stories_fts").fetchone()[0]
+		self.assertEqual(stories_n, fts_n)
+		hits = conn.execute("SELECT COUNT(*) FROM stories_fts WHERE stories_fts MATCH 'uniquetoken3'").fetchone()[0]
+		self.assertEqual(hits, 1)
+
+	def test_no_op_without_connection(self) -> None:
+		from storybuilder.downloader import db
+
+		self.assertEqual(db.flag_bulk_touched_dates(), 0)
+
+
+class TestRedateFromContentHeaders(unittest.TestCase):
+	"""Tests for redate_from_content_headers."""
+
+	def setUp(self) -> None:
+		self.temp_dir = tempfile.mkdtemp()
+		self.db_path = os.path.join(self.temp_dir, "test.db")
+
+	def tearDown(self) -> None:
+		from storybuilder.downloader import db
+
+		db.close_db()
+		shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+	def _insert(self, idx: int, date: str, content: str) -> None:
+		from storybuilder.downloader.db import insert_story
+
+		insert_story(
+			output_path=f"nifty_stories/gay/college/redate-{idx}.txt",
+			title=f"Story {idx}",
+			author="Test Author <test@example.com>",
+			story_date=date,
+			url=f"https://example.com/{idx}",
+			content=content,
+		)
+
+	def test_redates_from_valid_header(self) -> None:
+		from storybuilder.downloader import db
+
+		conn = db.init_db(self.db_path)
+		self._insert(
+			1,
+			db.BULK_TOUCH_EPOCH_DATE,
+			"Date: Wed, 28 Dec 2011 22:57:49 -0800\nFrom: a@b.c\nSubject: S\n\nBody text redateone",
+		)
+
+		stats = db.redate_from_content_headers()
+
+		self.assertEqual(stats["scanned"], 1)
+		self.assertEqual(stats["redated"], 1)
+		self.assertEqual(
+			conn.execute("SELECT publication_date FROM stories").fetchone()[0],
+			"2011-12-28",
+		)
+
+	def test_no_header_leaves_epoch(self) -> None:
+		from storybuilder.downloader import db
+
+		conn = db.init_db(self.db_path)
+		self._insert(1, db.BULK_TOUCH_EPOCH_DATE, "Just body text, no headers redatetwo")
+
+		stats = db.redate_from_content_headers()
+
+		self.assertEqual(stats["no_header"], 1)
+		self.assertEqual(stats["redated"], 0)
+		self.assertEqual(
+			conn.execute("SELECT publication_date FROM stories").fetchone()[0],
+			db.BULK_TOUCH_EPOCH_DATE,
+		)
+
+	def test_malformed_header_counts_parse_failed(self) -> None:
+		from storybuilder.downloader import db
+
+		db.init_db(self.db_path)
+		self._insert(1, db.BULK_TOUCH_EPOCH_DATE, "Date: not-a-real-date\n\nBody redatethree")
+
+		stats = db.redate_from_content_headers()
+
+		self.assertEqual(stats["parse_failed"], 1)
+		self.assertEqual(stats["redated"], 0)
+
+	def test_out_of_range_rejected(self) -> None:
+		import datetime as dt
+		from email.utils import format_datetime
+
+		from storybuilder.downloader import db
+
+		conn = db.init_db(self.db_path)
+		future = format_datetime(dt.datetime.now(dt.timezone.utc) + dt.timedelta(days=400))
+		self._insert(1, db.BULK_TOUCH_EPOCH_DATE, f"Date: {future}\n\nBody redatefour")
+		self._insert(
+			2,
+			db.BULK_TOUCH_EPOCH_DATE,
+			"Date: Mon, 1 Jan 1975 00:00:00 +0000\n\nBody redatefive",
+		)
+
+		stats = db.redate_from_content_headers()
+
+		self.assertEqual(stats["out_of_range"], 2)
+		self.assertEqual(stats["redated"], 0)
+		n_epoch = conn.execute(
+			"SELECT COUNT(*) FROM stories WHERE publication_date=?",
+			(db.BULK_TOUCH_EPOCH_DATE,),
+		).fetchone()[0]
+		self.assertEqual(n_epoch, 2)
+
+	def test_unflagged_rows_untouched(self) -> None:
+		from storybuilder.downloader import db
+
+		conn = db.init_db(self.db_path)
+		self._insert(1, "2001-05-05", "Date: Wed, 28 Dec 2011 22:57:49 -0800\n\nBody redatesix")
+
+		stats = db.redate_from_content_headers()
+
+		self.assertEqual(stats["scanned"], 0)
+		self.assertEqual(
+			conn.execute("SELECT publication_date FROM stories").fetchone()[0],
+			"2001-05-05",
+		)
+
+	def test_dry_run_writes_nothing(self) -> None:
+		from storybuilder.downloader import db
+
+		conn = db.init_db(self.db_path)
+		self._insert(1, db.BULK_TOUCH_EPOCH_DATE, "Date: Wed, 28 Dec 2011 22:57:49 -0800\n\nBody redateseven")
+
+		stats = db.redate_from_content_headers(dry_run=True)
+
+		self.assertEqual(stats["redated"], 1)
+		self.assertEqual(
+			conn.execute("SELECT publication_date FROM stories").fetchone()[0],
+			db.BULK_TOUCH_EPOCH_DATE,
+		)
+
+	def test_fts_and_triggers_stay_intact(self) -> None:
+		from storybuilder.downloader import db
+
+		conn = db.init_db(self.db_path)
+		self._insert(
+			1,
+			db.BULK_TOUCH_EPOCH_DATE,
+			"Date: Wed, 28 Dec 2011 22:57:49 -0800\n\nBody text redatetoken8",
+		)
+
+		db.redate_from_content_headers()
+
+		triggers = conn.execute(
+			"SELECT COUNT(*) FROM sqlite_master WHERE type='trigger' "
+			"AND name IN ('stories_ai','stories_ad','stories_au')"
+		).fetchone()[0]
+		self.assertEqual(triggers, 3)
+		stories_n = conn.execute("SELECT COUNT(*) FROM stories").fetchone()[0]
+		fts_n = conn.execute("SELECT COUNT(*) FROM stories_fts").fetchone()[0]
+		self.assertEqual(stories_n, fts_n)
+		hits = conn.execute("SELECT COUNT(*) FROM stories_fts WHERE stories_fts MATCH 'redatetoken8'").fetchone()[0]
+		self.assertEqual(hits, 1)
+
+
+class TestInterpolateSiblingDates(unittest.TestCase):
+	"""Tests for interpolate_sibling_dates."""
+
+	def setUp(self) -> None:
+		self.temp_dir = tempfile.mkdtemp()
+		self.db_path = os.path.join(self.temp_dir, "test.db")
+
+	def tearDown(self) -> None:
+		from storybuilder.downloader import db
+
+		db.close_db()
+		shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+	def _insert(self, slug: str, ch: "str | None", date: str, category: str = "college") -> None:
+		from storybuilder.downloader.db import insert_story
+
+		name = f"{slug}-{ch}" if ch is not None else slug
+		insert_story(
+			output_path=f"nifty_stories/gay/{category}/{slug}/{name}.txt",
+			title=f"T {name}",
+			author="Test Author",
+			story_date=date,
+			url=f"https://example.com/{name}",
+			content=f"content {name} token{name.replace('-', '')}",
+		)
+
+	def test_interpolates_between_dated_siblings(self) -> None:
+		from storybuilder.downloader import db
+
+		conn = db.init_db(self.db_path)
+		self._insert("slug-a", "1", "2020-01-01")
+		self._insert("slug-a", "2", db.BULK_TOUCH_EPOCH_DATE)
+		self._insert("slug-a", "3", "2020-01-11")
+
+		stats = db.interpolate_sibling_dates()
+
+		self.assertEqual(stats["interpolated"], 1)
+		self.assertEqual(stats["updated"], 1)
+		date = conn.execute("SELECT publication_date FROM stories WHERE path LIKE '%slug-a-2%'").fetchone()[0]
+		self.assertEqual(date, "2020-01-06")
+
+	def test_extrapolates_at_series_ends(self) -> None:
+		from storybuilder.downloader import db
+
+		conn = db.init_db(self.db_path)
+		self._insert("slug-a", "1", "2020-01-01")
+		self._insert("slug-a", "3", "2020-01-11")
+		self._insert("slug-a", "5", db.BULK_TOUCH_EPOCH_DATE)
+		self._insert("slug-b", "0", db.BULK_TOUCH_EPOCH_DATE)
+		self._insert("slug-b", "2", "2020-03-01")
+		self._insert("slug-b", "4", "2020-03-11")
+
+		stats = db.interpolate_sibling_dates()
+
+		self.assertEqual(stats["extrapolated"], 2)
+		tail = conn.execute("SELECT publication_date FROM stories WHERE path LIKE '%slug-a-5%'").fetchone()[0]
+		self.assertEqual(tail, "2020-01-21")
+		head = conn.execute("SELECT publication_date FROM stories WHERE path LIKE '%slug-b-0%'").fetchone()[0]
+		self.assertEqual(head, "2020-02-20")
+
+	def test_clamps_extrapolation_to_today(self) -> None:
+		import datetime as dt
+
+		from storybuilder.downloader import db
+
+		conn = db.init_db(self.db_path)
+		yesterday = (dt.date.today() - dt.timedelta(days=1)).isoformat()
+		self._insert("slug-c", "1", yesterday)
+		self._insert("slug-c", "3", db.BULK_TOUCH_EPOCH_DATE)
+
+		db.interpolate_sibling_dates()
+
+		date = conn.execute("SELECT publication_date FROM stories WHERE path LIKE '%slug-c-3%'").fetchone()[0]
+		self.assertEqual(date, dt.date.today().isoformat())
+
+	def test_category_isolation(self) -> None:
+		from storybuilder.downloader import db
+
+		conn = db.init_db(self.db_path)
+		self._insert("slug-a", "1", "2020-01-01", category="college")
+		self._insert("slug-a", "2", db.BULK_TOUCH_EPOCH_DATE, category="college")
+		self._insert("slug-a", "1", db.BULK_TOUCH_EPOCH_DATE, category="athletics")
+		self._insert("slug-a", "3", db.BULK_TOUCH_EPOCH_DATE, category="athletics")
+
+		stats = db.interpolate_sibling_dates()
+
+		self.assertEqual(stats["updated"], 1)
+		untouched = conn.execute(
+			"SELECT COUNT(*) FROM stories WHERE category='athletics' AND publication_date=?",
+			(db.BULK_TOUCH_EPOCH_DATE,),
+		).fetchone()[0]
+		self.assertEqual(untouched, 2)
+
+	def test_skipped_no_chapter(self) -> None:
+		from storybuilder.downloader import db
+
+		db.init_db(self.db_path)
+		self._insert("slug-a", "1", "2020-01-01")
+		self._insert("slug-a", None, db.BULK_TOUCH_EPOCH_DATE)
+
+		stats = db.interpolate_sibling_dates()
+
+		self.assertEqual(stats["skipped_no_chapter"], 1)
+		self.assertEqual(stats["updated"], 0)
+
+	def test_dry_run_writes_nothing(self) -> None:
+		from storybuilder.downloader import db
+
+		conn = db.init_db(self.db_path)
+		self._insert("slug-a", "1", "2020-01-01")
+		self._insert("slug-a", "2", db.BULK_TOUCH_EPOCH_DATE)
+		self._insert("slug-a", "3", "2020-01-11")
+
+		stats = db.interpolate_sibling_dates(dry_run=True)
+
+		self.assertEqual(stats["updated"], 1)
+		date = conn.execute("SELECT publication_date FROM stories WHERE path LIKE '%slug-a-2%'").fetchone()[0]
+		self.assertEqual(date, db.BULK_TOUCH_EPOCH_DATE)
+
+	def test_triggers_and_fts_stay_intact(self) -> None:
+		from storybuilder.downloader import db
+
+		conn = db.init_db(self.db_path)
+		self._insert("slug-a", "1", "2020-01-01")
+		self._insert("slug-a", "2", db.BULK_TOUCH_EPOCH_DATE)
+		self._insert("slug-a", "3", "2020-01-11")
+
+		db.interpolate_sibling_dates()
+
+		triggers = conn.execute(
+			"SELECT COUNT(*) FROM sqlite_master WHERE type='trigger' "
+			"AND name IN ('stories_ai','stories_ad','stories_au')"
+		).fetchone()[0]
+		self.assertEqual(triggers, 3)
+		stories_n = conn.execute("SELECT COUNT(*) FROM stories").fetchone()[0]
+		fts_n = conn.execute("SELECT COUNT(*) FROM stories_fts").fetchone()[0]
+		self.assertEqual(stories_n, fts_n)
+
+
+class TestRefetchHeaderlessDates(unittest.TestCase):
+	"""Tests for refetch.refetch_headerless_dates."""
+
+	def setUp(self) -> None:
+		self.temp_dir = tempfile.mkdtemp()
+		self.db_path = os.path.join(self.temp_dir, "test.db")
+
+	def tearDown(self) -> None:
+		from storybuilder.downloader import db
+
+		db.close_db()
+		shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+	def _insert(self, idx: int, url: str, date: "str | None" = None) -> None:
+		from storybuilder.downloader import db
+		from storybuilder.downloader.db import insert_story
+
+		insert_story(
+			output_path=f"nifty_stories/gay/college/rf-{idx}.txt",
+			title="Unknown",
+			author="Unknown",
+			story_date=date if date is not None else db.BULK_TOUCH_EPOCH_DATE,
+			url=url,
+			content=f"stripped content {idx}",
+		)
+
+	@staticmethod
+	def _response(status=200, text=""):
+		from unittest.mock import MagicMock
+
+		resp = MagicMock()
+		resp.status_code = status
+		resp.text = text
+		return resp
+
+	def test_is_headerless_url(self) -> None:
+		from storybuilder.downloader.refetch import is_headerless_url
+
+		self.assertTrue(is_headerless_url("https://nifty.org/nifty/gay/x/story-10"))
+		self.assertTrue(is_headerless_url("https://nifty.org/nifty/gay/x/story-10/"))
+		self.assertFalse(is_headerless_url("https://nifty.org/nifty/gay/x/story-10.html"))
+		self.assertFalse(is_headerless_url("https://nifty.org/nifty/gay/x/story.txt"))
+		self.assertFalse(is_headerless_url("https://nifty.org/nifty/gay/x/story.pdf"))
+
+	def test_refetch_updates_date_content_and_metadata(self) -> None:
+		from unittest.mock import patch
+
+		from storybuilder.downloader import db
+		from storybuilder.downloader import refetch
+
+		conn = db.init_db(self.db_path)
+		self._insert(1, "https://nifty.org/nifty/gay/college/rf-1")
+		body = (
+			"Date: Wed, 28 Dec 2011 22:57:49 -0800\n"
+			"From: Jane Doe <jane@example.com>\n"
+			"Subject: My Great Story\n\nBody text here"
+		)
+		with patch("storybuilder.downloader.refetch.requests.get", return_value=self._response(text=body)) as mock_get:
+			stats = refetch.refetch_headerless_dates(delay=0)
+
+		self.assertEqual(stats["dated"], 1)
+		self.assertEqual(stats["rows_updated"], 1)
+		self.assertEqual(mock_get.call_count, 1)
+		row = conn.execute(
+			"SELECT publication_date, content, title, author_name, author_email, char_count FROM stories"
+		).fetchone()
+		self.assertEqual(row[0], "2011-12-28")
+		self.assertEqual(row[1], body)
+		self.assertEqual(row[2], "My Great Story")
+		self.assertEqual(row[3], "Jane Doe")
+		self.assertEqual(row[4], "jane@example.com")
+		self.assertEqual(row[5], len(body))
+
+	def test_duplicate_urls_fetched_once(self) -> None:
+		from unittest.mock import patch
+
+		from storybuilder.downloader import db
+		from storybuilder.downloader import refetch
+
+		conn = db.init_db(self.db_path)
+		url = "https://nifty.org/nifty/gay/college/dup-story"
+		self._insert(1, url)
+		self._insert(2, url)
+		body = "Date: Wed, 28 Dec 2011 22:57:49 -0800\n\nBody"
+		with patch("storybuilder.downloader.refetch.requests.get", return_value=self._response(text=body)) as mock_get:
+			stats = refetch.refetch_headerless_dates(delay=0)
+
+		self.assertEqual(mock_get.call_count, 1)
+		self.assertEqual(stats["rows_updated"], 2)
+		n = conn.execute("SELECT COUNT(*) FROM stories WHERE publication_date='2011-12-28'").fetchone()[0]
+		self.assertEqual(n, 2)
+
+	def test_html_urls_not_fetched(self) -> None:
+		from unittest.mock import patch
+
+		from storybuilder.downloader import db
+		from storybuilder.downloader import refetch
+
+		db.init_db(self.db_path)
+		self._insert(1, "https://nifty.org/nifty/gay/college/rf-1.html")
+		with patch("storybuilder.downloader.refetch.requests.get") as mock_get:
+			stats = refetch.refetch_headerless_dates(delay=0)
+
+		self.assertEqual(mock_get.call_count, 0)
+		self.assertEqual(stats["candidates"], 0)
+
+	def test_no_header_and_http_error_and_out_of_range(self) -> None:
+		import datetime as dt
+		from email.utils import format_datetime
+		from unittest.mock import patch
+
+		from storybuilder.downloader import db
+		from storybuilder.downloader import refetch
+
+		conn = db.init_db(self.db_path)
+		self._insert(1, "https://nifty.org/nifty/gay/college/nohdr")
+		self._insert(2, "https://nifty.org/nifty/gay/college/gone")
+		future = format_datetime(dt.datetime.now(dt.timezone.utc) + dt.timedelta(days=400))
+		self._insert(3, "https://nifty.org/nifty/gay/college/future")
+
+		def fake_get(url, **kwargs):
+			if "nohdr" in url:
+				return self._response(text="<html><body>no headers</body></html>")
+			if "gone" in url:
+				return self._response(status=404, text="")
+			return self._response(text=f"Date: {future}\n\nBody")
+
+		with patch("storybuilder.downloader.refetch.requests.get", side_effect=fake_get):
+			stats = refetch.refetch_headerless_dates(delay=0)
+
+		self.assertEqual(stats["no_header"], 1)
+		self.assertEqual(stats["http_error"], 1)
+		self.assertEqual(stats["out_of_range"], 1)
+		self.assertEqual(stats["dated"], 0)
+		n = conn.execute(
+			"SELECT COUNT(*) FROM stories WHERE publication_date=?", (db.BULK_TOUCH_EPOCH_DATE,)
+		).fetchone()[0]
+		self.assertEqual(n, 3)
+
+	def test_dry_run_writes_nothing(self) -> None:
+		from unittest.mock import patch
+
+		from storybuilder.downloader import db
+		from storybuilder.downloader import refetch
+
+		conn = db.init_db(self.db_path)
+		self._insert(1, "https://nifty.org/nifty/gay/college/rf-1")
+		body = "Date: Wed, 28 Dec 2011 22:57:49 -0800\n\nBody"
+		with patch("storybuilder.downloader.refetch.requests.get", return_value=self._response(text=body)):
+			stats = refetch.refetch_headerless_dates(delay=0, dry_run=True)
+
+		self.assertEqual(stats["dated"], 1)
+		date = conn.execute("SELECT publication_date FROM stories").fetchone()[0]
+		self.assertEqual(date, db.BULK_TOUCH_EPOCH_DATE)
+
+
+class TestDateSourceProvenance(unittest.TestCase):
+	"""Tests for date_source provenance stamping and migration."""
+
+	def setUp(self) -> None:
+		self.temp_dir = tempfile.mkdtemp()
+		self.db_path = os.path.join(self.temp_dir, "test.db")
+
+	def tearDown(self) -> None:
+		from storybuilder.downloader import db
+
+		db.close_db()
+		shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+	def _insert(self, idx: int, date: str, content: str, url: str = "", **kwargs) -> None:
+		from storybuilder.downloader.db import insert_story
+
+		insert_story(
+			output_path=f"nifty_stories/gay/college/prov-{idx}.txt",
+			title=f"Story {idx}",
+			author="Test Author",
+			story_date=date,
+			url=url or f"https://example.com/prov-{idx}",
+			content=content,
+			**kwargs,
+		)
+
+	def test_migration_adds_column_with_default(self) -> None:
+		from storybuilder.downloader.db import init_db
+
+		raw = sqlite3.connect(self.db_path)
+		raw.execute(
+			"""CREATE TABLE stories (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                path TEXT UNIQUE NOT NULL,
+                orientation TEXT NOT NULL DEFAULT 'gay',
+                category TEXT, story_slug TEXT, chapter_num INTEGER,
+                title TEXT, author_name TEXT, author_email TEXT,
+                publication_date TEXT, url TEXT,
+                char_count INTEGER NOT NULL, word_count INTEGER NOT NULL,
+                content TEXT NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )"""
+		)
+		raw.execute("INSERT INTO stories (path, char_count, word_count, content) VALUES ('a/b/c.txt', 3, 1, 'abc')")
+		raw.commit()
+		raw.close()
+
+		conn = init_db(self.db_path)
+		cols = [r[1] for r in conn.execute("PRAGMA table_info(stories)").fetchall()]
+		self.assertIn("date_source", cols)
+		self.assertEqual(conn.execute("SELECT date_source FROM stories").fetchone()[0], "listing")
+
+	def test_insert_story_stamps_listing_and_override(self) -> None:
+		from storybuilder.downloader import db
+
+		conn = db.init_db(self.db_path)
+		self._insert(1, "2020-01-01", "body provone")
+		self._insert(2, "2020-01-02", "body provtwo", date_source="content_header")
+		rows = dict(conn.execute("SELECT path, date_source FROM stories").fetchall())
+		self.assertEqual(rows["nifty_stories/gay/college/prov-1.txt"], "listing")
+		self.assertEqual(rows["nifty_stories/gay/college/prov-2.txt"], "content_header")
+
+	def test_get_story_returns_date_source(self) -> None:
+		from storybuilder.downloader import db
+
+		db.init_db(self.db_path)
+		self._insert(1, "2020-01-01", "body provthree")
+		story = db.get_story("nifty_stories/gay/college/prov-1.txt")
+		self.assertEqual(story["date_source"], "listing")
+
+	def test_flag_stamps_unresolved(self) -> None:
+		from storybuilder.downloader import db
+
+		conn = db.init_db(self.db_path)
+		for i in range(10):
+			self._insert(i, "2027-05-05", f"body provflag{i}")
+
+		db.flag_bulk_touched_dates(day_threshold=5)
+
+		row = conn.execute("SELECT publication_date, date_source FROM stories LIMIT 1").fetchone()
+		self.assertEqual(row[0], db.BULK_TOUCH_EPOCH_DATE)
+		self.assertEqual(row[1], "unresolved")
+
+	def test_redate_stamps_content_header(self) -> None:
+		from storybuilder.downloader import db
+
+		conn = db.init_db(self.db_path)
+		self._insert(1, db.BULK_TOUCH_EPOCH_DATE, "Date: Wed, 28 Dec 2011 22:57:49 -0800\n\nBody provredate")
+
+		db.redate_from_content_headers()
+
+		row = conn.execute("SELECT publication_date, date_source FROM stories").fetchone()
+		self.assertEqual(row[0], "2011-12-28")
+		self.assertEqual(row[1], "content_header")
+
+	def test_interpolate_stamps_interpolated_and_extrapolated(self) -> None:
+		from storybuilder.downloader import db
+
+		conn = db.init_db(self.db_path)
+
+		def ins(slug, ch, date):
+			from storybuilder.downloader.db import insert_story
+
+			insert_story(
+				output_path=f"nifty_stories/gay/college/{slug}/{slug}-{ch}.txt",
+				title="T",
+				author="A",
+				story_date=date,
+				url=f"https://example.com/{slug}-{ch}",
+				content=f"body {slug}{ch} tok{slug}{ch}",
+			)
+
+		ins("slug-a", "1", "2020-01-01")
+		ins("slug-a", "2", db.BULK_TOUCH_EPOCH_DATE)
+		ins("slug-a", "3", "2020-01-11")
+		ins("slug-a", "5", db.BULK_TOUCH_EPOCH_DATE)
+
+		stats = db.interpolate_sibling_dates()
+
+		self.assertEqual(stats["interpolated"], 1)
+		self.assertEqual(stats["extrapolated"], 1)
+		rows = dict(
+			conn.execute(
+				"SELECT story_slug || '-' || chapter_num, date_source FROM stories WHERE chapter_num IS NOT NULL"
+			).fetchall()
+		)
+		self.assertEqual(rows["slug-a-2"], "interpolated")
+		self.assertEqual(rows["slug-a-5"], "extrapolated")
+
+	def test_refetch_stamps_refetch_header(self) -> None:
+		from unittest.mock import MagicMock
+		from unittest.mock import patch
+
+		from storybuilder.downloader import db
+		from storybuilder.downloader import refetch
+
+		conn = db.init_db(self.db_path)
+		self._insert(1, db.BULK_TOUCH_EPOCH_DATE, "stripped", url="https://nifty.org/nifty/gay/college/prov-1")
+		body = "Date: Wed, 28 Dec 2011 22:57:49 -0800\n\nBody provrefetch"
+		resp = MagicMock()
+		resp.status_code = 200
+		resp.text = body
+		with patch("storybuilder.downloader.refetch.requests.get", return_value=resp):
+			refetch.refetch_headerless_dates(delay=0)
+
+		row = conn.execute("SELECT publication_date, date_source FROM stories").fetchone()
+		self.assertEqual(row[0], "2011-12-28")
+		self.assertEqual(row[1], "refetch_header")
+
+
+class TestMaintenanceUpload(unittest.TestCase):
+	"""Tests for GCS upload hooks in story-db maintenance commands."""
+
+	def test_upload_stories_db_resolves_dir_and_file(self) -> None:
+		from unittest.mock import patch
+
+		from storybuilder.db_tools.story_db import _upload_stories_db
+
+		temp = tempfile.mkdtemp()
+		try:
+			with open(os.path.join(temp, "stories.db"), "w"):
+				pass
+			with patch("storybuilder.downloader.storage.upload_many_gcs") as mock_up:
+				ok = _upload_stories_db(temp, "test-bucket")
+			self.assertTrue(ok)
+			pos, kw = mock_up.call_args
+			self.assertEqual(pos[0], "test-bucket")
+			self.assertTrue(pos[2][0].endswith("stories.db"))
+			self.assertEqual(kw["source_directory"], temp)
+
+			with patch("storybuilder.downloader.storage.upload_many_gcs") as mock_up:
+				ok = _upload_stories_db(os.path.join(temp, "stories.db"), "test-bucket")
+			self.assertTrue(ok)
+			mock_up.assert_called_once()
+		finally:
+			shutil.rmtree(temp, ignore_errors=True)
+
+	def test_upload_failure_does_not_raise(self) -> None:
+		from unittest.mock import patch
+
+		from storybuilder.db_tools.story_db import _upload_stories_db
+
+		temp = tempfile.mkdtemp()
+		try:
+			with open(os.path.join(temp, "stories.db"), "w"):
+				pass
+			with patch(
+				"storybuilder.downloader.storage.upload_many_gcs",
+				side_effect=RuntimeError("boom"),
+			):
+				ok = _upload_stories_db(temp, "test-bucket")
+			self.assertFalse(ok)
+		finally:
+			shutil.rmtree(temp, ignore_errors=True)
+
+	def test_maybe_upload_conditions(self) -> None:
+		from argparse import Namespace
+		from unittest.mock import patch
+
+		from storybuilder.db_tools.story_db import _maybe_upload
+
+		base = {"db": "stories/db", "gcs_bucket": "b", "dry_run": False, "no_upload": False}
+		with patch("storybuilder.db_tools.story_db._upload_stories_db") as mock_up:
+			_maybe_upload(Namespace(**base), changed=True)
+			_maybe_upload(Namespace(**base), changed=False)
+			_maybe_upload(Namespace(**{**base, "dry_run": True}), changed=True)
+			_maybe_upload(Namespace(**{**base, "no_upload": True}), changed=True)
+		self.assertEqual(mock_up.call_count, 1)
+
+	def test_cmd_redate_triggers_upload_on_change(self) -> None:
+		from argparse import Namespace
+		from unittest.mock import patch
+
+		from storybuilder.db_tools.story_db import cmd_redate
+
+		args = Namespace(
+			db="stories/db",
+			min_date="1980-01-01",
+			dry_run=False,
+			no_upload=False,
+			gcs_bucket="test-bucket",
+		)
+		stats = {"scanned": 5, "redated": 3, "no_header": 2, "parse_failed": 0, "out_of_range": 0}
+		with (
+			patch("storybuilder.downloader.db.init_db"),
+			patch("storybuilder.downloader.db.close_db"),
+			patch("storybuilder.downloader.db.redate_from_content_headers", return_value=stats),
+			patch("storybuilder.db_tools.story_db._maybe_upload") as mock_maybe,
+		):
+			cmd_redate(None, args)
+		mock_maybe.assert_called_once_with(args, True)
+
+	def test_cmd_interpolate_skips_upload_when_no_changes(self) -> None:
+		from argparse import Namespace
+		from unittest.mock import patch
+
+		from storybuilder.db_tools.story_db import cmd_interpolate
+
+		args = Namespace(
+			db="stories/db",
+			min_date="1980-01-01",
+			dry_run=False,
+			no_upload=False,
+			gcs_bucket="test-bucket",
+		)
+		stats = {"groups": 0, "interpolated": 0, "extrapolated": 0, "skipped_no_chapter": 0, "updated": 0}
+		with (
+			patch("storybuilder.downloader.db.init_db"),
+			patch("storybuilder.downloader.db.close_db"),
+			patch("storybuilder.downloader.db.interpolate_sibling_dates", return_value=stats),
+			patch("storybuilder.db_tools.story_db._maybe_upload") as mock_maybe,
+		):
+			cmd_interpolate(None, args)
+		mock_maybe.assert_called_once_with(args, False)
 
 
 if __name__ == "__main__":
-    unittest.main()
+	unittest.main()

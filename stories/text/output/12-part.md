@@ -1,4 +1,4 @@
-# SYSTEM PREAMBLE: Synthesize speech ONLY for the transcripts under the #### TRANSCRIPT headers. Do NOT read aloud the section titles, scene descriptions, actor names, or director notes.
+# SYSTEM PREAMBLE: Synthesize speech ONLY for the transcripts under the #### TRANSCRIPT headers. Do NOT read aloud the section titles, scene descriptions, actor names, or director notes
 
 # AUDIO PROFILE: Levi, Ewan, Jace, Kerry
 
@@ -22,4 +22,5 @@ Accent: Standard American
 The group enjoys a relaxed dinner and card games, with Levi receiving compliments on his cooking. The evening takes a sharp turn when Kerry, tired from travel, wants to go to bed, but Jace resists. A heated argument breaks out, revealing underlying marital issues, leaving Levi and Ewan shocked.
 
 #### TRANSCRIPT
+
 Levi: Their voices faded away until Ewan and I were left sitting at the table, both of us stunned at the sudden change of the evening.

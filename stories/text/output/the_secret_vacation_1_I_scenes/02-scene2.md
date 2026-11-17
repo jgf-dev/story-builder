@@ -4,23 +4,27 @@ This is a structured scene prompt for Gemini TTS.
 # Vacation with My Straight Brother - Scene 2: The Arrival
 
 ## AUDIO PROFILE
+
 - **Narrator (Levi)**: puck
 - **Ewan**: charon
 - **Jace**: fenrir
 - **Kerry**: aoede
 
 ## THE SCENE
+
 - **Setting**: Outside on the cabin porch and driveway. Breathtaking view of the Smoky Mountains.
 - **Mood**: Surprised, friendly, energetic, but with a slight undercurrent of awkwardness and subtle jealousy.
 - **Narrative Perspective**: First-person (Levi).
 
 ## DIRECTOR'S NOTES
+
 - **Levi** as narrator should be warm, observant, and reflective. In character, he is initially stunned and overwhelmed by Jace's physical transformation.
 - **Jace** is boisterous, masculine, loud, and warm. He gives off an active, physically dominant energy (bear hug, headlock).
 - **Kerry** is polite and complimentary on the surface, but her tone should have a slight edge or flirty undertone when greeting Ewan, which triggers Levi's jealousy.
 - **Ewan** remains calm, friendly, and polite.
 
 ## TRANSCRIPT
+
 [Narrator (Levi)]
 A horn honked outside and we both waved at the car as we walked onto the porch. The cabin we had rented for our get away was far too big for only two couples, but I chose this one on purpose. It had all the amenities we wanted including bedrooms on different levels, plenty of space, a pool table, and a hot tub. The view of the Smoky Mountains surrounding us was breathtaking and exactly what we needed.
 

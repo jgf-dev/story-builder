@@ -119,9 +119,3 @@ def optimize_fts() -> None: ...
 
 
 def close_db() -> None: ...
-
-
-search_all_partitions: Incomplete
-
-
-def get_all_partition_paths() -> list[str]: ...

@@ -1,4 +1,4 @@
-# SYSTEM PREAMBLE: Synthesize speech ONLY for the transcripts under the #### TRANSCRIPT headers. Do NOT read aloud the section titles, scene descriptions, actor names, or director notes.
+# SYSTEM PREAMBLE: Synthesize speech ONLY for the transcripts under the #### TRANSCRIPT headers. Do NOT read aloud the section titles, scene descriptions, actor names, or director notes
 
 # AUDIO PROFILE: Levi, Ewan, Jace, Kerry
 
@@ -23,6 +23,7 @@ Accent: Standard American
 Jace and Kerry arrive at the cabin. Levi, having just been intimate with Ewan, is still adjusting to the shift in atmosphere. He's surprised by Jace's changed appearance and unexpected warmth. A brief moment of jealousy arises as Kerry interacts with Ewan, but Levi quickly dismisses it. The scene establishes the initial dynamics between the four characters.
 
 #### TRANSCRIPT
+
 Jace: Babe, it's my little brother.
 Jace: Besides, he's not exactly a minor. He is twenty, and it's not like we're going to be driving. He's cool.
 Levi: He had never called me 'cool' before. Never!

@@ -1,14 +1,31 @@
+import bisect
+import datetime
 import logging as std_logging
 import os
 import re
 import sqlite3
+import statistics
 import threading
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 from typing import ClassVar
 
-from sqlalchemy import Column, Integer, MetaData, Table, Text, func, literal_column
+from sqlalchemy import Column
+from sqlalchemy import Integer
+from sqlalchemy import MetaData
+from sqlalchemy import Table
+from sqlalchemy import Text
+from sqlalchemy import func
+from sqlalchemy import literal_column
 from sqlalchemy.engine import Engine
-from sqlmodel import Field, Session, SQLModel, col, create_engine, select, text
+from sqlmodel import Field
+from sqlmodel import Session
+from sqlmodel import SQLModel
+from sqlmodel import col
+from sqlmodel import create_engine
+from sqlmodel import select
+from sqlmodel import text
+
 
 logging = std_logging.getLogger(__name__)
 
@@ -28,6 +45,7 @@ class Story(SQLModel, table=True):
 	author_name: str | None = Field(default=None, index=True)
 	author_email: str | None = Field(default=None)
 	publication_date: str | None = Field(default=None, index=True)
+	date_source: str = Field(default="listing", sa_column_kwargs={"server_default": text("'listing'")})
 	url: str | None = Field(default=None)
 	char_count: int = Field(index=True)
 	word_count: int = Field()
@@ -57,6 +75,7 @@ STORY_COLUMNS = (
 	"author_name",
 	"author_email",
 	"publication_date",
+	"date_source",
 	"url",
 	"char_count",
 	"word_count",
@@ -76,6 +95,7 @@ CREATE TABLE IF NOT EXISTS stories (
     author_name     TEXT,
     author_email    TEXT,
     publication_date TEXT,
+    date_source     TEXT NOT NULL DEFAULT 'listing',
     url             TEXT,
     char_count      INTEGER NOT NULL,
     word_count      INTEGER NOT NULL,
@@ -122,30 +142,55 @@ CREATE INDEX IF NOT EXISTS idx_stories_char_count      ON stories(char_count);
 _conn: "sqlite3.Connection | None" = None
 _engine: "Engine | None" = None
 _connections: dict[str, sqlite3.Connection] = {}
-_is_partitioned = False
 _db_dir: "str | None" = None
 _monolithic_db_path: "str | None" = None
 _db_path_global: "str | None" = None
 _lock = threading.Lock()
 
-# -- Regex patterns -----------------------------------------------------
-
-_EMAIL_AUTHOR_RE = re.compile(r"^((?:[^<>\n]+|<[^<>\n]+>)+)\s*<([^<>\n]+)>\s*$")
-_CHAPTER_SUFFIX_RE = re.compile(r"^(.+?)-(\d+)$")
-
 # -- Author parsing -----------------------------------------------------
+
+_CHAPTER_SUFFIX_RE = re.compile(r"^(.+?)-(\d+)$")
+_KNOWN_ORIENTATIONS = {"gay", "lesbian", "bisexual", "transgender", "bestiality"}
+
+# -- Bulk-touch detection ----------------------------------------------
+
+# Sentinel publication_date for stories whose listing date was destroyed by
+# archive-side bulk file rewrites (mtime touch events). Unix epoch keeps them
+# identifiable and out of year-over-year distributions.
+BULK_TOUCH_EPOCH_DATE = "1970-01-01"
+
+# Organic maximum observed is ~100 stories/day (1993-07-18: 102); bulk-touch
+# days run 400-700+. Any exact date above this threshold is an artifact.
+BULK_TOUCH_DAY_THRESHOLD = 150
+
+# Allowed values for stories.date_source — provenance of publication_date,
+# ordered by confidence: exact sources first, estimates last.
+DATE_SOURCE_LISTING = "listing"  # original scrape listing date (server mtime)
+DATE_SOURCE_CONTENT_HEADER = "content_header"  # usenet Date: header in content
+DATE_SOURCE_REFETCH_HEADER = "refetch_header"  # Date: header from archive re-fetch
+DATE_SOURCE_INTERPOLATED = "interpolated"  # between dated sibling chapters
+DATE_SOURCE_EXTRAPOLATED = "extrapolated"  # series-end pace estimate
+DATE_SOURCE_UNRESOLVED = "unresolved"  # bulk-touch victim at the epoch sentinel
 
 
 def _parse_author(raw: "str | None") -> "tuple[str | None, str | None]":
 	"""Parse 'Name <email>' or bare email into (name, email)."""
 	if not raw:
 		return None, None
-	m = _EMAIL_AUTHOR_RE.match(raw)
-	if m:
-		return m.group(1).strip(), m.group(2).strip()
+	raw = raw.strip()
+	if not raw:
+		return None, None
+
+	if raw.endswith(">") and "<" in raw:
+		last_lt = raw.rfind("<")
+		name_part = raw[:last_lt].strip()
+		email_part = raw[last_lt + 1 : -1].strip()
+		if email_part:
+			return (name_part if name_part else None), email_part
+
 	if "@" in raw and "<" not in raw:
-		return None, raw.strip()
-	return raw.strip(), None
+		return None, raw
+	return raw, None
 
 
 # -- Path parsing -------------------------------------------------------
@@ -159,24 +204,59 @@ def _parse_output_path(output_path: str) -> "tuple[str, str, str, int | None]":
 	"""
 	parts = Path(output_path).parts
 
-	# Expected layouts (parts indices):
-	# 3-part:   [output_dir, orientation, file] -> category = filename
-	# 4-part:   [output_dir, orientation, category, file]
-	# 5+ part:  [output_dir, orientation, category, story_slug, file]
-
 	if len(parts) < 3:
 		raise ValueError(f"Invalid output path: {output_path}. Must have at least 3 parts.")
 
-	# orientation is the second path element
-	orientation = parts[1]
+	# Check if any part matches a known orientation
+	orientation_idx = next(
+		(i for i, p in enumerate(parts) if p.lower() in _KNOWN_ORIENTATIONS),
+		None,
+	)
 
+	if orientation_idx is not None and orientation_idx < len(parts) - 1:
+		orientation = parts[orientation_idx]
+		sub_parts = parts[orientation_idx + 1 :]
+		filename_stem = Path(sub_parts[-1]).stem
+
+		if len(sub_parts) == 1:
+			category = sub_parts[0]
+			story_slug = filename_stem
+			chapter_num = None
+			if m := _CHAPTER_SUFFIX_RE.match(story_slug):
+				story_slug = m.group(1)
+				chapter_num = int(m.group(2))
+			return orientation, category, story_slug, chapter_num
+
+		if len(sub_parts) == 2:
+			category = sub_parts[0]
+			story_slug = filename_stem
+			chapter_num = None
+			if m := _CHAPTER_SUFFIX_RE.match(story_slug):
+				story_slug = m.group(1)
+				chapter_num = int(m.group(2))
+			return orientation, category, story_slug, chapter_num
+
+		# 3+ sub_parts: category, story_slug, ..., file
+		category = sub_parts[0]
+		story_slug = sub_parts[-2]
+		chapter_num = None
+		if m := _CHAPTER_SUFFIX_RE.match(story_slug):
+			story_slug = m.group(1)
+			chapter_num = int(m.group(2))
+			return orientation, category, story_slug, chapter_num
+
+		if m := _CHAPTER_SUFFIX_RE.match(filename_stem):
+			chapter_num = int(m.group(2))
+
+		return orientation, category, story_slug, chapter_num
+
+	# Fallback legacy behavior
+	orientation = parts[1]
 	filename_stem = Path(parts[-1]).stem
 
 	if len(parts) == 3:
-		# category is the filename for the short form, slug is stem
 		category = parts[2]
 		story_slug = filename_stem
-		# detect chapter number in filename (e.g., story-3)
 		chapter_num = None
 		if m := _CHAPTER_SUFFIX_RE.match(story_slug):
 			story_slug = m.group(1)
@@ -192,17 +272,14 @@ def _parse_output_path(output_path: str) -> "tuple[str, str, str, int | None]":
 			chapter_num = int(m.group(2))
 		return orientation, category, story_slug, chapter_num
 
-	# 5+ parts: story_slug provided as the penultimate element
 	category = parts[2]
 	story_slug = parts[-2]
 	chapter_num = None
-	# If story_slug itself encodes chapter (unlikely), prefer that.
 	if m := _CHAPTER_SUFFIX_RE.match(story_slug):
 		story_slug = m.group(1)
 		chapter_num = int(m.group(2))
 		return orientation, category, story_slug, chapter_num
 
-	# Otherwise, check filename for chapter suffix but do not override slug.
 	if m := _CHAPTER_SUFFIX_RE.match(filename_stem):
 		chapter_num = int(m.group(2))
 
@@ -246,7 +323,12 @@ def _resume_interrupted_migration(conn: sqlite3.Connection) -> bool:
 
 
 def migrate_legacy_schema(conn: sqlite3.Connection) -> bool:
-	"""Rebuild legacy story databases that still include the removed email_date column."""
+	"""Rebuild legacy story databases that still include the removed email_date column.
+
+	OBSOLETE: The standalone migration script (scripts/migrate_email_date.py) has been
+	removed. This now runs only as a defensive self-heal inside init_db / _migrate_schema
+	for any remaining legacy database; no new migrations are expected.
+	"""
 	if _resume_interrupted_migration(conn):
 		return True
 
@@ -294,6 +376,11 @@ def migrate_legacy_schema(conn: sqlite3.Connection) -> bool:
 def _migrate_schema(conn: "sqlite3.Connection") -> None:
 	"""Apply schema migrations to an existing partition or database file."""
 	migrate_legacy_schema(conn)
+	columns = _table_columns(conn, "stories")
+	if columns and "date_source" not in columns:
+		conn.execute("ALTER TABLE stories ADD COLUMN date_source TEXT NOT NULL DEFAULT 'listing'")
+		conn.commit()
+		logging.info("Added date_source column to stories table")
 
 
 # -- DB init ------------------------------------------------------------
@@ -301,7 +388,7 @@ def _migrate_schema(conn: "sqlite3.Connection") -> None:
 
 def init_db(db_path: str) -> "sqlite3.Connection":
 	"""Initialize the database (idempotent). Returns the connection."""
-	global _conn, _is_partitioned, _db_dir, _monolithic_db_path, _engine, _db_path_global
+	global _conn, _db_dir, _monolithic_db_path, _engine, _db_path_global
 
 	is_dir = Path(db_path).is_dir() or (not db_path.endswith(".db") and not Path(db_path).suffix)
 
@@ -312,7 +399,6 @@ def init_db(db_path: str) -> "sqlite3.Connection":
 		Path(os.path.dirname(db_path) or ".").mkdir(exist_ok=True, parents=True)
 		resolved_path = db_path
 
-	_is_partitioned = False
 	_db_dir = os.path.dirname(resolved_path)
 	_monolithic_db_path = resolved_path
 	_db_path_global = resolved_path
@@ -524,6 +610,7 @@ def insert_story(
 	story_date: str,
 	url: str,
 	content: str,
+	date_source: str = DATE_SOURCE_LISTING,
 ) -> bool:
 	"""Insert a story into the database. Thread-safe."""
 	engine = _engine
@@ -548,6 +635,7 @@ def insert_story(
 				db_story.author_name = author_name
 				db_story.author_email = author_email
 				db_story.publication_date = story_date
+				db_story.date_source = date_source
 				db_story.url = url
 				db_story.char_count = char_count
 				db_story.word_count = word_count
@@ -564,6 +652,7 @@ def insert_story(
 					author_name=author_name,
 					author_email=author_email,
 					publication_date=story_date,
+					date_source=date_source,
 					url=url,
 					char_count=char_count,
 					word_count=word_count,
@@ -611,6 +700,7 @@ def get_story(output_path: str, story_date: str = "") -> "dict | None":
 					"title": db_story.title or "Unknown",
 					"author": author,
 					"story_date": db_story.publication_date,
+					"date_source": db_story.date_source,
 					"url": db_story.url,
 					"content": db_story.content,
 				}
@@ -618,6 +708,270 @@ def get_story(output_path: str, story_date: str = "") -> "dict | None":
 		except Exception as e:
 			std_logging.exception("Unexpected error retrieving story at %s", output_path, exc_info=e)
 			return None
+
+
+def flag_bulk_touched_dates(day_threshold: int = BULK_TOUCH_DAY_THRESHOLD) -> int:
+	"""Reset implausibly dense publication dates to the unix-epoch sentinel.
+
+	Archive migrations rewrite file mtimes, so thousands of stories can share
+	a listing date unrelated to their real publication date. Any exact date
+	carrying more than ``day_threshold`` stories is treated as a bulk-touch
+	artifact and every story on it gets
+	``publication_date = BULK_TOUCH_EPOCH_DATE``.
+
+	``publication_date`` is not FTS-indexed, so the ``stories_au`` trigger is
+	dropped for the duration of the bulk UPDATE (avoiding a full
+	re-tokenization of every affected document) and recreated verbatim after.
+	Returns the number of rows flagged.
+	"""
+	conn = _conn
+	if conn is None:
+		return 0
+
+	with _lock:
+		rows = conn.execute(
+			"SELECT publication_date FROM stories "
+			"WHERE publication_date IS NOT NULL AND publication_date != '' "
+			"AND publication_date != ? "
+			"GROUP BY publication_date HAVING COUNT(*) > ?",
+			(BULK_TOUCH_EPOCH_DATE, day_threshold),
+		).fetchall()
+		if not rows:
+			return 0
+		dates = [r[0] for r in rows]
+
+		au = conn.execute("SELECT sql FROM sqlite_master WHERE type='trigger' AND name='stories_au'").fetchone()
+		try:
+			if au:
+				conn.execute("DROP TRIGGER stories_au")
+			flagged = 0
+			chunk_size = 500
+			for i in range(0, len(dates), chunk_size):
+				chunk = dates[i : i + chunk_size]
+				placeholders = ",".join("?" * len(chunk))
+				cur = conn.execute(
+					f"UPDATE stories SET publication_date=?, date_source=? WHERE publication_date IN ({placeholders})",
+					[BULK_TOUCH_EPOCH_DATE, DATE_SOURCE_UNRESOLVED, *chunk],
+				)
+				flagged += cur.rowcount
+			conn.commit()
+		finally:
+			if au:
+				conn.execute(au[0])
+			conn.commit()
+
+	logging.info(
+		"Flagged %d stories on %d bulk-touched dates (>%d/day) as %s: %s%s",
+		flagged,
+		len(dates),
+		day_threshold,
+		BULK_TOUCH_EPOCH_DATE,
+		", ".join(dates[:5]),
+		", ..." if len(dates) > 5 else "",
+	)
+	return flagged
+
+
+_DATE_HEADER_RE = re.compile(r"(?m)^Date:\s+(.+)$")
+
+
+def redate_from_content_headers(
+	epoch_date: str = BULK_TOUCH_EPOCH_DATE,
+	min_date: str = "1980-01-01",
+	dry_run: bool = False,
+) -> "dict[str, int]":
+	"""Recover true publication dates from embedded usenet ``Date:`` headers.
+
+	Stories flagged by :func:`flag_bulk_touched_dates` still carry their
+	original usenet-style ``Date:`` header inside ``content`` in ~80% of
+	cases. For each flagged story the first header is parsed (RFC 2822 via
+	``email.utils.parsedate_to_datetime``) and, when the resulting date falls
+	within ``[min_date, today]``, written back to ``publication_date``.
+
+	``publication_date`` is not FTS-indexed, so the ``stories_au`` trigger is
+	dropped for the duration of the batched UPDATE and recreated verbatim
+	after. Returns stats: scanned, redated, no_header, parse_failed,
+	out_of_range.
+	"""
+	conn = _conn
+	stats = {"scanned": 0, "redated": 0, "no_header": 0, "parse_failed": 0, "out_of_range": 0}
+	if conn is None:
+		return stats
+
+	min_d = datetime.date.fromisoformat(min_date)
+	max_d = datetime.date.today()
+	updates: "list[tuple[str, str, int]]" = []
+
+	with _lock:
+		cursor = conn.execute(
+			"SELECT id, substr(content, 1, 2000) FROM stories WHERE publication_date = ?",
+			(epoch_date,),
+		)
+		for row_id, head in cursor:
+			stats["scanned"] += 1
+			if stats["scanned"] % 25000 == 0:
+				logging.info("redate scan: %d scanned, %d redatable so far", stats["scanned"], len(updates))
+			m = _DATE_HEADER_RE.search(head or "")
+			if not m:
+				stats["no_header"] += 1
+				continue
+			try:
+				dt = parsedate_to_datetime(m.group(1).strip())
+			except (TypeError, ValueError):
+				stats["parse_failed"] += 1
+				continue
+			d = dt.date()
+			if d < min_d or d > max_d:
+				stats["out_of_range"] += 1
+				continue
+			updates.append((d.isoformat(), DATE_SOURCE_CONTENT_HEADER, row_id))
+		cursor.close()
+
+		stats["redated"] = len(updates)
+		if dry_run or not updates:
+			logging.info(
+				"Redate%s: scanned=%d redatable=%d no_header=%d parse_failed=%d out_of_range=%d",
+				" dry run" if dry_run else "",
+				stats["scanned"],
+				stats["redated"],
+				stats["no_header"],
+				stats["parse_failed"],
+				stats["out_of_range"],
+			)
+			return stats
+
+		au = conn.execute("SELECT sql FROM sqlite_master WHERE type='trigger' AND name='stories_au'").fetchone()
+		try:
+			if au:
+				conn.execute("DROP TRIGGER stories_au")
+			conn.executemany("UPDATE stories SET publication_date=?, date_source=? WHERE id=?", updates)
+			conn.commit()
+		finally:
+			if au:
+				conn.execute(au[0])
+			conn.commit()
+
+	logging.info(
+		"Redated %d/%d stories from content Date: headers (no_header=%d, parse_failed=%d, out_of_range=%d)",
+		stats["redated"],
+		stats["scanned"],
+		stats["no_header"],
+		stats["parse_failed"],
+		stats["out_of_range"],
+	)
+	return stats
+
+
+def interpolate_sibling_dates(min_date: str = "1980-01-01", dry_run: bool = False) -> "dict[str, int]":
+	"""Estimate dates for epoch-flagged chapters from dated sibling chapters.
+
+	Chapters of a multi-chapter story (same ``category`` + ``story_slug``)
+	were posted in chapter order, so dated chapters form a monotonic
+	timeline. Epoch-flagged chapters with a ``chapter_num`` get a date by
+	linear interpolation between the nearest dated chapters on either side,
+	or pace-based extrapolation at the series ends (median days/chapter over
+	the 10 most recent known gaps), clamped to ``[min_date, today]``.
+
+	Date-only updates: the ``stories_au`` trigger is bypassed and restored as
+	in :func:`redate_from_content_headers`. Returns stats: groups,
+	interpolated, extrapolated, skipped_no_chapter, updated.
+	"""
+	conn = _conn
+	stats = {"groups": 0, "interpolated": 0, "extrapolated": 0, "skipped_no_chapter": 0, "updated": 0}
+	if conn is None:
+		return stats
+
+	min_d = datetime.date.fromisoformat(min_date)
+	max_d = datetime.date.today()
+
+	groups = conn.execute(
+		"SELECT category, story_slug FROM stories "
+		"WHERE story_slug IS NOT NULL "
+		"GROUP BY category, story_slug "
+		"HAVING SUM(publication_date = ?) > 0 "
+		"AND SUM(publication_date != ? AND publication_date >= ?) > 0",
+		(BULK_TOUCH_EPOCH_DATE, BULK_TOUCH_EPOCH_DATE, min_date),
+	).fetchall()
+	stats["groups"] = len(groups)
+
+	updates: "list[tuple[str, str, int]]" = []
+	for category, slug in groups:
+		rows = conn.execute(
+			"SELECT id, chapter_num, publication_date FROM stories "
+			"WHERE category=? AND story_slug=? AND chapter_num IS NOT NULL",
+			(category, slug),
+		).fetchall()
+		known: "dict[int, datetime.date]" = {}
+		unknown: "list[tuple[int, int]]" = []
+		for rid, ch, pub in rows:
+			if pub and pub != BULK_TOUCH_EPOCH_DATE and pub >= min_date:
+				try:
+					known[ch] = datetime.date.fromisoformat(pub[:10])
+				except ValueError:
+					continue
+			elif pub == BULK_TOUCH_EPOCH_DATE:
+				unknown.append((rid, ch))
+		stats["skipped_no_chapter"] += conn.execute(
+			"SELECT COUNT(*) FROM stories "
+			"WHERE category=? AND story_slug=? AND chapter_num IS NULL AND publication_date=?",
+			(category, slug, BULK_TOUCH_EPOCH_DATE),
+		).fetchone()[0]
+		if not known or not unknown:
+			continue
+
+		sorted_known = sorted(known.items())
+		known_chs = [c for c, _ in sorted_known]
+		known_dates = [d for _, d in sorted_known]
+
+		# Median days-per-chapter over the most recent known gaps.
+		gaps = [
+			((d2 - d1).days / (c2 - c1), c1) for (c1, d1), (c2, d2) in zip(sorted_known, sorted_known[1:]) if c2 > c1
+		]
+		recent = [g for g, _ in sorted(gaps, key=lambda x: x[1], reverse=True)[:10]]
+		pace = max(statistics.median(recent), 0.0) if recent else 30.0
+
+		for rid, ch in unknown:
+			idx = bisect.bisect_left(known_chs, ch)
+			prev = (known_chs[idx - 1], known_dates[idx - 1]) if idx > 0 else None
+			nxt = (known_chs[idx], known_dates[idx]) if idx < len(known_chs) else None
+			if prev and nxt:
+				span = nxt[0] - prev[0]
+				frac = (ch - prev[0]) / span if span else 0.0
+				d = prev[1] + datetime.timedelta(days=round((nxt[1] - prev[1]).days * frac))
+				source = DATE_SOURCE_INTERPOLATED
+				stats["interpolated"] += 1
+			elif prev:
+				d = prev[1] + datetime.timedelta(days=round(pace * (ch - prev[0])))
+				source = DATE_SOURCE_EXTRAPOLATED
+				stats["extrapolated"] += 1
+			elif nxt:
+				d = nxt[1] - datetime.timedelta(days=round(pace * (nxt[0] - ch)))
+				source = DATE_SOURCE_EXTRAPOLATED
+				stats["extrapolated"] += 1
+			else:
+				continue
+			d = max(min_d, min(d, max_d))
+			updates.append((d.isoformat(), source, rid))
+
+	stats["updated"] = len(updates)
+	if dry_run or not updates:
+		logging.info("Interpolate%s: %s", " dry run" if dry_run else "", stats)
+		return stats
+
+	with _lock:
+		au = conn.execute("SELECT sql FROM sqlite_master WHERE type='trigger' AND name='stories_au'").fetchone()
+		try:
+			if au:
+				conn.execute("DROP TRIGGER stories_au")
+			conn.executemany("UPDATE stories SET publication_date=?, date_source=? WHERE id=?", updates)
+			conn.commit()
+		finally:
+			if au:
+				conn.execute(au[0])
+			conn.commit()
+
+	logging.info("Interpolated dates for %d stories across %d series: %s", len(updates), len(groups), stats)
+	return stats
 
 
 def optimize_fts() -> None:
@@ -634,7 +988,7 @@ def optimize_fts() -> None:
 
 
 def close_db() -> None:
-	global _conn, _engine, _is_partitioned, _db_dir, _monolithic_db_path, _db_path_global
+	global _conn, _engine, _db_dir, _monolithic_db_path, _db_path_global
 	with _lock:
 		if _conn is not None:
 			try:
@@ -650,43 +1004,6 @@ def close_db() -> None:
 			except Exception:
 				logging.debug("Engine dispose failed", exc_info=True)
 		_engine = None
-		_is_partitioned = False
 		_db_dir = None
 		_monolithic_db_path = None
 		_db_path_global = None
-
-
-# Backward-compatible alias
-search_all_partitions = search_stories
-
-
-def get_all_partition_paths() -> list[str]:
-	"""Return filesystem paths to partitioned story .db files.
-
-	Provides the function referenced by scripts/dashboard/__init__.py
-	for legacy compatibility. Returns paths to year-specific DBs
-	when using partitioned mode.
-	"""
-	from pathlib import Path
-
-	candidates: list[Path] = []
-	if _db_dir:
-		candidates.append(Path(_db_dir))
-	candidates.extend(
-		[
-			Path.cwd() / "stories" / "db",
-			Path("stories") / "db",
-			Path("stories"),
-		],
-	)
-
-	for base in candidates:
-		if base.exists() and base.is_dir():
-			dbs = sorted(
-				str(p)
-				for p in base.glob("*.db")
-				if not p.name.startswith(".") and p.name not in {"stories.db", "meta.db", "nlp_analysis.db"}
-			)
-			if dbs:
-				return dbs
-	return []

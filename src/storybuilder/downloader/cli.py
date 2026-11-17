@@ -8,14 +8,23 @@ from pathlib import Path
 from storybuilder.downloader.storage import upload_many as upload_many_gcs
 from storybuilder.downloader.storage import upload_many_s3
 
+
 # Add project root to sys.path to enable absolute imports when run directly as a script
 if __name__ == "__main__" and __package__ is None:
 	sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from storybuilder.downloader import db, network
-from storybuilder.downloader.cache import load_cache, safe_print, save_cache
-from storybuilder.downloader.scraper import get_subcategories, process_subcategory
+from storybuilder.analytics import capture_event
+from storybuilder.analytics import capture_exception
+from storybuilder.analytics import initialize_posthog
+from storybuilder.downloader import db
+from storybuilder.downloader import network
+from storybuilder.downloader.cache import load_cache
+from storybuilder.downloader.cache import safe_print
+from storybuilder.downloader.cache import save_cache
+from storybuilder.downloader.scraper import get_subcategories
+from storybuilder.downloader.scraper import process_subcategory
 from storybuilder.downloader.writer import download_single_target
+from storybuilder.downloader.writer import is_already_downloaded
 
 
 def _parse_args() -> argparse.Namespace:
@@ -56,13 +65,13 @@ def _parse_args() -> argparse.Namespace:
 	)
 	parser.add_argument(
 		"--socks5-proxy",
-		default="192.168.2.10:37459",
+		default=None,
 		help="SOCKS5 proxy server to route requests through (e.g. 127.0.0.1:1080).",
 	)
 	parser.add_argument(
 		"--rotate-on-refusal",
 		action="store_true",
-		default=True,
+		default=False,
 		help="Enable IP rotation using windscribe-cli if requests are refused or fail.",
 	)
 	parser.add_argument(
@@ -80,7 +89,7 @@ def _parse_args() -> argparse.Namespace:
 	parser.add_argument(
 		"--db",
 		default="stories/db",
-		help="SQLite database path or directory. Stories are inserted into partitioned databases under this path as they download. Set to empty string to disable.",
+		help="SQLite database path or directory. Stories are inserted into the monolithic database (stories.db) under this path as they download. Set to empty string to disable.",
 	)
 	parser.add_argument(
 		"--s3-bucket",
@@ -199,6 +208,7 @@ def _scrape_subcategories(
 				try:
 					_merge_targets(all_story_targets, future.result())
 				except Exception as e:
+					capture_exception(e, {"operation": "scrape_subcategory"})
 					safe_print(f"Error occurred in scraping worker thread: {e}")
 	else:
 		for sub in subcategories:
@@ -235,6 +245,7 @@ def _download_stories_parallel(
 				if future.result():
 					successful_downloads += 1
 			except Exception as e:
+				capture_exception(e, {"operation": "download_story"})
 				print(f"Error occurred in download worker thread: {e}")
 	return successful_downloads
 
@@ -248,6 +259,14 @@ def _download_stories_sequential(
 	successful_downloads = 0
 	for idx, (key, target) in enumerate(all_story_targets.items()):
 		idx_str = f"{idx + 1}/{total_downloads}"
+		if not force and is_already_downloaded(
+			idx_str,
+			target["url"],
+			target["output_paths"],
+			target["date"],
+		):
+			successful_downloads += 1
+			continue
 		success = download_single_target(
 			idx_str,
 			target["url"],
@@ -329,6 +348,7 @@ def _upload_to_cloud(args: argparse.Namespace) -> None:
 
 
 def main() -> None:
+	initialize_posthog()
 	args = _parse_args()
 
 	if not _setup_network(args):
@@ -365,9 +385,25 @@ def main() -> None:
 	finally:
 		save_cache(cache_dir)
 
-	_download_stories(all_story_targets, args)
+	successful_downloads = _download_stories(all_story_targets, args)
+	capture_event(
+		"download_run_completed",
+		{
+			"category": args.category,
+			"target_count": len(all_story_targets),
+			"successful_downloads": successful_downloads,
+			"failed_downloads": len(all_story_targets) - successful_downloads,
+			"force_enabled": args.force,
+			"parallel_downloads": args.max_workers > 1,
+			"database_enabled": bool(args.db),
+			"cloud_upload_enabled": bool(args.s3_bucket or args.gcs_bucket),
+		},
+	)
 
 	if args.db:
+		flagged = db.flag_bulk_touched_dates()
+		if flagged:
+			print(f"Flagged {flagged} bulk-touched stories with publication_date={db.BULK_TOUCH_EPOCH_DATE}")
 		db.optimize_fts()
 		db.close_db()
 		print(f"Stories saved to database: {args.db}")

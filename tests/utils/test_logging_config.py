@@ -1,6 +1,7 @@
 import logging
 
-from storybuilder.utils.logging_config import get_logger, set_library_log_levels
+from storybuilder.utils.logging_config import get_logger
+from storybuilder.utils.logging_config import set_library_log_levels
 
 
 def test_set_library_log_levels_default() -> None:

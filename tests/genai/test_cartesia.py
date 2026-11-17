@@ -3,13 +3,11 @@ import tempfile
 import unittest
 import wave
 
-from storybuilder.genai.cartesia_client import (
-    NAME_FALLBACK_MAP,
-    VOICE_MAP,
-    parse_speech_config_cartesia,
-    parse_transcript_segments,
-    wave_file,
-)
+from storybuilder.genai.cartesia_client import NAME_FALLBACK_MAP
+from storybuilder.genai.cartesia_client import VOICE_MAP
+from storybuilder.genai.cartesia_client import parse_speech_config_cartesia
+from storybuilder.genai.cartesia_client import parse_transcript_segments
+from storybuilder.genai.cartesia_client import wave_file
 
 
 class TestCartesiaClient(unittest.TestCase):

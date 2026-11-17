@@ -1,0 +1,13 @@
+----------------------------------------------------------------
+Tue Oct 13 09:59:13 UTC 2026:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.17.1.0 - (1913217): instance a816c00e-01a1-34b3-b09a-00000c3df6d8 
+on database directory memory:/home/jgf2/mnt/xstore/stories/stories_clean.csv with class loader com.intellij.database.remote.jdbc.impl.JdbcClassLoader$JdbcClassLoaderImpl@62fa6fe0 
+Loaded from file:/home/jgf2/.var/app/com.jetbrains.DataGrip/config/JetBrains/DataGrip2026.2/jdbc-drivers/Apache%20Derby/10.17.1.0/org/apache/derby/derby/10.17.1.0/derby-10.17.1.0.jar
+java.vendor=JetBrains s.r.o.
+java.runtime.version=25.0.4+1-b508.27
+user.dir=/home/jgf2/git/voice/story-builder
+os.name=Linux
+os.arch=amd64
+os.version=7.0.0-38-generic
+derby.system.home=null
+Database Class Loader started - derby.database.classpath=''

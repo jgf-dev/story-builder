@@ -5,12 +5,15 @@ import sqlite3
 from argparse import Namespace
 from collections import Counter
 from pathlib import Path
-from sqlite3 import Connection, Cursor
+from sqlite3 import Connection
+from sqlite3 import Cursor
 
 import spacy
 from spacy.language import Language
-from thinc.api import require_gpu, set_gpu_allocator
+from thinc.api import require_gpu
+from thinc.api import set_gpu_allocator
 from tqdm import tqdm
+
 
 DB_PATH = "stories/db/nlp_analysis.db"
 ALLOWED_LABELS = {

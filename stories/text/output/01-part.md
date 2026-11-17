@@ -1,10 +1,10 @@
-# SYSTEM PREAMBLE: Synthesize speech ONLY for the transcripts under the #### TRANSCRIPT headers. Do NOT read aloud the section titles, scene descriptions, actor names, or director notes.
+# SYSTEM PREAMBLE: Synthesize speech ONLY for the transcripts under the #### TRANSCRIPT headers. Do NOT read aloud the section titles, scene descriptions, actor names, or director notes
 
 # AUDIO PROFILE: Levi & Ewan
 
 ## "The Secret Intimacy"
 
-### THE SCENE: The main bedroom of the Smoky Mountains cabin.
+### THE SCENE: The main bedroom of the Smoky Mountains cabin
 
 The air in the bedroom is thick with recent passion, a faint smell of industrial cleaner from the pillows mixes with the lingering scent of sex and sweat. It's a hurried, intimate moment before family arrives, making every sound and breath feel amplified in the enclosed space. The light is dim, indicating either early morning or a drawn curtain. Body heat is still radiating from the bed.
 
@@ -23,6 +23,7 @@ Accent: Standard American
 Levi and Ewan are having a final, passionate, and hurried sexual encounter in their bedroom before Levi's brother Jace and sister-in-law Kerry arrive. The sense of urgency and secrecy adds a layer of forbidden excitement to their intimacy, forcing them to quickly clean up and prepare for the impending arrival.
 
 #### TRANSCRIPT
+
 Levi: [adoration] He was tearing up my insides, and I was loving every minute of it!
 Levi: My boyfriend, Ewan, was not taking any mercy on me.
 Levi: I was ass-up on the bed with my head buried in a strange set of pillows that smelled of industrial cleaner.

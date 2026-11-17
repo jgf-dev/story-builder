@@ -4,19 +4,23 @@ This is a structured scene prompt for Gemini TTS.
 # Vacation with My Straight Brother - Scene 4: A Brother's Duty
 
 ## AUDIO PROFILE
+
 - **Narrator (Levi)**: puck
 - **Ewan**: charon
 
 ## THE SCENE
+
 - **Setting**: Cabin Bedroom (Main Floor) and Living Room Window.
 - **Mood**: Playful, intimate, then startled, curious, and ending with mature concern and warmth.
 - **Narrative Perspective**: First-person (Levi).
 
 ## DIRECTOR'S NOTES
+
 - **Levi**'s narrator voice should start with a warm, playful tone. His dialogue with Ewan is flirtatious and sexy, but shifts to startled curiosity, and then to hesitant deflection before accepting his duty to his brother.
 - **Ewan**'s voice is warm, loving, playful, and then turns serious, mature, and deeply supportive as he encourages Levi to go help Jace.
 
 ## TRANSCRIPT
+
 [Narrator (Levi)]
 After we got everything cleaned up, and I washed the dishes, Ewan and I locked the cabin up and made our way to our own room. We had chosen the larger bedroom on the main floor giving Jace and Kerry the entire second floor to themselves.
 

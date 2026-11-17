@@ -124,16 +124,5 @@ class TestDBExport(unittest.TestCase):
             shutil.rmtree(temp_dir)
 
 
-class TestDBPartitionPaths(unittest.TestCase):
-    """Tests for get_all_partition_paths."""
-
-    def test_get_all_partition_paths_returns_list(self) -> None:
-        """Returns a list of partition path strings."""
-        from storybuilder.downloader import db
-
-        paths = db.get_all_partition_paths()
-        self.assertIsInstance(paths, list)
-
-
 if __name__ == "__main__":
     unittest.main()

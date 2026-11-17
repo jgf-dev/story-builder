@@ -81,7 +81,7 @@ def resolve_file(filepath):
 			"src/storybuilder/downloader/cache.py",
 			"tests/downloader/test_database.py",
 			"tests/downloader/test_dashboard.py",
-			"scripts/story_db.py",
+			"src/storybuilder/db_tools/story_db.py",
 		]:
 			return ours.rstrip("\r\n") + "\n"
 
